@@ -148,6 +148,81 @@ Track user shopping behavior by correlating clicks and purchases within a 30-min
 - **Combines with valueJoiner**: When matching user_id found in both streams within time window, combines click and purchase data into single result
 - **Outputs correlations**: Returns JSON showing both events with conversion analysis (did click lead to purchase, what products involved)
 
+```mermaid
+--8<-- "snippets/mermaid-init.txt"
+graph LR
+    %% Input streams
+    Clicks[(product_clicks<br/>key: user_id)]
+    Purchases[(product_purchases<br/>key: user_id)]
+
+    %% Window stores buffering both sides
+    ClickStore[(Window store<br/>clicks, 60m)]
+    PurchaseStore[(Window store<br/>purchases, 60m)]
+
+    %% Join
+    Join["<code>join</code><br/>same user_id, within 30m<br/>correlate_click_and_purchase"]
+
+    %% Output
+    Output[(correlated_user_actions)]
+
+    %% Data Flow
+    Clicks --> Join
+    Purchases --> Join
+    Join -.->|"buffer & look up"| ClickStore
+    Join -.->|"buffer & look up"| PurchaseStore
+    Join -->|"click + purchase"| Output
+
+    %% Styling
+    --8<-- "snippets/mermaid-classes.txt"
+
+    class Clicks,Purchases,Output topic
+    class Join operation
+    class ClickStore,PurchaseStore store
+```
+
+The diagram below follows example clicks and purchases through the join. A click and a purchase are joined only when they have the same key (user) **and** happened at most 30 minutes apart. Everything else produces no output:
+
+```mermaid
+--8<-- "snippets/mermaid-init.txt"
+graph TB
+    %% Input topics
+    ClickTopic[(product_clicks)]
+    PurchaseTopic[(product_purchases)]
+    Clicks@{ shape: docs, label: "<b>user1</b>: click PROD001 at 10:00<br/><b>user2</b>: click PROD003 at 10:05<br/><b>user3</b>: click PROD002 at 10:10" }
+    Purchases@{ shape: docs, label: "<b>user1</b>: buy PROD001 at 10:12<br/><b>user2</b>: buy PROD003 at 11:00<br/><b>user4</b>: buy PROD005 at 10:20" }
+
+    %% Join
+    Join["<code>join</code><br/>same user, at most 30m apart<br/>correlate_click_and_purchase"]
+
+    %% Results
+    subgraph Results["Join results"]
+        User1["<b>user1</b><br/>click 10:00 + purchase 10:12<br/>converted, 12 minutes"]
+        User2["<b>user2</b><br/>55 minutes apart:<br/>no output"]
+        User3["<b>user3</b><br/>click without purchase:<br/>no output"]
+        User4["<b>user4</b><br/>purchase without click:<br/>no output"]
+    end
+
+    %% Output
+    Output[(correlated_user_actions)]
+
+    %% Data Flow
+    ClickTopic --> Clicks
+    PurchaseTopic --> Purchases
+    Clicks & Purchases --> Join
+    Join --> User1 & User2 & User3 & User4
+    User1 -->|"key: user1<br/>value: {click: {...}, purchase: {...},<br/>converted: true, conversion_time_ms: 720000}"| Output
+
+    %% Styling
+    --8<-- "snippets/mermaid-classes.txt"
+
+    class ClickTopic,PurchaseTopic,Output topic
+    class Join operation
+    class Clicks,Purchases message
+    class User1 result
+    class User2,User3,User4 dropped
+    style Results fill:none,stroke:#616161,stroke-dasharray:5 5
+```
+
 ??? info "Producer: Clicks and Purchases (click to expand)"
 
     ```yaml
@@ -187,6 +262,87 @@ Enrich order events with customer information by joining the orders stream with 
 - **Joins stream with table**: Uses join operation to combine each order with latest customer data from customers table based on customer_id
 - **Combines data**: valueJoiner function merges order details with customer information into enriched result containing both datasets
 - **Restores original key**: Transforms key back from customer_id to order_id using restore_order_key for downstream processing consistency
+
+The diagram shows how the message key changes along the pipeline, so that each order can be matched with the customer table:
+
+```mermaid
+--8<-- "snippets/mermaid-init.txt"
+graph LR
+    %% Input
+    Orders[(new_orders<br/>key: order_id)]
+    Customers[(customer_data table<br/>key: customer_id)]
+
+    %% Pipeline Operations
+    Rekey["<code>transformKey</code><br/>extract_customer_id"]
+    Join["<code>join</code> with table<br/>join_order_with_customer"]
+    Restore["<code>transformKey</code><br/>restore_order_key"]
+
+    %% Output
+    Output[(orders_with_customer_data<br/>key: order_id)]
+
+    %% Data Flow
+    Orders --> Rekey
+    Rekey -->|"key: customer_id"| Join
+    Customers -.->|"latest customer<br/>for this key"| Join
+    Join -->|"key: customer_id"| Restore
+    Restore -->|"key: order_id"| Output
+
+    %% Styling
+    --8<-- "snippets/mermaid-classes.txt"
+
+    class Orders,Customers,Output topic
+    class Rekey,Join,Restore operation
+```
+
+The diagram below follows four example orders through the pipeline. Each order is rekeyed by its customer, looked up in the customer table, and rekeyed back. Because this is an inner join, an order whose customer is not in the table yet produces no output:
+
+```mermaid
+--8<-- "snippets/mermaid-init.txt"
+graph TB
+    %% Input stream and table
+    OrderTopic[(new_orders)]
+    Orders@{ shape: docs, label: "<b>key: ORD0001</b> customer CUST001<br/><b>key: ORD0002</b> customer CUST003<br/><b>key: ORD0003</b> customer CUST001<br/><b>key: ORD0004</b> customer CUST005" }
+    CustomerTopic[(customer_data)]
+    Customers@{ shape: docs, label: "<b>Table contents</b><br/><b>CUST001</b>: Alice Johnson, US-WEST<br/><b>CUST003</b>: Carol Davis, EU-WEST" }
+
+    %% Step 1: rekey by customer
+    Rekey["<code>transformKey</code><br/>extract_customer_id"]
+    Rekeyed@{ shape: docs, label: "<b>key: CUST001</b> ORD0001<br/><b>key: CUST003</b> ORD0002<br/><b>key: CUST001</b> ORD0003<br/><b>key: CUST005</b> ORD0004" }
+
+    %% Step 2: look up the customer
+    Join["<code>join</code> with table<br/>join_order_with_customer"]
+    subgraph Results["Join results"]
+        Order1["<b>key: CUST001</b><br/>ORD0001 + Alice Johnson"]
+        Order2["<b>key: CUST003</b><br/>ORD0002 + Carol Davis"]
+        Order3["<b>key: CUST001</b><br/>ORD0003 + Alice Johnson"]
+        Order4["<b>key: CUST005</b><br/>not in table:<br/>no output"]
+    end
+
+    %% Step 3: restore the order key
+    Restore["<code>transformKey</code><br/>restore_order_key"]
+    Output[(orders_with_customer_data)]
+
+    %% Data Flow
+    OrderTopic --> Orders
+    Orders --> Rekey
+    Rekey --> Rekeyed
+    CustomerTopic --> Customers
+    Rekeyed --> Join
+    Customers -.->|"lookup by key"| Join
+    Join --> Order1 & Order2 & Order3 & Order4
+    Order1 & Order2 & Order3 --> Restore
+    Restore -->|"key: ORD0001<br/>value: {order_id: ORD0001, ...,<br/>customer: {name: Alice Johnson, ...}}"| Output
+
+    %% Styling
+    --8<-- "snippets/mermaid-classes.txt"
+
+    class OrderTopic,CustomerTopic,Output topic
+    class Rekey,Join,Restore operation
+    class Orders,Customers,Rekeyed message
+    class Order1,Order2,Order3 result
+    class Order4 dropped
+    style Results fill:none,stroke:#616161,stroke-dasharray:5 5
+```
 
 ??? info "Producer: Orders (click to expand)"
 
@@ -229,6 +385,76 @@ Enrich orders with product details using a foreign key join with a global produc
 - **Joins with globalTable**: No co-partitioning needed - globalTable replicated to all instances, joins orders with product details by product_id
 - **Enriches with product data**: Combines order information with product details (name, price, category) from catalog
 - **Outputs enriched orders**: Returns orders enhanced with full product information for downstream processing
+
+Unlike the stream-table join above, there is no rekeying: the order keeps its key, and the `mapper` only tells the join which product to look up:
+
+```mermaid
+--8<-- "snippets/mermaid-init.txt"
+graph LR
+    %% Input
+    Orders[(new_orders<br/>key: order_id)]
+    Products[(product_catalog globalTable<br/>key: product_id<br/>copy on every instance)]
+
+    %% Pipeline Operations
+    Join["<code>join</code> with globalTable<br/>mapper: extract_product_id<br/>join_order_with_product"]
+
+    %% Output
+    Output[(orders_with_product_details<br/>key: order_id)]
+
+    %% Data Flow
+    Orders --> Join
+    Join -.->|"look up product_id<br/>from order value"| Products
+    Products -.->|"product details"| Join
+    Join -->|"order + product"| Output
+
+    %% Styling
+    --8<-- "snippets/mermaid-classes.txt"
+
+    class Orders,Products,Output topic
+    class Join operation
+```
+
+The diagram below follows two example orders through the join. The order keeps its key; the `mapper` only picks the `product_id` used for the lookup, and the `valueJoiner` adds the product details and computes the total price:
+
+```mermaid
+--8<-- "snippets/mermaid-init.txt"
+graph TB
+    %% Input stream and global table
+    OrderTopic[(new_orders)]
+    Orders@{ shape: docs, label: "<b>key: ORD0001</b> product PROD001, quantity 2<br/><b>key: ORD0002</b> product PROD003, quantity 1" }
+    ProductTopic[(product_catalog)]
+    Products@{ shape: docs, label: "<b>Global table contents</b><br/><b>PROD001</b>: Laptop, 999.99<br/><b>PROD003</b>: Coffee Maker, 79.99" }
+
+    %% Join
+    Join["<code>join</code> with globalTable<br/>mapper: extract_product_id<br/>join_order_with_product"]
+
+    %% Results
+    subgraph Results["Join results"]
+        Order1["<b>key: ORD0001</b><br/>looked up PROD001: Laptop<br/>total_price: 2 x 999.99 = 1999.98"]
+        Order2["<b>key: ORD0002</b><br/>looked up PROD003: Coffee Maker<br/>total_price: 1 x 79.99 = 79.99"]
+    end
+
+    %% Output
+    Output[(orders_with_product_details)]
+
+    %% Data Flow
+    OrderTopic --> Orders
+    ProductTopic --> Products
+    Orders --> Join
+    Products -.->|"lookup by product_id"| Join
+    Join --> Order1 & Order2
+    Order1 -->|"key: ORD0001<br/>value: {order_id: ORD0001, ...,<br/>product_details: {name: Laptop, ...}, total_price: 1999.98}"| Output
+    Order2 --> Output
+
+    %% Styling
+    --8<-- "snippets/mermaid-classes.txt"
+
+    class OrderTopic,ProductTopic,Output topic
+    class Join operation
+    class Orders,Products message
+    class Order1,Order2 result
+    style Results fill:none,stroke:#616161,stroke-dasharray:5 5
+```
 
 ??? info "Producer: Orders and Products (click to expand)"
 
@@ -292,6 +518,51 @@ This example demonstrates:
 - Activities for users without location data get "UNKNOWN" placeholders
 - All activities are preserved regardless of location availability
 
+The diagram below follows three example activities through the left join. `user004` has no location data, but unlike an inner join, its activity is still written to the output, with `UNKNOWN` location values:
+
+```mermaid
+--8<-- "snippets/mermaid-init.txt"
+graph TB
+    %% Input stream and table
+    ActivityTopic[(user_activity_events)]
+    Activities@{ shape: docs, label: "<b>key: user001</b> login<br/><b>key: user004</b> page_view<br/><b>key: user002</b> purchase" }
+    LocationTopic[(user_location_data)]
+    Locations@{ shape: docs, label: "<b>Table contents</b><br/><b>user001</b>: New York, USA<br/><b>user002</b>: London, UK<br/>(no entry for user004)" }
+
+    %% Join
+    Join["<code>leftJoin</code> with table<br/>join_activity_with_location"]
+
+    %% Results
+    subgraph Results["Join results: one per activity"]
+        User1["<b>user001</b> login<br/>location: New York, USA<br/>enriched: true"]
+        User4["<b>user004</b> page_view<br/>location: UNKNOWN<br/>enriched: false"]
+        User2["<b>user002</b> purchase<br/>location: London, UK<br/>enriched: true"]
+    end
+
+    %% Output
+    Output[(activity_with_location)]
+
+    %% Data Flow
+    ActivityTopic --> Activities
+    LocationTopic --> Locations
+    Activities --> Join
+    Locations -.->|"lookup by key"| Join
+    Join --> User1 & User4 & User2
+    User4 -->|"key: user004<br/>value: {activity_type: page_view, ...,<br/>location: {country: UNKNOWN, city: UNKNOWN, ...}, enriched: false}"| Output
+    User1 & User2 --> Output
+
+    %% Styling
+    --8<-- "snippets/mermaid-classes.txt"
+
+
+    class ActivityTopic,LocationTopic,Output topic
+    class Join operation
+    class Activities,Locations message
+    class User1,User2 result
+    class User4 partial
+    style Results fill:none,stroke:#616161,stroke-dasharray:5 5
+```
+
 ## Stream-Stream Outer Join
 
 Outer joins capture events from either stream, making them ideal for tracking incomplete or partial interactions between two event types.
@@ -333,6 +604,52 @@ This example demonstrates:
 - **LOGIN_ONLY sessions**: Users who logged in but no logout was captured (active sessions)
 - **LOGOUT_ONLY sessions**: Logout events without corresponding login (users already logged in)
 
+The diagram below follows example logins and logouts through the outer join. A login and a logout for the same user at most 10 minutes apart become one `COMPLETE` session. Unlike an inner join, events without a match are not dropped: they produce a `LOGIN_ONLY` or `LOGOUT_ONLY` result once the time window (plus grace period) has passed:
+
+```mermaid
+--8<-- "snippets/mermaid-init.txt"
+graph TB
+    %% Input topics
+    LoginTopic[(user_login_events)]
+    LogoutTopic[(user_logout_events)]
+    Logins@{ shape: docs, label: "<b>alice</b>: login at 10:00<br/><b>bob</b>: login at 10:02" }
+    Logouts@{ shape: docs, label: "<b>frank</b>: logout at 10:04<br/><b>alice</b>: logout at 10:08" }
+
+    %% Join
+    Join["<code>outerJoin</code><br/>same user, at most 10m apart<br/>analyze_user_session"]
+
+    %% Results
+    subgraph Results["Join results"]
+        Alice["<b>alice</b><br/>login 10:00 + logout 10:08<br/>session_type: COMPLETE"]
+        Bob["<b>bob</b><br/>login, no logout<br/>session_type: LOGIN_ONLY"]
+        Frank["<b>frank</b><br/>logout, no login<br/>session_type: LOGOUT_ONLY"]
+    end
+
+    %% Output
+    Output[(user_session_analysis)]
+
+    %% Data Flow
+    LoginTopic --> Logins
+    LogoutTopic --> Logouts
+    Logins & Logouts --> Join
+    Join -->|"match"| Alice
+    Join -->|"after window + grace"| Bob
+    Join -->|"after window + grace"| Frank
+    Alice -->|"key: alice<br/>value: {session_type: COMPLETE,<br/>login_event: {...}, logout_event: {...}, ...}"| Output
+    Bob & Frank --> Output
+
+    %% Styling
+    --8<-- "snippets/mermaid-classes.txt"
+
+
+    class LoginTopic,LogoutTopic,Output topic
+    class Join operation
+    class Logins,Logouts message
+    class Alice result
+    class Bob,Frank partial
+    style Results fill:none,stroke:#616161,stroke-dasharray:5 5
+```
+
 ## Join Type Variants
 
 Each join type supports different semantics for handling missing matches:
@@ -356,6 +673,14 @@ type: outerJoin
 Produces output whenever **either** side has data, with null for missing values.
 
 **Note:** Table and GlobalTable joins don't support outer joins since tables represent current state, not events.
+
+The table below summarizes when each variant produces output:
+
+| Incoming data                    | `join`         | `leftJoin`             | `outerJoin`            |
+|----------------------------------|----------------|------------------------|------------------------|
+| Match found on both sides        | Joined result  | Joined result          | Joined result          |
+| Left side only (no match)        | No output      | Left value, right null | Left value, right null |
+| Right side only (no match)       | No output      | No output              | Left null, right value |
 
 ## Performance Considerations
 

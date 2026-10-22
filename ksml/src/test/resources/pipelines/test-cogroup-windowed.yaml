@@ -1,0 +1,55 @@
+# Cogroup two grouped streams and aggregate them in tumbling time windows.
+streams:
+  first_stream:
+    topic: first_topic
+    keyType: string
+    valueType: long
+  second_stream:
+    topic: second_topic
+    keyType: string
+    valueType: long
+  output_stream:
+    topic: output_topic
+    keyType: string
+    valueType: long
+
+pipelines:
+  grouped_second:
+    from: second_stream
+    via:
+      - type: groupByKey
+    as: grouped_second
+
+  main:
+    from: first_stream
+    via:
+      - type: groupByKey
+      - type: cogroup
+        aggregator:
+          expression: aggregatedValue + value
+          resultType: long
+      - type: cogroup
+        stream: grouped_second
+        aggregator:
+          expression: aggregatedValue + value * 10
+          resultType: long
+      - type: windowByTime
+        windowType: tumbling
+        duration: 1m
+        grace: 0s
+      - type: aggregate
+        initializer:
+          expression: 0
+          resultType: long
+        store:
+          name: cogroup_window_store
+          type: window
+          windowSize: 1m
+          retention: 10m
+          caching: false
+      - type: toStream
+      - type: mapKey
+        mapper:
+          expression: key["key"] + "@" + str(key["start"])
+          resultType: string
+    to: output_stream

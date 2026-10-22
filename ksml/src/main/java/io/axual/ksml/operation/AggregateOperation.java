@@ -35,9 +35,11 @@ import io.axual.ksml.stream.TimeWindowedKStreamWrapper;
 import io.axual.ksml.user.UserAggregator;
 import io.axual.ksml.user.UserInitializer;
 import io.axual.ksml.user.UserMerger;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.streams.kstream.KTable;
 import org.apache.kafka.streams.kstream.Windowed;
 
+@Slf4j
 public class AggregateOperation extends StoreOperation {
     private static final String ADDER_NAME = "Adder";
     private static final String AGGREGATOR_NAME = "Aggregator";
@@ -216,6 +218,8 @@ public class AggregateOperation extends StoreOperation {
          *          final Materialized<K, VOut, KeyValueStore<Bytes, byte[]>> materialized)
          */
 
+        input.checkNotExtended();
+        warnIfAggregatorIgnored();
         checkNotNull(initializer, INITIALIZER_NAME.toLowerCase());
         final var k = input.keyType();
         final var vout = input.valueType();
@@ -248,13 +252,15 @@ public class AggregateOperation extends StoreOperation {
          *          final Materialized<K, V, SessionStore<Bytes, byte[]>> materialized)
          */
 
+        input.source.checkNotExtended();
+        warnIfAggregatorIgnored();
         checkNotNull(initializer, INITIALIZER_NAME.toLowerCase());
         checkNotNull(merger, MERGER_NAME.toLowerCase());
         final var k = input.keyType();
         final var v = input.valueType();
         final var init = userFunctionOf(context, INITIALIZER_NAME, initializer, v);
         final var userInit = new UserInitializer(init, tags);
-        final var merg = userFunctionOf(context, MERGER_NAME, merger, v);
+        final var merg = userFunctionOf(context, MERGER_NAME, merger, v, superOf(k), equalTo(v), superOf(v));
         final var userMerg = new UserMerger(merg, tags);
         final var sessionStore = validateSessionStore(store(), k, v);
         final var mat = materializedOf(context, sessionStore);
@@ -282,6 +288,8 @@ public class AggregateOperation extends StoreOperation {
          *          final Materialized<K, V, WindowStore<Bytes, byte[]>> materialized)
          */
 
+        input.source.checkNotExtended();
+        warnIfAggregatorIgnored();
         checkNotNull(initializer, INITIALIZER_NAME.toLowerCase());
         final var k = input.keyType();
         final var v = input.valueType();
@@ -301,5 +309,11 @@ public class AggregateOperation extends StoreOperation {
                     : input.timeWindowedCogroupedKStream.aggregate(userInit);
         }
         return new KTableWrapper((KTable) output, windowed(k), v);
+    }
+
+    private void warnIfAggregatorIgnored() {
+        if (aggregator != null) {
+            log.warn("Ignoring the aggregator of {}: after cogroup, each cogroup has its own aggregator", this);
+        }
     }
 }

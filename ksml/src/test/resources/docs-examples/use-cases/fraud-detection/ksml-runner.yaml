@@ -1,0 +1,19 @@
+ksml:
+  # Section where you specify which KSML definitions to load, parse and execute.
+  definitions:
+    # Format is <namespace>: <ksml_definition_filename>
+    fraud_transaction_producer: fraud-transaction-producer.yaml
+    fraud_detection: fraud-detection.yaml
+    fraud_pattern_detection: fraud-pattern-detection.yaml
+    fraud_machine_learning: fraud-detection-machine-learning.yaml
+    fraud_notifications: fraud-notifications.yaml
+  storageDirectory: /ksml/state  # Directory for state stores (inside /ksml which is writable because /ksml is the mounted working directory)
+  createStorageDirectory: true    # Create the directory if it doesn't exist
+
+# This setup connects to the Kafka broker started with the example docker-compose file
+# These examples are intended to run from a inside a container on the same network
+kafka:
+  bootstrap.servers: broker:9093
+  application.id: io.ksml.example.fraud
+  security.protocol: PLAINTEXT
+  acks: all

@@ -20,6 +20,7 @@ package io.axual.ksml.operation;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.exception.TopologyException;
 import io.axual.ksml.stream.CogroupedKStreamWrapper;
 import io.axual.ksml.stream.KGroupedStreamWrapper;
 import io.axual.ksml.stream.KGroupedTableWrapper;
@@ -40,7 +41,10 @@ import org.apache.kafka.streams.kstream.TimeWindowedKStream;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import java.util.List;
+
 import static io.axual.ksml.operation.OperationTestSupport.aggregator;
+import static io.axual.ksml.operation.OperationTestSupport.cogroupedStream;
 import static io.axual.ksml.operation.OperationTestSupport.groupedStream;
 import static io.axual.ksml.operation.OperationTestSupport.groupedTable;
 import static io.axual.ksml.operation.OperationTestSupport.initializer;
@@ -50,11 +54,14 @@ import static io.axual.ksml.operation.OperationTestSupport.merger;
 import static io.axual.ksml.operation.OperationTestSupport.mockContext;
 import static io.axual.ksml.operation.OperationTestSupport.sessionStore;
 import static io.axual.ksml.operation.OperationTestSupport.sessionWindowed;
+import static io.axual.ksml.operation.OperationTestSupport.sessionWindowedCogrouped;
 import static io.axual.ksml.operation.OperationTestSupport.storeConfig;
 import static io.axual.ksml.operation.OperationTestSupport.timeWindowed;
+import static io.axual.ksml.operation.OperationTestSupport.timeWindowedCogrouped;
 import static io.axual.ksml.operation.OperationTestSupport.value;
 import static io.axual.ksml.operation.OperationTestSupport.windowStore;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -118,10 +125,43 @@ class AggregateOperationTest extends OperationTestBase {
     @SuppressWarnings("unchecked")
     void applyToCogroupedStreamCallsAggregate() {
         final CogroupedKStream<Object, Object> cogrouped = mock(CogroupedKStream.class);
-        final var input = new CogroupedKStreamWrapper(cogrouped, key(), value());
+        final var input = new CogroupedKStreamWrapper(cogrouped, List.of(), key(), value());
 
         assertThat(operation().apply(input, mockContext())).isInstanceOf(KTableWrapper.class);
         verify(cogrouped).aggregate(any(Initializer.class), any(Named.class));
+    }
+
+    @Test
+    @DisplayName("aggregate on a cogrouped stream that another pipeline added a stream to is rejected")
+    void applyToExtendedCogroupedStreamIsRejected() {
+        final var input = cogroupedStream();
+        input.markExtended();
+        final var operation = operation();
+        final var context = mockContext();
+
+        assertThatThrownBy(() -> operation.apply(input, context))
+                .isInstanceOf(TopologyException.class)
+                .hasMessageContaining("already has a stream added by another pipeline");
+    }
+
+    @Test
+    @DisplayName("two aggregates on the same cogrouped stream are allowed")
+    void applyTwiceToCogroupedStreamIsAllowed() {
+        final var input = cogroupedStream();
+        final var context = mockContext();
+        operation().apply(input, context);
+
+        assertThat(operation().apply(input, context)).isInstanceOf(KTableWrapper.class);
+    }
+
+    @Test
+    @DisplayName("applying to a session-windowed cogrouped stream invokes aggregate with the merger and returns a KTable")
+    @SuppressWarnings("unchecked")
+    void applyToSessionWindowedCogroupedCallsAggregate() {
+        final var input = sessionWindowedCogrouped();
+
+        assertThat(operation().apply(input, mockContext())).isInstanceOf(KTableWrapper.class);
+        verify(input.sessionWindowedCogroupedKStream).aggregate(any(Initializer.class), any(Merger.class), any(Named.class));
     }
 
     @Test
@@ -129,10 +169,36 @@ class AggregateOperationTest extends OperationTestBase {
     @SuppressWarnings("unchecked")
     void applyToTimeWindowedCogroupedCallsAggregate() {
         final TimeWindowedCogroupedKStream<Object, Object> cogrouped = mock(TimeWindowedCogroupedKStream.class);
-        final var input = new TimeWindowedCogroupedKStreamWrapper(cogrouped, key(), value());
+        final var input = new TimeWindowedCogroupedKStreamWrapper(cogrouped, cogroupedStream(), key(), value());
 
         assertThat(operation().apply(input, mockContext())).isInstanceOf(KTableWrapper.class);
         verify(cogrouped).aggregate(any(Initializer.class), any(Named.class));
+    }
+
+    @Test
+    @DisplayName("aggregate on a time-windowed cogrouped stream whose cogroup another pipeline added a stream to is rejected")
+    void applyToTimeWindowedCogroupedOfExtendedCogroupIsRejected() {
+        final var input = timeWindowedCogrouped();
+        input.source.markExtended();
+        final var operation = operation();
+        final var context = mockContext();
+
+        assertThatThrownBy(() -> operation.apply(input, context))
+                .isInstanceOf(TopologyException.class)
+                .hasMessageContaining("already has a stream added by another pipeline");
+    }
+
+    @Test
+    @DisplayName("aggregate on a session-windowed cogrouped stream whose cogroup another pipeline added a stream to is rejected")
+    void applyToSessionWindowedCogroupedOfExtendedCogroupIsRejected() {
+        final var input = sessionWindowedCogrouped();
+        input.source.markExtended();
+        final var operation = operation();
+        final var context = mockContext();
+
+        assertThatThrownBy(() -> operation.apply(input, context))
+                .isInstanceOf(TopologyException.class)
+                .hasMessageContaining("already has a stream added by another pipeline");
     }
 
     @Test

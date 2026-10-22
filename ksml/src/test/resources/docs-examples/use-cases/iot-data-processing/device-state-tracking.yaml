@@ -6,22 +6,27 @@ streams:
     keyType: string
     valueType: json
 
-  device_status:
-    topic: device_status
+  device_state:
+    topic: device_state
     keyType: string
     valueType: json
 
 stores:
   device_state_store:
     type: keyValue
+    keyType: string
+    valueType: string  # JSON string
     persistent: true
 
 functions:
   update_device_state:
     type: valueTransformer
+    globalCode: |
+      import json
     code: |
       # Get previous state
-      previous_state = device_state_store.get(key)
+      previous_state_str = device_state_store.get(key)
+      previous_state = json.loads(previous_state_str) if previous_state_str else None
       
       # Create new state
       new_state = {
@@ -46,7 +51,7 @@ functions:
           new_state["temperature_change_rate"] = (curr_temp - prev_temp) / time_diff  # degrees per second
 
       # Update store
-      device_state_store.put(key, new_state)
+      device_state_store.put(key, json.dumps(new_state))
 
       return new_state
     resultType: struct
@@ -59,4 +64,4 @@ pipelines:
     via:
       - type: transformValue
         mapper: update_device_state
-    to: device_status
+    to: device_state

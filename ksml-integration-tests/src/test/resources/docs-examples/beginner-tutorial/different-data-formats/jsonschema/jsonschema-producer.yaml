@@ -14,7 +14,7 @@ functions:
       # Generate random sensor measurement data
       value = {
         "name": key,
-        "timestamp": str(round(time.time()*1000)),
+        "timestamp": round(time.time()*1000),
         "type": random.choice(["TEMPERATURE", "HUMIDITY", "AREA", "LENGTH", "STATE"]),
         "unit": random.choice(["C", "F", "%", "Pa"]),
         "value": str(random.randrange(0, 100)),

@@ -37,8 +37,8 @@ functions:
       # Generate sensor reading data that will be output as Avro
       reading = {
         "name": key,
-        "timestamp": str(round(time.time() * 1000)),
-        "type": random.choice(["TEMPERATURE", "HUMIDITY", "PRESSURE"]),
+        "timestamp": round(time.time() * 1000),
+        "type": random.choice(["AREA", "HUMIDITY", "LENGTH", "STATE", "TEMPERATURE"]),
         "unit": random.choice(["C", "F", "%", "Pa"]),
         "value": str(random.randrange(0, 100)),
         "color": random.choice(["black", "blue", "red", "yellow", "white"]),

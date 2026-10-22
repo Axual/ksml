@@ -1,0 +1,14 @@
+# Saves a grouped stream that test-cogroup-other-file-uses.yaml tries to use. Each definition file is built separately,
+# so the other file cannot see it.
+streams:
+  refunds:
+    topic: customer_refunds
+    keyType: string
+    valueType: json
+
+pipelines:
+  grouped_refunds:
+    from: refunds
+    via:
+      - type: groupByKey
+    as: grouped_refunds

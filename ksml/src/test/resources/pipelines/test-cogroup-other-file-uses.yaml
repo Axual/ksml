@@ -1,0 +1,43 @@
+# Uses a grouped stream that is saved in test-cogroup-other-file-saves.yaml, another definition file.
+streams:
+  orders:
+    topic: customer_orders
+    keyType: string
+    valueType: json
+
+functions:
+  init_total:
+    type: initializer
+    expression: 0.0
+    resultType: double
+
+  add_order:
+    type: aggregator
+    expression: aggregatedValue + value.get("amount", 0)
+    resultType: double
+
+  add_refund:
+    type: aggregator
+    expression: aggregatedValue - value.get("amount", 0)
+    resultType: double
+
+pipelines:
+  customer_totals:
+    from: orders
+    via:
+      - type: groupByKey
+      - type: cogroup
+        aggregator: add_order
+      - type: cogroup
+        stream: grouped_refunds
+        aggregator: add_refund
+      - type: aggregate
+        initializer: init_total
+        store:
+          name: customer_totals_store
+          type: keyValue
+      - type: toStream
+    to:
+      topic: customer_totals
+      keyType: string
+      valueType: double

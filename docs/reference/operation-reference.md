@@ -10,7 +10,7 @@ Understanding the different types of operations and when to use them is crucial 
 
 ## Operations Overview
 
-KSML supports 28 operations for stream processing. Each operation serves a specific purpose in transforming, filtering, aggregating, or routing data:
+KSML supports 30 operations for stream processing. Each operation serves a specific purpose in transforming, filtering, aggregating, or routing data:
 
 | Operation | Purpose | Common Use Cases |
 |-----------|---------|------------------|
@@ -38,6 +38,7 @@ KSML supports 28 operations for stream processing. Each operation serves a speci
 | | | |
 | **Stateful Aggregation Operations** | | |
 | [aggregate](#aggregate) | Build custom aggregations | Complex calculations, custom state |
+| [cogroup](#cogroup) | Combine several grouped streams into one aggregation | Totals from orders, refunds and bonuses |
 | [count](#count) | Count records per key | Track occurrences |
 | [reduce](#reduce) | Combine records with same key | Accumulate values |
 | | | |
@@ -512,12 +513,14 @@ Aggregates records by key using a custom aggregation function.
 
 #### Parameters
 
-| Parameter     | Type   | Required | Description                                                    |
-|---------------|--------|----------|----------------------------------------------------------------|
-| `initializer` | Object | Yes      | Specifies the initial value for the aggregation                |
-| `aggregator`  | Object | Yes      | Specifies how to combine the current record with the aggregate |
+| Parameter     | Type   | Required                     | Description                                                                                                                             |
+|---------------|--------|------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------|
+| `initializer` | Object | Yes                          | Specifies the initial value for the aggregation                                                                                         |
+| `aggregator`  | Object | Yes, except after `cogroup`  | Specifies how to combine the current record with the aggregate. Not used after `cogroup`, because each `cogroup` has its own aggregator |
+| `store`       | Object | Yes                          | The state store that keeps the aggregation result                                                                                       |
+| `merger`      | Object | Only after `windowBySession` | Specifies how to combine two session results when sessions merge                                                                        |
 
-Both `initializer` and `aggregator` can be defined using:
+The `initializer`, `aggregator` and `merger` can be defined using:
 
 - `expression`: A simple expression
 - `code`: A Python code block
@@ -531,6 +534,40 @@ Both `initializer` and `aggregator` can be defined using:
 **Full example for `aggregate`**:
 
 - [Tutorial: Aggregations](../tutorials/intermediate/aggregations.md#complex-example-regional-sales-analytics)
+
+### `cogroup`
+
+Combines one or more grouped streams into one aggregation per key. Each stream has its own aggregator, and all aggregators update the same aggregate. A chain of `cogroup` steps ends with `aggregate`, optionally after `windowByTime` or `windowBySession`. That `aggregate` takes the `initializer` and the `store`, plus a `merger` after `windowBySession`. It does not take an `aggregator`.
+
+#### Parameters
+
+| Parameter    | Type   | Required                      | Description                                                                       |
+|--------------|--------|-------------------------------|-----------------------------------------------------------------------------------|
+| `aggregator` | Object | Yes                           | Specifies how to combine a record of this stream with the aggregate               |
+| `stream`     | String | Only on a cogrouped stream    | The `as` name of a grouped stream from an earlier pipeline, to add to the cogroup |
+
+Unlike `merge` and `join`, `stream` is not a name from `streams:`. It is the `as` name of a grouped stream.
+
+A `cogroup` on a grouped stream must not have `stream`. A `cogroup` on a cogrouped stream (after another `cogroup`, or `from` a saved cogroup) must have `stream`.
+
+The streams in a cogroup:
+
+- must have the same key type, and may have different value types
+- can each be added only once, with one aggregator
+- must be co-partitioned: their topics need the same number of partitions and the same partitioning. Kafka Streams does not always check this. If the partition counts differ, one key can get two separate totals, without any error
+- except the first one, must be saved with `as` in a pipeline that is defined before the pipeline that uses them, in the same definition file
+- can be added to a saved cogroup by only one later pipeline. Other later pipelines then cannot use that cogroup. Earlier pipelines can, but without the added stream
+- that need a repartition (for example after `groupBy`) can be used by another operation only with `topology.optimization: all` (the KSML runner default). Or use a separate `groupBy` for each use
+
+#### Example
+
+```yaml
+--8<-- "docs-examples/intermediate-tutorial/aggregations/processor-cogroup.yaml:58:78"
+```
+
+**Full example for `cogroup`**:
+
+- [Tutorial: Aggregations](../tutorials/intermediate/aggregations.md#advanced-cogroup-operation)
 
 ### `count`
 
@@ -1060,7 +1097,8 @@ KSML operations are YAML-based wrappers around Kafka Streams topology operations
 #### Stateful Aggregation Operations
 | KSML Operation | Kafka Streams Method | Purpose |
 |---|---|---|
-| aggregate | `KGroupedStream.aggregate()` / `KGroupedTable.aggregate()` | Custom aggregation logic |
+| aggregate | `KGroupedStream.aggregate()` / `KGroupedTable.aggregate()` / `CogroupedKStream.aggregate()` | Custom aggregation logic |
+| cogroup | `KGroupedStream.cogroup()` / `CogroupedKStream.cogroup()` | Combine grouped streams into one aggregation |
 | count | `KGroupedStream.count()` / `KGroupedTable.count()` | Count records per key |
 | reduce | `KGroupedStream.reduce()` / `KGroupedTable.reduce()` | Reduce to single value per key |
 
