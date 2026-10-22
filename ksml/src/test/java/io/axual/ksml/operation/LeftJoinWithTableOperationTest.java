@@ -119,6 +119,30 @@ class LeftJoinWithTableOperationTest extends OperationTestBase {
     }
 
     @Test
+    @DisplayName("foreign-key left-join wires in the primary partitioner even when the other-table partitioner is absent")
+    @SuppressWarnings("unchecked")
+    void applyToTableUsesPrimaryPartitionerWithoutOtherPartitioner() throws NoSuchFieldException, IllegalAccessException {
+        final KTable<Object, Object> table = mock(KTable.class);
+        final var input = new KTableWrapper(table, key(), value());
+        final var operation = new LeftJoinWithTableOperation(
+                storeConfig("leftJoin"), tableDefinition(), foreignKeyExtractor(), valueJoiner(),
+                null, streamPartitioner(), null);
+
+        assertThat(operation.apply(input, mockContext())).isInstanceOf(KTableWrapper.class);
+
+        final var tableJoinedCaptor = ArgumentCaptor.forClass(TableJoined.class);
+        verify(table).leftJoin(any(KTable.class), any(Function.class), any(ValueJoiner.class), tableJoinedCaptor.capture());
+
+        // Regression check: the old bug derived userOtherPart from `part != null` instead of
+        // `otherPart != null`. When only the primary partitioner was set, it wrapped a null
+        // delegate in a UserStreamPartitioner, whose constructor (Invoker) throws "Invoker:
+        // function can not be null" immediately -- so operation.apply(...) itself used to fail.
+        final Field otherPartitionerField = TableJoined.class.getDeclaredField("otherPartitioner");
+        otherPartitionerField.setAccessible(true);
+        assertThat(otherPartitionerField.get(tableJoinedCaptor.getValue())).isNull();
+    }
+
+    @Test
     @DisplayName("left-joining two tables without a foreign key uses the primary-key named-and-materialized leftJoin overload")
     @SuppressWarnings("unchecked")
     void applyToTableWithoutForeignKeyUsesPrimaryKeyJoin() {

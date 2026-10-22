@@ -245,6 +245,11 @@ public class StructSchema extends NamedSchema {
 
             final var that = (Field) obj;
 
+            // Compare name first: it's a cheap check, and produces a clearer mismatch message
+            // than leading with the (potentially deep, recursive) schema comparison.
+            if (!flags.isSet(IGNORE_STRUCT_FIELD_NAME) && !Objects.equals(name, that.name))
+                return fieldNotEqual("name", this, name, that, that.name);
+
             final var schemaMismatch = compareSchema(that, flags);
             if (schemaMismatch != null) return schemaMismatch;
 
@@ -263,10 +268,6 @@ public class StructSchema extends NamedSchema {
         }
 
         private Equality compareAttributes(Field that, EqualityFlags flags) {
-            // Compare name
-            if (!flags.isSet(IGNORE_STRUCT_FIELD_NAME) && !Objects.equals(name, that.name))
-                return fieldNotEqual("name", this, name, that, that.name);
-
             // Compare doc
             if (!flags.isSet(IGNORE_STRUCT_FIELD_DOC) && !Objects.equals(doc, that.doc))
                 return fieldNotEqual("doc", this, doc, that, that.doc);

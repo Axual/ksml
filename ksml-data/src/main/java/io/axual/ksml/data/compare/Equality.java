@@ -33,14 +33,17 @@ import lombok.NonNull;
  * Equality failures can be chained using a cause, enabling precise, hierarchical explanations of why equality does not hold.
  * A {@link NotEqual}'s cause can only ever be another {@link NotEqual}, so an equal result carrying a cause, or a failure
  * "caused by" a success, are unrepresentable rather than merely disallowed at runtime.
+ * <p>
+ * This is a {@code sealed abstract class} rather than a sealed interface to maintain binary compatibility with older code.
  */
-public sealed interface Equality {
+public sealed abstract class Equality permits Equal, NotEqual {
     /**
      * Returns the singleton instance representing a successful equality check (no differences).
      *
      * @return the OK Equal instance
      */
-    static Equality equal() {
+    @SuppressWarnings("java:S1221") // Public API name, used in about 50 places
+    public static Equality equal() {
         return Equal.INSTANCE;
     }
 
@@ -50,7 +53,7 @@ public sealed interface Equality {
      * @param message explanation of why the objects are not equal
      * @return a new Equality instance representing inequality
      */
-    static Equality notEqual(String message) {
+    public static Equality notEqual(String message) {
         return notEqual(message, null);
     }
 
@@ -65,7 +68,7 @@ public sealed interface Equality {
      * @return a new Equality instance representing inequality
      * @throws NullPointerException if {@code message} is {@code null}
      */
-    static Equality notEqual(@NonNull String message, Equality cause) {
+    public static Equality notEqual(@NonNull String message, Equality cause) {
         return new NotEqual(message, cause instanceof NotEqual notEqualCause ? notEqualCause : null);
     }
 
@@ -74,34 +77,34 @@ public sealed interface Equality {
      *
      * @return {@code true} if equal; {@code false} otherwise
      */
-    boolean isEqual();
+    public abstract boolean isEqual();
 
     /**
      * Indicates whether the compared objects are not equal.
      *
      * @return {@code true} if not equal; {@code false} otherwise
      */
-    boolean isNotEqual();
+    public abstract boolean isNotEqual();
 
     /**
      * A human-readable explanation of the inequality, or {@code null} when equal.
      *
      * @return the explanation, or {@code null}
      */
-    String message();
+    public abstract String message();
 
     /**
      * The underlying reason for this result, or {@code null} when equal or when there is no further cause.
      *
      * @return the cause, or {@code null}
      */
-    Equality cause();
+    public abstract Equality cause();
 
     /**
      * Returns the explanation chain as a single line (no prefix on the first line).
      */
     @Override
-    String toString();
+    public abstract String toString();
 
     /**
      * Returns the explanation chain as a String, optionally prefixing the first line.
@@ -109,7 +112,7 @@ public sealed interface Equality {
      * @param prefixFirstLine whether to prefix the first line as well
      * @return the formatted explanation chain
      */
-    String toString(boolean prefixFirstLine);
+    public abstract String toString(boolean prefixFirstLine);
 
     /**
      * Returns the explanation chain as a String with a custom line prefix.
@@ -120,92 +123,5 @@ public sealed interface Equality {
      * @param prefixFirstLine whether to prefix the first line as well
      * @return the formatted explanation chain
      */
-    String toString(String linePrefix, boolean prefixFirstLine);
-
-    /**
-     * The successful equality result. A single shared instance, since there is nothing to distinguish
-     * between successful comparisons.
-     */
-    final class Equal implements Equality {
-        private static final Equal INSTANCE = new Equal();
-
-        private Equal() {
-        }
-
-        @Override
-        public boolean isEqual() {
-            return true;
-        }
-
-        @Override
-        public boolean isNotEqual() {
-            return false;
-        }
-
-        @Override
-        public String message() {
-            return null;
-        }
-
-        @Override
-        public Equality cause() {
-            return null;
-        }
-
-        @Override
-        public String toString() {
-            return "EQUAL";
-        }
-
-        @Override
-        public String toString(boolean prefixFirstLine) {
-            return "EQUAL";
-        }
-
-        @Override
-        public String toString(String linePrefix, boolean prefixFirstLine) {
-            return "EQUAL";
-        }
-    }
-
-    /**
-     * A failed equality result, carrying a human-readable explanation and an optional chain of
-     * underlying causes. A cause, when present, is itself always a {@link NotEqual} — an {@link Equal}
-     * can never be the cause of a failure.
-     */
-    record NotEqual(String message, NotEqual cause) implements Equality {
-        @Override
-        public boolean isEqual() {
-            return false;
-        }
-
-        @Override
-        public boolean isNotEqual() {
-            return true;
-        }
-
-        @Override
-        public String toString() {
-            return toString(false);
-        }
-
-        @Override
-        public String toString(boolean prefixFirstLine) {
-            return toString("caused by: ", prefixFirstLine);
-        }
-
-        @Override
-        public String toString(String linePrefix, boolean prefixFirstLine) {
-            final var builder = new StringBuilder();
-            if (prefixFirstLine) builder.append(linePrefix);
-            builder.append(message);
-            if (cause != null) cause.appendCauseChain(builder, linePrefix);
-            return builder.toString();
-        }
-
-        private void appendCauseChain(StringBuilder builder, String linePrefix) {
-            builder.append('\n').append(linePrefix).append(message);
-            if (cause != null) cause.appendCauseChain(builder, linePrefix);
-        }
-    }
+    public abstract String toString(String linePrefix, boolean prefixFirstLine);
 }

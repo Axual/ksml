@@ -47,6 +47,7 @@ Major dependency upgrades. This release moves KSML to Jackson 3, Apicurio Regist
 * KSML checks a value against its logical type. Writing an invalid value fails; reading one is logged as a warning and passed through, so a bad record in an upstream topic does not stop your application.
 * An Avro `decimal` may grow its precision between schema versions as long as the scale stays the same. Narrowing the precision or changing the scale is rejected.
 * JSON Schema now reads the `format: uuid` string format as a `uuid` logical type and keeps it on read and write.
+* Fixed `partitioner` and `otherPartitioner` in a foreign-key `join` and `leftJoin` between tables. `otherPartitioner` was ignored when `partitioner` was not set, and setting only `partitioner` failed with "Invoker: function can not be null".
 
 ## 1.3.0 (2026-06-23)
 
