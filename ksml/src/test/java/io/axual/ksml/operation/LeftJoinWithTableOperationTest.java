@@ -20,9 +20,15 @@ package io.axual.ksml.operation;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.object.DataLong;
+import io.axual.ksml.data.object.DataString;
+import io.axual.ksml.data.type.DataType;
+import io.axual.ksml.definition.ForeignKeyExtractorDefinition;
 import io.axual.ksml.exception.TopologyException;
+import io.axual.ksml.generator.StreamDataType;
 import io.axual.ksml.stream.KStreamWrapper;
 import io.axual.ksml.stream.KTableWrapper;
+import io.axual.ksml.type.UserType;
 import org.apache.kafka.streams.kstream.Joined;
 import org.apache.kafka.streams.kstream.KStream;
 import org.apache.kafka.streams.kstream.KTable;
@@ -39,6 +45,7 @@ import java.lang.reflect.Field;
 import java.util.function.Function;
 
 import static io.axual.ksml.operation.OperationTestSupport.foreignKeyExtractor;
+import static io.axual.ksml.operation.OperationTestSupport.genericFunction;
 import static io.axual.ksml.operation.OperationTestSupport.kStream;
 import static io.axual.ksml.operation.OperationTestSupport.kTable;
 import static io.axual.ksml.operation.OperationTestSupport.key;
@@ -213,5 +220,38 @@ class LeftJoinWithTableOperationTest extends OperationTestBase {
         assertThatThrownBy(() -> operation.apply(input, context))
                 .isInstanceOf(TopologyException.class)
                 .hasMessageContaining("LeftJoin table \"saved_stream\" must be a table, but found");
+    }
+
+    @Test
+    @DisplayName("leftJoin of two tables by primary key with different key types is rejected")
+    void applyToTableByPrimaryKeyWithDifferentKeyTypesIsRejected() {
+        final var input = new KTableWrapper(mock(KTable.class), typedKey(DataString.DATATYPE), value());
+        final var context = mockContext();
+        saveStream(context, "other_table", new KTableWrapper(mock(KTable.class), typedKey(DataLong.DATATYPE), value()));
+        final var operation = new LeftJoinWithTableOperation(
+                storeConfig("leftJoin"), savedTarget("other_table"), null, valueJoiner(), null, null, null);
+
+        assertThatThrownBy(() -> operation.apply(input, context))
+                .isInstanceOf(TopologyException.class)
+                .hasMessageContaining("LeftJoin table keyType is expected to be of type string, but found long");
+    }
+
+    @Test
+    @DisplayName("leftJoin of two tables with a foreignKeyExtractor that does not return the other table's key type is rejected")
+    void applyToTableWithWrongForeignKeyExtractorResultTypeIsRejected() {
+        final var input = new KTableWrapper(mock(KTable.class), typedKey(DataLong.DATATYPE), value());
+        final var context = mockContext();
+        saveStream(context, "other_table", new KTableWrapper(mock(KTable.class), typedKey(DataString.DATATYPE), value()));
+        final var extractor = new ForeignKeyExtractorDefinition(genericFunction(new UserType(DataLong.DATATYPE)));
+        final var operation = new LeftJoinWithTableOperation(
+                storeConfig("leftJoin"), savedTarget("other_table"), extractor, valueJoiner(), null, null, null);
+
+        assertThatThrownBy(() -> operation.apply(input, context))
+                .isInstanceOf(TopologyException.class)
+                .hasMessageContaining("ForeignKeyExtractor resultType is expected to be assignable to string, but found long");
+    }
+
+    private static StreamDataType typedKey(DataType type) {
+        return new StreamDataType(new UserType(type), true);
     }
 }
