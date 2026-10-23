@@ -119,7 +119,7 @@ public class LeftJoinWithTableOperation extends StoreOperation {
         final var joiner = userFunctionOf(context, VALUEJOINER_NAME, valueJoiner, vr, superOf(k), superOf(v), superOf(vo));
         final var userJoiner = valueJoiner(joiner, tags);
         final var userPart = userStreamPartitionerOf(context, partitioner, k, v);
-        // TableJoined calls the other partitioner with keys of the other table
+        // TableJoined calls the other partitioner with keys of the other table, and no value
         final var userOtherPart = userStreamPartitionerOf(context, otherPartitioner, otherTable.keyType(), v);
         final var tableJoined = tableJoinedOf(userPart, userOtherPart);
         final var kvStore = validateKeyValueStore(store(), k, vr);

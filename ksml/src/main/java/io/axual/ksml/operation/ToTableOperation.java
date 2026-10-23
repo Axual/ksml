@@ -45,8 +45,7 @@ public class ToTableOperation extends StoreOperation {
         final var k = input.keyType();
         final var v = input.valueType();
         final var kvStore = validateKeyValueStore(store(), k, v);
-        // Kafka Streams always creates a state store for the table. Without a store definition, still pass the serdes,
-        // because the stream may have lost them (for example after a filter) and KSML sets no default serdes
+        // Pass serdes also without a store: KSML sets no default serdes, and a stream can lose them (e.g. after filter)
         final Materialized<Object, Object, KeyValueStore<Bytes, byte[]>> mat = kvStore != null
                 ? materializedOf(context, kvStore)
                 : Materialized.with(k.serde(), v.serde());
