@@ -2845,7 +2845,7 @@
 </li>
 </ul>
 <h2 id="200-unreleased">2.0.0 (unreleased)</h2>
-<p>Major dependency upgrades. This release moves KSML to Jackson 3, Apicurio Registry 3 and the matching Avro, Protobuf, Wire and Confluent versions. The Kafka client version is unchanged. Some changes below are breaking, so please read the <a href="../migration-to-2.0.0/">Upgrading to 2.0.0</a> guide before you upgrade.</p>
+<p>Major dependency upgrades. This release moves KSML to Jackson 3, Apicurio Registry 3 and the matching Avro, Protobuf, Wire and Confluent versions, and upgrades Kafka from 4.3 to 4.4.0. Some changes below are breaking, so please read the <a href="../migration-to-2.0.0/">Upgrading to 2.0.0</a> guide before you upgrade.</p>
 <ul>
 <li>Upgraded to Jackson 3 (the <code>tools.jackson</code> packages) across all modules.</li>
 <li>Upgraded to Apicurio Registry 3. Breaking change: the basic-auth config keys were renamed. Use <code>apicurio.registry.auth.username</code> and <code>apicurio.registry.auth.password</code> instead of the old <code>apicurio.auth.username</code> and <code>apicurio.auth.password</code>. KSML now fails at startup with a clear error if the old keys are still present, so it never silently drops your credentials.</li>
@@ -2853,7 +2853,10 @@
 <li>Breaking change: <code>apicurio.registry.auto-register.if-exists</code> no longer accepts <code>RETURN</code>. Use one of <code>FAIL</code>, <code>CREATE_VERSION</code> or <code>FIND_OR_CREATE_VERSION</code>.</li>
 <li>The Apicurio notations (<code>apicurio_avro</code>, <code>apicurio_jsonschema</code>, <code>apicurio_protobuf</code>) keep the same on-wire format as 1.x. KSML still pins the serde options explicitly (updated to the Apicurio v3 config keys) rather than depending on the Apicurio v3 defaults, so the schema id stays a 4-byte content id in the payload with no Kafka headers. Verified on 2.0.0 for all three notations. No topic reprocessing is needed. Set <code>apicurio.registry.headers.enabled: true</code> if you want the header-based id format instead.</li>
 <li>Runner config validation is strict again: an unknown or misspelled key in <code>ksml-runner.yaml</code> fails at startup instead of being silently ignored (Jackson 3 changed this default, so KSML re-enables the strict check).</li>
-<li>Moved off the deprecated Kafka Streams error-handler and admin APIs. The Kafka client version is unchanged: it stays on the same 4.x version that KSML 1.3.0 already used.</li>
+<li>Upgraded Kafka Streams and the Kafka clients from 4.3 to 4.4.0.</li>
+<li>Moved off the deprecated Kafka Streams error-handler, admin, stream partitioner and globalTable join APIs.</li>
+<li>A <code>streamPartitioner</code> function now gets the record headers in a new <code>headers</code> parameter, before <code>numPartitions</code>, in the order that Kafka Streams uses.</li>
+<li>In a join with a globalTable, the <code>valueJoiner</code> now gets the key that the <code>mapper</code> returned in a new <code>mappedKey</code> parameter. <code>key</code> is still the key of the stream record.</li>
 <li>Upgraded Protobuf and Wire to their 4.x and 6.x major versions.</li>
 <li>Added first-class support for Avro logical types (<code>uuid</code>, <code>decimal</code>, <code>date</code>, <code>time-millis</code>, <code>time-micros</code>, <code>timestamp-millis</code>, <code>timestamp-micros</code>, <code>local-timestamp-millis</code>, <code>local-timestamp-micros</code>). KSML keeps the logical type on read and write. See <a href="https://github.com/Axual/ksml/issues/415">issue #415</a> and <a href="https://github.com/Axual/ksml/issues/583">issue #583</a>.</li>
 <li>Breaking change: an Avro <code>decimal</code> field is now a string in KSML, for example <code>"123.45"</code>, where it used to be raw bytes. Python code that treated the field as bytes must be updated. See <a href="../migration-to-2.0.0/">Upgrading to 2.0.0</a>.</li>

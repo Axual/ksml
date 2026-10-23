@@ -4894,6 +4894,7 @@ available in your function code without needing to declare them:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="c1"># The custom parameter is passed along with built-in ones</span>
 <a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="n">configurable_logger</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">prefix</span><span class="o">=</span><span class="s2">"DEBUG"</span><span class="p">)</span>
 </code></pre></div>
+<p>Custom parameters come right after the built-in ones. Only the optional built-in parameter <code>mappedKey</code> (in a <code>valueJoiner</code>) comes last, after the custom parameters.</p>
 <h3 id="parameter-definition-structure">Parameter Definition Structure</h3>
 <p>When defining custom parameters:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="nt">parameters</span><span class="p">:</span>
@@ -6717,6 +6718,11 @@ data into formatted reports for monitoring and debugging.</p>
 <td>The value of the record being partitioned</td>
 </tr>
 <tr>
+<td>headers</td>
+<td>List</td>
+<td>The record headers, as a list of <code>{"key": ..., "value": ...}</code> like in <code>metadataTransformer</code></td>
+</tr>
+<tr>
 <td>numPartitions</td>
 <td>Integer</td>
 <td>The total number of partitions available in the target topic</td>
@@ -6724,7 +6730,7 @@ data into formatted reports for monitoring and debugging.</p>
 </tbody>
 </table>
 <h4 id="return-value_16">Return Value</h4>
-<p>An integer representing the partition number (0 to numPartitions-1) where the record should be sent</p>
+<p>An integer representing the partition number (0 to numPartitions-1) where the record should be sent, or a list of partition numbers to send it to several partitions. An empty list drops the record.</p>
 <h4 id="example_14">Example</h4>
 <blockquote>
 <p><strong>Note:</strong></p>
@@ -6946,7 +6952,7 @@ data into formatted reports for monitoring and debugging.</p>
 <h3 id="valuejoiner">valueJoiner</h3>
 <p>Combines values from two streams or tables during join operations, creating enriched records that contain data from both
 sources. The function must handle cases where one or both values might be null, depending on the join type (inner, left,
-outer). This function has access to the join key for context-aware value combination.</p>
+outer).</p>
 <h4 id="parameters_17">Parameters</h4>
 <table>
 <thead>
@@ -6960,7 +6966,7 @@ outer). This function has access to the join key for context-aware value combina
 <tr>
 <td>key</td>
 <td>Any</td>
-<td>The join key used to match records</td>
+<td>The key of the record. In a globalTable join, the key of the stream record. <code>None</code> in a join between two tables and in a stream-stream <code>outerJoin</code></td>
 </tr>
 <tr>
 <td>value1</td>
@@ -6971,6 +6977,11 @@ outer). This function has access to the join key for context-aware value combina
 <td>value2</td>
 <td>Any</td>
 <td>The value from the second stream/table</td>
+</tr>
+<tr>
+<td>mappedKey</td>
+<td>Any</td>
+<td>In a globalTable join, the key that the <code>mapper</code> returned. <code>None</code> in all other joins</td>
 </tr>
 </tbody>
 </table>
@@ -7633,7 +7644,7 @@ relationship helps you leverage Kafka Streams documentation and concepts:</p>
 </tr>
 <tr>
 <td>valueJoiner</td>
-<td><code>ValueJoiner&lt;V1,V2,VR&gt;</code></td>
+<td><code>ValueJoiner</code>, <code>ValueJoinerWithKey</code> or <code>ValueJoinerWithStreamAndMappedKey</code>, by join type</td>
 <td>Join values from two streams</td>
 </tr>
 </tbody>

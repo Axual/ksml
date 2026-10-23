@@ -3581,6 +3581,7 @@ graph TB
 <li><strong>Output</strong>: Key to lookup in the GlobalTable</li>
 <li><strong>Example</strong>: Extract product_id from order to join with product catalog</li>
 </ul>
+<p>In the <code>valueJoiner</code>, <code>key</code> is the key of the stream record (the order id). The key that the <code>mapper</code> returned (the product id) is in <code>mappedKey</code>.</p>
 <h2 id="stream-table-left-join">Stream-Table Left Join</h2>
 <p>Left joins preserve all records from the stream (left side) while adding data from the table (right side) when available. This is useful for enriching events with optional reference data.</p>
 <h3 id="use-case-activity-enrichment-with-location">Use Case: Activity Enrichment with Location</h3>

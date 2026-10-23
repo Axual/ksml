@@ -1982,6 +1982,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#kafka-44" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Kafka 4.4
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#protobuf-and-wire" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2253,6 +2264,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#kafka-44" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Kafka 4.4
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#protobuf-and-wire" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2292,7 +2314,7 @@
 
 
 <h1 id="upgrading-to-ksml-200">Upgrading to KSML 2.0.0</h1>
-<p>KSML 2.0.0 is a major release. It upgrades the core libraries that KSML is built on: Jackson (2 to 3), Apicurio Registry (2 to 3), Protobuf (4.x), Wire (6.x) and the Confluent serdes (8.x). The Kafka client version is unchanged.</p>
+<p>KSML 2.0.0 is a major release. It upgrades the core libraries that KSML is built on: Jackson (2 to 3), Apicurio Registry (2 to 3), Protobuf (4.x), Wire (6.x) and the Confluent serdes (8.x). It also upgrades Kafka Streams and the Kafka clients from 4.3 to 4.4.0.</p>
 <p>Most of these upgrades are internal, but a few of them change how you configure KSML. Please read this page before you upgrade a running deployment.</p>
 <p>This guide is written as "what changed" followed by "what you need to do".</p>
 <h2 id="quick-checklist">Quick checklist</h2>
@@ -2304,6 +2326,8 @@
 <li>Remove <code>apicurio.registry.as-confluent</code>, and replace <code>Legacy4ByteIdHandler</code> with <code>Default4ByteIdHandler</code> if you set <code>apicurio.registry.id-handler</code> yourself.</li>
 <li>Fix any typo'd keys in your runner config, because unknown keys now fail at startup again.</li>
 <li>If you read an Avro <code>decimal</code> field in Python, change the code to expect a string instead of bytes.</li>
+<li>If a <code>streamPartitioner</code> or <code>valueJoiner</code> function uses a global variable called <code>headers</code> or <code>mappedKey</code>, rename it.</li>
+<li>If Python code calls a <code>streamPartitioner</code> function by position, pass <code>headers</code> before <code>numPartitions</code>, or call it by name.</li>
 <li>If you build your own code on top of the KSML libraries, update the Jackson package names.</li>
 </ul>
 <h2 id="apicurio-registry-3">Apicurio Registry 3</h2>
@@ -2405,8 +2429,20 @@ because both can lose digits.</p>
   from the schema registry. An inline KSML schema cannot express one.</li>
 </ul>
 <h2 id="kafka-streams-error-handlers">Kafka Streams error handlers</h2>
-<p>For pipeline authors who write KSML YAML, there is nothing to change here. The Kafka client version is unchanged in KSML 2.0.0: it stays on the same 4.x version that KSML 1.3.0 already used.</p>
+<p>For pipeline authors who write KSML YAML, there is nothing to change here.</p>
 <p>KSML did move off the Kafka Streams handler methods that 4.x deprecated. If you implement your own Kafka Streams error handler against the KSML libraries, <code>handle</code> became <code>handleError</code>, and the enum results were replaced by <code>Response.resume()</code>, <code>Response.fail()</code> and <code>Response.retry()</code>.</p>
+<h2 id="kafka-44">Kafka 4.4</h2>
+<p>KSML 2.0.0 upgrades Kafka Streams and the Kafka clients from 4.3 (used by KSML 1.3.x) to 4.4.0. For pipeline authors, there is nothing to change.</p>
+<p>Two function types get a new parameter:</p>
+<ul>
+<li>A <code>streamPartitioner</code> gets the record headers in <code>headers</code>. Its parameters are now <code>topic</code>, <code>key</code>, <code>value</code>, <code>headers</code> and <code>numPartitions</code>, in the order that Kafka Streams uses.</li>
+<li>A <code>valueJoiner</code> in a join with a globalTable gets the key that the <code>mapper</code> returned in <code>mappedKey</code>. This parameter is optional and comes last, so <code>key</code>, <code>value1</code> and <code>value2</code> keep their position.</li>
+</ul>
+<p>Existing functions work without changes, with two exceptions:</p>
+<ul>
+<li>If such a function uses a global variable called <code>headers</code> or <code>mappedKey</code>, for example from <code>globalCode</code>, rename that variable. The new parameter hides it, and <code>global headers</code> in the function code fails at startup.</li>
+<li>If Python code calls a <code>streamPartitioner</code> function by position, for example <code>my_partitioner(topic, key, value, 4)</code>, pass <code>headers</code> before <code>numPartitions</code>, or call the function by name. A <code>generic</code> function with only <code>topic</code>, <code>key</code>, <code>value</code> and <code>numPartitions</code> still works as a partitioner.</li>
+</ul>
 <h2 id="protobuf-and-wire">Protobuf and Wire</h2>
 <p>Protobuf was upgraded to the 4.x line and Wire to the 6.x line. There is no configuration change for pipeline authors. If you use Protobuf schemas, test them after upgrading.</p>
 <h2 id="jackson-3-only-if-you-extend-ksml-in-java">Jackson 3 (only if you extend KSML in Java)</h2>
