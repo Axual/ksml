@@ -180,39 +180,49 @@ public class XmlSchemaMapper implements DataSchemaMapper<String> {
     private DataSchema convertToSchema(XMLSchemaParseContext context, XmlSchemaType type) {
         if (type instanceof XmlSchemaSimpleType simpleType) {
             final var content = simpleType.getContent();
-            if (content instanceof XmlSchemaSimpleTypeList list) {
-                if (list.getItemTypeName() != null) {
-                    final var itemType = convertToSchemaForced(list.getItemTypeName());
-                    return new ListSchema(itemType);
-                }
-                final var itemType = convertToSchema(context, list.getItemType());
-                return new ListSchema(itemType);
-            }
-            if (content instanceof XmlSchemaSimpleTypeRestriction restriction) {
-                final var symbols = new ArrayList<EnumSchema.Symbol>();
-                for (final var facet : restriction.getFacets()) {
-                    if (facet instanceof XmlSchemaEnumerationFacet enumFacet) {
-                        final var value = enumFacet.getValue().toString();
-                        symbols.add(new EnumSchema.Symbol(value));
-                    }
-                }
-                return new EnumSchema(null, type.getName(), extractDoc(type.getAnnotation()), symbols);
-            }
-            if (content instanceof XmlSchemaSimpleTypeUnion union) {
-                final var members = new ArrayList<UnionSchema.Member>();
-                for (final var member : union.getMemberTypesQNames()) {
-                    final var schema = convertToSchemaForced(member);
-                    members.add(new UnionSchema.Member(schema));
-                }
-                return new UnionSchema(members.toArray(UnionSchema.Member[]::new));
-            }
+            if (content instanceof XmlSchemaSimpleTypeList list) return convertSimpleTypeList(context, list);
+            if (content instanceof XmlSchemaSimpleTypeRestriction restriction) return convertSimpleTypeRestriction(type, restriction);
+            if (content instanceof XmlSchemaSimpleTypeUnion union) return convertSimpleTypeUnion(union);
         }
         if (type instanceof XmlSchemaComplexType complexType && complexType.getParticle() instanceof XmlSchemaSequence sequence) {
-            final var fields = convertToFields(context, sequence);
-            final var namespace = getNamespaceFromComplexType(complexType);
-            return new StructSchema(namespace, complexType.getName(), extractDoc(complexType.getAnnotation()), fields, false);
+            return convertComplexTypeSequence(context, complexType, sequence);
         }
         throw new SchemaException("Could not convert XSD type to DataSchema: " + type);
+    }
+
+    private DataSchema convertSimpleTypeList(XMLSchemaParseContext context, XmlSchemaSimpleTypeList list) {
+        if (list.getItemTypeName() != null) {
+            final var itemType = convertToSchemaForced(list.getItemTypeName());
+            return new ListSchema(itemType);
+        }
+        final var itemType = convertToSchema(context, list.getItemType());
+        return new ListSchema(itemType);
+    }
+
+    private DataSchema convertSimpleTypeRestriction(XmlSchemaType type, XmlSchemaSimpleTypeRestriction restriction) {
+        final var symbols = new ArrayList<EnumSchema.Symbol>();
+        for (final var facet : restriction.getFacets()) {
+            if (facet instanceof XmlSchemaEnumerationFacet enumFacet) {
+                final var value = enumFacet.getValue().toString();
+                symbols.add(new EnumSchema.Symbol(value));
+            }
+        }
+        return new EnumSchema(null, type.getName(), extractDoc(type.getAnnotation()), symbols);
+    }
+
+    private DataSchema convertSimpleTypeUnion(XmlSchemaSimpleTypeUnion union) {
+        final var members = new ArrayList<UnionSchema.Member>();
+        for (final var member : union.getMemberTypesQNames()) {
+            final var schema = convertToSchemaForced(member);
+            members.add(new UnionSchema.Member(schema));
+        }
+        return new UnionSchema(members.toArray(UnionSchema.Member[]::new));
+    }
+
+    private DataSchema convertComplexTypeSequence(XMLSchemaParseContext context, XmlSchemaComplexType complexType, XmlSchemaSequence sequence) {
+        final var fields = convertToFields(context, sequence);
+        final var namespace = getNamespaceFromComplexType(complexType);
+        return new StructSchema(namespace, complexType.getName(), extractDoc(complexType.getAnnotation()), fields, false);
     }
 
     private String getNamespaceFromComplexType(XmlSchemaComplexType complexType) {

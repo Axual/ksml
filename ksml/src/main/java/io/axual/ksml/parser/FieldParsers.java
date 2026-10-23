@@ -264,11 +264,7 @@ public final class FieldParsers {
         if (parsedName != null) return parsedName;
         if (defaultName != null) return defaultName;
         if (!required) return null;
-        return parseError(objectType + " name not defined");
-    }
-
-    public static <V> V parseError(String message) {
-        throw new TopologyException(message);
+        throw new TopologyException(objectType + " name not defined");
     }
 
     // Constructor0..Constructor10 and the structsParser(...) overloads below are an

@@ -72,7 +72,7 @@ public class TopologyGenerator {
 
         final var stores = new TreeMap<String, StateStoreDefinition>();
 
-        definitions.forEach((name, definition) -> {
+        definitions.forEach((_, definition) -> {
             // Log the start of the processor
             log.info("Starting processor definition: name={}, version={}, namespace={}",
                     definition.name() != null ? definition.name() : UNDEFINED,
@@ -152,7 +152,7 @@ public class TopologyGenerator {
 
     private void generate(TopologyDefinition definition, TopologyBuildContext context) {
         // Preload the function into the Python context
-        definition.functions().forEach((name, func) -> context.createUserFunction(func));
+        definition.functions().forEach((_, func) -> context.createUserFunction(func));
 
         // Figure out which state stores to create manually. Mechanism:
         // 1. run through all pipelines and scan for StoreOperations, don't create the stores referenced
@@ -160,36 +160,10 @@ public class TopologyGenerator {
         final var kafkaStreamsCreatedStores = new HashSet<String>();
 
         // Ensure that local state store in tables are registered with the StreamBuilder
-        definition.topics().forEach((name, def) -> {
-            if (def instanceof TableDefinition tableDef) {
-                context.getStreamWrapper(tableDef);
-                if (tableDef.store() != null) {
-                    // Register the state store and mark as already created (by Kafka Streams framework, not by user)
-                    definition.register(tableDef.store().name(), tableDef.store());
-                    kafkaStreamsCreatedStores.add(tableDef.store().name());
-                }
-            }
-            if (def instanceof GlobalTableDefinition globalTableDef) {
-                context.getStreamWrapper(globalTableDef);
-                if (globalTableDef.store() != null) {
-                    // Register the state store and mark as already created (by Kafka Streams framework, not by user)
-                    definition.register(globalTableDef.store().name(), globalTableDef.store());
-                    kafkaStreamsCreatedStores.add(globalTableDef.store().name());
-                }
-            }
-        });
+        registerFrameworkManagedStores(definition, context, kafkaStreamsCreatedStores);
 
         // Filter out all state stores that Kafka Streams will set up later as part of the topology
-        definition.pipelines().forEach((name, pipeline) -> pipeline.chain().forEach(operation -> {
-            if (operation instanceof StoreOperation storeOperation && storeOperation.store() != null)
-                kafkaStreamsCreatedStores.add(storeOperation.store().name());
-            if (operation instanceof DualStoreOperation dualStoreOperation) {
-                if (dualStoreOperation.thisStore() != null)
-                    kafkaStreamsCreatedStores.add(dualStoreOperation.thisStore().name());
-                if (dualStoreOperation.otherStore() != null)
-                    kafkaStreamsCreatedStores.add(dualStoreOperation.otherStore().name());
-            }
-        }));
+        collectPipelineManagedStores(definition, kafkaStreamsCreatedStores);
 
         // Create all not-automatically-created stores
         definition.stateStores().forEach((name, store) -> {
@@ -225,5 +199,51 @@ public class TopologyGenerator {
                 throw new TopologyException("Error in topology \"" + name + "\": " + e.getMessage(), e);
             }
         });
+    }
+
+    /**
+     * Registers the state store backing any {@link TableDefinition} or {@link GlobalTableDefinition}
+     * in {@code definition}'s topics with {@code definition} itself, and adds its name to
+     * {@code kafkaStreamsCreatedStores} since Kafka Streams creates it automatically as part of the
+     * table/globalTable, rather than KSML having to create it manually.
+     */
+    private void registerFrameworkManagedStores(TopologyDefinition definition, TopologyBuildContext context, Set<String> kafkaStreamsCreatedStores) {
+        definition.topics().forEach((_, def) -> {
+            if (def instanceof TableDefinition tableDef) {
+                context.getStreamWrapper(tableDef);
+                if (tableDef.store() != null) {
+                    // Register the state store and mark as already created (by Kafka Streams framework, not by user)
+                    definition.register(tableDef.store().name(), tableDef.store());
+                    kafkaStreamsCreatedStores.add(tableDef.store().name());
+                }
+            }
+            if (def instanceof GlobalTableDefinition globalTableDef) {
+                context.getStreamWrapper(globalTableDef);
+                if (globalTableDef.store() != null) {
+                    // Register the state store and mark as already created (by Kafka Streams framework, not by user)
+                    definition.register(globalTableDef.store().name(), globalTableDef.store());
+                    kafkaStreamsCreatedStores.add(globalTableDef.store().name());
+                }
+            }
+        });
+    }
+
+    /**
+     * Adds the name of any state store referenced by a {@link StoreOperation} or
+     * {@link DualStoreOperation} in any of {@code definition}'s pipeline operation chains to
+     * {@code kafkaStreamsCreatedStores}, since Kafka Streams sets those up itself as part of
+     * building the topology, rather than KSML having to create them manually.
+     */
+    private void collectPipelineManagedStores(TopologyDefinition definition, Set<String> kafkaStreamsCreatedStores) {
+        definition.pipelines().forEach((_, pipeline) -> pipeline.chain().forEach(operation -> {
+            if (operation instanceof StoreOperation storeOperation && storeOperation.store() != null)
+                kafkaStreamsCreatedStores.add(storeOperation.store().name());
+            if (operation instanceof DualStoreOperation dualStoreOperation) {
+                if (dualStoreOperation.thisStore() != null)
+                    kafkaStreamsCreatedStores.add(dualStoreOperation.thisStore().name());
+                if (dualStoreOperation.otherStore() != null)
+                    kafkaStreamsCreatedStores.add(dualStoreOperation.otherStore().name());
+            }
+        }));
     }
 }

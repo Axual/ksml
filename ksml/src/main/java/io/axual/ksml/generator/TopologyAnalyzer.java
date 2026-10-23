@@ -68,17 +68,15 @@ public class TopologyAnalyzer {
 
     private static void analyzeTopology(Topology topology, Set<String> inputTopics, Set<String> outputTopics) {
         final var description = topology.describe();
-        for (int index = 0; index < description.subtopologies().size(); index++) {
-            for (var subTopology : description.subtopologies()) {
-                for (var node : subTopology.nodes()) {
-                    if (node instanceof TopologyDescription.Source sourceNode) {
-                        inputTopics.addAll(sourceNode.topicSet());
-                        if (sourceNode.topicPattern() != null)
-                            inputTopics.add(sourceNode.topicPattern().pattern());
-                    }
-                    if (node instanceof TopologyDescription.Sink sinkNode && sinkNode.topic() != null) {
-                        outputTopics.add(sinkNode.topic());
-                    }
+        for (var subTopology : description.subtopologies()) {
+            for (var node : subTopology.nodes()) {
+                if (node instanceof TopologyDescription.Source sourceNode) {
+                    inputTopics.addAll(sourceNode.topicSet());
+                    if (sourceNode.topicPattern() != null)
+                        inputTopics.add(sourceNode.topicPattern().pattern());
+                }
+                if (node instanceof TopologyDescription.Sink sinkNode && sinkNode.topic() != null) {
+                    outputTopics.add(sinkNode.topic());
                 }
             }
         }

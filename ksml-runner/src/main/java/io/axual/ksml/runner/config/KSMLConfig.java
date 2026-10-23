@@ -178,33 +178,38 @@ public class KSMLConfig {
         final var result = new HashMap<String, JsonNode>();
         if (definitions != null) {
             for (var definition : definitions.entrySet()) {
-                var namespace = definition.getKey();
-                var valueObj = definition.getValue();
-                if (valueObj == null) continue;
-
-                if (valueObj.getValue() instanceof String definitionFile) {
-                    final var definitionFilePath = Paths.get(configDirectory(), definitionFile);
-                    if (Files.notExists(definitionFilePath) || !Files.isRegularFile(definitionFilePath)) {
-                        throw new ConfigException("definitionFile", definitionFilePath, "The provided KSML definition file does not exists or is not a regular file");
-                    }
-                    try {
-                        log.info("Reading KSML definition from source file: {}", definitionFilePath.toFile());
-                        final var def = YAMLObjectMapper.INSTANCE.readValue(definitionFilePath.toFile(), JsonNode.class);
-                        result.put(namespace, def);
-                    } catch (JacksonException e) {
-                        // Fail rather than start with a pipeline missing. Skipping used to be harmless for
-                        // malformed YAML, but a duplicate key is now a parse error too, and a runner that
-                        // quietly omits one definition looks like an idle topic rather than a broken config.
-                        throw new ConfigException("definitionFile", definitionFilePath,
-                                "Could not read the KSML definition: " + e.getMessage(), e);
-                    }
-                }
-                if (valueObj.getValue() instanceof ObjectNode root) {
-                    result.put(namespace, root);
-                }
+                addDefinition(result, definition.getKey(), definition.getValue());
             }
         }
         return result;
+    }
+
+    private void addDefinition(Map<String, JsonNode> result, String namespace, KsmlFileOrDefinition valueObj) {
+        if (valueObj == null) return;
+
+        if (valueObj.getValue() instanceof String definitionFile) {
+            result.put(namespace, readDefinitionFile(definitionFile));
+        }
+        if (valueObj.getValue() instanceof ObjectNode root) {
+            result.put(namespace, root);
+        }
+    }
+
+    private JsonNode readDefinitionFile(String definitionFile) {
+        final var definitionFilePath = Paths.get(configDirectory(), definitionFile);
+        if (Files.notExists(definitionFilePath) || !Files.isRegularFile(definitionFilePath)) {
+            throw new ConfigException("definitionFile", definitionFilePath, "The provided KSML definition file does not exists or is not a regular file");
+        }
+        try {
+            log.info("Reading KSML definition from source file: {}", definitionFilePath.toFile());
+            return YAMLObjectMapper.INSTANCE.readValue(definitionFilePath.toFile(), JsonNode.class);
+        } catch (JacksonException e) {
+            // Fail rather than start with a pipeline missing. Skipping used to be harmless for
+            // malformed YAML, but a duplicate key is now a parse error too, and a runner that
+            // quietly omits one definition looks like an idle topic rather than a broken config.
+            throw new ConfigException("definitionFile", definitionFilePath,
+                    "Could not read the KSML definition: " + e.getMessage(), e);
+        }
     }
 
     /* Define Several Map Definitions to allow typed naming */

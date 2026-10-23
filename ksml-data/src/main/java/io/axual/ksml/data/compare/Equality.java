@@ -20,52 +20,38 @@ package io.axual.ksml.data.compare;
  * =========================LICENSE_END==================================
  */
 
-import lombok.Getter;
 import lombok.NonNull;
 
 /**
  * Represents the result of a deep equality comparison performed via {@link DataEquals#equals(Object, EqualityFlags)}.
  * <p>
- * The result can be in two states:
+ * The result is one of two states:
  * <ul>
- *   <li>OK — the compared objects are considered equal.</li>
- *   <li>Not OK — the objects are not equal, accompanied by a human-readable explanation, optionally with a cause chain.</li>
+ *   <li>{@link Equal} — the compared objects are considered equal.</li>
+ *   <li>{@link NotEqual} — the objects are not equal, accompanied by a human-readable explanation, optionally with a cause chain.</li>
  * </ul>
  * Equality failures can be chained using a cause, enabling precise, hierarchical explanations of why equality does not hold.
- * To optimize for the common success case, the OK state is implemented as a singleton instance (message is {@code null}).
+ * A {@link NotEqual}'s cause can only ever be another {@link NotEqual}, so an equal result carrying a cause, or a failure
+ * "caused by" a success, are unrepresentable rather than merely disallowed at runtime.
+ * <p>
+ * This is a {@code sealed abstract class} rather than a sealed interface to maintain binary compatibility with older code.
  */
-@Getter
-@SuppressWarnings("java:S2176")
-public class Equality {
-    private static final Equality EQUAL = new Equality(null, null);
-    private final String message;
-    private final Equality cause;
-
-    /**
-     * Creates a new Equal result.
-     *
-     * @param message a human-readable explanation of the inequality; {@code null} means the objects are equal
-     * @param cause   an optional underlying reason; only stored when it represents a non-equal state
-     */
-    private Equality(String message, Equality cause) {
-        this.message = message;
-        this.cause = cause != null && cause.isNotEqual() ? cause : null;
-    }
-
+public abstract sealed class Equality permits Equal, NotEqual {
     /**
      * Returns the singleton instance representing a successful equality check (no differences).
      *
      * @return the OK Equal instance
      */
+    @SuppressWarnings("java:S1221") // Public API name, used in about 50 places
     public static Equality equal() {
-        return EQUAL;
+        return Equal.INSTANCE;
     }
 
     /**
      * Creates a non-equal result with a human-readable message.
      *
      * @param message explanation of why the objects are not equal
-     * @return a new Equal instance representing inequality
+     * @return a new Equality instance representing inequality
      */
     public static Equality notEqual(String message) {
         return notEqual(message, null);
@@ -74,13 +60,16 @@ public class Equality {
     /**
      * Creates a non-equal result with a message and an optional underlying cause.
      *
+     * <p>A cause that is itself an {@link Equal} is discarded: chaining a successful comparison as the
+     * "cause" of a failed one is meaningless.</p>
+     *
      * @param message explanation of why the objects are not equal
      * @param cause   an optional underlying reason providing more detail
-     * @return a new Equal instance representing inequality
+     * @return a new Equality instance representing inequality
      * @throws NullPointerException if {@code message} is {@code null}
      */
     public static Equality notEqual(@NonNull String message, Equality cause) {
-        return new Equality(message, cause);
+        return new NotEqual(message, cause instanceof NotEqual notEqualCause ? notEqualCause : null);
     }
 
     /**
@@ -88,26 +77,34 @@ public class Equality {
      *
      * @return {@code true} if equal; {@code false} otherwise
      */
-    public boolean isEqual() {
-        return message == null;
-    }
+    public abstract boolean isEqual();
 
     /**
      * Indicates whether the compared objects are not equal.
      *
      * @return {@code true} if not equal; {@code false} otherwise
      */
-    public boolean isNotEqual() {
-        return message != null;
-    }
+    public abstract boolean isNotEqual();
+
+    /**
+     * A human-readable explanation of the inequality, or {@code null} when equal.
+     *
+     * @return the explanation, or {@code null}
+     */
+    public abstract String message();
+
+    /**
+     * The underlying reason for this result, or {@code null} when equal or when there is no further cause.
+     *
+     * @return the cause, or {@code null}
+     */
+    public abstract Equality cause();
 
     /**
      * Returns the explanation chain as a single line (no prefix on the first line).
      */
     @Override
-    public String toString() {
-        return toString(false);
-    }
+    public abstract String toString();
 
     /**
      * Returns the explanation chain as a String, optionally prefixing the first line.
@@ -115,9 +112,7 @@ public class Equality {
      * @param prefixFirstLine whether to prefix the first line as well
      * @return the formatted explanation chain
      */
-    public String toString(boolean prefixFirstLine) {
-        return toString("caused by: ", prefixFirstLine);
-    }
+    public abstract String toString(boolean prefixFirstLine);
 
     /**
      * Returns the explanation chain as a String with a custom line prefix.
@@ -128,16 +123,5 @@ public class Equality {
      * @param prefixFirstLine whether to prefix the first line as well
      * @return the formatted explanation chain
      */
-    public String toString(String linePrefix, boolean prefixFirstLine) {
-        if (isEqual()) {
-            return "EQUAL";
-        }
-        final var builder = new StringBuilder();
-        for (var i = this; i != null; i = i.cause) {
-            if (i != this) builder.append("\n");
-            if (i != this || prefixFirstLine) builder.append(linePrefix);
-            builder.append(i.message);
-        }
-        return builder.toString();
-    }
+    public abstract String toString(String linePrefix, boolean prefixFirstLine);
 }

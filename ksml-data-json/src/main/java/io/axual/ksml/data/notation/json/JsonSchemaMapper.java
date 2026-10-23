@@ -31,10 +31,12 @@ import io.axual.ksml.data.object.DataObject;
 import io.axual.ksml.data.object.DataString;
 import io.axual.ksml.data.object.DataStruct;
 import io.axual.ksml.data.schema.DataSchema;
+import io.axual.ksml.data.schema.DataSchemaConstants;
 import io.axual.ksml.data.schema.EnumSchema;
 import io.axual.ksml.data.schema.ListSchema;
 import io.axual.ksml.data.schema.LogicalSchema;
 import io.axual.ksml.data.schema.MapSchema;
+import io.axual.ksml.data.schema.NamedSchema;
 import io.axual.ksml.data.schema.StructSchema;
 import io.axual.ksml.data.schema.UnionSchema;
 import io.axual.ksml.data.schema.logical.LogicalTypeConstants;
@@ -297,13 +299,26 @@ public class JsonSchemaMapper implements DataSchemaMapper<String> {
     }
 
     /**
-     * Minimal callback used to collect/declare reusable schema definitions when generating JSON Schema.
+     * Accumulates JSON Schema $defs entries by name while generating JSON Schema for a
+     * {@link StructSchema}. Exposes only the narrow write capability the recursive conversion
+     * helpers need; call {@link #toDataStruct()} once conversion is complete to get the
+     * accumulated $defs object back for embedding in the output document.
      */
-    private interface DefinitionLibrary {
-        /**
-         * Registers a definition by name if absent, with its corresponding JSON Schema (as DataStruct).
-         */
-        void put(String name, DataStruct schema);
+    private static final class DefinitionLibrary {
+        private final DataStruct definitions = new DataStruct();
+
+        /** Registers a definition by name if absent, with its corresponding JSON Schema (as DataStruct). */
+        void put(String name, DataStruct schema) {
+            definitions.putIfAbsent(name, schema);
+        }
+
+        boolean isEmpty() {
+            return definitions.size() == 0;
+        }
+
+        DataStruct toDataStruct() {
+            return definitions;
+        }
     }
 
     /**
@@ -311,14 +326,14 @@ public class JsonSchemaMapper implements DataSchemaMapper<String> {
      * Populates $defs with referenced structures if any are encountered.
      */
     private DataStruct fromDataSchema(StructSchema structSchema) {
-        final var definitions = new DataStruct();
-        final var result = fromDataSchema(structSchema, definitions::putIfAbsent);
+        final var definitions = new DefinitionLibrary();
+        final var result = fromDataSchema(structSchema, definitions);
 
         // This custom JSON Schema implementation is compatible with Draft 2019-09 JSON Schema Version.
         result.put("$schema", new DataString("https://json-schema.org/draft/2019-09/schema"));
 
-        if (definitions.size() > 0) {
-            result.put(DEFINITIONS_NAME, definitions);
+        if (!definitions.isEmpty()) {
+            result.put(DEFINITIONS_NAME, definitions.toDataStruct());
         }
         return result;
     }
@@ -374,59 +389,98 @@ public class JsonSchemaMapper implements DataSchemaMapper<String> {
 
     private void convertType(DataSchema schema, boolean constant, DataObject defaultValue, DataStruct target, DefinitionLibrary definitions) {
         if (schema instanceof LogicalSchema logicalSchema) writeLogicalType(logicalSchema, constant, defaultValue, target);
-        if (schema == DataSchema.NULL_SCHEMA) target.put(TYPE_NAME, new DataString(NULL_TYPE));
-        if (schema == DataSchema.BOOLEAN_SCHEMA) target.put(TYPE_NAME, new DataString(BOOLEAN_TYPE));
-        if (schema == DataSchema.BYTE_SCHEMA || schema == DataSchema.SHORT_SCHEMA || schema == DataSchema.INTEGER_SCHEMA || schema == DataSchema.LONG_SCHEMA)
-            target.put(TYPE_NAME, new DataString(INTEGER_TYPE));
-        if (schema == DataSchema.FLOAT_SCHEMA || schema == DataSchema.DOUBLE_SCHEMA)
-            target.put(TYPE_NAME, new DataString(NUMBER_TYPE));
-        if (schema == DataSchema.STRING_SCHEMA) {
-            if (constant && defaultValue != null) {
-                target.put(ENUM_NAME, DataList.of(new DataString(defaultValue.toString())));
-            } else {
-                target.put(TYPE_NAME, new DataString(STRING_TYPE));
-            }
-        }
         if (schema instanceof EnumSchema enumSchema) {
             target.put(ENUM_NAME, DataList.of(enumSchema.symbols().stream().map(s -> new DataString(s.name())).toArray(DataString[]::new)));
         }
-        if (schema instanceof ListSchema listSchema) {
-            target.put(TYPE_NAME, new DataString(ARRAY_TYPE));
-            final var subStruct = new DataStruct();
-            convertType(listSchema.valueSchema(), false, null, subStruct, definitions);
-            if (subStruct.size() > 0) {
-                // only add if the list values exist
-                target.put(ITEMS_NAME, subStruct);
-            }
-        }
-        if (schema instanceof MapSchema mapSchema) {
-            target.put(TYPE_NAME, new DataString(OBJECT_TYPE));
-            if (ANY_SCHEMA.equals(mapSchema.valueSchema())) {
-                target.put(ADDITIONAL_PROPERTIES, new DataBoolean(true));
-            } else {
-                final var additionalPatternSubStruct = new DataStruct();
-                target.put(ADDITIONAL_PROPERTIES, additionalPatternSubStruct);
-                convertType(mapSchema.valueSchema(), false, null, additionalPatternSubStruct, definitions);
-            }
-        }
+        if (schema instanceof ListSchema listSchema) convertListSchemaToJsonType(listSchema, target, definitions);
+        if (schema instanceof MapSchema mapSchema) convertMapSchemaToJsonType(mapSchema, target, definitions);
         if (schema instanceof StructSchema structSchema) {
             final var name = structSchema.name();
             definitions.put(name, fromDataSchema(structSchema, definitions));
             target.put(TYPE_NAME, new DataString(OBJECT_TYPE));
             target.put(REF_NAME, new DataString("#/" + DEFINITIONS_NAME + "/" + name));
         }
-        if (schema instanceof UnionSchema unionSchema) {
-            // Convert to an array of value types
-            final var members = new DataList();
-            for (var member : unionSchema.members()) {
-                final var typeStruct = new DataStruct();
-                convertType(member.schema(), false, null, typeStruct, definitions);
-                members.add(typeStruct);
-            }
-            target.put(ANY_OF_NAME, members);
-        }
+        if (schema instanceof UnionSchema unionSchema) convertUnionSchemaToJsonType(unionSchema, target, definitions);
+        writePrimitiveType(schema, constant, defaultValue, target);
+
         if (defaultValue != null && defaultAllowedByEnum(target, defaultValue)) {
             target.put(DEFAULT_NAME, defaultValue);
+        }
+    }
+
+    /**
+     * Converts a {@link ListSchema} into a JSON Schema 'array' type, writing its 'items' sub-schema
+     * when present.
+     */
+    private void convertListSchemaToJsonType(ListSchema listSchema, DataStruct target, DefinitionLibrary definitions) {
+        target.put(TYPE_NAME, new DataString(ARRAY_TYPE));
+        final var subStruct = new DataStruct();
+        convertType(listSchema.valueSchema(), false, null, subStruct, definitions);
+        if (subStruct.size() > 0) {
+            // only add if the list values exist
+            target.put(ITEMS_NAME, subStruct);
+        }
+    }
+
+    /**
+     * Converts a {@link MapSchema} into a JSON Schema 'object' type with an 'additionalProperties'
+     * sub-schema (or {@code true} when the value schema is {@code ANY}).
+     */
+    private void convertMapSchemaToJsonType(MapSchema mapSchema, DataStruct target, DefinitionLibrary definitions) {
+        target.put(TYPE_NAME, new DataString(OBJECT_TYPE));
+        if (ANY_SCHEMA.equals(mapSchema.valueSchema())) {
+            target.put(ADDITIONAL_PROPERTIES, new DataBoolean(true));
+        } else {
+            final var additionalPatternSubStruct = new DataStruct();
+            target.put(ADDITIONAL_PROPERTIES, additionalPatternSubStruct);
+            convertType(mapSchema.valueSchema(), false, null, additionalPatternSubStruct, definitions);
+        }
+    }
+
+    /**
+     * Converts a {@link UnionSchema} into a JSON Schema 'anyOf' array of its member sub-schemas.
+     */
+    private void convertUnionSchemaToJsonType(UnionSchema unionSchema, DataStruct target, DefinitionLibrary definitions) {
+        // Convert to an array of value types
+        final var members = new DataList();
+        for (var member : unionSchema.members()) {
+            final var typeStruct = new DataStruct();
+            convertType(member.schema(), false, null, typeStruct, definitions);
+            members.add(typeStruct);
+        }
+        target.put(ANY_OF_NAME, members);
+    }
+
+    /**
+     * Writes the JSON Schema 'type' (and 'enum' where relevant) for a primitive {@link DataSchema}.
+     * Must not run for anything whose {@code type()} isn't a plain category string:
+     * {@link NamedSchema} (covers {@link EnumSchema}, {@link StructSchema} and {@code FixedSchema})
+     * overrides {@code type()} to return its own {@code fullName()} instead (which can even collide
+     * with a primitive case literally, e.g. an anonymous struct's fullName degrades to the text
+     * {@code "null"}), and {@link LogicalSchema} aliases {@code type()} to its base primitive's type
+     * name (e.g. uuid reports {@code "string"}) and is already fully handled by
+     * {@link #writeLogicalType}. {@link ListSchema}/{@link MapSchema}/{@link UnionSchema} are safe
+     * (their {@code type()} is never overridden) but are excluded too since they're handled above.
+     */
+    private void writePrimitiveType(DataSchema schema, boolean constant, DataObject defaultValue, DataStruct target) {
+        if (schema instanceof NamedSchema || schema instanceof LogicalSchema
+                || schema instanceof ListSchema || schema instanceof MapSchema || schema instanceof UnionSchema) return;
+        switch (schema.type()) {
+            case DataSchemaConstants.NULL_TYPE -> target.put(TYPE_NAME, new DataString(NULL_TYPE));
+            case DataSchemaConstants.BOOLEAN_TYPE -> target.put(TYPE_NAME, new DataString(BOOLEAN_TYPE));
+            case DataSchemaConstants.BYTE_TYPE, DataSchemaConstants.SHORT_TYPE, DataSchemaConstants.INTEGER_TYPE, DataSchemaConstants.LONG_TYPE ->
+                    target.put(TYPE_NAME, new DataString(INTEGER_TYPE));
+            case DataSchemaConstants.FLOAT_TYPE, DataSchemaConstants.DOUBLE_TYPE -> target.put(TYPE_NAME, new DataString(NUMBER_TYPE));
+            case DataSchemaConstants.STRING_TYPE -> {
+                if (constant && defaultValue != null) {
+                    target.put(ENUM_NAME, DataList.of(new DataString(defaultValue.toString())));
+                } else {
+                    target.put(TYPE_NAME, new DataString(STRING_TYPE));
+                }
+            }
+            default -> {
+                // Structural schemas (enum/list/map/struct/union) are handled above in convertType
+            }
         }
     }
 

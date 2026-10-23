@@ -189,6 +189,18 @@ public class TestDefinitionParser {
     private LinkedHashMap<String, TestCaseDefinition> parseTests(JsonNode testsNode,
                                                                  Set<String> streamKeys,
                                                                  Path testFile) {
+        validateTestsNode(testsNode, testFile);
+
+        var result = new LinkedHashMap<String, TestCaseDefinition>();
+        var fields = testsNode.properties();
+        for (var entry : fields) {
+            var testKey = entry.getKey();
+            result.put(testKey, parseTestEntry(testKey, entry.getValue(), streamKeys, testFile));
+        }
+        return result;
+    }
+
+    private static void validateTestsNode(JsonNode testsNode, Path testFile) {
         if (testsNode == null || testsNode.isNull()) {
             throw new TestDefinitionException("Missing required '" + KSMLTestDSL.TESTS + "' map in " + testFile);
         }
@@ -199,54 +211,49 @@ public class TestDefinitionParser {
             throw new TestDefinitionException(
                     "'" + KSMLTestDSL.TESTS + "' map must contain at least one entry in " + testFile);
         }
+    }
 
-        var result = new LinkedHashMap<String, TestCaseDefinition>();
-        var fields = testsNode.properties();
-        for (var entry : fields) {
-            var testKey = entry.getKey();
-            validateIdentifier("test", testKey, testFile);
+    private TestCaseDefinition parseTestEntry(String testKey, JsonNode entryNode, Set<String> streamKeys, Path testFile) {
+        validateIdentifier("test", testKey, testFile);
 
-            var entryNode = entry.getValue();
-            if (!entryNode.isObject()) {
-                throw new TestDefinitionException(
-                        "Test entry '" + testKey + "' must be an object in " + testFile);
-            }
-
-            // Reject suite-level fields appearing inside a test entry
-            entryNode.forEachEntry((field, ignored) -> {
-                if (SUITE_LEVEL_FIELDS.contains(field)) {
-                    throw new TestDefinitionException(
-                            "Field '" + field + "' is a suite-level field and cannot appear under test '"
-                                    + testKey + "' (" + testFile + ")");
-                }
-            });
-
-            var description = optionalText(entryNode.get(KSMLTestDSL.Tests.DESCRIPTION));
-            var produceNode = entryNode.get(KSMLTestDSL.Tests.PRODUCE);
-            if (produceNode == null) {
-                throw new TestDefinitionException(
-                        "Test '" + testKey + "' is missing required field '" + KSMLTestDSL.Tests.PRODUCE + "' in " + testFile);
-            }
-            if (!produceNode.isArray()) {
-                throw new TestDefinitionException(
-                        "Test '" + testKey + "' field '" + KSMLTestDSL.Tests.PRODUCE + "' must be an array in " + testFile);
-            }
-            var assertNode = entryNode.get(KSMLTestDSL.Tests.ASSERT);
-            if (assertNode == null) {
-                throw new TestDefinitionException(
-                        "Test '" + testKey + "' is missing required field '" + KSMLTestDSL.Tests.ASSERT + "' in " + testFile);
-            }
-            if (!assertNode.isArray()) {
-                throw new TestDefinitionException(
-                        "Test '" + testKey + "' field '" + KSMLTestDSL.Tests.ASSERT + "' must be an array in " + testFile);
-            }
-
-            var produceBlocks = parseProduceBlocks(produceNode, streamKeys, testKey, testFile);
-            var assertBlocks = parseAssertBlocks(assertNode, streamKeys, testKey, testFile);
-
-            result.put(testKey, new TestCaseDefinition(description, produceBlocks, assertBlocks));
+        if (!entryNode.isObject()) {
+            throw new TestDefinitionException(
+                    "Test entry '" + testKey + "' must be an object in " + testFile);
         }
-        return result;
+
+        // Reject suite-level fields appearing inside a test entry
+        entryNode.forEachEntry((field, ignored) -> {
+            if (SUITE_LEVEL_FIELDS.contains(field)) {
+                throw new TestDefinitionException(
+                        "Field '" + field + "' is a suite-level field and cannot appear under test '"
+                                + testKey + "' (" + testFile + ")");
+            }
+        });
+
+        var description = optionalText(entryNode.get(KSMLTestDSL.Tests.DESCRIPTION));
+        var produceNode = entryNode.get(KSMLTestDSL.Tests.PRODUCE);
+        if (produceNode == null) {
+            throw new TestDefinitionException(
+                    "Test '" + testKey + "' is missing required field '" + KSMLTestDSL.Tests.PRODUCE + "' in " + testFile);
+        }
+        if (!produceNode.isArray()) {
+            throw new TestDefinitionException(
+                    "Test '" + testKey + "' field '" + KSMLTestDSL.Tests.PRODUCE + "' must be an array in " + testFile);
+        }
+        var assertNode = entryNode.get(KSMLTestDSL.Tests.ASSERT);
+        if (assertNode == null) {
+            throw new TestDefinitionException(
+                    "Test '" + testKey + "' is missing required field '" + KSMLTestDSL.Tests.ASSERT + "' in " + testFile);
+        }
+        if (!assertNode.isArray()) {
+            throw new TestDefinitionException(
+                    "Test '" + testKey + "' field '" + KSMLTestDSL.Tests.ASSERT + "' must be an array in " + testFile);
+        }
+
+        var produceBlocks = parseProduceBlocks(produceNode, streamKeys, testKey, testFile);
+        var assertBlocks = parseAssertBlocks(assertNode, streamKeys, testKey, testFile);
+
+        return new TestCaseDefinition(description, produceBlocks, assertBlocks);
     }
 
     /**

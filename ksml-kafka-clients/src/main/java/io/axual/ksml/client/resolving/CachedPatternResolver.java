@@ -75,7 +75,7 @@ public class CachedPatternResolver implements Resolver {
     public String unresolve(String name) {
         try {
             var context = unresolveCache.get(name);
-            if (context != null) return context.get(delegate.defaultFieldName());
+            if (context != null) return context.get(delegate.resourceFieldName());
         } catch (ExecutionException e) {
             // Log and handle below as cache miss
             log.warn("Cache execution error while unresolving \"{}\"", name, e);

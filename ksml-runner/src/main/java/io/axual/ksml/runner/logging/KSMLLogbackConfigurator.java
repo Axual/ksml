@@ -111,55 +111,64 @@ public class KSMLLogbackConfigurator extends DefaultJoranConfigurator {
     }
 
     private URL findConfigFileURL(ClassLoader classLoader, String logbackConfigFile) {
-        if (logbackConfigFile != null && !logbackConfigFile.isBlank()) {
-            URL url = null;
-            try {
-                url = new URI(logbackConfigFile.trim()).toURL();
+        if (logbackConfigFile == null || logbackConfigFile.isBlank()) return null;
+
+        URL url = null;
+        try {
+            url = new URI(logbackConfigFile.trim()).toURL();
+            return url;
+        } catch (URISyntaxException | MalformedURLException | IllegalArgumentException _) {
+            // so, resource is not a URL:
+            // attempt to get the resource from the class path
+            url = Loader.getResource(logbackConfigFile, classLoader);
+            if (url != null) {
                 return url;
-            } catch (URISyntaxException | MalformedURLException | IllegalArgumentException _) {
-                // so, resource is not a URL:
-                // attempt to get the resource from the class path
-                url = Loader.getResource(logbackConfigFile, classLoader);
-                if (url != null) {
+            }
+            // OK, check if the config is a file?
+            File f = new File(logbackConfigFile);
+            if (f.exists() && f.isFile()) {
+                try {
+                    url = f.toURI().toURL();
                     return url;
+                } catch (MalformedURLException _) {
+                    // Eat exception
                 }
-                // OK, check if the config is a file?
-                File f = new File(logbackConfigFile);
-                if (f.exists() && f.isFile()) {
-                    try {
-                        url = f.toURI().toURL();
-                        return url;
-                    } catch (MalformedURLException _) {
-                        // Eat exception
-                    }
-                }
-            } finally {
-                StatusManager sm = context.getStatusManager();
-                if (url == null) {
-                    // Information, could not find the resource
-                    sm.add(new InfoStatus("Could NOT find resource [" + logbackConfigFile + "]", context));
-                } else {
-                    // OK, a resource url was found
-                    sm.add(new InfoStatus("Found resource [" + logbackConfigFile + "] at [" + url + "]", context));
-                    Set<URL> urlSet = null;
-                    try {
-                        // Get all resources with the name
-                        urlSet = Loader.getResources(logbackConfigFile, classLoader);
-                    } catch (IOException e) {
-                        // Error on getting the resources
-                        addError("Failed to get url list for resource [" + logbackConfigFile + "]", e);
-                    }
-                    if (urlSet != null && urlSet.size() > 1) {
-                        // Multiple resources found, raise general warning and for each of the resources
-                        addWarn("Resource [" + logbackConfigFile + "] occurs multiple times on the classpath.");
-                        for (URL urlFromSet : urlSet) {
-                            addWarn("Resource [" + logbackConfigFile + "] occurs at [" + urlFromSet.toString() + "]");
-                        }
-                    }
+            }
+        } finally {
+            // in all cases, log what the result of the lookup was.
+            logConfigFileLookupResult(logbackConfigFile, classLoader, url);
+        }
+        return null;
+    }
+
+    /**
+     * Logs whether a URL was found for {@code logbackConfigFile}, and if so, warns when the same
+     * resource name occurs more than once on the classpath (an ambiguous configuration).
+     */
+    private void logConfigFileLookupResult(String logbackConfigFile, ClassLoader classLoader, URL url) {
+        StatusManager sm = context.getStatusManager();
+        if (url == null) {
+            // Information, could not find the resource
+            sm.add(new InfoStatus("Could NOT find resource [" + logbackConfigFile + "]", context));
+        } else {
+            // OK, a resource url was found
+            sm.add(new InfoStatus("Found resource [" + logbackConfigFile + "] at [" + url + "]", context));
+            Set<URL> urlSet = null;
+            try {
+                // Get all resources with the name
+                urlSet = Loader.getResources(logbackConfigFile, classLoader);
+            } catch (IOException e) {
+                // Error on getting the resources
+                addError("Failed to get url list for resource [" + logbackConfigFile + "]", e);
+            }
+            if (urlSet != null && urlSet.size() > 1) {
+                // Multiple resources found, raise general warning and for each of the resources
+                addWarn("Resource [" + logbackConfigFile + "] occurs multiple times on the classpath.");
+                for (URL urlFromSet : urlSet) {
+                    addWarn("Resource [" + logbackConfigFile + "] occurs at [" + urlFromSet.toString() + "]");
                 }
             }
         }
-        return null;
     }
 
     /** Reads LOGBACK_USE_JSON from the system properties first, then the environment. */

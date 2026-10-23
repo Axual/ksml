@@ -25,11 +25,13 @@ import io.axual.ksml.data.object.DataInteger;
 import io.axual.ksml.data.object.DataString;
 import io.axual.ksml.definition.FunctionDefinition;
 import io.axual.ksml.definition.TableDefinition;
+import io.axual.ksml.generator.StreamDataType;
 import io.axual.ksml.generator.TopologyBuildContext;
 import io.axual.ksml.stream.KStreamWrapper;
 import io.axual.ksml.stream.KTableWrapper;
 import io.axual.ksml.stream.StreamWrapper;
 import io.axual.ksml.user.UserForeignKeyExtractor;
+import io.axual.ksml.user.UserFunction;
 import io.axual.ksml.user.UserStreamPartitioner;
 import org.apache.kafka.streams.kstream.KStream;
 import org.apache.kafka.streams.kstream.KTable;
@@ -95,61 +97,68 @@ public class LeftJoinWithTableOperation extends StoreOperation {
         checkType("Join table keyType", ko, equalTo(k));
         final var fkExtract = userFunctionOf(context, FOREIGN_KEY_EXTRACTOR_NAME, foreignKeyExtractor, v, equalTo(ko));
         if (fkExtract != null) {
-            /*    Kafka Streams method signature:
-             *    <VO, VR> KTable<K, VR> leftJoin(
-             *          final KTable<K, VO> other,
-             *          final Function<V, KO> foreignKeyExtractor,
-             *          final ValueJoiner<V, VO, VR> joiner,
-             *          final TableJoined<K, KO> tableJoined,
-             *          final Materialized<K, VR, KeyValueStore<Bytes, byte[]>> materialized)
-             */
-
-            final var userFkExtract = new UserForeignKeyExtractor(fkExtract, tags);
-            final var joiner = userFunctionOf(context, VALUEJOINER_NAME, valueJoiner, vr, superOf(k), superOf(v), superOf(vo));
-            final var userJoiner = valueJoiner(joiner, tags);
-            final var part = userFunctionOf(context, PARTITIONER_NAME, partitioner, UserStreamPartitioner.EXPECTED_RESULT_TYPE, equalTo(DataString.DATATYPE), superOf(k), superOf(v), equalTo(DataInteger.DATATYPE));
-            final var userPart = part != null ? new UserStreamPartitioner(part, tags) : null;
-            final var otherPart = userFunctionOf(context, PARTITIONER_NAME, otherPartitioner, UserStreamPartitioner.EXPECTED_RESULT_TYPE, equalTo(DataString.DATATYPE), superOf(k), superOf(v), equalTo(DataInteger.DATATYPE));
-            final var userOtherPart = part != null ? new UserStreamPartitioner(otherPart, tags) : null;
-            final var tableJoined = tableJoinedOf(userPart, userOtherPart);
-            final var kvStore = validateKeyValueStore(store(), k, vr);
-            final var mat = materializedOf(context, kvStore);
-            final KTable<Object, Object> output;
-            if (tableJoined != null) {
-                output = mat != null
-                        ? input.table.leftJoin(otherTable.table, userFkExtract, userJoiner, tableJoined, mat)
-                        : input.table.leftJoin(otherTable.table, userFkExtract, userJoiner, tableJoined);
-            } else {
-                output = mat != null
-                        ? input.table.leftJoin(otherTable.table, userFkExtract, userJoiner, mat)
-                        : input.table.leftJoin(otherTable.table, userFkExtract, userJoiner);
-            }
-            return new KTableWrapper(output, k, vr);
-        } else {
-            /*    Kafka Streams method signature:
-             *    <VO, VR> KTable<K, VR> leftJoin(
-             *          final KTable<K, VO> other,
-             *          final ValueJoiner<? super V, ? super VO, ? extends VR> joiner,
-             *          final Named named,
-             *          final Materialized<K, VR, KeyValueStore<Bytes, byte[]>> materialized)
-             */
-
-            final var joiner = userFunctionOf(context, VALUEJOINER_NAME, valueJoiner, vr, superOf(k), superOf(v), superOf(vo));
-            final var userJoiner = valueJoiner(joiner, tags);
-            final var kvStore = validateKeyValueStore(store(), k, vr);
-            final var mat = materializedOf(context, kvStore);
-            final var named = namedOf();
-            final KTable<Object, Object> output;
-            if (named != null) {
-                output = mat != null
-                        ? input.table.leftJoin(otherTable.table, userJoiner, named, mat)
-                        : input.table.leftJoin(otherTable.table, userJoiner, named);
-            } else {
-                output = mat != null
-                        ? input.table.leftJoin(otherTable.table, userJoiner, mat)
-                        : input.table.leftJoin(otherTable.table, userJoiner);
-            }
-            return new KTableWrapper(output, k, vr);
+            return applyForeignKeyJoin(input, context, otherTable, fkExtract, k, v, vo, vr);
         }
+        return applyValueJoin(input, context, otherTable, k, v, vo, vr);
+    }
+
+    /*    Kafka Streams method signature:
+     *    <VO, VR> KTable<K, VR> leftJoin(
+     *          final KTable<K, VO> other,
+     *          final Function<V, KO> foreignKeyExtractor,
+     *          final ValueJoiner<V, VO, VR> joiner,
+     *          final TableJoined<K, KO> tableJoined,
+     *          final Materialized<K, VR, KeyValueStore<Bytes, byte[]>> materialized)
+     */
+    private StreamWrapper applyForeignKeyJoin(KTableWrapper input, TopologyBuildContext context, KTableWrapper otherTable,
+                                               UserFunction fkExtract, StreamDataType k, StreamDataType v, StreamDataType vo, StreamDataType vr) {
+        final var userFkExtract = new UserForeignKeyExtractor(fkExtract, tags);
+        final var joiner = userFunctionOf(context, VALUEJOINER_NAME, valueJoiner, vr, superOf(k), superOf(v), superOf(vo));
+        final var userJoiner = valueJoiner(joiner, tags);
+        final var part = userFunctionOf(context, PARTITIONER_NAME, partitioner, UserStreamPartitioner.EXPECTED_RESULT_TYPE, equalTo(DataString.DATATYPE), superOf(k), superOf(v), equalTo(DataInteger.DATATYPE));
+        final var userPart = part != null ? new UserStreamPartitioner(part, tags) : null;
+        final var otherPart = userFunctionOf(context, PARTITIONER_NAME, otherPartitioner, UserStreamPartitioner.EXPECTED_RESULT_TYPE, equalTo(DataString.DATATYPE), superOf(k), superOf(v), equalTo(DataInteger.DATATYPE));
+        final var userOtherPart = otherPart != null ? new UserStreamPartitioner(otherPart, tags) : null;
+        final var tableJoined = tableJoinedOf(userPart, userOtherPart);
+        final var kvStore = validateKeyValueStore(store(), k, vr);
+        final var mat = materializedOf(context, kvStore);
+        final KTable<Object, Object> output;
+        if (tableJoined != null) {
+            output = mat != null
+                    ? input.table.leftJoin(otherTable.table, userFkExtract, userJoiner, tableJoined, mat)
+                    : input.table.leftJoin(otherTable.table, userFkExtract, userJoiner, tableJoined);
+        } else {
+            output = mat != null
+                    ? input.table.leftJoin(otherTable.table, userFkExtract, userJoiner, mat)
+                    : input.table.leftJoin(otherTable.table, userFkExtract, userJoiner);
+        }
+        return new KTableWrapper(output, k, vr);
+    }
+
+    /*    Kafka Streams method signature:
+     *    <VO, VR> KTable<K, VR> leftJoin(
+     *          final KTable<K, VO> other,
+     *          final ValueJoiner<? super V, ? super VO, ? extends VR> joiner,
+     *          final Named named,
+     *          final Materialized<K, VR, KeyValueStore<Bytes, byte[]>> materialized)
+     */
+    private StreamWrapper applyValueJoin(KTableWrapper input, TopologyBuildContext context, KTableWrapper otherTable,
+                                          StreamDataType k, StreamDataType v, StreamDataType vo, StreamDataType vr) {
+        final var joiner = userFunctionOf(context, VALUEJOINER_NAME, valueJoiner, vr, superOf(k), superOf(v), superOf(vo));
+        final var userJoiner = valueJoiner(joiner, tags);
+        final var kvStore = validateKeyValueStore(store(), k, vr);
+        final var mat = materializedOf(context, kvStore);
+        final var named = namedOf();
+        final KTable<Object, Object> output;
+        if (named != null) {
+            output = mat != null
+                    ? input.table.leftJoin(otherTable.table, userJoiner, named, mat)
+                    : input.table.leftJoin(otherTable.table, userJoiner, named);
+        } else {
+            output = mat != null
+                    ? input.table.leftJoin(otherTable.table, userJoiner, mat)
+                    : input.table.leftJoin(otherTable.table, userJoiner);
+        }
+        return new KTableWrapper(output, k, vr);
     }
 }

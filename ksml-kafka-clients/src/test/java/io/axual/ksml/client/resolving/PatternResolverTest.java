@@ -117,14 +117,14 @@ class PatternResolverTest {
     }
 
     @ParameterizedTest
-    @DisplayName("Invalid defaultField throws exceptions")
+    @DisplayName("Invalid resourceField throws exceptions")
     @NullSource
     @EmptySource
     @ValueSource(strings = {"   ", "{a", "a}"})
-    void invalidDefaultField(String defaultFieldName) {
-        assertThatCode(() -> new PatternResolver(TEST_PATTERN_1, defaultFieldName, UNRESOLVED_CONTEXT))
+    void invalidResourceField(String resourceFieldName) {
+        assertThatCode(() -> new PatternResolver(TEST_PATTERN_1, resourceFieldName, UNRESOLVED_CONTEXT))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("defaultFieldName")
+                .hasMessageContaining("resourceFieldName")
         ;
     }
 }

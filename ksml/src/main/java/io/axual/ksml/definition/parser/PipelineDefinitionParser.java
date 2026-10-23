@@ -22,10 +22,19 @@ package io.axual.ksml.definition.parser;
 
 import io.axual.ksml.parser.FieldParsers;
 import io.axual.ksml.definition.PipelineDefinition;
+import io.axual.ksml.definition.TopicDefinition;
+import io.axual.ksml.definition.TopologyResource;
 import io.axual.ksml.dsl.KSMLDSL;
 import io.axual.ksml.generator.TopologyResources;
+import io.axual.ksml.metric.MetricTags;
 import io.axual.ksml.operation.AsOperation;
+import io.axual.ksml.operation.BranchOperation;
+import io.axual.ksml.operation.ForEachOperation;
 import io.axual.ksml.operation.OperationConfig;
+import io.axual.ksml.operation.PrintOperation;
+import io.axual.ksml.operation.StreamOperation;
+import io.axual.ksml.operation.ToOperation;
+import io.axual.ksml.operation.ToTopicNameExtractorOperation;
 import io.axual.ksml.operation.parser.AsOperationParser;
 import io.axual.ksml.operation.parser.BranchOperationParser;
 import io.axual.ksml.operation.parser.ForEachOperationParser;
@@ -40,6 +49,7 @@ import io.axual.ksml.parser.StructsParser;
 import io.axual.ksml.parser.TopologyResourceFields;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class PipelineDefinitionParser extends DefinitionParser<PipelineDefinition> implements NamedObjectParser {
     private final TopologyResourceFields resourceFields;
@@ -70,7 +80,7 @@ public class PipelineDefinitionParser extends DefinitionParser<PipelineDefinitio
 
     @Override
     public StructsParser<PipelineDefinition> parser() {
-        final var sourceField = resourceFields.topologyResourceField("source", KSMLDSL.Pipelines.FROM, "Pipeline source", (name, tags) -> resourceFields.resources().topic(name), new TopicDefinitionParser(resourceFields.resources(), true));
+        final var sourceField = resourceFields.topologyResourceField("source", KSMLDSL.Pipelines.FROM, "Pipeline source", (name, _) -> resourceFields.resources().topic(name), new TopicDefinitionParser(resourceFields.resources(), true));
 
         return FieldParsers.structsParser(
                 PipelineDefinition.class,
@@ -85,22 +95,26 @@ public class PipelineDefinitionParser extends DefinitionParser<PipelineDefinitio
                 FieldParsers.optional(printParser),
                 FieldParsers.optional(toTopic),
                 FieldParsers.optional(toTne),
-                (name, from, via, as, branch, forEach, print, toTopic, toTne, tags) -> {
-                    final var shortName = FieldParsers.validateName("Pipeline", name, defaultShortName, true);
-                    final var longName = FieldParsers.validateName("Pipeline", name, defaultLongName, false);
-                    via = via != null ? via : new ArrayList<>();
-                    if (as != null) return new PipelineDefinition(longName, from, via, as);
-                    if (branch != null) return new PipelineDefinition(longName, from, via, branch);
-                    if (forEach != null) return new PipelineDefinition(longName, from, via, forEach);
-                    if (print != null) return new PipelineDefinition(longName, from, via, print);
-                    if (toTopic != null) return new PipelineDefinition(longName, from, via, toTopic);
-                    if (toTne != null) return new PipelineDefinition(longName, from, via, toTne);
-                    // If no sink operation was specified, then we create an AS operation here with the name provided.
-                    // This means that pipeline results can be referred to by other pipelines using the pipeline's name
-                    // as identifier.
-                    var sinkOperation = shortName != null ? new AsOperation(new OperationConfig(resourceFields.resources().getUniqueOperationName(longName), tags), shortName) : null;
-                    return new PipelineDefinition(name, from, via, sinkOperation);
-                });
+                this::buildPipelineDefinition);
+    }
+
+    private PipelineDefinition buildPipelineDefinition(String name, TopologyResource<TopicDefinition> from, List<StreamOperation> via,
+                                                       AsOperation as, BranchOperation branch, ForEachOperation forEach, PrintOperation print,
+                                                       ToOperation toTopic, ToTopicNameExtractorOperation toTne, MetricTags tags) {
+        final var shortName = FieldParsers.validateName("Pipeline", name, defaultShortName, true);
+        final var longName = FieldParsers.validateName("Pipeline", name, defaultLongName, false);
+        via = via != null ? via : new ArrayList<>();
+        if (as != null) return new PipelineDefinition(longName, from, via, as);
+        if (branch != null) return new PipelineDefinition(longName, from, via, branch);
+        if (forEach != null) return new PipelineDefinition(longName, from, via, forEach);
+        if (print != null) return new PipelineDefinition(longName, from, via, print);
+        if (toTopic != null) return new PipelineDefinition(longName, from, via, toTopic);
+        if (toTne != null) return new PipelineDefinition(longName, from, via, toTne);
+        // If no sink operation was specified, then we create an AS operation here with the name provided.
+        // This means that pipeline results can be referred to by other pipelines using the pipeline's name
+        // as identifier.
+        var sinkOperation = shortName != null ? new AsOperation(new OperationConfig(resourceFields.resources().getUniqueOperationName(longName), tags), shortName) : null;
+        return new PipelineDefinition(shortName, from, via, sinkOperation);
     }
 
     @Override

@@ -239,15 +239,15 @@ public class NativeDataObjectMapper implements DataObjectMapper<Object> {
     private DataType inferDataTypeFromObject(Object value) {
         return switch (value) {
             case null -> DataNull.DATATYPE;
-            case Boolean b -> DataBoolean.DATATYPE;
-            case Byte b -> DataByte.DATATYPE;
-            case Short i -> DataShort.DATATYPE;
-            case Integer i -> DataInteger.DATATYPE;
-            case Long l -> DataLong.DATATYPE;
-            case Double v -> DataDouble.DATATYPE;
-            case Float v -> DataFloat.DATATYPE;
-            case byte[] bytes -> DataBytes.DATATYPE;
-            case String s -> DataString.DATATYPE;
+            case Boolean _ -> DataBoolean.DATATYPE;
+            case Byte _ -> DataByte.DATATYPE;
+            case Short _ -> DataShort.DATATYPE;
+            case Integer _ -> DataInteger.DATATYPE;
+            case Long _ -> DataLong.DATATYPE;
+            case Double _ -> DataDouble.DATATYPE;
+            case Float _ -> DataFloat.DATATYPE;
+            case byte[] _ -> DataBytes.DATATYPE;
+            case String _ -> DataString.DATATYPE;
             case List<?> val -> inferListTypeFromList(val);
             case Map<?, ?> val -> inferDataTypeFromNativeMap(val, null);
             case Tuple<?> val -> inferTupleTypeFromTuple(val);
@@ -462,29 +462,24 @@ public class NativeDataObjectMapper implements DataObjectMapper<Object> {
      */
     @Override
     public Object fromDataObject(DataObject value) {
-        if (value instanceof DataNull val) return val.value();
-
-        if (value instanceof DataBoolean val) return val.value();
-
-        if (value instanceof DataByte val) return val.value();
-        if (value instanceof DataShort val) return val.value();
-        if (value instanceof DataInteger val) return val.value();
-        if (value instanceof DataLong val) return val.value();
-
-        if (value instanceof DataDouble val) return val.value();
-        if (value instanceof DataFloat val) return val.value();
-
-        if (value instanceof DataBytes val) return val.value();
-
-        if (value instanceof DataString val) return val.value();
-
-        if (value instanceof DataEnum val) return val.value();
-        if (value instanceof DataList val) return convertDataListToList(val);
-        if (value instanceof DataMap val) return convertDataMapToMap(val);
-        if (value instanceof DataStruct val) return convertDataStructToMap(val);
-        if (value instanceof DataTuple val) return convertDataTupleToTuple(val);
-
-        throw new DataException("Can not convert DataObject to native dataType: " + (value != null ? value.getClass().getSimpleName() : "null"));
+        return switch (value) {
+            case DataNull val -> val.value();
+            case DataBoolean val -> val.value();
+            case DataByte val -> val.value();
+            case DataShort val -> val.value();
+            case DataInteger val -> val.value();
+            case DataLong val -> val.value();
+            case DataDouble val -> val.value();
+            case DataFloat val -> val.value();
+            case DataBytes val -> val.value();
+            case DataString val -> val.value();
+            case DataEnum val -> val.value();
+            case DataList val -> convertDataListToList(val);
+            case DataMap val -> convertDataMapToMap(val);
+            case DataStruct val -> convertDataStructToMap(val);
+            case DataTuple val -> convertDataTupleToTuple(val);
+            case null, default -> throw new DataException("Can not convert DataObject to native dataType: " + (value != null ? value.getClass().getSimpleName() : "null"));
+        };
     }
 
     /**
