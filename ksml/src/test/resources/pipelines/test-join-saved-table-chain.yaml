@@ -1,0 +1,56 @@
+# Use case 1 from GitHub issue 286: two stages of table-table joins, each saved with "as", then a stream joins
+# with the result of the last stage.
+streams:
+  order_stream:
+    topic: order_topic
+    keyType: string
+    valueType: string
+  enriched_orders:
+    topic: enriched_orders_topic
+    keyType: string
+    valueType: string
+
+tables:
+  customers_table:
+    topic: customers_topic
+    keyType: string
+    valueType: string
+  accounts_table:
+    topic: accounts_topic
+    keyType: string
+    valueType: string
+  transactions_table:
+    topic: transactions_topic
+    keyType: string
+    valueType: string
+
+functions:
+  simple_joiner:
+    type: valueJoiner
+    expression: value1 + "+" + value2
+    resultType: string
+
+pipelines:
+  enrich_customers:
+    from: customers_table
+    via:
+      - type: join
+        table: accounts_table
+        valueJoiner: simple_joiner
+    as: enriched_customers
+
+  add_transactions:
+    from: enriched_customers
+    via:
+      - type: join
+        table: transactions_table
+        valueJoiner: simple_joiner
+    as: full_customer_profile
+
+  process_orders:
+    from: order_stream
+    via:
+      - type: join
+        table: full_customer_profile
+        valueJoiner: simple_joiner
+    to: enriched_orders

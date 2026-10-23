@@ -32,11 +32,11 @@ import io.axual.ksml.parser.StructsParser;
 
 import java.util.List;
 
+import static io.axual.ksml.dsl.KSMLDSL.PIPELINE;
 import static io.axual.ksml.dsl.KSMLDSL.PIPELINES;
 import static io.axual.ksml.dsl.KSMLDSL.PRODUCERS;
 
 public class TopologyDefinitionParser extends DefinitionParser<TopologyDefinition> {
-    private static final String PIPELINE = "pipeline";
     private static final String PRODUCER = "producer";
     private final TopologyResourcesParser resourcesParser;
 

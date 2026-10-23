@@ -1,0 +1,20 @@
+# The pipeline saves its result with "as: orders", but "orders" is already defined under "tables",
+# so a later reference to "orders" could mean either one.
+streams:
+  order_events:
+    topic: order_events
+    keyType: string
+    valueType: json
+
+tables:
+  orders:
+    topic: orders
+    keyType: string
+    valueType: json
+
+pipelines:
+  latest_orders:
+    from: order_events
+    via:
+      - type: toTable
+    as: orders

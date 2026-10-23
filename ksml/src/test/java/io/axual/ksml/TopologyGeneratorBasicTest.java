@@ -57,6 +57,7 @@ import java.nio.file.Paths;
 import java.util.Properties;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @Slf4j
@@ -88,6 +89,61 @@ class TopologyGeneratorBasicTest {
         String reference = cleanDescription(Files.readString(Paths.get(referenceURI)));
 
         assertThat(cleanDescription(description.toString())).isEqualTo(reference);
+    }
+
+    @Test
+    @EnabledIf(value = "isRunningOnGraalVM", disabledReason = "This test needs GraalVM to work")
+    @DisplayName("join with a table that a later pipeline saves fails parsing")
+    void joinTableSavedByLaterPipelineIsRejected() {
+        assertThatThrownBy(() -> createTopology("pipelines/test-join-saved-table-wrong-order.yaml"))
+                .hasMessageContaining("Error in pipeline definition \"join_pipeline\"")
+                .rootCause()
+                .hasMessageContaining("Unknown table \"t2joined\"");
+    }
+
+    @Test
+    @EnabledIf(value = "isRunningOnGraalVM", disabledReason = "This test needs GraalVM to work")
+    @DisplayName("join with \"table\" naming a saved stream fails the topology build")
+    void joinTableNamingSavedStreamIsRejected() {
+        assertThatThrownBy(() -> createTopology("pipelines/test-join-saved-stream-as-table.yaml"))
+                .isInstanceOf(TopologyException.class)
+                .hasMessageContaining("Join table \"filtered_other\" must be a table, but found");
+    }
+
+    @Test
+    @EnabledIf(value = "isRunningOnGraalVM", disabledReason = "This test needs GraalVM to work")
+    @DisplayName("join with \"globalTable\" naming a saved table fails parsing")
+    void joinGlobalTableNamingSavedTableIsRejected() {
+        assertThatThrownBy(() -> createTopology("pipelines/test-join-saved-table-as-globaltable.yaml"))
+                .hasMessageContaining("Error in pipeline definition \"join_pipeline\"")
+                .rootCause()
+                .hasMessageContaining("Unknown globalTable \"updates_table\"");
+    }
+
+    @Test
+    @EnabledIf(value = "isRunningOnGraalVM", disabledReason = "This test needs GraalVM to work")
+    @DisplayName("saving a result with an \"as\" name that is defined under tables fails parsing")
+    void asNameDefinedAsTableIsRejected() {
+        assertThatThrownBy(() -> createTopology("pipelines/test-as-name-clashes-with-table.yaml"))
+                .hasMessageContaining("Error in pipeline definition \"latest_orders\"")
+                .rootCause()
+                .hasMessageContaining("\"as: orders\" is already defined under \"tables\"");
+    }
+
+    @Test
+    @EnabledIf(value = "isRunningOnGraalVM", disabledReason = "This test needs GraalVM to work")
+    @DisplayName("a pipeline without sink named like a defined stream still builds")
+    void pipelineNameDefinedAsStreamIsAccepted() {
+        assertThatCode(() -> createTopology("pipelines/test-pipeline-name-clashes-with-stream.yaml"))
+                .doesNotThrowAnyException();
+    }
+
+    @Test
+    @EnabledIf(value = "isRunningOnGraalVM", disabledReason = "This test needs GraalVM to work")
+    @DisplayName("a pipeline with a sink named like a defined stream builds, because it saves nothing under its name")
+    void pipelineWithSinkNamedLikeStreamIsAccepted() {
+        assertThatCode(() -> createTopology("pipelines/test-pipeline-with-sink-named-like-stream.yaml"))
+                .doesNotThrowAnyException();
     }
 
     @Test

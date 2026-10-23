@@ -27,11 +27,17 @@ import io.axual.ksml.data.notation.NotationContext;
 import io.axual.ksml.data.notation.binary.BinaryNotation;
 import io.axual.ksml.data.notation.json.JsonNotation;
 import io.axual.ksml.definition.GlobalTableDefinition;
+import io.axual.ksml.definition.StreamDefinition;
 import io.axual.ksml.definition.TableDefinition;
 import io.axual.ksml.exception.ParseException;
 import io.axual.ksml.execution.ExecutionContext;
 import io.axual.ksml.generator.TopologyResources;
 import io.axual.ksml.generator.YAMLObjectMapper;
+import io.axual.ksml.metric.MetricTags;
+import io.axual.ksml.operation.BaseOperation;
+import io.axual.ksml.operation.JoinWithTableOperation;
+import io.axual.ksml.operation.parser.JoinOperationParser;
+import io.axual.ksml.parser.MapParser;
 import io.axual.ksml.parser.ParseNode;
 import io.axual.ksml.type.UserType;
 import org.apache.kafka.streams.AutoOffsetReset;
@@ -58,7 +64,7 @@ class DefinitionParsersTest {
         ExecutionContext.INSTANCE.notationLibrary().register(JsonNotation.NOTATION_NAME, jsonNotation);
     }
 
-    private static ParseNode nodeOf(String yaml) throws Exception {
+    private static ParseNode nodeOf(String yaml) {
         final var root = YAMLObjectMapper.INSTANCE.readValue(yaml, JsonNode.class);
         return ParseNode.fromRoot(root, "test");
     }
@@ -105,7 +111,7 @@ class DefinitionParsersTest {
 
     @Test
     @DisplayName("the join target parser parses an inline stream definition")
-    void joinTargetParsesInlineStream() throws Exception {
+    void joinTargetParsesInlineStream() {
         final var target = new JoinTargetDefinitionParser(resources)
                 .parse(nodeOf("stream:\n  topic: other\n  keyType: string\n  valueType: string"));
         assertThat(target).isNotNull();
@@ -114,7 +120,7 @@ class DefinitionParsersTest {
 
     @Test
     @DisplayName("the join target parser resolves a table reference by name")
-    void joinTargetParsesTableReference() throws Exception {
+    void joinTargetParsesTableReference() {
         resources.register("someTable",
                 new TableDefinition("some_table", UserType.UNKNOWN, UserType.UNKNOWN, null, null, null, null));
         final var target = new JoinTargetDefinitionParser(resources).parse(nodeOf("table: someTable"));
@@ -125,7 +131,7 @@ class DefinitionParsersTest {
 
     @Test
     @DisplayName("the join target parser resolves a global table reference by name")
-    void joinTargetParsesGlobalTableReference() throws Exception {
+    void joinTargetParsesGlobalTableReference() {
         resources.register("someGlobalTable",
                 new GlobalTableDefinition("some_global_table", UserType.UNKNOWN, UserType.UNKNOWN, null, null, null, null));
         final var target = new JoinTargetDefinitionParser(resources).parse(nodeOf("globalTable: someGlobalTable"));
@@ -136,7 +142,7 @@ class DefinitionParsersTest {
 
     @Test
     @DisplayName("the join target parser fails when no valid target is present")
-    void joinTargetFailsWhenNoTargetPresent() throws Exception {
+    void joinTargetFailsWhenNoTargetPresent() {
         final var node = nodeOf("foo: bar");
         final var parser = new JoinTargetDefinitionParser(resources);
         assertThatThrownBy(() -> parser.parse(node)).isInstanceOf(ParseException.class);
@@ -146,7 +152,7 @@ class DefinitionParsersTest {
 
     @Test
     @DisplayName("a table definition is parsed from YAML")
-    void parsesTableDefinition() throws Exception {
+    void parsesTableDefinition() {
         final var table = new TableDefinitionParser(resources, false).parser()
                 .parse(nodeOf("topic: my_table\nkeyType: string\nvalueType: string"));
         assertThat(table).isInstanceOf(TableDefinition.class);
@@ -155,10 +161,205 @@ class DefinitionParsersTest {
 
     @Test
     @DisplayName("a global table definition is parsed from YAML")
-    void parsesGlobalTableDefinition() throws Exception {
+    void parsesGlobalTableDefinition() {
         final var globalTable = new GlobalTableDefinitionParser(resources, false).parser()
                 .parse(nodeOf("topic: my_global_table\nkeyType: string\nvalueType: string"));
         assertThat(globalTable).isInstanceOf(GlobalTableDefinition.class);
         assertThat(((GlobalTableDefinition) globalTable).topic()).isEqualTo("my_global_table");
+    }
+
+    // --- Names saved with "as" -------------------------------------------------------------------
+
+    private static final String JOIN_WITH_SAVED_CUSTOMERS = """
+            name: joinOp
+            type: join
+            table: saved_customers
+            valueJoiner:
+              expression: value1
+              resultType: string
+            """;
+
+    // Parses the pipelines like TopologyDefinitionParser does, so their saved names are registered in the resources
+    private Object parsePipelines(String yaml) {
+        resources.register("orders", new StreamDefinition("orders", UserType.UNKNOWN, UserType.UNKNOWN, null, null, null));
+        resources.register("customers", new StreamDefinition("customers", UserType.UNKNOWN, UserType.UNKNOWN, null, null, null));
+        return new MapParser<>("pipeline", "pipeline definition", new PipelineDefinitionParser(resources)).parse(nodeOf(yaml));
+    }
+
+    private BaseOperation parseJoinWithSavedCustomers() {
+        return new JoinOperationParser(resources).parser().parse(nodeOf(JOIN_WITH_SAVED_CUSTOMERS));
+    }
+
+    @Test
+    @DisplayName("a join can use a table that a parsed pipeline saved with \"as\"")
+    void joinWithTableSavedWithAsParses() {
+        parsePipelines("""
+                save_pipeline:
+                  from: customers
+                  via:
+                    - type: toTable
+                  as: saved_customers
+                """);
+        assertThat(parseJoinWithSavedCustomers()).isInstanceOf(JoinWithTableOperation.class);
+    }
+
+    @Test
+    @DisplayName("a join can use the result of a parsed pipeline without a sink, by the pipeline name")
+    void joinWithResultOfPipelineWithoutSinkParses() {
+        parsePipelines("""
+                saved_customers:
+                  from: customers
+                  via:
+                    - type: toTable
+                """);
+        assertThat(parseJoinWithSavedCustomers()).isInstanceOf(JoinWithTableOperation.class);
+    }
+
+    @Test
+    @DisplayName("a join can not use a name before the pipeline that saves it is parsed, so the saving pipeline must come first")
+    void joinBeforeSavingPipelineIsRejected() {
+        assertThatThrownBy(this::parseJoinWithSavedCustomers)
+                .isInstanceOf(ParseException.class)
+                .hasMessageContaining("Unknown table \"saved_customers\". Define it under \"tables\", or save a table with \"as: saved_customers\" in a pipeline defined before this one");
+
+        parsePipelines("""
+                save_pipeline:
+                  from: customers
+                  via:
+                    - type: toTable
+                  as: saved_customers
+                """);
+        assertThat(parseJoinWithSavedCustomers()).isInstanceOf(JoinWithTableOperation.class);
+    }
+
+    @Test
+    @DisplayName("an \"as\" name that is defined under tables is rejected")
+    void asNameDefinedAsTableIsRejected() {
+        resources.register("orders_table", new TableDefinition("orders_table", UserType.UNKNOWN, UserType.UNKNOWN, null, null, null, null));
+        final var yaml = """
+                latest_orders:
+                  from: orders
+                  via:
+                    - type: toTable
+                  as: orders_table
+                """;
+        assertThatThrownBy(() -> parsePipelines(yaml))
+                .isInstanceOf(ParseException.class)
+                .hasMessageContaining("Error in pipeline definition \"latest_orders\"")
+                .hasStackTraceContaining("\"as: orders_table\" is already defined under \"tables\". Use another name");
+    }
+
+    @Test
+    @DisplayName("an \"as\" name that an earlier pipeline already saves is rejected")
+    void duplicateAsNameIsRejected() {
+        final var yaml = """
+                first:
+                  from: orders
+                  via:
+                    - type: toTable
+                  as: latest_orders
+                second:
+                  from: customers
+                  via:
+                    - type: toTable
+                  as: latest_orders
+                """;
+        assertThatThrownBy(() -> parsePipelines(yaml))
+                .isInstanceOf(ParseException.class)
+                .hasMessageContaining("Error in pipeline definition \"second\"")
+                .hasStackTraceContaining("\"as: latest_orders\" is already used by pipeline \"first\". Use another name");
+    }
+
+    @Test
+    @DisplayName("a pipeline without a sink, named like a name that an earlier pipeline already saves, is rejected")
+    void pipelineNameSavedByEarlierPipelineIsRejected() {
+        final var yaml = """
+                first:
+                  from: orders
+                  via:
+                    - type: toTable
+                  as: latest_orders
+                latest_orders:
+                  from: customers
+                  via:
+                    - type: toTable
+                """;
+        assertThatThrownBy(() -> parsePipelines(yaml))
+                .isInstanceOf(ParseException.class)
+                .hasMessageContaining("Error in pipeline definition \"latest_orders\"")
+                .hasStackTraceContaining("Without a sink, pipeline \"latest_orders\" saves its result under \"latest_orders\", which is already used by pipeline \"first\". Add a sink, or rename the pipeline");
+    }
+
+    @Test
+    @DisplayName("an \"as\" name that a branch of an earlier pipeline already saves is rejected, naming the pipeline and branch")
+    void asNameSavedByEarlierBranchIsRejected() {
+        final var yaml = """
+                splitter:
+                  from: orders
+                  branch:
+                    - if:
+                        expression: value is not None
+                      as: dup
+                    - to: customers
+                later:
+                  from: customers
+                  as: dup
+                """;
+        assertThatThrownBy(() -> parsePipelines(yaml))
+                .isInstanceOf(ParseException.class)
+                .hasMessageContaining("Error in pipeline definition \"later\"")
+                .hasStackTraceContaining("\"as: dup\" is already used by pipeline \"splitter\" (branch1). Use another name");
+    }
+
+    @Test
+    @DisplayName("two branches of one pipeline with the same \"as\" name are rejected")
+    void asNameSavedByTwoBranchesIsRejected() {
+        final var yaml = """
+                splitter:
+                  from: orders
+                  branch:
+                    - if:
+                        expression: value is not None
+                      as: dup
+                    - as: dup
+                """;
+        assertThatThrownBy(() -> parsePipelines(yaml))
+                .isInstanceOf(ParseException.class)
+                .hasMessageContaining("Error in pipeline definition \"splitter\"")
+                .hasStackTraceContaining("Error in branch entry 2")
+                .hasStackTraceContaining("\"as: dup\" is already used by pipeline \"splitter\" (branch1). Use another name");
+    }
+
+    @Test
+    @DisplayName("an \"as\" name in a branch that an earlier pipeline already saves is rejected")
+    void asNameInBranchSavedByEarlierPipelineIsRejected() {
+        final var yaml = """
+                first:
+                  from: customers
+                  as: dup
+                splitter:
+                  from: orders
+                  branch:
+                    - if:
+                        expression: value is not None
+                      as: dup
+                    - to: customers
+                """;
+        assertThatThrownBy(() -> parsePipelines(yaml))
+                .isInstanceOf(ParseException.class)
+                .hasMessageContaining("Error in pipeline definition \"splitter\"")
+                .hasStackTraceContaining("Error in branch entry 1")
+                .hasStackTraceContaining("\"as: dup\" is already used by pipeline \"first\". Use another name");
+    }
+
+    @Test
+    @DisplayName("the place where a name is saved is described by the pipeline and its branches")
+    void describesWhereANameIsSaved() {
+        assertThat(TopologyResources.pipelineOf(new MetricTags().append("pipeline", "orders")))
+                .isEqualTo("pipeline \"orders\"");
+        assertThat(TopologyResources.pipelineOf(new MetricTags().append("pipeline", "splitter").append("branch", "branch2").append("branch", "branch1")))
+                .isEqualTo("pipeline \"splitter\" (branch2, branch1)");
+        assertThat(TopologyResources.pipelineOf(new MetricTags()))
+                .isEqualTo("an earlier pipeline");
     }
 }

@@ -52,6 +52,7 @@ import io.axual.ksml.definition.StreamPartitionerDefinition;
 import io.axual.ksml.definition.TableDefinition;
 import io.axual.ksml.definition.WindowStateStoreDefinition;
 import io.axual.ksml.definition.TopicNameExtractorDefinition;
+import io.axual.ksml.definition.TopologyResource;
 import io.axual.ksml.definition.ValueJoinerDefinition;
 import io.axual.ksml.definition.ValueTransformerDefinition;
 import io.axual.ksml.generator.StreamDataType;
@@ -65,6 +66,7 @@ import io.axual.ksml.stream.KStreamWrapper;
 import io.axual.ksml.stream.KTableWrapper;
 import io.axual.ksml.stream.SessionWindowedCogroupedKStreamWrapper;
 import io.axual.ksml.stream.SessionWindowedKStreamWrapper;
+import io.axual.ksml.stream.StreamWrapper;
 import io.axual.ksml.stream.TimeWindowedCogroupedKStreamWrapper;
 import io.axual.ksml.stream.TimeWindowedKStreamWrapper;
 import io.axual.ksml.execution.ExecutionContext;
@@ -89,6 +91,8 @@ import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -287,6 +291,19 @@ final class OperationTestSupport {
         return new TableDefinition("joinTopic", UNKNOWN_TYPE, UNKNOWN_TYPE, null, null, null, null);
     }
 
+    static TopologyResource<StreamDefinition> streamTarget() {
+        return new TopologyResource<>("joinTopic", streamDefinition(), new MetricTags());
+    }
+
+    static TopologyResource<TableDefinition> tableTarget() {
+        return new TopologyResource<>("joinTopic", tableDefinition(), new MetricTags());
+    }
+
+    // A name-only target, as for a stream or table saved with "as" in an earlier pipeline
+    static <D> TopologyResource<D> savedTarget(String name) {
+        return new TopologyResource<>(name, null, new MetricTags());
+    }
+
     static GlobalTableDefinition globalTableDefinition() {
         return new GlobalTableDefinition("joinTopic", UNKNOWN_TYPE, UNKNOWN_TYPE, null, null, null, null);
     }
@@ -314,6 +331,12 @@ final class OperationTestSupport {
         when(context.materialize(any(SessionStateStoreDefinition.class))).thenReturn(mock(Materialized.class));
         when(context.materialize(any(WindowStateStoreDefinition.class))).thenReturn(mock(Materialized.class));
         return context;
+    }
+
+    // Makes the mocked context return the wrapper as saved with "as: <name>" by an earlier pipeline
+    static void saveStream(TopologyBuildContext context, String name, StreamWrapper wrapper) {
+        when(context.hasStreamWrapper(name)).thenReturn(true);
+        when(context.getStreamWrapper(eq(name), isNull())).thenReturn(wrapper);
     }
 
     // --- Mocked stream wrappers ------------------------------------------------------------------

@@ -1,0 +1,59 @@
+# Use case 2 from GitHub issue 286: a table-table join is saved once with "as" and used by two stream joins.
+streams:
+  web_order_stream:
+    topic: web_orders_topic
+    keyType: string
+    valueType: string
+  mobile_order_stream:
+    topic: mobile_orders_topic
+    keyType: string
+    valueType: string
+  processed_web_orders:
+    topic: processed_web_orders_topic
+    keyType: string
+    valueType: string
+  processed_mobile_orders:
+    topic: processed_mobile_orders_topic
+    keyType: string
+    valueType: string
+
+tables:
+  products_table:
+    topic: products_topic
+    keyType: string
+    valueType: string
+  inventory_table:
+    topic: inventory_topic
+    keyType: string
+    valueType: string
+
+functions:
+  simple_joiner:
+    type: valueJoiner
+    expression: value1 + "+" + value2
+    resultType: string
+
+pipelines:
+  product_inventory_join:
+    from: products_table
+    via:
+      - type: join
+        table: inventory_table
+        valueJoiner: simple_joiner
+    as: product_with_inventory
+
+  web_orders:
+    from: web_order_stream
+    via:
+      - type: join
+        table: product_with_inventory
+        valueJoiner: simple_joiner
+    to: processed_web_orders
+
+  mobile_orders:
+    from: mobile_order_stream
+    via:
+      - type: join
+        table: product_with_inventory
+        valueJoiner: simple_joiner
+    to: processed_mobile_orders

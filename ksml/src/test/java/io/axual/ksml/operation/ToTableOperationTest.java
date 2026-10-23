@@ -20,15 +20,27 @@ package io.axual.ksml.operation;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.definition.KeyValueStateStoreDefinition;
+import io.axual.ksml.stream.KStreamWrapper;
 import io.axual.ksml.stream.KTableWrapper;
+import org.apache.kafka.streams.kstream.KStream;
+import org.apache.kafka.streams.kstream.Materialized;
+import org.apache.kafka.streams.kstream.internals.MaterializedInternal;
+import org.apache.kafka.streams.processor.StateStore;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 
+import static io.axual.ksml.operation.OperationTestSupport.key;
 import static io.axual.ksml.operation.OperationTestSupport.keyValueStore;
 import static io.axual.ksml.operation.OperationTestSupport.kStream;
 import static io.axual.ksml.operation.OperationTestSupport.mockContext;
 import static io.axual.ksml.operation.OperationTestSupport.storeConfig;
+import static io.axual.ksml.operation.OperationTestSupport.value;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
 class ToTableOperationTest extends OperationTestBase {
@@ -49,5 +61,25 @@ class ToTableOperationTest extends OperationTestBase {
 
         assertThat(operation.apply(kStream(), context)).isInstanceOf(KTableWrapper.class);
         verify(context).materialize(store);
+    }
+
+    @Test
+    @DisplayName("toTable on a stream without a store still passes the key and value serdes")
+    @SuppressWarnings("unchecked")
+    void applyToStreamWithoutStorePassesSerdes() {
+        final KStream<Object, Object> stream = mock(KStream.class);
+        final var operation = new ToTableOperation(storeConfig("toTable"));
+        final var context = mockContext();
+
+        assertThat(operation.apply(new KStreamWrapper(stream, key(), value()), context)).isInstanceOf(KTableWrapper.class);
+
+        final var captor = ArgumentCaptor.forClass(Materialized.class);
+        verify(stream).toTable(any(), captor.capture());
+        verify(context, never()).materialize(any(KeyValueStateStoreDefinition.class));
+        // Without serdes, the table's state store fails at startup, because KSML sets no default serdes
+        final var materialized = new MaterializedInternal<Object, Object, StateStore>(captor.getValue());
+        assertThat(materialized.keySerde()).isNotNull();
+        assertThat(materialized.valueSerde()).isNotNull();
+        assertThat(materialized.storeName()).isNull();
     }
 }

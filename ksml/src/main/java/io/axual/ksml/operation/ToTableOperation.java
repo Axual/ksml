@@ -24,7 +24,10 @@ import io.axual.ksml.generator.TopologyBuildContext;
 import io.axual.ksml.stream.KStreamWrapper;
 import io.axual.ksml.stream.KTableWrapper;
 import io.axual.ksml.stream.StreamWrapper;
+import org.apache.kafka.common.utils.Bytes;
 import org.apache.kafka.streams.kstream.KTable;
+import org.apache.kafka.streams.kstream.Materialized;
+import org.apache.kafka.streams.state.KeyValueStore;
 
 public class ToTableOperation extends StoreOperation {
     public ToTableOperation(StoreOperationConfig config) {
@@ -42,18 +45,14 @@ public class ToTableOperation extends StoreOperation {
         final var k = input.keyType();
         final var v = input.valueType();
         final var kvStore = validateKeyValueStore(store(), k, v);
-        final var mat = materializedOf(context, kvStore);
+        // Pass serdes also without a store: KSML sets no default serdes, and a stream can lose them (e.g. after filter)
+        final Materialized<Object, Object, KeyValueStore<Bytes, byte[]>> mat = kvStore != null
+                ? materializedOf(context, kvStore)
+                : Materialized.with(k.serde(), v.serde());
         final var named = namedOf();
-        final KTable<Object, Object> output;
-        if (named != null) {
-            output = mat != null
-                    ? input.stream.toTable(named, mat)
-                    : input.stream.toTable(named);
-        } else {
-            output = mat != null
-                    ? input.stream.toTable(mat)
-                    : input.stream.toTable();
-        }
+        final KTable<Object, Object> output = named != null
+                ? input.stream.toTable(named, mat)
+                : input.stream.toTable(mat);
         return new KTableWrapper(output, k, v);
     }
 }

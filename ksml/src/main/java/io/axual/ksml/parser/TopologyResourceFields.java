@@ -23,6 +23,7 @@ package io.axual.ksml.parser;
 import io.axual.ksml.definition.FunctionDefinition;
 import io.axual.ksml.definition.TopicDefinition;
 import io.axual.ksml.definition.TopologyResource;
+import io.axual.ksml.exception.ParseException;
 import io.axual.ksml.generator.TopologyResources;
 import io.axual.ksml.metric.MetricTags;
 
@@ -62,5 +63,11 @@ public class TopologyResourceFields {
 
     public StructsParser<TopicDefinition> topicField(String childName, String doc, DefinitionParser<? extends TopicDefinition> parser) {
         return lookupField("topic", childName, doc, (name, context) -> resources.topic(name), parser);
+    }
+
+    // An unknown name must be an "as" name of an earlier pipeline, the same rule as when building
+    public <T extends TopicDefinition> TopologyResource<T> requireDefinedOrSaved(ParseNode node, TopologyResource<T> target, String kind, String section) {
+        if (target == null || target.definition() != null || resources.isSavedName(target.name())) return target;
+        throw new ParseException(node, "Unknown " + kind + " \"" + target.name() + "\". Define it under \"" + section + "\", or save a " + kind + " with \"as: " + target.name() + "\" " + TopologyResources.SAVED_EARLIER);
     }
 }

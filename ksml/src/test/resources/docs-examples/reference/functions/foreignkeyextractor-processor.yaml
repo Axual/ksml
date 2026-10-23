@@ -61,11 +61,14 @@ pipelines:
   enrich_orders:
     from: orders_input
     via:
+      # A foreign-key join needs a table on both sides, so turn the orders into a table first
+      - type: toTable
       # Join orders table with customers table using foreignKeyExtractor
       - type: join
         table: customers_table
         foreignKeyExtractor: extract_customer_id  # Extracts customer_id from order
         valueJoiner: join_order_customer
+      - type: toStream
       - type: peek
         forEach:
           code: |

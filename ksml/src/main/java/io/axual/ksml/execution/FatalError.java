@@ -36,7 +36,8 @@ public class FatalError {
         messageBuilder.append("FatalError").append(NEW_LINE).append(LOG_ITEM_SEPARATOR);
         printExceptionDetails(messageBuilder, t);
         log.error(messageBuilder.toString());
-        return new RuntimeException(t.getMessage());
+        // Keep the cause, so callers and tests can still find the original error
+        return new RuntimeException(t.getMessage(), t);
     }
 
     private static void printExceptionDetails(StringBuilder messageBuilder, Throwable t) {

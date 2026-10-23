@@ -1,0 +1,115 @@
+# A stream saved with "as" (here: filtered) is used by join, leftJoin, outerJoin and merge in later pipelines.
+# Values "skip" are filtered out, so they only show up if a pipeline reads the topic instead of the saved stream.
+streams:
+  left_stream:
+    topic: left_topic
+    keyType: string
+    valueType: string
+  right_stream:
+    topic: right_topic
+    keyType: string
+    valueType: string
+  joined:
+    topic: join_topic
+    keyType: string
+    valueType: string
+  left_joined:
+    topic: leftjoin_topic
+    keyType: string
+    valueType: string
+  outer_joined:
+    topic: outerjoin_topic
+    keyType: string
+    valueType: string
+  merged:
+    topic: merge_topic
+    keyType: string
+    valueType: string
+
+functions:
+  joiner:
+    type: valueJoiner
+    expression: str(value1) + "+" + str(value2)
+    resultType: string
+
+pipelines:
+  valid_right:
+    from: right_stream
+    via:
+      - type: filter
+        if:
+          expression: value != "skip"
+    as: valid_right_stream
+
+  join_with_saved:
+    from: left_stream
+    via:
+      - type: join
+        stream: valid_right_stream
+        valueJoiner: joiner
+        timeDifference: 1m
+        grace: 1m
+        thisStore:
+          type: window
+          name: join_this_store
+          retainDuplicates: true
+          windowSize: 2m
+          retention: 3m
+        otherStore:
+          type: window
+          name: join_other_store
+          retainDuplicates: true
+          windowSize: 2m
+          retention: 3m
+    to: joined
+
+  left_join_with_saved:
+    from: left_stream
+    via:
+      - type: leftJoin
+        stream: valid_right_stream
+        valueJoiner: joiner
+        timeDifference: 1m
+        grace: 1m
+        thisStore:
+          type: window
+          name: left_join_this_store
+          retainDuplicates: true
+          windowSize: 2m
+          retention: 3m
+        otherStore:
+          type: window
+          name: left_join_other_store
+          retainDuplicates: true
+          windowSize: 2m
+          retention: 3m
+    to: left_joined
+
+  outer_join_with_saved:
+    from: left_stream
+    via:
+      - type: outerJoin
+        stream: valid_right_stream
+        valueJoiner: joiner
+        timeDifference: 1m
+        grace: 1m
+        thisStore:
+          type: window
+          name: outer_join_this_store
+          retainDuplicates: true
+          windowSize: 2m
+          retention: 3m
+        otherStore:
+          type: window
+          name: outer_join_other_store
+          retainDuplicates: true
+          windowSize: 2m
+          retention: 3m
+    to: outer_joined
+
+  merge_with_saved:
+    from: left_stream
+    via:
+      - type: merge
+        stream: valid_right_stream
+    to: merged

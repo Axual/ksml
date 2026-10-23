@@ -25,6 +25,7 @@ import io.axual.ksml.definition.PipelineDefinition;
 import io.axual.ksml.definition.TopicDefinition;
 import io.axual.ksml.definition.TopologyResource;
 import io.axual.ksml.dsl.KSMLDSL;
+import io.axual.ksml.exception.TopologyException;
 import io.axual.ksml.generator.TopologyResources;
 import io.axual.ksml.metric.MetricTags;
 import io.axual.ksml.operation.AsOperation;
@@ -47,10 +48,12 @@ import io.axual.ksml.parser.IgnoreParser;
 import io.axual.ksml.parser.NamedObjectParser;
 import io.axual.ksml.parser.StructsParser;
 import io.axual.ksml.parser.TopologyResourceFields;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
 import java.util.List;
 
+@Slf4j
 public class PipelineDefinitionParser extends DefinitionParser<PipelineDefinition> implements NamedObjectParser {
     private final TopologyResourceFields resourceFields;
     private final boolean parseSource;
@@ -113,7 +116,19 @@ public class PipelineDefinitionParser extends DefinitionParser<PipelineDefinitio
         // If no sink operation was specified, then we create an AS operation here with the name provided.
         // This means that pipeline results can be referred to by other pipelines using the pipeline's name
         // as identifier.
-        var sinkOperation = shortName != null ? new AsOperation(new OperationConfig(resourceFields.resources().getUniqueOperationName(longName), tags), shortName) : null;
+        if (shortName == null) return new PipelineDefinition(name, from, via, null);
+        final var resources = resourceFields.resources();
+        final var section = resources.sectionOf(shortName);
+        if (section != null) {
+            log.warn("Pipeline \"{}\" has no sink and its name is also under \"{}\": \"from\" gets the pipeline result, joins and merges get the defined one. Add \"as\" with another name, and use it in the later \"from\" or \"cogroup\"", shortName, section);
+        }
+        final var earlier = resources.pipelineSaving(shortName);
+        if (earlier != null) {
+            // No parse node here; the pipeline map adds the pipeline name to this error
+            throw new TopologyException("Without a sink, " + TopologyResources.pipelineOf(tags) + " saves its result under \"" + shortName + "\", which is already used by " + earlier + ". Add a sink, or rename the pipeline");
+        }
+        resources.registerSavedName(shortName, tags);
+        final var sinkOperation = new AsOperation(new OperationConfig(resources.getUniqueOperationName(longName), tags), shortName);
         return new PipelineDefinition(shortName, from, via, sinkOperation);
     }
 

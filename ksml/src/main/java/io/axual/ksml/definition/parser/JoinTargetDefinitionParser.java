@@ -23,10 +23,12 @@ package io.axual.ksml.definition.parser;
 
 import io.axual.ksml.definition.TopicDefinition;
 import io.axual.ksml.definition.TopologyResource;
+import io.axual.ksml.dsl.KSMLDSL;
 import io.axual.ksml.exception.ParseException;
 import io.axual.ksml.generator.TopologyResources;
 import io.axual.ksml.parser.BaseParser;
 import io.axual.ksml.parser.ParseNode;
+import io.axual.ksml.parser.StructsParser;
 import io.axual.ksml.parser.TopologyResourceParser;
 
 import static io.axual.ksml.dsl.KSMLDSL.Operations;
@@ -38,18 +40,36 @@ public class JoinTargetDefinitionParser extends BaseParser<TopologyResource<Topi
         this.resources = resources;
     }
 
+    // The key that holds the join target, or null if there is none
+    public static String keyOf(ParseNode node) {
+        if (node.get(Operations.Join.WITH_STREAM) != null) return Operations.Join.WITH_STREAM;
+        if (node.get(Operations.Join.WITH_TABLE) != null) return Operations.Join.WITH_TABLE;
+        if (node.get(Operations.Join.WITH_GLOBAL_TABLE) != null) return Operations.Join.WITH_GLOBAL_TABLE;
+        return null;
+    }
+
     @Override
     public TopologyResource<TopicDefinition> parse(ParseNode node) {
         if (node == null) return null;
-        if (node.get(Operations.Join.WITH_STREAM) != null) {
-            return new TopologyResourceParser<>("stream", Operations.Join.WITH_STREAM, null, (name, tags) -> resources.topic(name), new StreamDefinitionParser(resources, true)).parse(node);
-        }
-        if (node.get(Operations.Join.WITH_TABLE) != null) {
-            return new TopologyResourceParser<>("table", Operations.Join.WITH_TABLE, null, (name, tags) -> resources.topic(name), new TableDefinitionParser(resources, true)).parse(node);
-        }
-        if (node.get(Operations.Join.WITH_GLOBAL_TABLE) != null) {
-            return new TopologyResourceParser<>("globalTable", Operations.Join.WITH_GLOBAL_TABLE, null, (name, tags) -> resources.topic(name), new GlobalTableDefinitionParser(resources, true)).parse(node);
-        }
-        throw new ParseException(node, "Stream definition missing");
+        final var key = keyOf(node);
+        if (key == null) throw new ParseException(node, "Stream definition missing");
+        return switch (key) {
+            // An unknown name may be an "as" name. The stream or table field of the join checks it
+            case Operations.Join.WITH_STREAM -> parseTarget(node, "stream", key, new StreamDefinitionParser(resources, true));
+            case Operations.Join.WITH_TABLE -> parseTarget(node, "table", key, new TableDefinitionParser(resources, true));
+            default -> {
+                final var result = parseTarget(node, "globalTable", key, new GlobalTableDefinitionParser(resources, true));
+                // Kafka Streams can not make a GlobalKTable from a pipeline result
+                if (result.definition() == null) {
+                    throw new ParseException(node, "Unknown globalTable \"" + result.name() + "\". Define it under \"" + KSMLDSL.GLOBAL_TABLES + "\". For a table saved with \"as\", use \"table\" instead");
+                }
+                yield result;
+            }
+        };
+    }
+
+    // Keeps an unknown name, without definition
+    private <F extends TopicDefinition> TopologyResource<TopicDefinition> parseTarget(ParseNode node, String type, String key, StructsParser<F> parser) {
+        return new TopologyResourceParser<TopicDefinition, F>(type, key, null, (name, tags) -> resources.topic(name), parser, true).parse(node);
     }
 }

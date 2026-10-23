@@ -20,8 +20,15 @@ package io.axual.ksml.operation;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.object.DataLong;
+import io.axual.ksml.data.object.DataString;
+import io.axual.ksml.data.type.DataType;
+import io.axual.ksml.definition.ForeignKeyExtractorDefinition;
+import io.axual.ksml.exception.TopologyException;
+import io.axual.ksml.generator.StreamDataType;
 import io.axual.ksml.stream.KStreamWrapper;
 import io.axual.ksml.stream.KTableWrapper;
+import io.axual.ksml.type.UserType;
 import org.apache.kafka.streams.kstream.Joined;
 import org.apache.kafka.streams.kstream.KStream;
 import org.apache.kafka.streams.kstream.KTable;
@@ -38,15 +45,21 @@ import java.lang.reflect.Field;
 import java.util.function.Function;
 
 import static io.axual.ksml.operation.OperationTestSupport.foreignKeyExtractor;
+import static io.axual.ksml.operation.OperationTestSupport.genericFunction;
+import static io.axual.ksml.operation.OperationTestSupport.kStream;
+import static io.axual.ksml.operation.OperationTestSupport.kTable;
 import static io.axual.ksml.operation.OperationTestSupport.key;
 import static io.axual.ksml.operation.OperationTestSupport.keyValueStore;
 import static io.axual.ksml.operation.OperationTestSupport.mockContext;
+import static io.axual.ksml.operation.OperationTestSupport.saveStream;
+import static io.axual.ksml.operation.OperationTestSupport.savedTarget;
 import static io.axual.ksml.operation.OperationTestSupport.storeConfig;
 import static io.axual.ksml.operation.OperationTestSupport.streamPartitioner;
-import static io.axual.ksml.operation.OperationTestSupport.tableDefinition;
+import static io.axual.ksml.operation.OperationTestSupport.tableTarget;
 import static io.axual.ksml.operation.OperationTestSupport.value;
 import static io.axual.ksml.operation.OperationTestSupport.valueJoiner;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -60,10 +73,21 @@ class JoinWithTableOperationTest extends OperationTestBase {
         final KStream<Object, Object> stream = mock(KStream.class);
         final var input = new KStreamWrapper(stream, key(), value());
         final var operation = new JoinWithTableOperation(
-                storeConfig("join"), tableDefinition(), foreignKeyExtractor(), valueJoiner(), null, null, null);
+                storeConfig("join"), tableTarget(), null, valueJoiner(), null, null, null);
 
         assertThat(operation.apply(input, mockContext())).isInstanceOf(KStreamWrapper.class);
         verify(stream).join(any(KTable.class), any(ValueJoinerWithKey.class), any(Joined.class));
+    }
+
+    @Test
+    @DisplayName("join with a foreignKeyExtractor and a stream as input is rejected, because Kafka Streams would ignore the extractor")
+    void applyToStreamWithForeignKeyExtractorIsRejected() {
+        final var operation = new JoinWithTableOperation(
+                storeConfig("join"), tableTarget(), foreignKeyExtractor(), valueJoiner(), null, null, null);
+
+        assertThatThrownBy(() -> operation.apply(kStream(), mockContext()))
+                .isInstanceOf(TopologyException.class)
+                .hasMessageContaining("A join with \"foreignKeyExtractor\" needs a table as input, but found a stream");
     }
 
     @Test
@@ -73,7 +97,7 @@ class JoinWithTableOperationTest extends OperationTestBase {
         final KTable<Object, Object> table = mock(KTable.class);
         final var input = new KTableWrapper(table, key(), value());
         final var operation = new JoinWithTableOperation(
-                storeConfig("join"), tableDefinition(), foreignKeyExtractor(), valueJoiner(), null, null, null);
+                storeConfig("join"), tableTarget(), foreignKeyExtractor(), valueJoiner(), null, null, null);
 
         assertThat(operation.apply(input, mockContext())).isInstanceOf(KTableWrapper.class);
         // Foreign-key join without a store, so no Materialized, no partitioners.
@@ -87,7 +111,7 @@ class JoinWithTableOperationTest extends OperationTestBase {
         final KTable<Object, Object> table = mock(KTable.class);
         final var input = new KTableWrapper(table, key(), value());
         final var operation = new JoinWithTableOperation(
-                storeConfig("join", keyValueStore("store")), tableDefinition(), foreignKeyExtractor(), valueJoiner(),
+                storeConfig("join", keyValueStore("store")), tableTarget(), foreignKeyExtractor(), valueJoiner(),
                 null, streamPartitioner(), streamPartitioner());
 
         assertThat(operation.apply(input, mockContext())).isInstanceOf(KTableWrapper.class);
@@ -102,7 +126,7 @@ class JoinWithTableOperationTest extends OperationTestBase {
         final KTable<Object, Object> table = mock(KTable.class);
         final var input = new KTableWrapper(table, key(), value());
         final var operation = new JoinWithTableOperation(
-                storeConfig("join"), tableDefinition(), foreignKeyExtractor(), valueJoiner(),
+                storeConfig("join"), tableTarget(), foreignKeyExtractor(), valueJoiner(),
                 null, null, streamPartitioner());
 
         assertThat(operation.apply(input, mockContext())).isInstanceOf(KTableWrapper.class);
@@ -125,7 +149,7 @@ class JoinWithTableOperationTest extends OperationTestBase {
         final KTable<Object, Object> table = mock(KTable.class);
         final var input = new KTableWrapper(table, key(), value());
         final var operation = new JoinWithTableOperation(
-                storeConfig("join"), tableDefinition(), foreignKeyExtractor(), valueJoiner(),
+                storeConfig("join"), tableTarget(), foreignKeyExtractor(), valueJoiner(),
                 null, streamPartitioner(), null);
 
         assertThat(operation.apply(input, mockContext())).isInstanceOf(KTableWrapper.class);
@@ -149,10 +173,100 @@ class JoinWithTableOperationTest extends OperationTestBase {
         final KTable<Object, Object> table = mock(KTable.class);
         final var input = new KTableWrapper(table, key(), value());
         final var operation = new JoinWithTableOperation(
-                storeConfig("join", keyValueStore("store")), tableDefinition(), null, valueJoiner(), null, null, null);
+                storeConfig("join", keyValueStore("store")), tableTarget(), null, valueJoiner(), null, null, null);
 
         assertThat(operation.apply(input, mockContext())).isInstanceOf(KTableWrapper.class);
         // Primary-key join uses the named + materialized overload.
         verify(table).join(any(KTable.class), any(ValueJoiner.class), any(Named.class), any(Materialized.class));
+    }
+
+    @Test
+    @DisplayName("joining a stream with a table saved with \"as\" looks the table up by name")
+    @SuppressWarnings("unchecked")
+    void applyToStreamWithSavedTable() {
+        final KStream<Object, Object> stream = mock(KStream.class);
+        final var input = new KStreamWrapper(stream, key(), value());
+        final var context = mockContext();
+        saveStream(context, "saved_table", kTable());
+        final var operation = new JoinWithTableOperation(
+                storeConfig("join"), savedTarget("saved_table"), null, valueJoiner(), null, null, null);
+
+        assertThat(operation.apply(input, context)).isInstanceOf(KStreamWrapper.class);
+        verify(stream).join(any(KTable.class), any(ValueJoinerWithKey.class), any(Joined.class));
+    }
+
+    @Test
+    @DisplayName("joining two tables with a table saved with \"as\" looks the table up by name")
+    @SuppressWarnings("unchecked")
+    void applyToTableWithSavedTable() {
+        final KTable<Object, Object> table = mock(KTable.class);
+        final var input = new KTableWrapper(table, key(), value());
+        final var context = mockContext();
+        saveStream(context, "saved_table", kTable());
+        final var operation = new JoinWithTableOperation(
+                storeConfig("join", keyValueStore("store")), savedTarget("saved_table"), null, valueJoiner(), null, null, null);
+
+        assertThat(operation.apply(input, context)).isInstanceOf(KTableWrapper.class);
+        verify(table).join(any(KTable.class), any(ValueJoiner.class), any(Named.class), any(Materialized.class));
+    }
+
+    @Test
+    @DisplayName("joining with an unknown saved table explains how to define or save it")
+    void unknownSavedTableIsNotFound() {
+        final var input = new KStreamWrapper(mock(KStream.class), key(), value());
+        final var operation = new JoinWithTableOperation(
+                storeConfig("join"), savedTarget("missing"), null, valueJoiner(), null, null, null);
+
+        assertThatThrownBy(() -> operation.apply(input, mockContext()))
+                .isInstanceOf(TopologyException.class)
+                .hasMessageContaining("Join table \"missing\" not found")
+                .hasMessageContaining("Define it under \"tables\", or save a table with \"as: missing\" in a pipeline defined before this one");
+    }
+
+    @Test
+    @DisplayName("joining with a saved stream as table is rejected")
+    void savedStreamIsNotATable() {
+        final var input = new KStreamWrapper(mock(KStream.class), key(), value());
+        final var context = mockContext();
+        saveStream(context, "saved_stream", kStream());
+        final var operation = new JoinWithTableOperation(
+                storeConfig("join"), savedTarget("saved_stream"), null, valueJoiner(), null, null, null);
+
+        assertThatThrownBy(() -> operation.apply(input, context))
+                .isInstanceOf(TopologyException.class)
+                .hasMessageContaining("Join table \"saved_stream\" must be a table, but found");
+    }
+
+    @Test
+    @DisplayName("join of two tables by primary key with different key types is rejected")
+    void applyToTableByPrimaryKeyWithDifferentKeyTypesIsRejected() {
+        final var input = new KTableWrapper(mock(KTable.class), typedKey(DataString.DATATYPE), value());
+        final var context = mockContext();
+        saveStream(context, "other_table", new KTableWrapper(mock(KTable.class), typedKey(DataLong.DATATYPE), value()));
+        final var operation = new JoinWithTableOperation(
+                storeConfig("join"), savedTarget("other_table"), null, valueJoiner(), null, null, null);
+
+        assertThatThrownBy(() -> operation.apply(input, context))
+                .isInstanceOf(TopologyException.class)
+                .hasMessageContaining("Join table keyType is expected to be of type string, but found long");
+    }
+
+    @Test
+    @DisplayName("join of two tables with a foreignKeyExtractor that does not return the other table's key type is rejected")
+    void applyToTableWithWrongForeignKeyExtractorResultTypeIsRejected() {
+        final var input = new KTableWrapper(mock(KTable.class), typedKey(DataLong.DATATYPE), value());
+        final var context = mockContext();
+        saveStream(context, "other_table", new KTableWrapper(mock(KTable.class), typedKey(DataString.DATATYPE), value()));
+        final var extractor = new ForeignKeyExtractorDefinition(genericFunction(new UserType(DataLong.DATATYPE)));
+        final var operation = new JoinWithTableOperation(
+                storeConfig("join"), savedTarget("other_table"), extractor, valueJoiner(), null, null, null);
+
+        assertThatThrownBy(() -> operation.apply(input, context))
+                .isInstanceOf(TopologyException.class)
+                .hasMessageContaining("ForeignKeyExtractor resultType is expected to be assignable to string, but found long");
+    }
+
+    private static StreamDataType typedKey(DataType type) {
+        return new StreamDataType(new UserType(type), true);
     }
 }

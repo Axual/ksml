@@ -35,12 +35,13 @@ class FatalErrorTest {
     }
 
     @Test
-    @DisplayName("report returns only the top-level message and drops the cause chain")
-    void reportReturnsTopLevelMessageWithoutPropagatingCause() {
+    @DisplayName("report returns the top-level message and keeps the reported throwable as cause")
+    void reportReturnsTopLevelMessageAndKeepsCause() {
         final var cause = new IllegalArgumentException("root cause");
-        final var reported = FatalError.report(new RuntimeException("wrapper", cause));
-        // report() logs the full cause chain but returns a fresh exception carrying only the
-        // top-level message and no cause.
-        assertThat(reported).hasMessage("wrapper").hasNoCause();
+        final var wrapper = new RuntimeException("wrapper", cause);
+        final var reported = FatalError.report(wrapper);
+        // report() logs the full cause chain and returns a fresh exception with the top-level message,
+        // which keeps the reported throwable, so the root cause can still be found.
+        assertThat(reported).hasMessage("wrapper").hasCause(wrapper).hasRootCause(cause);
     }
 }

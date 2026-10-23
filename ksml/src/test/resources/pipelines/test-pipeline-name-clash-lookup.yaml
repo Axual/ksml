@@ -1,0 +1,76 @@
+# The pipeline "order_events" has no sink, so it saves its result under its name, which is also defined under
+# "streams". KSML only logs a warning. A later "from: order_events" gets the pipeline result, but join and merge
+# get the defined stream, so they read the topic.
+streams:
+  raw_orders:
+    topic: raw_orders_topic
+    keyType: string
+    valueType: string
+  order_events:
+    topic: order_events_topic
+    keyType: string
+    valueType: string
+  left_stream:
+    topic: left_topic
+    keyType: string
+    valueType: string
+  from_result:
+    topic: from_topic
+    keyType: string
+    valueType: string
+  joined:
+    topic: join_topic
+    keyType: string
+    valueType: string
+  merged:
+    topic: merge_topic
+    keyType: string
+    valueType: string
+
+functions:
+  joiner:
+    type: valueJoiner
+    expression: str(value1) + "+" + str(value2)
+    resultType: string
+
+pipelines:
+  order_events:
+    from: raw_orders
+    via:
+      - type: transformValue
+        mapper:
+          expression: '"pipeline:" + value'
+          resultType: string
+
+  from_name:
+    from: order_events
+    to: from_result
+
+  join_name:
+    from: left_stream
+    via:
+      - type: join
+        stream: order_events
+        valueJoiner: joiner
+        timeDifference: 1m
+        grace: 1m
+        thisStore:
+          type: window
+          name: clash_join_this_store
+          retainDuplicates: true
+          windowSize: 2m
+          retention: 3m
+        otherStore:
+          type: window
+          name: clash_join_other_store
+          retainDuplicates: true
+          windowSize: 2m
+          retention: 3m
+    to: joined
+
+  merge_name:
+    from: left_stream
+    via:
+      - type: merge
+        stream: order_events
+    to: merged

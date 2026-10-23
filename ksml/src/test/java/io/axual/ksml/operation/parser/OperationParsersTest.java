@@ -20,9 +20,11 @@ package io.axual.ksml.operation.parser;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.definition.TableDefinition;
 import io.axual.ksml.exception.ParseException;
 import io.axual.ksml.exception.TopologyException;
 import io.axual.ksml.generator.TopologyResources;
+import io.axual.ksml.metric.MetricTags;
 import io.axual.ksml.operation.CogroupOperation;
 import io.axual.ksml.operation.ConvertKeyValueOperation;
 import io.axual.ksml.operation.FilterNotOperation;
@@ -31,6 +33,7 @@ import io.axual.ksml.operation.ReduceOperation;
 import io.axual.ksml.operation.SuppressOperation;
 import io.axual.ksml.operation.WindowBySessionOperation;
 import io.axual.ksml.operation.WindowByTimeOperation;
+import io.axual.ksml.type.UserType;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -158,6 +161,53 @@ class OperationParsersTest {
         final var op = new MergeOperationParser(resources).parser()
                 .parse(nodeOf("stream:\n  topic: other\n  keyType: string\n  valueType: string"));
         assertThat(op).isInstanceOf(MergeOperation.class);
+    }
+
+    @Test
+    @DisplayName("a merge with a stream that is not defined, but saved with \"as\" by an earlier pipeline, parses")
+    void parsesMergeWithSavedStream() throws Exception {
+        resources.registerSavedName("saved_stream", new MetricTags().append("pipeline", "earlier_pipeline"));
+        final var op = new MergeOperationParser(resources).parser()
+                .parse(nodeOf("stream: saved_stream"));
+        assertThat(op).isInstanceOf(MergeOperation.class);
+    }
+
+    @Test
+    @DisplayName("a merge with a stream that is neither defined nor saved by an earlier pipeline is rejected")
+    void rejectsMergeWithUnknownStream() throws Exception {
+        final var parser = new MergeOperationParser(resources).parser();
+        final var node = nodeOf("stream: typo_stream");
+        assertThatThrownBy(() -> parser.parse(node))
+                .isInstanceOf(ParseException.class)
+                .hasMessageContaining("Unknown stream \"typo_stream\". Define it under \"streams\", or save a stream with \"as: typo_stream\"");
+    }
+
+    @Test
+    @DisplayName("a merge configuration without a stream is rejected")
+    void rejectsMergeWithoutStream() throws Exception {
+        final var parser = new MergeOperationParser(resources).parser();
+        final var node = nodeOf("name: mergeOp");
+        assertThatThrownBy(() -> parser.parse(node))
+                .isInstanceOf(ParseException.class)
+                .hasMessageContaining("Merge stream not correct, should be a stream");
+    }
+
+    @Test
+    @DisplayName("an as name that is not defined parses into an as operation")
+    void parsesAsWithNewName() throws Exception {
+        final var op = new AsOperationParser(resources).parser().parse(nodeOf("as: latest_orders"));
+        assertThat(op.targetName).isEqualTo("latest_orders");
+    }
+
+    @Test
+    @DisplayName("an as name that is defined under tables is rejected")
+    void rejectsAsWithDefinedName() throws Exception {
+        resources.register("orders", new TableDefinition("orders", UserType.UNKNOWN, UserType.UNKNOWN, null, null, null, null));
+        final var parser = new AsOperationParser(resources).parser();
+        final var node = nodeOf("as: orders");
+        assertThatThrownBy(() -> parser.parse(node))
+                .isInstanceOf(ParseException.class)
+                .hasMessageContaining("\"as: orders\" is already defined under \"tables\". Use another name");
     }
 
     @Test

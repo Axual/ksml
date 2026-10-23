@@ -1,0 +1,44 @@
+# A toTable without a store, after a filter, joined with another table. Without serdes the table's
+# state store fails at startup with "Failed to initialize value serdes".
+streams:
+  left_stream:
+    topic: left_topic
+    keyType: string
+    valueType: string
+  right_stream:
+    topic: right_topic
+    keyType: string
+    valueType: string
+  output_stream:
+    topic: output_topic
+    keyType: string
+    valueType: string
+
+functions:
+  str_joiner:
+    type: valueJoiner
+    expression: value1 + "+" + value2
+    resultType: string
+
+pipelines:
+  left_tbl:
+    from: left_stream
+    via:
+      - type: toTable
+        store:
+          type: keyValue
+          name: left_tbl_store
+    as: left_table
+
+  join_pipeline:
+    from: right_stream
+    via:
+      - type: filter
+        if:
+          expression: value != "skip"
+      - type: toTable
+      - type: join
+        table: left_table
+        valueJoiner: str_joiner
+      - type: toStream
+    to: output_stream

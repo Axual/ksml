@@ -33,13 +33,21 @@ import io.axual.ksml.definition.KeyValueStateStoreDefinition;
 import io.axual.ksml.definition.ParameterDefinition;
 import io.axual.ksml.definition.SessionStateStoreDefinition;
 import io.axual.ksml.definition.StateStoreDefinition;
+import io.axual.ksml.definition.StreamDefinition;
+import io.axual.ksml.definition.TableDefinition;
+import io.axual.ksml.definition.TopologyResource;
 import io.axual.ksml.definition.WindowStateStoreDefinition;
+import io.axual.ksml.dsl.KSMLDSL;
 import io.axual.ksml.exception.ExecutionException;
 import io.axual.ksml.exception.TopologyException;
 import io.axual.ksml.generator.StreamDataType;
 import io.axual.ksml.generator.TopologyBuildContext;
+import io.axual.ksml.generator.TopologyResources;
 import io.axual.ksml.metric.MetricTags;
 import io.axual.ksml.store.StoreUtil;
+import io.axual.ksml.stream.KStreamWrapper;
+import io.axual.ksml.stream.KTableWrapper;
+import io.axual.ksml.stream.StreamWrapper;
 import io.axual.ksml.type.UserType;
 import io.axual.ksml.user.UserFunction;
 import io.axual.ksml.user.UserStreamPartitioner;
@@ -140,6 +148,34 @@ public abstract class BaseOperation implements StreamOperation {
 
     protected TopologyException topologyError(String message) {
         return new TopologyException(ERROR_IN_TOPOLOGY + ": " + message);
+    }
+
+    // The stream saved with "as: name" by an earlier pipeline, or null
+    protected StreamWrapper findSavedStream(TopologyBuildContext context, String name) {
+        return context.hasStreamWrapper(name) ? context.getStreamWrapper(name, null) : null;
+    }
+
+    protected <W extends StreamWrapper> W requireSavedStream(StreamWrapper wrapper, Class<W> expectedClass, String label, String expectedKind, String notFoundHint) {
+        if (expectedClass.isInstance(wrapper)) return expectedClass.cast(wrapper);
+        if (wrapper == null) throw topologyError(label + " not found. " + notFoundHint);
+        throw topologyError(label + " must be " + expectedKind + ", but found " + wrapper);
+    }
+
+    // A defined stream (by topic) or an "as" name
+    protected KStreamWrapper lookupStream(TopologyBuildContext context, TopologyResource<StreamDefinition> target, String label) {
+        if (target.definition() != null) return context.getStreamWrapper(target.definition());
+        return lookupSavedTarget(context, target.name(), KStreamWrapper.class, label, "a stream", KSMLDSL.STREAMS);
+    }
+
+    // A defined table (by topic) or an "as" name
+    protected KTableWrapper lookupTable(TopologyBuildContext context, TopologyResource<TableDefinition> target, String label) {
+        if (target.definition() != null) return context.getStreamWrapper(target.definition());
+        return lookupSavedTarget(context, target.name(), KTableWrapper.class, label, "a table", KSMLDSL.TABLES);
+    }
+
+    private <W extends StreamWrapper> W lookupSavedTarget(TopologyBuildContext context, String name, Class<W> expectedClass, String label, String expectedKind, String section) {
+        return requireSavedStream(findSavedStream(context, name), expectedClass, label + " \"" + name + "\"", expectedKind,
+                "Define it under \"" + section + "\", or save " + expectedKind + " with \"as: " + name + "\" " + TopologyResources.SAVED_EARLIER);
     }
 
     private UserType[] arrayFrom(UserType element, UserType[] elements) {
