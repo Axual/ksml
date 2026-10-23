@@ -676,7 +676,8 @@ The key to look up in the table being joined with
     ```
 
 The foreignKeyExtractor enables table joins where the join key is embedded within the record value rather than being the
-record key. This example demonstrates order enrichment by joining with customer data using a foreign key relationship. The orders arrive as a stream, so the pipeline turns them into a table with `toTable` first.
+record key. This example demonstrates order enrichment by joining with customer data using a foreign key relationship.
+The orders arrive as a stream, so the pipeline turns them into a table with `toTable` first.
 
 **Example**
 
@@ -899,7 +900,7 @@ Determines which partition a record should be sent to when writing to a Kafka to
 |---------------|---------|------------------------------------------------------------------------|
 | topic         | String  | The name of the topic the record is being sent to                     |
 | key           | Any     | The key of the record being partitioned                               |
-| value         | Any     | The value of the record being partitioned                             |
+| value         | Any     | The value of the record being partitioned. `None` in a foreign-key join |
 | headers       | List    | The record headers, as a list of `{"key": ..., "value": ...}` like in `metadataTransformer` |
 | numPartitions | Integer | The total number of partitions available in the target topic          |
 

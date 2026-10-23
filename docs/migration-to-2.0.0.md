@@ -174,6 +174,8 @@ via:
 
 The result of the join is then a table that is updated when an order or its customer changes. If you meant to join the stream by its own key, remove `foreignKeyExtractor` instead.
 
+The new steps add Kafka topics to your application: `toTable` adds a state store with a changelog topic, and the foreign-key join adds a subscription store with a changelog topic and two internal topics for subscription registrations and responses. If topics are created by hand or need ACLs in your cluster, set them up before the upgrade.
+
 ## Avro logical types
 
 KSML now understands Avro logical types (`uuid`, `decimal`, `date`, `time-millis`, `time-micros`,
