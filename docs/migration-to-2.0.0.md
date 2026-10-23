@@ -138,9 +138,9 @@ On the 1.x line this was accepted. A later `from` with that name then silently g
 
 A pipeline without a sink saves its result under the pipeline name. If that name is also defined under `streams`, `tables` or `globalTables`, KSML only logs a warning, so these definitions still start.
 
-What you need to do: rename the `as` name, and every `from`, `join`, `merge` or `cogroup` that uses it.
+What you need to do: rename the `as` name, and every `from` or `cogroup` that uses it. Do not change a `join` or `merge` with that name: it already uses the defined stream or table, and would get the saved result instead.
 
-For a pipeline without a sink, do not rename the pipeline. KSML uses the pipeline name in its processor names, and a `groupBy` without a `store` uses it for its repartition topic. A rename in a running application changes that topic, and records still waiting in the old topic are not processed. Instead, add `as` with another name to the pipeline, and use that name in the later `from`, `join`, `merge` or `cogroup`. An `as` adds no Kafka processor.
+For a pipeline without a sink, add `as` with another name, and use that name in the later `from` or `cogroup`. Adding `as` leaves the Kafka Streams topology unchanged, so a running application keeps its topics and state.
 
 ## A foreign-key join needs a table as input
 

@@ -120,7 +120,7 @@ public class PipelineDefinitionParser extends DefinitionParser<PipelineDefinitio
         final var resources = resourceFields.resources();
         final var section = resources.sectionOf(shortName);
         if (section != null) {
-            log.warn("Pipeline \"{}\" has no sink and its name is also under \"{}\": \"from\" gets the pipeline result, joins and merges get the defined one. Add \"as\" with another name, and use that name in later pipelines", shortName, section);
+            log.warn("Pipeline \"{}\" has no sink and its name is also under \"{}\": \"from\" gets the pipeline result, joins and merges get the defined one. Add \"as\" with another name, and use it in the later \"from\" or \"cogroup\"", shortName, section);
         }
         final var earlier = resources.pipelineSaving(shortName);
         if (earlier != null) {
