@@ -734,7 +734,7 @@ graph LR
 ### Rules for Joining with a Saved Result
 
 - **Define the saving pipeline first**: The pipeline with `as: <name>` must come before the pipeline that joins with `<name>`, in the same definition file. Otherwise KSML fails with the parse error `Unknown table "<name>"`.
-- **Use the right key**: Use `stream:` for a saved stream and `table:` for a saved table. Joining with a saved stream as `table:`, or the other way round, fails with `must be a table` or `must be a stream`. To join a stream as a table, add `toTable` with a `store` before `as`. Without a `store`, the table can miss the serdes it needs, and the join fails at runtime:
+- **Use the right key**: Use `stream:` for a saved stream and `table:` for a saved table. Joining with a saved stream as `table:`, or the other way round, fails with `must be a table` or `must be a stream`. To join a stream as a table, add `toTable` before `as`:
 
     ```yaml
     via:
@@ -742,15 +742,12 @@ graph LR
         if:
           expression: value is not None
       - type: toTable
-        store:
-          type: keyValue
-          name: valid_orders_store
     as: valid_orders_table
     ```
 
 - **No saved globalTables**: Kafka Streams can not make a GlobalKTable from a pipeline result, so `globalTable:` only accepts names defined under `globalTables`. Use `table:` to join with a saved table.
 - **Unique names**: Two pipelines can not save their result under the same name. An `as` name can not be the same as a name under `streams`, `tables` or `globalTables`. For a pipeline without a sink, which saves its result under the pipeline name, KSML logs a warning. A later `from` with that name then gets the pipeline result, while `join` and `merge` get the defined stream or table.
-- **Store**: A result that is already a table, for example after a table-table join, can be joined with directly, without an extra `store`. Only a stream turned into a table with `toTable` needs one (see above). Add a `store` to the join itself only if you want to query the saved table.
+- **Store**: A saved table, for example the result of a table-table join or of `toTable`, can be joined with directly, without a `store`. Add a `store` only if you want to query the saved table.
 - **Co-partitioning still applies**: If the saved result changed its key, for example with `transformKey` or `groupBy`, it must still be co-partitioned with the stream or table it is joined with. See [Co-partitioning Requirements](#co-partitioning-requirements).
 
 ## Join Type Variants
