@@ -266,7 +266,7 @@ Below is a table with all 21 function types in KSML.
 | [reducer](#reducer)                                                     | Combine two values into one                      | reduce                                      |
 |                                                                         |                                                  |                                             |
 | **Special Purpose Functions**                                           |                                                  |                                             |
-| [foreignKeyExtractor](#foreignkeyextractor)                             | Extract a key from a join table's record         | join, leftJoin                              |
+| [foreignKeyExtractor](#foreignkeyextractor)                             | Get the key of the other table from a table value | join, leftJoin                              |
 | [generator](#generator)                                                 | Function used in producers to generate a message | producer                                    |
 | [generic](#generic)                                                     | Generic custom function                          |                                             |
 | [keyValueMapper](#keyvaluemapper)                                       | Convert key and value into a single output value | groupBy, join, leftJoin                     |
@@ -642,7 +642,9 @@ Combined value
 
 ### foreignKeyExtractor
 
-Extracts a key from a join table's record. Used during join operations to determine which records to join.
+Gets a value of the input table and returns the key of the other table to join with. Used in a `join` or `leftJoin`
+between two tables, when the join key is in the value instead of the record key. Both sides must be tables: with a
+stream as input, KSML stops with an error. Add `toTable` before the join to turn a stream into a table.
 
 #### Parameters
 
@@ -674,7 +676,7 @@ The key to look up in the table being joined with
     ```
 
 The foreignKeyExtractor enables table joins where the join key is embedded within the record value rather than being the
-record key. This example demonstrates order enrichment by joining with customer data using a foreign key relationship.
+record key. This example demonstrates order enrichment by joining with customer data using a foreign key relationship. The orders arrive as a stream, so the pipeline turns them into a table with `toTable` first.
 
 **Example**
 

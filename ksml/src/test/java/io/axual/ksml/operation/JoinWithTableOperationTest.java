@@ -66,10 +66,21 @@ class JoinWithTableOperationTest extends OperationTestBase {
         final KStream<Object, Object> stream = mock(KStream.class);
         final var input = new KStreamWrapper(stream, key(), value());
         final var operation = new JoinWithTableOperation(
-                storeConfig("join"), tableTarget(), foreignKeyExtractor(), valueJoiner(), null, null, null);
+                storeConfig("join"), tableTarget(), null, valueJoiner(), null, null, null);
 
         assertThat(operation.apply(input, mockContext())).isInstanceOf(KStreamWrapper.class);
         verify(stream).join(any(KTable.class), any(ValueJoinerWithKey.class), any(Joined.class));
+    }
+
+    @Test
+    @DisplayName("join with a foreignKeyExtractor and a stream as input is rejected, because Kafka Streams would ignore the extractor")
+    void applyToStreamWithForeignKeyExtractorIsRejected() {
+        final var operation = new JoinWithTableOperation(
+                storeConfig("join"), tableTarget(), foreignKeyExtractor(), valueJoiner(), null, null, null);
+
+        assertThatThrownBy(() -> operation.apply(kStream(), mockContext()))
+                .isInstanceOf(TopologyException.class)
+                .hasMessageContaining("A join with \"foreignKeyExtractor\" needs a table as input, but found a stream");
     }
 
     @Test

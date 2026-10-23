@@ -19,6 +19,7 @@ Before you upgrade, check each item below:
 * If a `streamPartitioner` or `valueJoiner` function uses a global variable called `headers` or `mappedKey`, rename it.
 * If Python code calls a `streamPartitioner` function by position, pass `headers` before `numPartitions`, or call it by name.
 * Rename any `as` name that is also a name under `streams`, `tables` or `globalTables`.
+* Add `toTable` before any `join` or `leftJoin` with `foreignKeyExtractor` that has a stream as input.
 * If you build your own code on top of the KSML libraries, update the Jackson package names.
 
 ## Apicurio Registry 3
@@ -140,6 +141,38 @@ A pipeline without a sink saves its result under the pipeline name. If that name
 What you need to do: rename the `as` name, and every `from`, `join`, `merge` or `cogroup` that uses it.
 
 For a pipeline without a sink, do not rename the pipeline. KSML uses the pipeline name in its processor names, and a `groupBy` without a `store` uses it for its repartition topic. A rename in a running application changes that topic, and records still waiting in the old topic are not processed. Instead, add `as` with another name to the pipeline, and use that name in the later `from`, `join`, `merge` or `cogroup`. An `as` adds no Kafka processor.
+
+## A foreign-key join needs a table as input
+
+KSML now stops at startup when a `join` or `leftJoin` with `foreignKeyExtractor` has a stream as input:
+
+```
+A join with "foreignKeyExtractor" needs a table as input, but found a stream. Add "toTable" before the join, or remove "foreignKeyExtractor"
+```
+
+Kafka Streams only has foreign-key joins between two tables. On the 1.x line, KSML accepted a `foreignKeyExtractor` on a stream, but never called it: the stream was joined with the table by the stream's own key. So the join silently found the wrong records, or none.
+
+What you need to do: add `toTable` before the join, and `toStream` after it if the next steps need a stream:
+
+```yaml
+# Before (KSML 1.x)
+via:
+  - type: join
+    table: customers
+    foreignKeyExtractor: extract_customer_id
+    valueJoiner: join_order_customer
+
+# After (KSML 2.0.0)
+via:
+  - type: toTable
+  - type: join
+    table: customers
+    foreignKeyExtractor: extract_customer_id
+    valueJoiner: join_order_customer
+  - type: toStream
+```
+
+The result of the join is then a table that is updated when an order or its customer changes. If you meant to join the stream by its own key, remove `foreignKeyExtractor` instead.
 
 ## Avro logical types
 

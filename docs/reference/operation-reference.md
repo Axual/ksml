@@ -633,7 +633,7 @@ Performs an inner join between two streams.
 | `valueJoiner`    | Object   | Yes      | Function that defines how to combine values from both sides          |
 | `timeDifference` | Duration | No       | The time difference for the join window (for stream-stream joins)    |
 | `grace`          | Duration | No       | Grace period for late-arriving data (for stream-stream joins)        |
-| `foreignKeyExtractor` | Object | No  | Function to extract foreign key (for stream-table joins)             |
+| `foreignKeyExtractor` | Object | No  | Gets the key of `table` from a value of the input. Only when the input is a table |
 | `partitioner`    | String   | No       | Function name for custom partitioning of current stream             |
 | `otherPartitioner` | String | No       | Function name for custom partitioning of join stream/table          |
 
@@ -664,7 +664,7 @@ Performs a left join between two streams.
 | `valueJoiner`    | Object   | Yes      | Function that defines how to combine values from both sides          |
 | `timeDifference` | Duration | No       | The time difference for the join window (for stream-stream joins)    |
 | `grace`          | Duration | No       | Grace period for late-arriving data (for stream-stream joins)        |
-| `foreignKeyExtractor` | Object | No  | Function to extract foreign key (for stream-table joins)             |
+| `foreignKeyExtractor` | Object | No  | Gets the key of `table` from a value of the input. Only when the input is a table |
 | `partitioner`    | String   | No       | Function name for custom partitioning of current stream             |
 | `otherPartitioner` | String | No       | Function name for custom partitioning of join stream/table          |
 
@@ -750,7 +750,6 @@ Performs an outer join between two streams.
 | `valueJoiner`    | Object   | Yes      | Function that defines how to combine values from both sides          |
 | `timeDifference` | Duration | No       | The time difference for the join window (for stream-stream joins)    |
 | `grace`          | Duration | No       | Grace period for late-arriving data (for stream-stream joins)        |
-| `foreignKeyExtractor` | Object | No  | Function to extract foreign key (for stream-table joins)             |
 | `partitioner`    | String   | No       | Function name for custom partitioning of current stream             |
 | `otherPartitioner` | String | No       | Function name for custom partitioning of join stream/table          |
 
