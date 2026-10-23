@@ -139,6 +139,8 @@ A pipeline without a sink saves its result under the pipeline name. If that name
 
 What you need to do: rename the `as` name, and every `from`, `join`, `merge` or `cogroup` that uses it.
 
+For a pipeline without a sink, do not rename the pipeline. KSML uses the pipeline name in its processor names, and a `groupBy` without a `store` uses it for its repartition topic. A rename in a running application changes that topic, and records still waiting in the old topic are not processed. Instead, add `as` with another name to the pipeline, and use that name in the later `from`, `join`, `merge` or `cogroup`. An `as` adds no Kafka processor.
+
 ## Avro logical types
 
 KSML now understands Avro logical types (`uuid`, `decimal`, `date`, `time-millis`, `time-micros`,
