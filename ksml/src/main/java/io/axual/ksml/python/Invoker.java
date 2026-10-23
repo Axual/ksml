@@ -23,6 +23,7 @@ package io.axual.ksml.python;
 
 import com.codahale.metrics.Timer;
 import io.axual.ksml.data.object.DataNull;
+import io.axual.ksml.data.object.DataObject;
 import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.exception.TopologyException;
 import io.axual.ksml.metric.MetricName;
@@ -33,6 +34,7 @@ import io.axual.ksml.user.UserFunction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Arrays;
 import java.util.function.Supplier;
 
 public abstract class Invoker {
@@ -66,8 +68,37 @@ public abstract class Invoker {
     }
 
     protected void verifyParameterCount(int count) {
-        verify(function.fixedParameterCount <= count, "Function needs at least " + count + " parameters");
-        verify(function.parameters.length >= count, "Function needs at most " + count + " parameters");
+        verifyParameterCount(count, null);
+    }
+
+    /**
+     * Checks that KSML can call the function with {@code minCount} arguments, and finds the optional built-in
+     * parameter {@code optionalParameter} after them.
+     *
+     * @param minCount          the number of arguments that KSML always passes
+     * @param optionalParameter the name of an optional built-in parameter that KSML passes when the function
+     *                          declares it, or null
+     * @return the number of arguments to pass: {@code minCount}, or the position of the optional parameter plus one
+     */
+    protected int verifyParameterCount(int minCount, String optionalParameter) {
+        verify(function.fixedParameterCount <= minCount, "Function can have at most " + minCount + " required parameters, but has " + function.fixedParameterCount);
+        verify(function.parameters.length >= minCount, "Function needs at least " + minCount + " parameters, but has " + function.parameters.length);
+        for (int index = minCount; optionalParameter != null && index < function.parameters.length; index++) {
+            if (optionalParameter.equals(function.parameters[index].name())) return index + 1;
+        }
+        return minCount;
+    }
+
+    /**
+     * Returns the arguments for a call with {@code argumentCount} arguments: the required arguments, None for the
+     * custom parameters after them, and the optional argument last.
+     */
+    protected static DataObject[] withOptionalArgument(int argumentCount, Supplier<DataObject> optionalArgument, DataObject... requiredArguments) {
+        if (argumentCount <= requiredArguments.length) return requiredArguments;
+        final var result = Arrays.copyOf(requiredArguments, argumentCount);
+        Arrays.fill(result, requiredArguments.length, argumentCount - 1, DataNull.INSTANCE);
+        result[argumentCount - 1] = optionalArgument.get();
+        return result;
     }
 
     protected void verifyNoResult() {

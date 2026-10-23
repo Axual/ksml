@@ -25,10 +25,12 @@ import io.axual.ksml.data.object.DataInteger;
 import io.axual.ksml.data.object.DataLong;
 import io.axual.ksml.data.object.DataString;
 import io.axual.ksml.data.type.DataType;
+import io.axual.ksml.data.type.ListType;
 import io.axual.ksml.data.type.MapType;
 import io.axual.ksml.data.type.StructType;
 
 import static io.axual.ksml.dsl.ConsumerRecordSchema.CONSUMER_RECORD_SCHEMA;
+import static io.axual.ksml.dsl.HeaderSchema.HEADER_TYPE;
 import static io.axual.ksml.dsl.RecordMetadataSchema.RECORD_METADATA_SCHEMA;
 
 public class DefinitionConstants {
@@ -40,6 +42,9 @@ public class DefinitionConstants {
     public static final String PARAM_VALUE = "value";
     public static final String PARAM_VALUE1 = "value1";
     public static final String PARAM_VALUE2 = "value2";
+    public static final String PARAM_MAPPED_KEY = "mappedKey";
+    public static final String PARAM_HEADERS = "headers";
+    public static final DataType HEADERS_TYPE = new ListType(HEADER_TYPE);
     public static final String PARAM_METADATA = "metadata";
     public static final DataType METADATA_TYPE = new StructType(RECORD_METADATA_SCHEMA);
     public static final String PARAM_RECORD = "record";
@@ -52,10 +57,16 @@ public class DefinitionConstants {
     protected static final ParameterDefinition[] NO_PARAMETERS = new ParameterDefinition[]{};
     protected static final ParameterDefinition[] FOREIGN_KEY_EXTRACTOR_PARAMETERS = new ParameterDefinition[]{
             new ParameterDefinition(PARAM_VALUE, DataType.UNKNOWN)};
-    protected static final ParameterDefinition[] KEY_AND_TWO_VALUE_PARAMETERS = new ParameterDefinition[]{
+    protected static final ParameterDefinition[] MERGER_PARAMETERS = {
             new ParameterDefinition(PARAM_KEY, DataType.UNKNOWN),
             new ParameterDefinition(PARAM_VALUE1, DataType.UNKNOWN),
             new ParameterDefinition(PARAM_VALUE2, DataType.UNKNOWN)};
+    // mappedKey is only filled in for joins with a globalTable
+    protected static final ParameterDefinition[] VALUE_JOINER_PARAMETERS = {
+            new ParameterDefinition(PARAM_KEY, DataType.UNKNOWN),
+            new ParameterDefinition(PARAM_VALUE1, DataType.UNKNOWN),
+            new ParameterDefinition(PARAM_VALUE2, DataType.UNKNOWN),
+            new ParameterDefinition(PARAM_MAPPED_KEY, DataType.UNKNOWN, true, null)};
     protected static final ParameterDefinition[] KEY_VALUE_AGGREGATED_VALUE_PARAMETERS = new ParameterDefinition[]{
             new ParameterDefinition(PARAM_KEY, DataType.UNKNOWN),
             new ParameterDefinition(PARAM_VALUE, DataType.UNKNOWN),
@@ -71,6 +82,7 @@ public class DefinitionConstants {
             new ParameterDefinition(PARAM_TOPIC, DataString.DATATYPE),
             new ParameterDefinition(PARAM_KEY, DataType.UNKNOWN),
             new ParameterDefinition(PARAM_VALUE, DataType.UNKNOWN),
+            new ParameterDefinition(PARAM_HEADERS, HEADERS_TYPE),
             new ParameterDefinition(PARAM_NUM_PARTITIONS, DataInteger.DATATYPE)};
     protected static final ParameterDefinition[] TOPIC_NAME_EXTRACTOR_PARAMETERS = new ParameterDefinition[]{
             new ParameterDefinition(PARAM_KEY, DataType.UNKNOWN),

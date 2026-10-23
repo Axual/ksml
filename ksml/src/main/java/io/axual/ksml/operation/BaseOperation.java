@@ -22,7 +22,9 @@ package io.axual.ksml.operation;
 
 import io.axual.ksml.data.compare.Assignable;
 import io.axual.ksml.data.mapper.DataObjectFlattener;
+import io.axual.ksml.data.object.DataInteger;
 import io.axual.ksml.data.object.DataObject;
+import io.axual.ksml.data.object.DataString;
 import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.data.type.TupleType;
 import io.axual.ksml.data.type.WindowedType;
@@ -40,8 +42,11 @@ import io.axual.ksml.metric.MetricTags;
 import io.axual.ksml.store.StoreUtil;
 import io.axual.ksml.type.UserType;
 import io.axual.ksml.user.UserFunction;
+import io.axual.ksml.user.UserStreamPartitioner;
 import io.axual.ksml.user.UserValueJoiner;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.kafka.common.header.Headers;
+import org.apache.kafka.common.header.internals.RecordHeaders;
 import org.apache.kafka.common.utils.Bytes;
 import org.apache.kafka.streams.kstream.Grouped;
 import org.apache.kafka.streams.kstream.JoinWindows;
@@ -56,6 +61,7 @@ import org.apache.kafka.streams.kstream.StreamJoined;
 import org.apache.kafka.streams.kstream.TableJoined;
 import org.apache.kafka.streams.kstream.ValueJoiner;
 import org.apache.kafka.streams.kstream.ValueJoinerWithKey;
+import org.apache.kafka.streams.kstream.ValueJoinerWithStreamAndMappedKey;
 import org.apache.kafka.streams.processor.StreamPartitioner;
 import org.apache.kafka.streams.state.KeyValueStore;
 import org.apache.kafka.streams.state.SessionStore;
@@ -67,9 +73,12 @@ import java.util.HashMap;
 import java.util.Optional;
 import java.util.Set;
 
+import static io.axual.ksml.definition.DefinitionConstants.HEADERS_TYPE;
+
 @Slf4j
 public abstract class BaseOperation implements StreamOperation {
     private static final String ERROR_IN_TOPOLOGY = "Error in topology";
+    private static final String PARTITIONER_NAME = "Partitioner";
 
     private static class NameValidator extends Named {
         // Satisfy compiler with dummy constructor
@@ -271,6 +280,15 @@ public abstract class BaseOperation implements StreamOperation {
         }
     }
 
+    protected UserStreamPartitioner userStreamPartitionerOf(TopologyBuildContext context, FunctionDefinition partitioner, StreamDataType k, StreamDataType v) {
+        if (partitioner == null) return null;
+        // Kafka 4.4 order: topic, key, value, headers, numPartitions. A generic function may still have no headers.
+        final var function = UserStreamPartitioner.takesHeaders(partitioner.parameters())
+                ? userFunctionOf(context, PARTITIONER_NAME, partitioner, UserStreamPartitioner.EXPECTED_RESULT_TYPE, equalTo(DataString.DATATYPE), superOf(k), superOf(v), equalTo(HEADERS_TYPE), equalTo(DataInteger.DATATYPE))
+                : userFunctionOf(context, PARTITIONER_NAME, partitioner, UserStreamPartitioner.EXPECTED_RESULT_TYPE, equalTo(DataString.DATATYPE), superOf(k), superOf(v), equalTo(DataInteger.DATATYPE));
+        return new UserStreamPartitioner(function, tags);
+    }
+
     protected UserFunction userFunctionOf(TopologyBuildContext context, String functionType, FunctionDefinition function, StreamDataType expectedResultType, TypeComparator... parameters) {
         return userFunctionOf(context, functionType, function, expectedResultType.userType(), parameters);
     }
@@ -434,8 +452,15 @@ public abstract class BaseOperation implements StreamOperation {
     private record WrapPartitioner(
             StreamPartitioner<Object, Object> partitioner) implements StreamPartitioner<Object, Void> {
         @Override
+        public Optional<Set<Integer>> partitions(String topic, Object key, Void value, Headers headers, int numPartitions) {
+            return partitioner.partitions(topic, key, value, headers, numPartitions);
+        }
+
+        // Still abstract in Kafka 4.4; Kafka 5.0 removes it.
+        @Override
+        @SuppressWarnings("removal")
         public Optional<Set<Integer>> partitions(String topic, Object key, Void value, int numPartitions) {
-            return partitioner.partitions(topic, key, value, numPartitions);
+            return partitions(topic, key, value, new RecordHeaders(), numPartitions);
         }
     }
 
@@ -457,6 +482,10 @@ public abstract class BaseOperation implements StreamOperation {
     }
 
     protected ValueJoinerWithKey<Object, Object, Object, Object> valueJoinerWithKey(UserFunction function, MetricTags tags) {
+        return new UserValueJoiner(function, tags);
+    }
+
+    protected ValueJoinerWithStreamAndMappedKey<Object, Object, Object, Object, Object> valueJoinerWithStreamAndMappedKey(UserFunction function, MetricTags tags) {
         return new UserValueJoiner(function, tags);
     }
 

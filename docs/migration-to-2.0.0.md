@@ -1,6 +1,6 @@
 # Upgrading to KSML 2.0.0
 
-KSML 2.0.0 is a major release. It upgrades the core libraries that KSML is built on: Jackson (2 to 3), Apicurio Registry (2 to 3), Protobuf (4.x), Wire (6.x) and the Confluent serdes (8.x). The Kafka client version is unchanged.
+KSML 2.0.0 is a major release. It upgrades the core libraries that KSML is built on: Jackson (2 to 3), Apicurio Registry (2 to 3), Protobuf (4.x), Wire (6.x) and the Confluent serdes (8.x). It also upgrades Kafka Streams and the Kafka clients from 4.3 to 4.4.0.
 
 Most of these upgrades are internal, but a few of them change how you configure KSML. Please read this page before you upgrade a running deployment.
 
@@ -16,6 +16,8 @@ Before you upgrade, check each item below:
 * Remove `apicurio.registry.as-confluent`, and replace `Legacy4ByteIdHandler` with `Default4ByteIdHandler` if you set `apicurio.registry.id-handler` yourself.
 * Fix any typo'd keys in your runner config, because unknown keys now fail at startup again.
 * If you read an Avro `decimal` field in Python, change the code to expect a string instead of bytes.
+* If a `streamPartitioner` or `valueJoiner` function uses a global variable called `headers` or `mappedKey`, rename it.
+* If Python code calls a `streamPartitioner` function by position, pass `headers` before `numPartitions`, or call it by name.
 * If you build your own code on top of the KSML libraries, update the Jackson package names.
 
 ## Apicurio Registry 3
@@ -172,9 +174,23 @@ because both can lose digits.
 
 ## Kafka Streams error handlers
 
-For pipeline authors who write KSML YAML, there is nothing to change here. The Kafka client version is unchanged in KSML 2.0.0: it stays on the same 4.x version that KSML 1.3.0 already used.
+For pipeline authors who write KSML YAML, there is nothing to change here.
 
 KSML did move off the Kafka Streams handler methods that 4.x deprecated. If you implement your own Kafka Streams error handler against the KSML libraries, `handle` became `handleError`, and the enum results were replaced by `Response.resume()`, `Response.fail()` and `Response.retry()`.
+
+## Kafka 4.4
+
+KSML 2.0.0 upgrades Kafka Streams and the Kafka clients from 4.3 (used by KSML 1.3.x) to 4.4.0. For pipeline authors, there is nothing to change.
+
+Two function types get a new parameter:
+
+* A `streamPartitioner` gets the record headers in `headers`. Its parameters are now `topic`, `key`, `value`, `headers` and `numPartitions`, in the order that Kafka Streams uses.
+* A `valueJoiner` in a join with a globalTable gets the key that the `mapper` returned in `mappedKey`. This parameter is optional and comes last, so `key`, `value1` and `value2` keep their position.
+
+Existing functions work without changes, with two exceptions:
+
+* If such a function uses a global variable called `headers` or `mappedKey`, for example from `globalCode`, rename that variable. The new parameter hides it, and `global headers` in the function code fails at startup.
+* If Python code calls a `streamPartitioner` function by position, for example `my_partitioner(topic, key, value, 4)`, pass `headers` before `numPartitions`, or call the function by name. A `generic` function with only `topic`, `key`, `value` and `numPartitions` still works as a partitioner.
 
 ## Protobuf and Wire
 

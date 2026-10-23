@@ -21,37 +21,56 @@ package io.axual.ksml.user;
  */
 
 import io.axual.ksml.data.mapper.DataObjectFlattener;
+import io.axual.ksml.data.mapper.HeaderDataObjectMapper;
 import io.axual.ksml.data.mapper.NativeDataObjectMapper;
 import io.axual.ksml.data.object.DataInteger;
 import io.axual.ksml.data.object.DataList;
+import io.axual.ksml.data.object.DataObject;
 import io.axual.ksml.data.object.DataString;
 import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.data.type.ListType;
 import io.axual.ksml.data.type.UnionType;
+import io.axual.ksml.definition.ParameterDefinition;
 import io.axual.ksml.dsl.KSMLDSL;
 import io.axual.ksml.metric.MetricTags;
 import io.axual.ksml.python.Invoker;
+import org.apache.kafka.common.header.Headers;
+import org.apache.kafka.common.header.internals.RecordHeaders;
 import org.apache.kafka.streams.processor.StreamPartitioner;
 
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+
+import static io.axual.ksml.definition.DefinitionConstants.PARAM_HEADERS;
 
 public class UserStreamPartitioner extends Invoker implements StreamPartitioner<Object, Object> {
     public static final DataType EXPECTED_RESULT_TYPE = new UnionType(
             new UnionType.Member("singlePartition", DataInteger.DATATYPE, "Partition number", 1),
             new UnionType.Member("setOfPartitions", new ListType(DataInteger.DATATYPE), "List of partition numbers", 2));
     private static final NativeDataObjectMapper NATIVE_MAPPER = new DataObjectFlattener();
+    private static final HeaderDataObjectMapper HEADER_MAPPER = new HeaderDataObjectMapper();
+    // A generic function may still have the parameters from before Kafka 4.4, without headers
+    private final boolean hasHeadersParameter;
 
     public UserStreamPartitioner(UserFunction function, MetricTags tags) {
         super(function, tags, KSMLDSL.Functions.TYPE_STREAMPARTITIONER);
-        verifyParameterCount(4);
+        hasHeadersParameter = takesHeaders(function.parameters);
+        verifyParameterCount(hasHeadersParameter ? 5 : 4);
         verifyResultType(EXPECTED_RESULT_TYPE);
     }
 
+    /**
+     * Returns true when the parameters are in the Kafka 4.4 order: topic, key, value, headers, numPartitions.
+     */
+    public static boolean takesHeaders(ParameterDefinition[] parameters) {
+        return parameters.length > 3 && PARAM_HEADERS.equals(parameters[3].name());
+    }
+
     @Override
-    public Optional<Set<Integer>> partitions(String topic, Object key, Object value, int numPartitions) {
-        final var result = timeExecutionOf(() -> function.call(new DataString(topic), NATIVE_MAPPER.toDataObject(key), NATIVE_MAPPER.toDataObject(value), new DataInteger(numPartitions)));
+    public Optional<Set<Integer>> partitions(String topic, Object key, Object value, Headers headers, int numPartitions) {
+        final var result = timeExecutionOf(() -> function.call(arguments(topic, key, value, headers, numPartitions)));
         // Check for old-style partitioner return value (one partition number)
         if (result instanceof DataInteger dataInteger) {
             return Optional.of(Set.of(dataInteger.value()));
@@ -63,5 +82,22 @@ public class UserStreamPartitioner extends Invoker implements StreamPartitioner<
             return Optional.of(parts);
         }
         return Optional.empty();
+    }
+
+    private DataObject[] arguments(String topic, Object key, Object value, Headers headers, int numPartitions) {
+        final var topicArg = new DataString(topic);
+        final var keyArg = NATIVE_MAPPER.toDataObject(key);
+        final var valueArg = NATIVE_MAPPER.toDataObject(value);
+        final var partitionsArg = new DataInteger(numPartitions);
+        if (!hasHeadersParameter) return new DataObject[]{topicArg, keyArg, valueArg, partitionsArg};
+        final var headersArg = HEADER_MAPPER.toDataObject(Objects.requireNonNullElseGet(headers, RecordHeaders::new));
+        return new DataObject[]{topicArg, keyArg, valueArg, headersArg, partitionsArg};
+    }
+
+    // Still abstract in Kafka 4.4; Kafka 5.0 removes it.
+    @Override
+    @SuppressWarnings("removal")
+    public Optional<Set<Integer>> partitions(String topic, Object key, Object value, int numPartitions) {
+        return partitions(topic, key, value, new RecordHeaders(), numPartitions);
     }
 }

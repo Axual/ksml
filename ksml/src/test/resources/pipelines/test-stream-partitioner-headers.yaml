@@ -1,0 +1,61 @@
+# $schema: https://raw.githubusercontent.com/Axual/ksml/refs/heads/main/docs/ksml-language-spec.json
+
+# A streamPartitioner can read the record headers. Kafka drops a record when the partitioner
+# returns an empty list of partitions, so only records without the header route=drop come out.
+
+streams:
+  events:
+    topic: events
+    keyType: string
+    valueType: string
+  routedEvents:
+    topic: routedEvents
+    keyType: string
+    valueType: string
+  oldStyleEvents:
+    topic: oldStyleEvents
+    keyType: string
+    valueType: string
+
+functions:
+  route_by_header:
+    type: streamPartitioner
+    code: |
+      route = None
+      for header in headers:
+        if header["key"] == "route":
+          route = header["value"]
+    expression: "[] if route == 'drop' else [0]"
+    resultType: "[integer]"
+
+  # A generic function with the parameters from before Kafka 4.4, without headers
+  route_old_style:
+    type: generic
+    parameters:
+      - name: topic
+        type: string
+      - name: key
+        type: string
+      - name: value
+        type: string
+      - name: numPartitions
+        type: integer
+    expression: "[] if value == 'drop me' else [numPartitions - 1]"
+    resultType: "[integer]"
+
+pipelines:
+  route_events:
+    from: events
+    to:
+      topic: routedEvents
+      keyType: string
+      valueType: string
+      partitioner: route_by_header
+
+  route_events_old_style:
+    from: events
+    to:
+      topic: oldStyleEvents
+      keyType: string
+      valueType: string
+      partitioner: route_old_style

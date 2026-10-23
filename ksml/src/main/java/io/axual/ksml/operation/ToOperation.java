@@ -21,18 +21,14 @@ package io.axual.ksml.operation;
  */
 
 
-import io.axual.ksml.data.object.DataInteger;
-import io.axual.ksml.data.object.DataString;
 import io.axual.ksml.definition.FunctionDefinition;
 import io.axual.ksml.definition.TopicDefinition;
 import io.axual.ksml.exception.ExecutionException;
 import io.axual.ksml.generator.TopologyBuildContext;
 import io.axual.ksml.stream.KStreamWrapper;
 import io.axual.ksml.stream.StreamWrapper;
-import io.axual.ksml.user.UserStreamPartitioner;
 
 public class ToOperation extends BaseOperation {
-    private static final String PARTITIONER_NAME = "Partitioner";
     public final TopicDefinition topic;
     private final FunctionDefinition partitioner;
 
@@ -60,8 +56,7 @@ public class ToOperation extends BaseOperation {
         // Perform a dataType check to see if the key/value data types received matches the stream definition's types
         checkType("Target topic keyType", kt, superOf(k));
         checkType("Target topic valueType", vt, superOf(v));
-        final var part = userFunctionOf(context, PARTITIONER_NAME, partitioner, UserStreamPartitioner.EXPECTED_RESULT_TYPE, equalTo(DataString.DATATYPE), superOf(k), superOf(v), equalTo(DataInteger.DATATYPE));
-        final var userPart = part != null ? new UserStreamPartitioner(part, tags) : null;
+        final var userPart = userStreamPartitionerOf(context, partitioner, k, v);
         final var produced = producedOf(kt, vt, userPart);
         if (produced != null)
             input.stream.to(topic.topic(), produced);

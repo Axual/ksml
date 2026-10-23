@@ -1,0 +1,75 @@
+# $schema: https://raw.githubusercontent.com/Axual/ksml/refs/heads/main/docs/ksml-language-spec.json
+
+# In a join with a globalTable, the mapper turns the order key into a customer key. The valueJoiner
+# gets the order key in `key` and the customer key in `mappedKey`. Other joins get None in `mappedKey`.
+
+streams:
+  orders:
+    topic: orders
+    keyType: string
+    valueType: string
+  joinOut:
+    topic: joinOut
+    keyType: string
+    valueType: string
+  leftJoinOut:
+    topic: leftJoinOut
+    keyType: string
+    valueType: string
+  tableJoinOut:
+    topic: tableJoinOut
+    keyType: string
+    valueType: string
+
+tables:
+  orderNotes:
+    topic: orderNotes
+    keyType: string
+    valueType: string
+
+globalTables:
+  customers:
+    topic: customers
+    keyType: string
+    valueType: string
+
+functions:
+  join_order_with_customer:
+    type: valueJoiner
+    expression: key + "|" + str(mappedKey) + "|" + value1 + "|" + value2
+    resultType: string
+
+pipelines:
+  join_with_customer:
+    from: orders
+    via:
+      - type: join
+        globalTable: customers
+        mapper:
+          resultType: string
+          expression: value
+        valueJoiner: join_order_with_customer
+    to: joinOut
+
+  left_join_with_customer:
+    from: orders
+    via:
+      - type: leftJoin
+        globalTable: customers
+        mapper:
+          resultType: string
+          expression: value
+        valueJoiner:
+          resultType: string
+          expression: key + "|" + str(mappedKey) + "|" + value1 + "|" + str(value2)
+    to: leftJoinOut
+
+  join_with_order_note:
+    from: orders
+    via:
+      - type: join
+        table: orderNotes
+        valueJoiner:
+          resultType: string
+          expression: key + "|" + str(mappedKey) + "|" + value1 + "|" + value2
+    to: tableJoinOut

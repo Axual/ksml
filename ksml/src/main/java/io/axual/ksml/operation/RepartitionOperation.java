@@ -20,17 +20,13 @@ package io.axual.ksml.operation;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.object.DataInteger;
-import io.axual.ksml.data.object.DataString;
 import io.axual.ksml.definition.FunctionDefinition;
 import io.axual.ksml.generator.TopologyBuildContext;
 import io.axual.ksml.stream.KStreamWrapper;
 import io.axual.ksml.stream.StreamWrapper;
-import io.axual.ksml.user.UserStreamPartitioner;
 import org.apache.kafka.streams.kstream.KStream;
 
 public class RepartitionOperation extends BaseOperation {
-    private static final String PARTITIONER_NAME = "Partitioner";
     private final Integer numberOfPartitions;
     private final FunctionDefinition partitioner;
 
@@ -49,8 +45,7 @@ public class RepartitionOperation extends BaseOperation {
 
         final var k = input.keyType();
         final var v = input.valueType();
-        final var part = userFunctionOf(context, PARTITIONER_NAME, partitioner, UserStreamPartitioner.EXPECTED_RESULT_TYPE, equalTo(DataString.DATATYPE), superOf(k), superOf(v), equalTo(DataInteger.DATATYPE));
-        final var userPart = part != null ? new UserStreamPartitioner(part, tags) : null;
+        final var userPart = userStreamPartitionerOf(context, partitioner, k, v);
         final var repartitioned = repartitionedOf(k, v, numberOfPartitions, userPart);
         final KStream<Object, Object> output = repartitioned != null
                 ? input.stream.repartition(repartitioned)

@@ -477,6 +477,8 @@ The `mapper` function extracts the foreign key from stream records:
 - **Output**: Key to lookup in the GlobalTable
 - **Example**: Extract product_id from order to join with product catalog
 
+In the `valueJoiner`, `key` is the key of the stream record (the order id). The key that the `mapper` returned (the product id) is in `mappedKey`.
+
 ## Stream-Table Left Join
 
 Left joins preserve all records from the stream (left side) while adding data from the table (right side) when available. This is useful for enriching events with optional reference data.

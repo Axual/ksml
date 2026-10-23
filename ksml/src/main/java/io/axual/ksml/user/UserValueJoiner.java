@@ -30,14 +30,19 @@ import io.axual.ksml.metric.MetricTags;
 import io.axual.ksml.python.Invoker;
 import org.apache.kafka.streams.kstream.ValueJoiner;
 import org.apache.kafka.streams.kstream.ValueJoinerWithKey;
+import org.apache.kafka.streams.kstream.ValueJoinerWithStreamAndMappedKey;
 
-public class UserValueJoiner extends Invoker implements ValueJoiner<Object, Object, Object>, ValueJoinerWithKey<Object, Object, Object, Object> {
+import static io.axual.ksml.definition.DefinitionConstants.PARAM_MAPPED_KEY;
+
+public class UserValueJoiner extends Invoker implements ValueJoiner<Object, Object, Object>, ValueJoinerWithKey<Object, Object, Object, Object>, ValueJoinerWithStreamAndMappedKey<Object, Object, Object, Object, Object> {
     private static final DataType EXPECTED_RESULT_TYPE = DataType.UNKNOWN;
     private static final NativeDataObjectMapper NATIVE_MAPPER = new DataObjectFlattener();
+    // Number of arguments for a globalTable join: 3, or more when the function declares mappedKey
+    private final int argumentCount;
 
     public UserValueJoiner(UserFunction function, MetricTags tags) {
         super(function, tags, KSMLDSL.Functions.TYPE_VALUEJOINER);
-        verifyParameterCount(3);
+        argumentCount = verifyParameterCount(3, PARAM_MAPPED_KEY);
         verifyResultType(EXPECTED_RESULT_TYPE);
     }
 
@@ -51,5 +56,11 @@ public class UserValueJoiner extends Invoker implements ValueJoiner<Object, Obje
     @Override
     public DataObject apply(Object key, Object value1, Object value2) {
         return timeExecutionOf(() -> function.call(NATIVE_MAPPER.toDataObject(key), NATIVE_MAPPER.toDataObject(value1), NATIVE_MAPPER.toDataObject(value2)));
+    }
+
+    @Override
+    public DataObject apply(Object streamKey, Object mappedKey, Object streamValue, Object tableValue) {
+        return timeExecutionOf(() -> function.call(withOptionalArgument(argumentCount, () -> NATIVE_MAPPER.toDataObject(mappedKey),
+                NATIVE_MAPPER.toDataObject(streamKey), NATIVE_MAPPER.toDataObject(streamValue), NATIVE_MAPPER.toDataObject(tableValue))));
     }
 }
