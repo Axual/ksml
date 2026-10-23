@@ -326,8 +326,8 @@ class DefinitionParsersTest {
         assertThatThrownBy(() -> parsePipelines(yaml))
                 .isInstanceOf(ParseException.class)
                 .hasMessageContaining("Error in pipeline definition \"splitter\"")
-                // FatalError drops the cause below the branch entry, so only check which branch fails
-                .hasStackTraceContaining("Error in branch entry 2");
+                .hasStackTraceContaining("Error in branch entry 2")
+                .hasStackTraceContaining("\"as: dup\" is already used by pipeline \"splitter\" (branch1). Use another name");
     }
 
     @Test
@@ -348,8 +348,8 @@ class DefinitionParsersTest {
         assertThatThrownBy(() -> parsePipelines(yaml))
                 .isInstanceOf(ParseException.class)
                 .hasMessageContaining("Error in pipeline definition \"splitter\"")
-                // FatalError drops the cause below the branch entry, so only check which branch fails
-                .hasStackTraceContaining("Error in branch entry 1");
+                .hasStackTraceContaining("Error in branch entry 1")
+                .hasStackTraceContaining("\"as: dup\" is already used by pipeline \"first\". Use another name");
     }
 
     @Test
