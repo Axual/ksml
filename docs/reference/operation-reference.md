@@ -627,7 +627,7 @@ Performs an inner join between two streams.
 | Parameter        | Type     | Required | Description                                                           |
 |------------------|----------|----------|-----------------------------------------------------------------------|
 | `stream`         | String   | No*      | The stream to join with, defined or saved with `as`                   |
-| `table`          | String   | No*      | The table for stream-table joins, defined or saved with `as`          |
+| `table`          | String   | No*      | The table to join with, defined or saved with `as`                    |
 | `globalTable`    | String   | No*      | The global table to join with, defined under `globalTables`           |
 | `mapper`         | Object   | No       | Maps a record to the global table key. Required with `globalTable`    |
 | `valueJoiner`    | Object   | Yes      | Function that defines how to combine values from both sides          |
@@ -658,7 +658,7 @@ Performs a left join between two streams.
 | Parameter        | Type     | Required | Description                                                           |
 |------------------|----------|----------|-----------------------------------------------------------------------|
 | `stream`         | String   | No*      | The stream to join with, defined or saved with `as`                   |
-| `table`          | String   | No*      | The table for stream-table joins, defined or saved with `as`          |
+| `table`          | String   | No*      | The table to join with, defined or saved with `as`                    |
 | `globalTable`    | String   | No*      | The global table to join with, defined under `globalTables`           |
 | `mapper`         | Object   | No       | Maps a record to the global table key. Required with `globalTable`    |
 | `valueJoiner`    | Object   | Yes      | Function that defines how to combine values from both sides          |
@@ -746,7 +746,7 @@ Performs an outer join between two streams.
 | Parameter        | Type     | Required | Description                                                           |
 |------------------|----------|----------|-----------------------------------------------------------------------|
 | `stream`         | String   | No*      | The stream to join with, defined or saved with `as`                   |
-| `table`          | String   | No*      | The table for stream-table joins, defined or saved with `as`          |
+| `table`          | String   | No*      | The table to join with, defined or saved with `as`                    |
 | `valueJoiner`    | Object   | Yes      | Function that defines how to combine values from both sides          |
 | `timeDifference` | Duration | No       | The time difference for the join window (for stream-stream joins)    |
 | `grace`          | Duration | No       | Grace period for late-arriving data (for stream-stream joins)        |
