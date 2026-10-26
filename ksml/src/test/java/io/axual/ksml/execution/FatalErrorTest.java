@@ -44,4 +44,11 @@ class FatalErrorTest {
         // which keeps the reported throwable, so the root cause can still be found.
         assertThat(reported).hasMessage("wrapper").hasCause(wrapper).hasRootCause(cause);
     }
+
+    @Test
+    @DisplayName("report passes on an already reported error without wrapping it again")
+    void reportPassesOnReportedError() {
+        final var reported = FatalError.report(new IllegalStateException("boom"));
+        assertThat(FatalError.report(reported)).isSameAs(reported);
+    }
 }
