@@ -6236,8 +6236,9 @@
 </ul>
 <h2 id="join-operations">Join Operations</h2>
 <p>Join operations combine data from multiple streams or tables based on matching keys, enabling you to correlate related events from different data sources.</p>
+<p>The stream or table to join with can be defined under <code>streams</code> or <code>tables</code>, or be the result of an earlier pipeline in the same definition file, saved with <code>as</code>. A <code>globalTable</code> must always be defined under <code>globalTables</code>, because Kafka Streams can not make a GlobalKTable from a pipeline result. See <a href="../../tutorials/intermediate/joins/#joining-with-the-result-of-another-pipeline">Joining with the Result of Another Pipeline</a>.</p>
 <h3 id="join"><code>join</code></h3>
-<p>Performs an inner join between two streams.</p>
+<p>Performs an inner join with a stream, table or global table.</p>
 <h4 id="parameters_18">Parameters</h4>
 <table>
 <thead>
@@ -6252,14 +6253,26 @@
 <tr>
 <td><code>stream</code></td>
 <td>String</td>
-<td>Yes</td>
-<td>The name of the stream to join with</td>
+<td>No*</td>
+<td>The stream to join with, defined or saved with <code>as</code></td>
 </tr>
 <tr>
 <td><code>table</code></td>
 <td>String</td>
-<td>Yes</td>
-<td>The name of the table to join with (for stream-table joins)</td>
+<td>No*</td>
+<td>The table to join with, defined or saved with <code>as</code></td>
+</tr>
+<tr>
+<td><code>globalTable</code></td>
+<td>String</td>
+<td>No*</td>
+<td>The global table to join with, defined under <code>globalTables</code></td>
+</tr>
+<tr>
+<td><code>mapper</code></td>
+<td>Object</td>
+<td>No</td>
+<td>Maps a record to the global table key. Required with <code>globalTable</code></td>
 </tr>
 <tr>
 <td><code>valueJoiner</code></td>
@@ -6283,22 +6296,23 @@
 <td><code>foreignKeyExtractor</code></td>
 <td>Object</td>
 <td>No</td>
-<td>Function to extract foreign key (for stream-table joins)</td>
+<td>Gets the key of <code>table</code> from a value of the input. Only when the input is a table</td>
 </tr>
 <tr>
 <td><code>partitioner</code></td>
 <td>String</td>
 <td>No</td>
-<td>Function name for custom partitioning of current stream</td>
+<td>Only with <code>foreignKeyExtractor</code>, ignored in other joins: partitions by the key of the input table. Gets no value</td>
 </tr>
 <tr>
 <td><code>otherPartitioner</code></td>
 <td>String</td>
 <td>No</td>
-<td>Function name for custom partitioning of join stream/table</td>
+<td>Only with <code>foreignKeyExtractor</code>, ignored in other joins: partitions by the key of the join table. Gets no value</td>
 </tr>
 </tbody>
 </table>
+<p>*Use exactly one of <code>stream</code>, <code>table</code> or <code>globalTable</code>.</p>
 <h4 id="example_18">Example</h4>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-27-1" name="__codelineno-27-1" href="#__codelineno-27-1"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">join</span>
 <a id="__codelineno-27-2" name="__codelineno-27-2" href="#__codelineno-27-2"></a><span class="w">        </span><span class="nt">stream</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">product_purchases</span>
@@ -6323,7 +6337,7 @@
 <li><a href="../../tutorials/intermediate/joins/#use-case-user-behavior-analysis">Tutorial: Joins</a></li>
 </ul>
 <h3 id="leftjoin"><code>leftJoin</code></h3>
-<p>Performs a left join between two streams.</p>
+<p>Performs a left join with a stream, table or global table.</p>
 <h4 id="parameters_19">Parameters</h4>
 <table>
 <thead>
@@ -6338,14 +6352,26 @@
 <tr>
 <td><code>stream</code></td>
 <td>String</td>
-<td>Yes</td>
-<td>The name of the stream to join with</td>
+<td>No*</td>
+<td>The stream to join with, defined or saved with <code>as</code></td>
 </tr>
 <tr>
 <td><code>table</code></td>
 <td>String</td>
-<td>Yes</td>
-<td>The name of the table to join with (for stream-table joins)</td>
+<td>No*</td>
+<td>The table to join with, defined or saved with <code>as</code></td>
+</tr>
+<tr>
+<td><code>globalTable</code></td>
+<td>String</td>
+<td>No*</td>
+<td>The global table to join with, defined under <code>globalTables</code></td>
+</tr>
+<tr>
+<td><code>mapper</code></td>
+<td>Object</td>
+<td>No</td>
+<td>Maps a record to the global table key. Required with <code>globalTable</code></td>
 </tr>
 <tr>
 <td><code>valueJoiner</code></td>
@@ -6369,22 +6395,23 @@
 <td><code>foreignKeyExtractor</code></td>
 <td>Object</td>
 <td>No</td>
-<td>Function to extract foreign key (for stream-table joins)</td>
+<td>Gets the key of <code>table</code> from a value of the input. Only when the input is a table</td>
 </tr>
 <tr>
 <td><code>partitioner</code></td>
 <td>String</td>
 <td>No</td>
-<td>Function name for custom partitioning of current stream</td>
+<td>Only with <code>foreignKeyExtractor</code>, ignored in other joins: partitions by the key of the input table. Gets no value</td>
 </tr>
 <tr>
 <td><code>otherPartitioner</code></td>
 <td>String</td>
 <td>No</td>
-<td>Function name for custom partitioning of join stream/table</td>
+<td>Only with <code>foreignKeyExtractor</code>, ignored in other joins: partitions by the key of the join table. Gets no value</td>
 </tr>
 </tbody>
 </table>
+<p>*Use exactly one of <code>stream</code>, <code>table</code> or <code>globalTable</code>.</p>
 <h4 id="example_19">Example</h4>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-28-1" name="__codelineno-28-1" href="#__codelineno-28-1"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">leftJoin</span>
 <a id="__codelineno-28-2" name="__codelineno-28-2" href="#__codelineno-28-2"></a><span class="w">        </span><span class="nt">table</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">user_locations</span>
@@ -6411,7 +6438,7 @@
 <td><code>stream</code></td>
 <td>String</td>
 <td>Yes</td>
-<td>The name of the stream to merge with the main stream</td>
+<td>The stream to merge with, defined or saved with <code>as</code></td>
 </tr>
 </tbody>
 </table>
@@ -6555,7 +6582,7 @@
 </ul>
 <p>Both streams flow through the unified pipeline after merging, demonstrating how merge combines multiple data sources for shared processing.</p>
 <h3 id="outerjoin"><code>outerJoin</code></h3>
-<p>Performs an outer join between two streams.</p>
+<p>Performs an outer join with a stream or table.</p>
 <h4 id="parameters_21">Parameters</h4>
 <table>
 <thead>
@@ -6570,14 +6597,14 @@
 <tr>
 <td><code>stream</code></td>
 <td>String</td>
-<td>Yes</td>
-<td>The name of the stream to join with</td>
+<td>No*</td>
+<td>The stream to join with, defined or saved with <code>as</code></td>
 </tr>
 <tr>
 <td><code>table</code></td>
 <td>String</td>
-<td>Yes</td>
-<td>The name of the table to join with (for stream-table joins)</td>
+<td>No*</td>
+<td>The table to join with, defined or saved with <code>as</code></td>
 </tr>
 <tr>
 <td><code>valueJoiner</code></td>
@@ -6597,26 +6624,9 @@
 <td>No</td>
 <td>Grace period for late-arriving data (for stream-stream joins)</td>
 </tr>
-<tr>
-<td><code>foreignKeyExtractor</code></td>
-<td>Object</td>
-<td>No</td>
-<td>Function to extract foreign key (for stream-table joins)</td>
-</tr>
-<tr>
-<td><code>partitioner</code></td>
-<td>String</td>
-<td>No</td>
-<td>Function name for custom partitioning of current stream</td>
-</tr>
-<tr>
-<td><code>otherPartitioner</code></td>
-<td>String</td>
-<td>No</td>
-<td>Function name for custom partitioning of join stream/table</td>
-</tr>
 </tbody>
 </table>
+<p>*Use exactly one of <code>stream</code> or <code>table</code>.</p>
 <h4 id="example_21">Example</h4>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-32-1" name="__codelineno-32-1" href="#__codelineno-32-1"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">outerJoin</span>
 <a id="__codelineno-32-2" name="__codelineno-32-2" href="#__codelineno-32-2"></a><span class="w">        </span><span class="nt">stream</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">user_logouts</span>

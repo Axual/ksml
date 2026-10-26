@@ -1910,6 +1910,28 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#an-as-name-can-not-be-a-defined-stream-or-table-name" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        An as name can not be a defined stream or table name
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#a-foreign-key-join-needs-a-table-as-input" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A foreign-key join needs a table as input
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#avro-logical-types" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2192,6 +2214,28 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#an-as-name-can-not-be-a-defined-stream-or-table-name" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        An as name can not be a defined stream or table name
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#a-foreign-key-join-needs-a-table-as-input" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A foreign-key join needs a table as input
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#avro-logical-types" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2328,6 +2372,8 @@
 <li>If you read an Avro <code>decimal</code> field in Python, change the code to expect a string instead of bytes.</li>
 <li>If a <code>streamPartitioner</code> or <code>valueJoiner</code> function uses a global variable called <code>headers</code> or <code>mappedKey</code>, rename it.</li>
 <li>If Python code calls a <code>streamPartitioner</code> function by position, pass <code>headers</code> before <code>numPartitions</code>, or call it by name.</li>
+<li>Rename any <code>as</code> name that is also a name under <code>streams</code>, <code>tables</code> or <code>globalTables</code>.</li>
+<li>Add <code>toTable</code> before any <code>join</code> or <code>leftJoin</code> with <code>foreignKeyExtractor</code> that has a stream as input.</li>
 <li>If you build your own code on top of the KSML libraries, update the Jackson package names.</li>
 </ul>
 <h2 id="apicurio-registry-3">Apicurio Registry 3</h2>
@@ -2393,6 +2439,39 @@
 </code></pre></div>
 <p>This also changed for any other unreadable definition file. On the 1.x line a definition KSML could not parse was skipped with one log line, and the runner started without that pipeline. It now stops, because a runner that quietly omits a pipeline looks like an idle topic rather than a broken config.</p>
 <p>What you need to do: make sure each KSML definition file has no duplicate keys before you upgrade.</p>
+<h2 id="an-as-name-can-not-be-a-defined-stream-or-table-name">An <code>as</code> name can not be a defined stream or table name</h2>
+<p>KSML now stops with a parse error when a pipeline saves its result with <code>as</code> under a name that is also defined under <code>streams</code>, <code>tables</code> or <code>globalTables</code>:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>"as: orders" is already defined under "tables". Use another name
+</code></pre></div>
+<p>On the 1.x line this was accepted. A later <code>from</code> with that name then silently got the saved result, not the defined stream or table, because <code>from</code> looks for a saved result first.</p>
+<p>A pipeline without a sink saves its result under the pipeline name. If that name is also defined under <code>streams</code>, <code>tables</code> or <code>globalTables</code>, KSML only logs a warning, so these definitions still start.</p>
+<p>What you need to do: rename the <code>as</code> name, and every <code>from</code> or <code>cogroup</code> that uses it. Do not change a <code>join</code> or <code>merge</code> with that name: it already uses the defined stream or table, and would get the saved result instead.</p>
+<p>For a pipeline without a sink, add <code>as</code> with another name, and use that name in the later <code>from</code> or <code>cogroup</code>. Adding <code>as</code> leaves the Kafka Streams topology unchanged, so a running application keeps its topics and state.</p>
+<h2 id="a-foreign-key-join-needs-a-table-as-input">A foreign-key join needs a table as input</h2>
+<p>KSML now stops at startup when a <code>join</code> or <code>leftJoin</code> with <code>foreignKeyExtractor</code> has a stream as input:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>A join with "foreignKeyExtractor" needs a table as input, but found a stream. Add "toTable" before the join, or remove "foreignKeyExtractor"
+</code></pre></div>
+<p>Kafka Streams only has foreign-key joins between two tables. On the 1.x line, KSML accepted a <code>foreignKeyExtractor</code> on a stream, but never called it: the stream was joined with the table by the stream's own key. So the join silently found the wrong records, or none.</p>
+<p>What you need to do: add <code>toTable</code> before the join, and <code>toStream</code> after it if the next steps need a stream:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="c1"># Before (KSML 1.x)</span>
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="nt">via</span><span class="p">:</span>
+<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">join</span>
+<a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="w">    </span><span class="nt">table</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">customers</span>
+<a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a><span class="w">    </span><span class="nt">foreignKeyExtractor</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">extract_customer_id</span>
+<a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a><span class="w">    </span><span class="nt">valueJoiner</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">join_order_customer</span>
+<a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a>
+<a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a><span class="c1"># After (KSML 2.0.0)</span>
+<a id="__codelineno-7-9" name="__codelineno-7-9" href="#__codelineno-7-9"></a><span class="nt">via</span><span class="p">:</span>
+<a id="__codelineno-7-10" name="__codelineno-7-10" href="#__codelineno-7-10"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">toTable</span>
+<a id="__codelineno-7-11" name="__codelineno-7-11" href="#__codelineno-7-11"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">join</span>
+<a id="__codelineno-7-12" name="__codelineno-7-12" href="#__codelineno-7-12"></a><span class="w">    </span><span class="nt">table</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">customers</span>
+<a id="__codelineno-7-13" name="__codelineno-7-13" href="#__codelineno-7-13"></a><span class="w">    </span><span class="nt">foreignKeyExtractor</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">extract_customer_id</span>
+<a id="__codelineno-7-14" name="__codelineno-7-14" href="#__codelineno-7-14"></a><span class="w">    </span><span class="nt">valueJoiner</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">join_order_customer</span>
+<a id="__codelineno-7-15" name="__codelineno-7-15" href="#__codelineno-7-15"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">toStream</span>
+</code></pre></div>
+<p>The result of the join is then a table that is updated when an order or its customer changes. If you meant to join the stream by its own key, remove <code>foreignKeyExtractor</code> instead.</p>
+<p>After <code>toStream</code>, a record can have a <code>null</code> value when the customer is deleted or the order gets another customer. Make the next steps accept <code>None</code>, or add a <code>filter</code> that drops these records.</p>
+<p>The new steps add Kafka topics to your application: <code>toTable</code> adds a state store with a changelog topic, and the foreign-key join adds a subscription store with a changelog topic and two internal topics for subscription registrations and responses. If topics are created by hand or need ACLs in your cluster, set them up before the upgrade.</p>
 <h2 id="avro-logical-types">Avro logical types</h2>
 <p>KSML now understands Avro logical types (<code>uuid</code>, <code>decimal</code>, <code>date</code>, <code>time-millis</code>, <code>time-micros</code>,
 <code>timestamp-millis</code>, <code>timestamp-micros</code>, <code>local-timestamp-millis</code>, <code>local-timestamp-micros</code>). It keeps
@@ -2400,11 +2479,11 @@ the logical type when it reads and writes a record. One of these changes what yo
 <h3 id="a-decimal-is-now-a-string">A decimal is now a string</h3>
 <p>An Avro <code>decimal</code> used to arrive in Python as raw bytes, because KSML treated it as its base <code>bytes</code>
 type. It is now a string holding the exact number.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="c1"># Before (KSML 1.x): amount was bytes, and you had to decode it yourself</span>
-<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="n">amount</span> <span class="o">=</span> <span class="n">value</span><span class="p">[</span><span class="s2">"amount"</span><span class="p">]</span>          <span class="c1"># b'\x30\x39'</span>
-<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>
-<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="c1"># After (KSML 2.0.0): amount is the number as text</span>
-<a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="n">amount</span> <span class="o">=</span> <span class="n">value</span><span class="p">[</span><span class="s2">"amount"</span><span class="p">]</span>          <span class="c1"># "123.45"</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="c1"># Before (KSML 1.x): amount was bytes, and you had to decode it yourself</span>
+<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="n">amount</span> <span class="o">=</span> <span class="n">value</span><span class="p">[</span><span class="s2">"amount"</span><span class="p">]</span>          <span class="c1"># b'\x30\x39'</span>
+<a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a>
+<a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a><span class="c1"># After (KSML 2.0.0): amount is the number as text</span>
+<a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a><span class="n">amount</span> <span class="o">=</span> <span class="n">value</span><span class="p">[</span><span class="s2">"amount"</span><span class="p">]</span>          <span class="c1"># "123.45"</span>
 </code></pre></div>
 <p>What you need to do: if a Python function reads a <code>decimal</code> field, treat it as a string. Use
 <code>float(value["amount"])</code> or Python's <code>decimal.Decimal</code> when you need to calculate with it. When you
