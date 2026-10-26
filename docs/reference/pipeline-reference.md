@@ -308,7 +308,12 @@ A saved result can be used in later pipelines of the same definition file:
 - as the `stream` or `table` to join with in `join`, `leftJoin` and `outerJoin`, and as the `stream` in `merge`
 - as the grouped `stream` in `cogroup`
 
-The pipeline that saves the result must come before the pipelines that use it. Two pipelines can not save their result under the same name, and an `as` name can not be the same as a name under `streams`, `tables` or `globalTables`. A pipeline without a sink saves its result under the pipeline name. If that name is also defined under `streams`, `tables` or `globalTables`, KSML logs a warning. A later `from` with that name then gets the pipeline result, while `join` and `merge` get the defined stream or table.
+Rules for saved names:
+
+- The pipeline that saves the result must come before the pipelines that use it.
+- Two pipelines can not save a result under the same name.
+- An `as` name can not be a name under `streams`, `tables` or `globalTables`.
+- A pipeline without a sink saves its result under its own name. If that name is also defined, KSML logs a warning. Then `from` gets the pipeline result, but `join` and `merge` get the defined stream or table.
 
 ```yaml
 pipelines:
