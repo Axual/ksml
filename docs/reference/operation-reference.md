@@ -634,8 +634,8 @@ Performs an inner join between two streams.
 | `timeDifference` | Duration | No       | The time difference for the join window (for stream-stream joins)    |
 | `grace`          | Duration | No       | Grace period for late-arriving data (for stream-stream joins)        |
 | `foreignKeyExtractor` | Object | No  | Gets the key of `table` from a value of the input. Only when the input is a table |
-| `partitioner`    | String   | No       | Only with `foreignKeyExtractor`: partitions by the key of the input table. Gets no value |
-| `otherPartitioner` | String | No       | Only with `foreignKeyExtractor`: partitions by the key of the join table. Gets no value |
+| `partitioner`    | String   | No       | Only with `foreignKeyExtractor`, ignored in other joins: partitions by the key of the input table. Gets no value |
+| `otherPartitioner` | String | No       | Only with `foreignKeyExtractor`, ignored in other joins: partitions by the key of the join table. Gets no value |
 
 *Use exactly one of `stream`, `table` or `globalTable`.
 
@@ -665,8 +665,8 @@ Performs a left join between two streams.
 | `timeDifference` | Duration | No       | The time difference for the join window (for stream-stream joins)    |
 | `grace`          | Duration | No       | Grace period for late-arriving data (for stream-stream joins)        |
 | `foreignKeyExtractor` | Object | No  | Gets the key of `table` from a value of the input. Only when the input is a table |
-| `partitioner`    | String   | No       | Only with `foreignKeyExtractor`: partitions by the key of the input table. Gets no value |
-| `otherPartitioner` | String | No       | Only with `foreignKeyExtractor`: partitions by the key of the join table. Gets no value |
+| `partitioner`    | String   | No       | Only with `foreignKeyExtractor`, ignored in other joins: partitions by the key of the input table. Gets no value |
+| `otherPartitioner` | String | No       | Only with `foreignKeyExtractor`, ignored in other joins: partitions by the key of the join table. Gets no value |
 
 *Use exactly one of `stream`, `table` or `globalTable`.
 
