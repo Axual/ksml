@@ -746,7 +746,7 @@ graph LR
     ```
 
 - **No saved globalTables**: Kafka Streams can not make a GlobalKTable from a pipeline result, so `globalTable:` only accepts names defined under `globalTables`. Use `table:` to join with a saved table.
-- **Unique names**: Each saved name must be unique, and an `as` name can not be a name under `streams`, `tables` or `globalTables`. See the [pipeline reference](../../reference/pipeline-reference.md) for the details.
+- **Unique names**: Each saved name must be unique, and an `as` name can not be a name under `streams`, `tables` or `globalTables`. See the [pipeline reference](../../reference/pipeline-reference.md#connecting-pipelines) for the details.
 - **Store**: A saved table, for example the result of a table-table join or of `toTable`, can be joined with directly, without a `store`. Add a `store` only if you want to query the saved table.
 - **Co-partitioning still applies**: If the saved result changed its key, for example with `transformKey` or `groupBy`, it must still be co-partitioned with the stream or table it is joined with. See [Co-partitioning Requirements](#co-partitioning-requirements).
 

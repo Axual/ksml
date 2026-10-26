@@ -57,6 +57,7 @@ Major dependency upgrades. This release moves KSML to Jackson 3, Apicurio Regist
 * Fixed `toTable` without a `store` after a step like `filter`. A later join with that table failed at startup with "Failed to initialize value serdes".
 * Fixed a foreign-key `join` and `leftJoin` between tables: a correct `foreignKeyExtractor` was rejected, and tables with different key types failed.
 * Breaking change: a `join` or `leftJoin` with `foreignKeyExtractor` now needs a table as input. Before, the extractor was silently ignored. See [Upgrading to 2.0.0](migration-to-2.0.0.md).
+* Errors reported by KSML now keep their cause, so stack traces in the logs show "Caused by" sections. A parse error is logged once, not once for each parser level.
 * Fixed `aggregate` after `cogroup` and `windowBySession`, which always failed at startup with "Merger is expected to take at least 3 parameters".
 
 ## 1.3.0 (2026-06-23)

@@ -313,7 +313,7 @@ Rules for saved names:
 - The pipeline that saves the result must come before the pipelines that use it.
 - Two pipelines can not save a result under the same name.
 - An `as` name can not be a name under `streams`, `tables` or `globalTables`.
-- A pipeline without a sink saves its result under its own name. If that name is also defined, KSML logs a warning. Then `from` gets the pipeline result, but `join` and `merge` get the defined stream or table.
+- A pipeline without a sink saves its result under its own name. If that name is also defined, KSML logs a warning. Then `from` and `cogroup` get the pipeline result, but `join` and `merge` get the defined stream or table.
 
 ```yaml
 pipelines:

@@ -70,6 +70,6 @@ class FatalErrorTest {
             System.setErr(originalErr);
         }
         final var log = captured.toString(StandardCharsets.UTF_8);
-        assertThat(log).contains("Description: outer").doesNotContain("inner");
+        assertThat(log).contains("Description: outer").doesNotContain("Description: inner");
     }
 }
