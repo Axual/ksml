@@ -288,6 +288,7 @@ public class KSMLDSL {
     }
 
     public static final String PIPELINES = "pipelines";
+    public static final String PIPELINE = "pipeline";
 
     @NoArgsConstructor(access = AccessLevel.PRIVATE)
     public static class Pipelines {

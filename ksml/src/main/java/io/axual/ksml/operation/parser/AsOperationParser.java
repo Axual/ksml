@@ -20,6 +20,7 @@ package io.axual.ksml.operation.parser;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.exception.ParseException;
 import io.axual.ksml.parser.FieldParsers;
 import io.axual.ksml.dsl.KSMLDSL;
 import io.axual.ksml.generator.TopologyResources;
@@ -32,11 +33,23 @@ public class AsOperationParser extends OperationParser<AsOperation> {
     }
 
     public StructsParser<AsOperation> parser() {
-        return FieldParsers.structsParser(
+        final var parser = FieldParsers.structsParser(
                 AsOperation.class,
                 "",
                 "An operation to close the pipeline and save the result under a given name",
                 FieldParsers.stringField(KSMLDSL.Operations.AS, "The name to register the pipeline result under, which can be used as source by follow-up pipelines"),
                 (name, tags) -> name != null ? new AsOperation(operationConfig(name, tags), name) : null);
+        return StructsParser.of(node -> {
+            final var result = parser.parse(node);
+            if (result == null) return null;
+            final var name = result.targetName;
+            // A "from" with this name would get the saved result, not the defined one
+            final var section = resources().sectionOf(name);
+            if (section != null) throw new ParseException(node, "\"as: " + name + "\" is already defined under \"" + section + "\". Use another name");
+            final var earlier = resources().pipelineSaving(name);
+            if (earlier != null) throw new ParseException(node, "\"as: " + name + "\" is already used by " + earlier + ". Use another name");
+            resources().registerSavedName(name, node.tags());
+            return result;
+        }, parser.schemas());
     }
 }

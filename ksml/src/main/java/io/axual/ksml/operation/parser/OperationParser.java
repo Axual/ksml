@@ -25,9 +25,11 @@ import io.axual.ksml.data.schema.StructSchema;
 import io.axual.ksml.definition.FunctionDefinition;
 import io.axual.ksml.definition.StateStoreDefinition;
 import io.axual.ksml.definition.TopicDefinition;
+import io.axual.ksml.definition.TopologyResource;
 import io.axual.ksml.definition.parser.StateStoreDefinitionParser;
 import io.axual.ksml.dsl.KSMLDSL;
 import io.axual.ksml.exception.ParseException;
+import io.axual.ksml.exception.TopologyException;
 import io.axual.ksml.generator.TopologyResources;
 import io.axual.ksml.metric.MetricTags;
 import io.axual.ksml.operation.BaseOperation;
@@ -66,6 +68,21 @@ public abstract class OperationParser<T extends BaseOperation> extends Definitio
 
     protected StructsParser<TopicDefinition> topicField(String childName, String doc, DefinitionParser<? extends TopicDefinition> parser) {
         return resourceFields.topicField(childName, doc, parser);
+    }
+
+    // Like topicField, but keeps an unknown name if an earlier pipeline saved it with "as"
+    protected <F extends TopicDefinition> StructsParser<TopologyResource<TopicDefinition>> targetField(String childName, String section, String doc, DefinitionParser<F> parser) {
+        final var resourceParser = new TopologyResourceParser<>(childName, childName, doc, (name, tags) -> resources().topic(name), parser, true);
+        // Null when the field is missing, not a made-up name
+        return StructsParser.of(node -> node != null && node.get(childName) != null ? resourceFields.requireDefinedOrSaved(node, resourceParser.parse(node), childName, section) : null, resourceParser.schemas());
+    }
+
+    // An "as" name has no definition yet, so it is checked when building
+    protected <D extends TopicDefinition> TopologyResource<D> targetOf(TopologyResource<TopicDefinition> target, Class<D> expectedType, String error) {
+        if (target == null || (target.definition() != null && !expectedType.isInstance(target.definition()))) {
+            throw new TopologyException(error);
+        }
+        return new TopologyResource<>(target.name(), expectedType.cast(target.definition()), target.tags());
     }
 
     protected <S> StructsParser<S> lookupField(String resourceType, String childName, String doc, BiFunction<String, MetricTags, S> lookup, DefinitionParser<? extends S> parser) {

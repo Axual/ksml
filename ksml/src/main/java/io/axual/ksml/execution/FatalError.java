@@ -32,15 +32,19 @@ public class FatalError {
     }
 
     public static RuntimeException report(Throwable t) {
+        // An error that report() already logged is passed on without logging it again
+        if (t instanceof ReportedError reported) return reported;
         var messageBuilder = new StringBuilder().append(NEW_LINE);
         messageBuilder.append("FatalError").append(NEW_LINE).append(LOG_ITEM_SEPARATOR);
         printExceptionDetails(messageBuilder, t);
         log.error(messageBuilder.toString());
-        return new RuntimeException(t.getMessage());
+        // Keep the cause, so callers and tests can still find the original error
+        return new ReportedError(t.getMessage(), t);
     }
 
     private static void printExceptionDetails(StringBuilder messageBuilder, Throwable t) {
-        if (t.getCause() != null) {
+        // A cause that report() already logged is not printed again
+        if (t.getCause() != null && !(t.getCause() instanceof ReportedError)) {
             printExceptionDetails(messageBuilder, t.getCause());
             messageBuilder.append(LOG_ITEM_SEPARATOR).append(NEW_LINE);
             messageBuilder.append("Above error caused: ").append(t.getMessage()).append(NEW_LINE);
@@ -50,6 +54,12 @@ public class FatalError {
         messageBuilder.append("Stack trace: ").append(NEW_LINE);
         for (var ste : t.getStackTrace()) {
             messageBuilder.append("  %s::%s @ %s:%s".formatted(ste.getClassName(), ste.getMethodName(), ste.getFileName(), ste.getLineNumber())).append(NEW_LINE);
+        }
+    }
+
+    private static final class ReportedError extends RuntimeException {
+        private ReportedError(String message, Throwable cause) {
+            super(message, cause);
         }
     }
 }

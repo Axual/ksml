@@ -64,9 +64,11 @@ class StructsParserLazyTest {
 
         final var node = nodeOf("value: 1");
         assertThatThrownBy(() -> lazy.parse(node))
-                .isExactlyInstanceOf(RuntimeException.class)
+                .isInstanceOf(RuntimeException.class)
                 .hasMessage("boom")
-                .hasNoCause();
+                .cause()
+                .isExactlyInstanceOf(IllegalStateException.class)
+                .hasMessage("boom");
     }
 
     @Test

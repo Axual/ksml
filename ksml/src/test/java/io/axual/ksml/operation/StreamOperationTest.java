@@ -36,7 +36,7 @@ import static io.axual.ksml.operation.OperationTestSupport.mockContext;
 import static io.axual.ksml.operation.OperationTestSupport.operationConfig;
 import static io.axual.ksml.operation.OperationTestSupport.sessionWindowed;
 import static io.axual.ksml.operation.OperationTestSupport.sessionWindowedCogrouped;
-import static io.axual.ksml.operation.OperationTestSupport.streamDefinition;
+import static io.axual.ksml.operation.OperationTestSupport.streamTarget;
 import static io.axual.ksml.operation.OperationTestSupport.timeWindowed;
 import static io.axual.ksml.operation.OperationTestSupport.timeWindowedCogrouped;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -48,7 +48,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
  */
 class StreamOperationTest extends OperationTestBase {
 
-    private final MergeOperation operation = new MergeOperation(operationConfig("merge"), streamDefinition());
+    private final MergeOperation operation = new MergeOperation(operationConfig("merge"), streamTarget());
 
     private void assertRejects(Function<StreamOperation, StreamWrapper> application) {
         assertThatThrownBy(() -> application.apply(operation))

@@ -24,6 +24,7 @@ package io.axual.ksml.operation;
 import io.axual.ksml.definition.FunctionDefinition;
 import io.axual.ksml.exception.TopologyException;
 import io.axual.ksml.generator.TopologyBuildContext;
+import io.axual.ksml.generator.TopologyResources;
 import io.axual.ksml.stream.CogroupedKStreamWrapper;
 import io.axual.ksml.stream.KGroupedStreamWrapper;
 import io.axual.ksml.stream.StreamWrapper;
@@ -97,13 +98,12 @@ public class CogroupOperation extends BaseOperation {
         return new CogroupedKStreamWrapper(output, groupedStreams, k, vOut);
     }
 
-    // An "as" name exists only after its pipeline is built, so that pipeline must come first
     private KGroupedStreamWrapper lookupGroupedStream(TopologyBuildContext context) {
-        final var wrapper = context.hasStreamWrapper(stream) ? context.getStreamWrapper(stream, null) : null;
-        if (wrapper instanceof KGroupedStreamWrapper grouped) return grouped;
-        if (context.isTopicDefinition(stream)) throw notGroupedTopicError();
-        if (wrapper == null) throw topologyError(streamLabel() + " not found. Save a grouped stream with \"as: " + stream + "\" in a pipeline defined before this one, in the same definition file");
-        throw topologyError(streamLabel() + " must be a grouped stream (the result of groupBy or groupByKey), but found " + wrapper);
+        final var wrapper = findSavedStream(context, stream);
+        if (!(wrapper instanceof KGroupedStreamWrapper) && context.isTopicDefinition(stream)) throw notGroupedTopicError();
+        return requireSavedStream(wrapper, KGroupedStreamWrapper.class, streamLabel(),
+                "a grouped stream (the result of groupBy or groupByKey)",
+                "Save a grouped stream with \"as: " + stream + "\" " + TopologyResources.SAVED_EARLIER);
     }
 
     // Unlike in merge and join, "stream" is not a topic definition, so explain the likely mistake

@@ -22,6 +22,7 @@ package io.axual.ksml.operation;
 
 import io.axual.ksml.definition.FunctionDefinition;
 import io.axual.ksml.definition.TableDefinition;
+import io.axual.ksml.definition.TopologyResource;
 import io.axual.ksml.generator.StreamDataType;
 import io.axual.ksml.generator.TopologyBuildContext;
 import io.axual.ksml.stream.KStreamWrapper;
@@ -37,14 +38,14 @@ import java.time.Duration;
 public class JoinWithTableOperation extends StoreOperation {
     private static final String FOREIGN_KEY_EXTRACTOR_NAME = "ForeignKeyExtractor";
     private static final String VALUEJOINER_NAME = "ValueJoiner";
-    private final TableDefinition joinTable;
+    private final TopologyResource<TableDefinition> joinTable;
     private final FunctionDefinition foreignKeyExtractor;
     private final FunctionDefinition valueJoiner;
     private final Duration gracePeriod;
     private final FunctionDefinition partitioner;
     private final FunctionDefinition otherPartitioner;
 
-    public JoinWithTableOperation(StoreOperationConfig config, TableDefinition joinTable, FunctionDefinition foreignKeyExtractor, FunctionDefinition valueJoiner, Duration gracePeriod, FunctionDefinition partitioner, FunctionDefinition otherPartitioner) {
+    public JoinWithTableOperation(StoreOperationConfig config, TopologyResource<TableDefinition> joinTable, FunctionDefinition foreignKeyExtractor, FunctionDefinition valueJoiner, Duration gracePeriod, FunctionDefinition partitioner, FunctionDefinition otherPartitioner) {
         super(config);
         this.joinTable = joinTable;
         this.foreignKeyExtractor = foreignKeyExtractor;
@@ -64,9 +65,13 @@ public class JoinWithTableOperation extends StoreOperation {
          */
 
         checkNotNull(valueJoiner, VALUEJOINER_NAME.toLowerCase());
+        // Kafka Streams has no foreign-key join for a stream, so the extractor would be silently ignored
+        if (foreignKeyExtractor != null) {
+            throw topologyError("A join with \"foreignKeyExtractor\" needs a table as input, but found a stream. Add \"toTable\" before the join, or remove \"foreignKeyExtractor\"");
+        }
         final var k = input.keyType();
         final var v = input.valueType();
-        final var otherTable = context.getStreamWrapper(joinTable);
+        final var otherTable = lookupTable(context, joinTable, "Join table");
         final var kt = otherTable.keyType();
         final var vt = otherTable.valueType();
         final var vr = streamDataTypeOf(firstSpecificType(valueJoiner, vt, v), false);
@@ -85,15 +90,17 @@ public class JoinWithTableOperation extends StoreOperation {
         checkNotNull(valueJoiner, VALUEJOINER_NAME.toLowerCase());
         final var k = input.keyType();
         final var v = input.valueType();
-        final var otherTable = context.getStreamWrapper(joinTable);
+        final var otherTable = lookupTable(context, joinTable, "Join table");
         final var ko = otherTable.keyType();
         final var vo = otherTable.valueType();
         final var vr = streamDataTypeOf(firstSpecificType(valueJoiner, vo, v), false);
-        checkType("Join table keyType", ko, equalTo(k));
-        final var fkExtract = userFunctionOf(context, FOREIGN_KEY_EXTRACTOR_NAME, foreignKeyExtractor, v, equalTo(ko));
+        // The foreignKeyExtractor gets a value of this table and returns a key of the other table
+        final var fkExtract = userFunctionOf(context, FOREIGN_KEY_EXTRACTOR_NAME, foreignKeyExtractor, ko, superOf(v));
         if (fkExtract != null) {
             return applyForeignKeyJoin(input, context, otherTable, fkExtract, k, v, vo, vr);
         }
+        // Only a primary-key join needs both tables to have the same key type
+        checkType("Join table keyType", ko, equalTo(k));
         return applyValueJoin(input, context, otherTable, k, v, vo, vr);
     }
 
@@ -111,7 +118,8 @@ public class JoinWithTableOperation extends StoreOperation {
         final var joiner = userFunctionOf(context, VALUEJOINER_NAME, valueJoiner, vr, superOf(k), superOf(v), superOf(vo));
         final var userJoiner = valueJoiner(joiner, tags);
         final var userPart = userStreamPartitionerOf(context, partitioner, k, v);
-        final var userOtherPart = userStreamPartitionerOf(context, otherPartitioner, k, v);
+        // TableJoined calls the other partitioner with keys of the other table, and no value
+        final var userOtherPart = userStreamPartitionerOf(context, otherPartitioner, otherTable.keyType(), v);
         final var tableJoined = tableJoinedOf(userPart, userOtherPart);
         final var kvStore = validateKeyValueStore(store(), k, vr);
         final var mat = materializedOf(context, kvStore);

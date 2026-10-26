@@ -18,6 +18,8 @@ Before you upgrade, check each item below:
 * If you read an Avro `decimal` field in Python, change the code to expect a string instead of bytes.
 * If a `streamPartitioner` or `valueJoiner` function uses a global variable called `headers` or `mappedKey`, rename it.
 * If Python code calls a `streamPartitioner` function by position, pass `headers` before `numPartitions`, or call it by name.
+* Rename any `as` name that is also a name under `streams`, `tables` or `globalTables`.
+* Add `toTable` before any `join` or `leftJoin` with `foreignKeyExtractor` that has a stream as input.
 * If you build your own code on top of the KSML libraries, update the Jackson package names.
 
 ## Apicurio Registry 3
@@ -123,6 +125,58 @@ Could not read the KSML definition: Duplicate field 'topic'
 This also changed for any other unreadable definition file. On the 1.x line a definition KSML could not parse was skipped with one log line, and the runner started without that pipeline. It now stops, because a runner that quietly omits a pipeline looks like an idle topic rather than a broken config.
 
 What you need to do: make sure each KSML definition file has no duplicate keys before you upgrade.
+
+## An `as` name can not be a defined stream or table name
+
+KSML now stops with a parse error when a pipeline saves its result with `as` under a name that is also defined under `streams`, `tables` or `globalTables`:
+
+```
+"as: orders" is already defined under "tables". Use another name
+```
+
+On the 1.x line this was accepted. A later `from` with that name then silently got the saved result, not the defined stream or table, because `from` looks for a saved result first.
+
+A pipeline without a sink saves its result under the pipeline name. If that name is also defined under `streams`, `tables` or `globalTables`, KSML only logs a warning, so these definitions still start.
+
+What you need to do: rename the `as` name, and every `from` or `cogroup` that uses it. Do not change a `join` or `merge` with that name: it already uses the defined stream or table, and would get the saved result instead.
+
+For a pipeline without a sink, add `as` with another name, and use that name in the later `from` or `cogroup`. Adding `as` leaves the Kafka Streams topology unchanged, so a running application keeps its topics and state.
+
+## A foreign-key join needs a table as input
+
+KSML now stops at startup when a `join` or `leftJoin` with `foreignKeyExtractor` has a stream as input:
+
+```
+A join with "foreignKeyExtractor" needs a table as input, but found a stream. Add "toTable" before the join, or remove "foreignKeyExtractor"
+```
+
+Kafka Streams only has foreign-key joins between two tables. On the 1.x line, KSML accepted a `foreignKeyExtractor` on a stream, but never called it: the stream was joined with the table by the stream's own key. So the join silently found the wrong records, or none.
+
+What you need to do: add `toTable` before the join, and `toStream` after it if the next steps need a stream:
+
+```yaml
+# Before (KSML 1.x)
+via:
+  - type: join
+    table: customers
+    foreignKeyExtractor: extract_customer_id
+    valueJoiner: join_order_customer
+
+# After (KSML 2.0.0)
+via:
+  - type: toTable
+  - type: join
+    table: customers
+    foreignKeyExtractor: extract_customer_id
+    valueJoiner: join_order_customer
+  - type: toStream
+```
+
+The result of the join is then a table that is updated when an order or its customer changes. If you meant to join the stream by its own key, remove `foreignKeyExtractor` instead.
+
+After `toStream`, a record can have a `null` value when the customer is deleted or the order gets another customer. Make the next steps accept `None`, or add a `filter` that drops these records.
+
+The new steps add Kafka topics to your application: `toTable` adds a state store with a changelog topic, and the foreign-key join adds a subscription store with a changelog topic and two internal topics for subscription registrations and responses. If topics are created by hand or need ACLs in your cluster, set them up before the upgrade.
 
 ## Avro logical types
 

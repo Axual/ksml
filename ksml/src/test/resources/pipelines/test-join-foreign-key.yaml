@@ -1,0 +1,61 @@
+# Table-table foreign-key joins. The orders table has long keys and json values, the customers table has string keys.
+# The foreignKeyExtractor gets an order value and returns a customer key. Both joins also set an otherPartitioner,
+# which Kafka Streams calls with customer keys.
+tables:
+  orders:
+    topic: orders_topic
+    keyType: long
+    valueType: json
+  customers:
+    topic: customers_topic
+    keyType: string
+    valueType: string
+
+streams:
+  joined_orders:
+    topic: joined_orders_topic
+    keyType: long
+    valueType: string
+  left_joined_orders:
+    topic: left_joined_orders_topic
+    keyType: long
+    valueType: string
+
+functions:
+  customer_of_order:
+    type: foreignKeyExtractor
+    expression: value["customer_id"]
+    resultType: string
+  partition_by_customer:
+    type: streamPartitioner
+    code: |
+      log.info("partitioning customer key {}", key)
+    expression: 0
+    resultType: integer
+  order_with_customer:
+    type: valueJoiner
+    expression: value1["item"] + "@" + (value2 if value2 is not None else "unknown")
+    resultType: string
+
+pipelines:
+  fk_join:
+    from: orders
+    via:
+      - type: join
+        table: customers
+        foreignKeyExtractor: customer_of_order
+        valueJoiner: order_with_customer
+        otherPartitioner: partition_by_customer
+      - type: toStream
+    to: joined_orders
+
+  fk_left_join:
+    from: orders
+    via:
+      - type: leftJoin
+        table: customers
+        foreignKeyExtractor: customer_of_order
+        valueJoiner: order_with_customer
+        otherPartitioner: partition_by_customer
+      - type: toStream
+    to: left_joined_orders

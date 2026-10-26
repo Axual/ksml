@@ -1,0 +1,37 @@
+# The join uses "table:" with a name that an earlier pipeline saved as a stream.
+streams:
+  input_stream:
+    topic: input_topic
+    keyType: string
+    valueType: string
+  other_stream:
+    topic: other_topic
+    keyType: string
+    valueType: string
+  output_stream:
+    topic: output_topic
+    keyType: string
+    valueType: string
+
+functions:
+  simple_joiner:
+    type: valueJoiner
+    expression: value1 + "+" + value2
+    resultType: string
+
+pipelines:
+  saved_other:
+    from: other_stream
+    via:
+      - type: filter
+        if:
+          expression: value is not None
+    as: filtered_other
+
+  join_pipeline:
+    from: input_stream
+    via:
+      - type: join
+        table: filtered_other
+        valueJoiner: simple_joiner
+    to: output_stream

@@ -1,0 +1,18 @@
+# The pipeline has no sink, so its result is saved under the pipeline name "order_events",
+# which is also defined under "streams". This worked before "as" names were checked, so it
+# only logs a warning.
+streams:
+  raw_orders:
+    topic: raw_orders
+    keyType: string
+    valueType: json
+  order_events:
+    topic: order_events
+    keyType: string
+    valueType: json
+
+pipelines:
+  order_events:
+    from: raw_orders
+    via:
+      - type: toTable

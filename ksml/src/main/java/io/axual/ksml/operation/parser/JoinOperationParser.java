@@ -29,14 +29,12 @@ import io.axual.ksml.definition.StreamDefinition;
 import io.axual.ksml.definition.TableDefinition;
 import io.axual.ksml.definition.parser.ForeignKeyExtractorDefinitionParser;
 import io.axual.ksml.definition.parser.GlobalTableDefinitionParser;
-import io.axual.ksml.definition.parser.JoinTargetDefinitionParser;
 import io.axual.ksml.definition.parser.KeyValueMapperDefinitionParser;
 import io.axual.ksml.definition.parser.StreamDefinitionParser;
 import io.axual.ksml.definition.parser.StreamPartitionerDefinitionParser;
 import io.axual.ksml.definition.parser.TableDefinitionParser;
 import io.axual.ksml.definition.parser.ValueJoinerDefinitionParser;
 import io.axual.ksml.dsl.KSMLDSL;
-import io.axual.ksml.exception.ParseException;
 import io.axual.ksml.exception.TopologyException;
 import io.axual.ksml.generator.TopologyResources;
 import io.axual.ksml.operation.BaseOperation;
@@ -52,7 +50,7 @@ import java.util.List;
 
 import static io.axual.ksml.dsl.KSMLDSL.Operations;
 
-public class JoinOperationParser extends OperationParser<BaseOperation> {
+public class JoinOperationParser extends BaseJoinOperationParser {
     private final StructsParser<JoinWithStreamOperation> joinStreamParser;
     private final StructsParser<JoinWithTableOperation> joinTableParser;
     private final StructsParser<JoinWithGlobalTableOperation> joinGlobalTableParser;
@@ -76,17 +74,7 @@ public class JoinOperationParser extends OperationParser<BaseOperation> {
         return new StructsParser<>() {
             @Override
             public BaseOperation parse(ParseNode node) {
-                if (node == null) return null;
-
-                final var joinTopic = new JoinTargetDefinitionParser(resources()).parse(node);
-                if (joinTopic.definition() instanceof StreamDefinition) return joinStreamParser.parse(node);
-                if (joinTopic.definition() instanceof TableDefinition) return joinTableParser.parse(node);
-                if (joinTopic.definition() instanceof GlobalTableDefinition) return joinGlobalTableParser.parse(node);
-
-                // Note: the above instanceof checks always return something, but Java can't infer that, hence we throw an exception here:
-                final var separator = joinTopic.name() != null && joinTopic.definition() != null ? ", " : "";
-                final var description = (joinTopic.name() != null ? joinTopic.name() : "") + separator + (joinTopic.definition() != null ? joinTopic.definition() : "");
-                throw new ParseException(node, "Join stream not found: " + description);
+                return parseJoin(node, "Join", joinStreamParser, joinTableParser, joinGlobalTableParser);
             }
 
             @Override
@@ -102,17 +90,14 @@ public class JoinOperationParser extends OperationParser<BaseOperation> {
                 "",
                 "Operation to join with a stream",
                 operationNameField(),
-                topicField(Operations.Join.WITH_STREAM, "A reference to the stream, or an inline definition of the stream to join with", new StreamDefinitionParser(resources(), true)),
+                targetField(Operations.Join.WITH_STREAM, KSMLDSL.STREAMS, "A reference to a defined stream or to a stream saved with \"as\" in an earlier pipeline, or an inline definition of the stream to join with", new StreamDefinitionParser(resources(), true)),
                 valueJoinerField,
                 FieldParsers.durationField(Operations.Join.TIME_DIFFERENCE, "The maximum time difference for a join over two streams on the same key"),
                 FieldParsers.optional(FieldParsers.durationField(Operations.Join.GRACE, "The window grace period (the time to admit out-of-order events after the end of the window)")),
                 storeField(Operations.SOURCE_STORE_ATTRIBUTE, true, "Materialized view of the source stream", StoreType.WINDOW_STORE),
                 storeField(Operations.OTHER_STORE_ATTRIBUTE, true, "Materialized view of the joined stream", StoreType.WINDOW_STORE),
                 (name, stream, valueJoiner, timeDifference, grace, thisStore, otherStore, tags) -> {
-                    if (stream instanceof StreamDefinition streamDef) {
-                        return new JoinWithStreamOperation(dualStoreOperationConfig(name, tags, thisStore, otherStore), streamDef, valueJoiner, timeDifference, grace);
-                    }
-                    throw new TopologyException("Join stream not correct, should be a defined stream");
+                    return new JoinWithStreamOperation(dualStoreOperationConfig(name, tags, thisStore, otherStore), targetOf(stream, StreamDefinition.class, "Join stream not correct, should be a stream"), valueJoiner, timeDifference, grace);
                 });
     }
 
@@ -122,18 +107,15 @@ public class JoinOperationParser extends OperationParser<BaseOperation> {
                 "",
                 "Operation to join with a table",
                 operationNameField(),
-                topicField(Operations.Join.WITH_TABLE, "A reference to the table, or an inline definition of the table to join with", new TableDefinitionParser(resources(), true)),
-                FieldParsers.optional(functionField(Operations.Join.FOREIGN_KEY_EXTRACTOR, "A function that can translate the join table value to a primary key", new ForeignKeyExtractorDefinitionParser(false))),
+                targetField(Operations.Join.WITH_TABLE, KSMLDSL.TABLES, "A reference to a defined table or to a table saved with \"as\" in an earlier pipeline, or an inline definition of the table to join with", new TableDefinitionParser(resources(), true)),
+                FieldParsers.optional(functionField(Operations.Join.FOREIGN_KEY_EXTRACTOR, "A function that gets the key of the join table from a value of the input table. Only when the input is a table", new ForeignKeyExtractorDefinitionParser(false))),
                 valueJoinerField,
                 FieldParsers.optional(FieldParsers.durationField(Operations.Join.GRACE, "The window grace period (the time to admit out-of-order events after the end of the window)")),
-                FieldParsers.optional(functionField(Operations.Join.PARTITIONER, "A function that partitions the records on the primary table", new StreamPartitionerDefinitionParser(false))),
-                FieldParsers.optional(functionField(Operations.Join.OTHER_PARTITIONER, "A function that partitions the records on the join table", new StreamPartitionerDefinitionParser(false))),
+                FieldParsers.optional(functionField(Operations.Join.PARTITIONER, "Only with foreignKeyExtractor, ignored in other joins: partitions by the key of the input table", new StreamPartitionerDefinitionParser(false))),
+                FieldParsers.optional(functionField(Operations.Join.OTHER_PARTITIONER, "Only with foreignKeyExtractor, ignored in other joins: partitions by the key of the join table", new StreamPartitionerDefinitionParser(false))),
                 storeField(false, "Materialized view of the joined table (only used for Table-Table joins)", StoreType.KEYVALUE_STORE),
                 (name, table, foreignKeyExtractor, valueJoiner, grace, partitioner, otherPartitioner, store, tags) -> {
-                    if (table instanceof TableDefinition tableDef) {
-                        return new JoinWithTableOperation(storeOperationConfig(name, tags, store), tableDef, foreignKeyExtractor, valueJoiner, grace, partitioner, otherPartitioner);
-                    }
-                    throw new TopologyException("Join table not correct, should be a defined table");
+                    return new JoinWithTableOperation(storeOperationConfig(name, tags, store), targetOf(table, TableDefinition.class, "Join table not correct, should be a table"), foreignKeyExtractor, valueJoiner, grace, partitioner, otherPartitioner);
                 });
     }
 
