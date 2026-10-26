@@ -620,7 +620,7 @@ The stream or table to join with can be defined under `streams` or `tables`, or 
 
 ### `join`
 
-Performs an inner join between two streams.
+Performs an inner join with a stream, table or global table.
 
 #### Parameters
 
@@ -651,7 +651,7 @@ Performs an inner join between two streams.
 
 ### `leftJoin`
 
-Performs a left join between two streams.
+Performs a left join with a stream, table or global table.
 
 #### Parameters
 
@@ -739,7 +739,7 @@ Both streams flow through the unified pipeline after merging, demonstrating how 
 
 ### `outerJoin`
 
-Performs an outer join between two streams.
+Performs an outer join with a stream or table.
 
 #### Parameters
 

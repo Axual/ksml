@@ -112,8 +112,8 @@ public class LeftJoinOperationParser extends BaseJoinOperationParser {
                 FieldParsers.optional(functionField(Operations.Join.FOREIGN_KEY_EXTRACTOR, "A function that gets the key of the join table from a value of the input table. Only when the input is a table", new ForeignKeyExtractorDefinitionParser(false))),
                 valueJoinerField,
                 FieldParsers.optional(FieldParsers.durationField(Operations.Join.GRACE, "The window grace period (the time to admit out-of-order events after the end of the window)")),
-                FieldParsers.optional(functionField(Operations.Join.PARTITIONER, "A function that partitions the records on the primary table", new StreamPartitionerDefinitionParser(false))),
-                FieldParsers.optional(functionField(Operations.Join.OTHER_PARTITIONER, "A function that partitions the records on the join table", new StreamPartitionerDefinitionParser(false))),
+                FieldParsers.optional(functionField(Operations.Join.PARTITIONER, "Only with foreignKeyExtractor, ignored in other joins: partitions by the key of the input table", new StreamPartitionerDefinitionParser(false))),
+                FieldParsers.optional(functionField(Operations.Join.OTHER_PARTITIONER, "Only with foreignKeyExtractor, ignored in other joins: partitions by the key of the join table", new StreamPartitionerDefinitionParser(false))),
                 storeField(false, "Materialized view of the leftJoined table (only used for Table-Table joins)", StoreType.KEYVALUE_STORE),
                 (name, table, foreignKeyExtractor, valueJoiner, grace, partitioner, otherPartitioner, store, tags) -> {
                     return new LeftJoinWithTableOperation(storeOperationConfig(name, tags, store), targetOf(table, TableDefinition.class, "LeftJoin table not correct, should be a table"), foreignKeyExtractor, valueJoiner, grace, partitioner, otherPartitioner);

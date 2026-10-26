@@ -1456,7 +1456,7 @@
             "$ref" : "#/$defs/StreamPartitionerDefinitionWithImplicitStoreType",
             "type" : "object"
           } ],
-          "description" : "*(optional)* A function that partitions the records on the join table"
+          "description" : "*(optional)* Only with foreignKeyExtractor, ignored in other joins: partitions by the key of the join table"
         },
         "partitioner" : {
           "anyOf" : [ {
@@ -1465,7 +1465,7 @@
             "$ref" : "#/$defs/StreamPartitionerDefinitionWithImplicitStoreType",
             "type" : "object"
           } ],
-          "description" : "*(optional)* A function that partitions the records on the primary table"
+          "description" : "*(optional)* Only with foreignKeyExtractor, ignored in other joins: partitions by the key of the input table"
         },
         "store" : {
           "anyOf" : [ {
@@ -2620,7 +2620,7 @@
             "$ref" : "#/$defs/StreamPartitionerDefinitionWithImplicitStoreType",
             "type" : "object"
           } ],
-          "description" : "*(optional)* A function that partitions the records on the join table"
+          "description" : "*(optional)* Only with foreignKeyExtractor, ignored in other joins: partitions by the key of the join table"
         },
         "partitioner" : {
           "anyOf" : [ {
@@ -2629,7 +2629,7 @@
             "$ref" : "#/$defs/StreamPartitionerDefinitionWithImplicitStoreType",
             "type" : "object"
           } ],
-          "description" : "*(optional)* A function that partitions the records on the primary table"
+          "description" : "*(optional)* Only with foreignKeyExtractor, ignored in other joins: partitions by the key of the input table"
         },
         "store" : {
           "anyOf" : [ {

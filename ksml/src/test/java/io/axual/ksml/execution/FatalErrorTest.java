@@ -23,6 +23,10 @@ package io.axual.ksml.execution;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import java.io.ByteArrayOutputStream;
+import java.io.PrintStream;
+import java.nio.charset.StandardCharsets;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 class FatalErrorTest {
@@ -50,5 +54,22 @@ class FatalErrorTest {
     void reportPassesOnReportedError() {
         final var reported = FatalError.report(new IllegalStateException("boom"));
         assertThat(FatalError.report(reported)).isSameAs(reported);
+    }
+
+    @Test
+    @DisplayName("report does not print a cause that was already reported")
+    void reportDoesNotPrintReportedCauseAgain() {
+        final var reported = FatalError.report(new IllegalStateException("inner"));
+        // slf4j-simple writes to System.err
+        final var originalErr = System.err;
+        final var captured = new ByteArrayOutputStream();
+        System.setErr(new PrintStream(captured, true, StandardCharsets.UTF_8));
+        try {
+            FatalError.report(new RuntimeException("outer", reported));
+        } finally {
+            System.setErr(originalErr);
+        }
+        final var log = captured.toString(StandardCharsets.UTF_8);
+        assertThat(log).contains("Description: outer").doesNotContain("inner");
     }
 }
