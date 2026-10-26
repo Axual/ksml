@@ -76,4 +76,18 @@ class ForeignKeyExtractorTest {
         assertThat(result.key).isEqualTo("o001");
         assertThat(objectMapper.readTree(result.value).get("customer").get("name").asString()).isEqualTo("Alice");
     }
+
+    @KSMLTest(topology = TOPOLOGY)
+    @DisplayName("a deleted customer sends the order key with a null value, which the peek accepts")
+    void testDeletedCustomerSendsNullValue() {
+        customers.pipeInput("c001", ALICE);
+        orders.pipeInput("o001", ORDER);
+        enrichedOrders.readKeyValue();
+
+        customers.pipeInput("c001", (String) null);
+
+        final var result = enrichedOrders.readKeyValue();
+        assertThat(result.key).isEqualTo("o001");
+        assertThat(result.value).isNull();
+    }
 }

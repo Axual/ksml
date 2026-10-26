@@ -72,9 +72,11 @@ pipelines:
       - type: peek
         forEach:
           code: |
-            log.info("Enriched order: {} for customer: {}", 
-                     value.get("order_id"), 
-                     value.get("customer", {}).get("name"))
+            # A deleted customer, or a changed customer_id, sends a null value
+            if value is not None:
+              log.info("Enriched order: {} for customer: {}",
+                       value.get("order_id"),
+                       value.get("customer", {}).get("name"))
     to:
       topic: enriched_orders
       keyType: string  # Still keyed by order_id
