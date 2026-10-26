@@ -109,7 +109,7 @@ public class JoinWithTableOperation extends StoreOperation {
             final var part = userFunctionOf(context, PARTITIONER_NAME, partitioner, UserStreamPartitioner.EXPECTED_RESULT_TYPE, equalTo(DataString.DATATYPE), superOf(k), superOf(v), equalTo(DataInteger.DATATYPE));
             final var userPart = part != null ? new UserStreamPartitioner(part, tags) : null;
             final var otherPart = userFunctionOf(context, PARTITIONER_NAME, otherPartitioner, UserStreamPartitioner.EXPECTED_RESULT_TYPE, equalTo(DataString.DATATYPE), superOf(k), superOf(v), equalTo(DataInteger.DATATYPE));
-            final var userOtherPart = part != null ? new UserStreamPartitioner(otherPart, tags) : null;
+            final var userOtherPart = otherPart != null ? new UserStreamPartitioner(otherPart, tags) : null;
             final var tableJoined = tableJoinedOf(userPart, userOtherPart);
             final var kvStore = validateKeyValueStore(store(), k, vr);
             final var mat = materializedOf(context, kvStore);
