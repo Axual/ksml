@@ -1,7 +1,7 @@
 # This Dockerfile expects build artifacts in the build-output/ directory.
 
 # Targets:
-# - base            = UBI image with ksml user and build packages from microdnf
+# - base            = UBI image with ksml user and runtime packages from microdnf
 # - graal           = base stage plus GraalVM installed
 # - ksml            = base plus GraalVM and pre-built artifacts from build-output/
 
@@ -16,8 +16,7 @@ ENV PATH=/opt/graal/bin:$PATH \
 
 RUN set -eux \
     	&& microdnf upgrade -y --nodocs \
-        && microdnf install -y --nodocs procps tar unzip gzip zlib openssl-devel gcc gcc-c++ \
-    		    make patch glibc-langpack-en libxcrypt shadow-utils \
+        && microdnf install -y --nodocs procps tar unzip gzip zlib glibc-langpack-en libxcrypt shadow-utils \
         && useradd -g 0 -u 1024 -d "$KSML_HOME" -ms /bin/sh -f -1 ksml \
         && chown -R ksml:0 "$KSML_HOME" /opt                               \
         && chmod -R g=u /home /opt
