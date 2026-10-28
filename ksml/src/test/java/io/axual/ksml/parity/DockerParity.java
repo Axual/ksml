@@ -38,6 +38,7 @@ import org.apache.kafka.common.header.internals.RecordHeaders;
 import org.apache.kafka.common.serialization.ByteArrayDeserializer;
 import org.apache.kafka.common.serialization.ByteArraySerializer;
 import org.apache.kafka.streams.StreamsConfig;
+import org.awaitility.core.ConditionTimeoutException;
 
 import java.io.File;
 import java.io.IOException;
@@ -55,11 +56,13 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static org.awaitility.Awaitility.await;
 
 /**
  * Runs a parity case on real Kafka with Docker Compose ({@code parity-docker/docker-compose.yml}). The KSML side
@@ -203,36 +206,22 @@ final class DockerParity {
             try (final var admin = admin(bootstrap)) {
                 final var existing = admin.listTopics().names().get();
                 if (!existing.isEmpty()) admin.deleteTopics(existing).all().get();
-                final var deadline = System.currentTimeMillis() + 60_000;
-                while (!admin.listTopics().names().get().isEmpty() && System.currentTimeMillis() < deadline) {
-                    Thread.sleep(500);
-                }
-                final var newTopics = topics.stream()
-                        .map(t -> new NewTopic(t, parityCase.partitions.getOrDefault(t, 1), (short) 1)
-                                .configs(Map.of("retention.ms", "-1")))
-                        .toList();
-                for (var attempt = 0; ; attempt++) {
-                    try {
-                        admin.createTopics(newTopics).all().get();
-                        break;
-                    } catch (Exception e) {
-                        if (attempt > 20) throw e;
-                        Thread.sleep(500);
-                        final var present = admin.listTopics().names().get();
-                        if (present.containsAll(topics)) break;
-                    }
-                }
+                waitUntil(Duration.ofSeconds(60), Duration.ofMillis(500), () -> admin.listTopics().names().get().isEmpty());
+                // A topic that is still being deleted cannot be created yet, so retry with the topics that are missing
+                await().atMost(Duration.ofSeconds(15)).pollDelay(Duration.ZERO).pollInterval(Duration.ofMillis(500)).ignoreExceptions()
+                        .until(() -> {
+                            final var present = admin.listTopics().names().get();
+                            final var missing = topics.stream()
+                                    .filter(t -> !present.contains(t))
+                                    .map(t -> new NewTopic(t, parityCase.partitions.getOrDefault(t, 1), (short) 1)
+                                            .configs(Map.of("retention.ms", "-1")))
+                                    .toList();
+                            if (!missing.isEmpty()) admin.createTopics(missing).all().get();
+                            return admin.listTopics().names().get().containsAll(topics);
+                        });
                 // Wait until every partition of the new topics has a leader, so the first writes are not lost
-                final var leaderDeadline = System.currentTimeMillis() + 30_000;
-                while (System.currentTimeMillis() < leaderDeadline) {
-                    try {
-                        final var described = admin.describeTopics(topics).allTopicNames().get();
-                        if (described.values().stream().allMatch(d -> d.partitions().stream().allMatch(p -> p.leader() != null && !p.leader().isEmpty()))) break;
-                    } catch (ExecutionException e) {
-                        // Not known yet
-                    }
-                    Thread.sleep(300);
-                }
+                waitUntil(Duration.ofSeconds(30), Duration.ofMillis(300), () -> admin.describeTopics(topics).allTopicNames().get().values().stream()
+                        .allMatch(d -> d.partitions().stream().allMatch(p -> p.leader() != null && !p.leader().isEmpty())));
             }
         }
     }
@@ -262,7 +251,8 @@ final class DockerParity {
         for (final var entry : System.getProperty("java.class.path").split(File.pathSeparator)) {
             final var name = Paths.get(entry).getFileName().toString();
             if (name.startsWith("assertj-core") || name.startsWith("junit-jupiter-api") || name.startsWith("opentest4j")
-                    || name.startsWith("junit-platform-commons") || name.startsWith("apiguardian")) {
+                    || name.startsWith("junit-platform-commons") || name.startsWith("apiguardian")
+                    || name.startsWith("awaitility") || name.startsWith("hamcrest")) {
                 Files.copy(Paths.get(entry), RUN_DIR.resolve("extra").resolve(name));
             }
         }
@@ -312,47 +302,79 @@ final class DockerParity {
         final var services = Map.of(KSML_BOOTSTRAP, "ksml", REF_BOOTSTRAP, "reference");
         for (final var entry : sides.entrySet()) {
             try (final var admin = admin(entry.getKey())) {
-                final var start = System.currentTimeMillis();
-                var lastOutput = -1L;
-                var quietSince = System.currentTimeMillis();
-                var startedAt = -1L;
-                while (true) {
-                    final var now = System.currentTimeMillis();
-                    final var stable = isStable(admin, appId, streamsProtocol(parityCase));
-                    if (stable && startedAt < 0) startedAt = now;
-                    final var committed = stable
-                            ? committedOffsets(admin, appId, streamsProtocol(parityCase))
-                            : Map.<TopicPartition, OffsetAndMetadata>of();
-                    // Input topics and the internal topics the app reads (repartition, foreign-key subscription)
-                    final var readTopics = new HashSet<>(parityCase.inputs.keySet());
-                    readTopics.removeAll(parityCase.globalTopics);
-                    committed.keySet().forEach(tp -> readTopics.add(tp.topic()));
-                    admin.listTopics().names().get().stream()
-                            .filter(t -> t.startsWith(appId + "-") && (t.endsWith("-repartition") || t.endsWith("-topic")))
-                            .forEach(readTopics::add);
-                    final var readEnds = endOffsets(admin, readTopics);
-                    final var allConsumed = readEnds.entrySet().stream().allMatch(e -> e.getValue() == 0
-                            || (committed.get(e.getKey()) != null && committed.get(e.getKey()).offset() >= e.getValue()));
-                    final var output = endOffsets(admin, parityCase.outputs.keySet()).values().stream().mapToLong(Long::longValue).sum();
-                    if (output != lastOutput) {
-                        lastOutput = output;
-                        quietSince = now;
-                    }
-                    if (startedAt > 0 && allConsumed && now - quietSince >= QUIET_MS) break;
-                    final var service = services.get(entry.getKey());
-                    if (!compose(env, "ps", "--format", "{{.State}}", service).contains("running")) break;
-                    if (streamsFailed(compose(env, "logs", "--no-color", "--tail", "300", service))) break;
-                    if (startedAt < 0 && now - start > START_TIMEOUT_MS) {
-                        entry.getValue().notes.add("the app did not join its consumer group within " + START_TIMEOUT_MS / 1000 + "s");
-                        break;
-                    }
-                    if (startedAt > 0 && now - startedAt > DONE_TIMEOUT_MS) {
-                        entry.getValue().notes.add("the app did not consume all input within " + DONE_TIMEOUT_MS / 1000 + "s");
-                        break;
-                    }
-                    Thread.sleep(1000);
-                }
+                final var progress = new Progress(System.currentTimeMillis());
+                // isDone always ends by itself through the start and done timeouts; atMost is only a safety net
+                await().atMost(Duration.ofMillis(START_TIMEOUT_MS + DONE_TIMEOUT_MS + 60_000))
+                        .pollDelay(Duration.ZERO).pollInterval(Duration.ofSeconds(1))
+                        .until(() -> isDone(env, parityCase, appId, admin, services.get(entry.getKey()), entry.getValue(), progress));
             }
+        }
+    }
+
+    /**
+     * What {@link #isDone} remembers between two polls of one side.
+     */
+    private static final class Progress {
+        private final long start;
+        private long lastOutput = -1L;
+        private long quietSince;
+        private long startedAt = -1L;
+
+        private Progress(long start) {
+            this.start = start;
+            this.quietSince = start;
+        }
+    }
+
+    /**
+     * One poll of one side: true when the app is done, has stopped or failed, or did not start or finish in time.
+     */
+    private static boolean isDone(Map<String, String> env, ParityCase parityCase, String appId, Admin admin, String service,
+                                  SideResult side, Progress progress) throws Exception {
+        final var now = System.currentTimeMillis();
+        final var stable = isStable(admin, appId, streamsProtocol(parityCase));
+        if (stable && progress.startedAt < 0) progress.startedAt = now;
+        final var committed = stable
+                ? committedOffsets(admin, appId, streamsProtocol(parityCase))
+                : Map.<TopicPartition, OffsetAndMetadata>of();
+        // Input topics and the internal topics the app reads (repartition, foreign-key subscription)
+        final var readTopics = new HashSet<>(parityCase.inputs.keySet());
+        readTopics.removeAll(parityCase.globalTopics);
+        committed.keySet().forEach(tp -> readTopics.add(tp.topic()));
+        admin.listTopics().names().get().stream()
+                .filter(t -> t.startsWith(appId + "-") && (t.endsWith("-repartition") || t.endsWith("-topic")))
+                .forEach(readTopics::add);
+        final var readEnds = endOffsets(admin, readTopics);
+        final var allConsumed = readEnds.entrySet().stream().allMatch(e -> e.getValue() == 0
+                || (committed.get(e.getKey()) != null && committed.get(e.getKey()).offset() >= e.getValue()));
+        final var output = endOffsets(admin, parityCase.outputs.keySet()).values().stream().mapToLong(Long::longValue).sum();
+        if (output != progress.lastOutput) {
+            progress.lastOutput = output;
+            progress.quietSince = now;
+        }
+        if (progress.startedAt > 0 && allConsumed && now - progress.quietSince >= QUIET_MS) return true;
+        if (!compose(env, "ps", "--format", "{{.State}}", service).contains("running")) return true;
+        if (streamsFailed(compose(env, "logs", "--no-color", "--tail", "300", service))) return true;
+        if (progress.startedAt < 0 && now - progress.start > START_TIMEOUT_MS) {
+            side.notes.add("the app did not join its consumer group within " + START_TIMEOUT_MS / 1000 + "s");
+            return true;
+        }
+        if (progress.startedAt > 0 && now - progress.startedAt > DONE_TIMEOUT_MS) {
+            side.notes.add("the app did not consume all input within " + DONE_TIMEOUT_MS / 1000 + "s");
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Polls until the condition is true or the time is up. A timeout is not an error here: the next step shows what
+     * is missing.
+     */
+    private static void waitUntil(Duration atMost, Duration interval, Callable<Boolean> condition) {
+        try {
+            await().atMost(atMost).pollDelay(Duration.ZERO).pollInterval(interval).ignoreExceptions().until(condition);
+        } catch (ConditionTimeoutException _) {
+            // Go on
         }
     }
 
@@ -378,7 +400,7 @@ final class DockerParity {
             }
             final var group = admin.describeConsumerGroups(List.of(appId)).all().get().get(appId);
             return group.groupState() == GroupState.STABLE && !group.members().isEmpty();
-        } catch (ExecutionException e) {
+        } catch (ExecutionException _) {
             // Kafka 4.x reports a group that has not been created yet as an error
             return false;
         }
@@ -431,13 +453,13 @@ final class DockerParity {
                 final var byPartition = new TreeMap<Integer, List<SideResult.Rec>>();
                 final var deadline = System.currentTimeMillis() + 30_000;
                 while (partitions.stream().anyMatch(p -> consumer.position(p) < ends.get(p)) && System.currentTimeMillis() < deadline) {
-                    for (final var record : consumer.poll(Duration.ofMillis(500))) {
+                    for (final var rec : consumer.poll(Duration.ofMillis(500))) {
                         final var headers = new TreeMap<String, String>();
-                        record.headers().forEach(h -> headers.put(h.key(), h.value() == null ? null : new String(h.value(), UTF_8)));
+                        rec.headers().forEach(h -> headers.put(h.key(), h.value() == null ? null : new String(h.value(), UTF_8)));
                         final var format = output.getValue();
-                        byPartition.computeIfAbsent(record.partition(), p -> new ArrayList<>()).add(new SideResult.Rec(
-                                format.key().decode(record.key()), format.value().decode(record.value()), record.timestamp(),
-                                headers, format.value().raw(record.value()), multiPartition ? record.partition() : -1));
+                        byPartition.computeIfAbsent(rec.partition(), p -> new ArrayList<>()).add(new SideResult.Rec(
+                                format.key().decode(rec.key()), format.value().decode(rec.value()), rec.timestamp(),
+                                headers, format.value().raw(rec.value()), multiPartition ? rec.partition() : -1));
                     }
                 }
                 final var records = new ArrayList<SideResult.Rec>();

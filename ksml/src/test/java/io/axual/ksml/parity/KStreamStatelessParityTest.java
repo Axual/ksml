@@ -70,7 +70,7 @@ class KStreamStatelessParityTest {
                 .pipe("in", null, "{\"amount\":30}", 3000)
                 .pipe("in", "k3", null, 4000)
                 .pipe("in", "k4", "{\"amount\":11}", 5000)
-                .run();
+                .check();
     }
 
     @Test
@@ -92,7 +92,7 @@ class KStreamStatelessParityTest {
                 .pipe("in", null, "{\"amount\":7}", 2000)
                 .pipe("in", "k3", null, 3000, Map.of("trace", "t-3"))
                 .pipe("in", "k4", "{\"amount\":-1}", 500)
-                .run();
+                .check();
     }
 
     @Test
@@ -112,7 +112,7 @@ class KStreamStatelessParityTest {
                 .pipe("in", "k1", "{\"user\":\"alice\"}", 1000)
                 .pipe("in", "k2", "{\"other\":1}", 2000)
                 .pipe("in", "k3", null, 3000)
-                .run();
+                .check();
     }
 
     @Test
@@ -139,7 +139,7 @@ class KStreamStatelessParityTest {
                 .pipe("in", "k1", "{\"items\":[1,2,3]}", 1000)
                 .pipe("in", "k2", "{\"items\":[]}", 2000)
                 .pipe("in", "k3", "{\"items\":[4,null]}", 3000)
-                .run();
+                .check();
     }
 
     private static String call(String key, String value) {
@@ -166,9 +166,9 @@ class KStreamStatelessParityTest {
                         }
 
                         @Override
-                        public void process(FixedKeyRecord<String, String> record) {
-                            store.put(String.format("%03d", ++counter), call(record.key(), record.value()));
-                            context.forward(record);
+                        public void process(FixedKeyRecord<String, String> rec) {
+                            store.put(String.format("%03d", ++counter), call(rec.key(), rec.value()));
+                            context.forward(rec);
                         }
                     }, "peek_calls").to("out", PRODUCED);
                     input.process(() -> new Processor<String, String, Void, Void>() {
@@ -181,8 +181,8 @@ class KStreamStatelessParityTest {
                         }
 
                         @Override
-                        public void process(Record<String, String> record) {
-                            store.put(String.format("%03d", ++counter), call(record.key(), record.value()));
+                        public void process(Record<String, String> rec) {
+                            store.put(String.format("%03d", ++counter), call(rec.key(), rec.value()));
                         }
                     }, "foreach_calls");
                 })
@@ -191,7 +191,7 @@ class KStreamStatelessParityTest {
                 .pipe("in", null, "{\"amount\":2}", 2000)
                 .pipe("in", "k3", null, 3000)
                 .pipe("in", "k4", "{\"amount\":4}", 4000)
-                .run();
+                .check();
     }
 
     @Test
@@ -204,7 +204,7 @@ class KStreamStatelessParityTest {
                 .pipe("in_b", "b1", "{\"n\":2}", 500)
                 .pipe("in_a", "a2", "{\"n\":3}", 3000)
                 .pipe("in_b", null, "{\"n\":4}", 2000)
-                .run();
+                .check();
     }
 
     private static boolean amountAbove(String value, int limit) {
@@ -231,7 +231,7 @@ class KStreamStatelessParityTest {
                 .pipe("in", "k2", "{\"amount\":50}", 2000)
                 .pipe("in", "k3", "{\"amount\":5}", 3000)
                 .pipe("in", "k4", null, 4000)
-                .run();
+                .check();
     }
 
     @Test
@@ -244,7 +244,7 @@ class KStreamStatelessParityTest {
                 .pipe("in", "k1", "{\"region\":\"eu\"}", 1000)
                 .pipe("in", "k2", "{\"region\":\"us\"}", 2000)
                 .pipe("in", "k3", "{\"region\":\"eu\"}", 3000)
-                .run();
+                .check();
     }
 
     @Test
@@ -261,7 +261,7 @@ class KStreamStatelessParityTest {
                 .pipe("in", "k1", "{\"v\":2}", 2000)
                 .pipe("in", "k2", "{\"v\":3}", 3000)
                 .pipe("in", "k1", null, 4000)
-                .run();
+                .check();
     }
 
     @Test
@@ -276,6 +276,6 @@ class KStreamStatelessParityTest {
                 .pipe("in", "k1", "{\"amount\":1}", 1000)
                 .pipe("in", null, "{\"amount\":2}", 2000)
                 .pipe("in", "k3", null, 3000)
-                .run();
+                .check();
     }
 }

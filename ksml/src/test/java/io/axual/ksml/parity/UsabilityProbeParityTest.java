@@ -37,6 +37,8 @@ import java.nio.file.StandardOpenOption;
  */
 @ExtendWith(KSMLTestExtension.class)
 class UsabilityProbeParityTest {
+    // A probe only records what KSML reports for a mistake, so there is nothing to assert
+    @SuppressWarnings("java:S2699")
     @ParameterizedTest
     @ValueSource(strings = {
             "u01-typo-in-operation-type", "u02-unknown-stream-in-to", "u03-unknown-field", "u04-python-syntax-error",

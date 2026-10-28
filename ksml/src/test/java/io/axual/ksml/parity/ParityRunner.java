@@ -180,13 +180,13 @@ final class ParityRunner {
     private static List<SideResult.Rec> read(TopologyTestDriver driver, String topic, ParityCase.TopicFormat format) {
         final var result = new ArrayList<SideResult.Rec>();
         final var output = driver.createOutputTopic(topic, new ByteArrayDeserializer(), new ByteArrayDeserializer());
-        for (final var record : output.readRecordsToList()) {
+        for (final var rec : output.readRecordsToList()) {
             final var headers = new TreeMap<String, String>();
-            for (final var header : record.headers()) {
+            for (final var header : rec.headers()) {
                 headers.put(header.key(), header.value() == null ? null : new String(header.value(), UTF_8));
             }
-            result.add(new SideResult.Rec(format.key().decode(record.key()), format.value().decode(record.value()),
-                    record.timestamp(), headers, format.value().raw(record.value()), -1));
+            result.add(new SideResult.Rec(format.key().decode(rec.key()), format.value().decode(rec.value()),
+                    rec.timestamp(), headers, format.value().raw(rec.value()), -1));
         }
         return result;
     }
@@ -261,7 +261,7 @@ final class ParityRunner {
         if (dir == null) return;
         try (final var paths = Files.walk(dir)) {
             paths.sorted(Comparator.reverseOrder()).forEach(p -> p.toFile().delete());
-        } catch (IOException e) {
+        } catch (IOException _) {
             // Best effort, the directory is in the temp folder
         }
     }

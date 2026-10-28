@@ -21,6 +21,7 @@ package io.axual.ksml.parity;
  */
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 import java.util.TreeMap;
@@ -77,8 +78,8 @@ public record ParityComparison(ParityCase parityCase, String optimization, SideR
 
     private static void compareRecords(ParityCase parityCase, SideResult ref, SideResult ksml, List<String> differences, List<String> notes) {
         for (final var topic : parityCase.outputs.keySet()) {
-            final var refRecords = parityCase.compareFinalValues ? finalValues(ref.records.getOrDefault(topic, List.of())) : ref.records.getOrDefault(topic, List.of());
-            final var ksmlRecords = parityCase.compareFinalValues ? finalValues(ksml.records.getOrDefault(topic, List.of())) : ksml.records.getOrDefault(topic, List.of());
+            final var refRecords = recordsToCompare(parityCase, ref.records.getOrDefault(topic, List.of()));
+            final var ksmlRecords = recordsToCompare(parityCase, ksml.records.getOrDefault(topic, List.of()));
             if (refRecords.size() != ksmlRecords.size()) {
                 differences.add("topic " + topic + ": Kafka Streams wrote " + refRecords.size() + " records, KSML wrote " + ksmlRecords.size());
             }
@@ -97,6 +98,19 @@ public record ParityComparison(ParityCase parityCase, String optimization, SideR
                 }
             }
         }
+    }
+
+    private static List<SideResult.Rec> recordsToCompare(ParityCase parityCase, List<SideResult.Rec> records) {
+        if (parityCase.compareFinalValues) return finalValues(records);
+        if (parityCase.anyOrderInDocker && "docker".equals(System.getProperty(ParityCase.MODE_PROPERTY))) {
+            return records.stream()
+                    .sorted(Comparator.comparingInt(SideResult.Rec::partition)
+                            .thenComparing(r -> Normalizer.render(r.key()))
+                            .thenComparingLong(SideResult.Rec::timestamp)
+                            .thenComparing(r -> Normalizer.render(r.value())))
+                    .toList();
+        }
+        return records;
     }
 
     private static List<SideResult.Rec> finalValues(List<SideResult.Rec> records) {

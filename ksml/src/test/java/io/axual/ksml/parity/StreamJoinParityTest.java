@@ -71,7 +71,7 @@ class StreamJoinParityTest {
                 .pipe("left", "k1", "{\"v\":5}", 15000)
                 .pipe("left", "k1", "{\"v\":6}", 2000)
                 .pipe("left", "k9", "{\"v\":9}", 40000)
-                .run();
+                .check();
     }
 
     private static String streamTableJoined(String key, String order, String customer) {
@@ -105,7 +105,7 @@ class StreamJoinParityTest {
                 .pipe("s_in", "k2", null, 6000)
                 .pipe("s_in", null, "{\"v\":7}", 7000)
                 .knownDifference("F01", "a stream record with a null value is joined instead of dropped")
-                .run();
+                .check();
     }
 
     private static String globalJoined(String key, String order, String customer) {
@@ -136,7 +136,7 @@ class StreamJoinParityTest {
                 .pipe("s_in", "o3", "{\"amount\":7}", 4000)
                 .pipe("s_in", "o4", null, 5000)
                 .knownDifference("F07", "a key mapper that returns None makes the global table join throw a NullPointerException")
-                .run();
+                .check();
     }
 
     @Test
@@ -155,7 +155,7 @@ class StreamJoinParityTest {
                 .pipe("right", "k3", "{\"v\":4}", 3000)
                 .pipe("left", "k9", "{\"v\":9}", 30000)
                 .knownDifference("F08", "the stream-stream outerJoin passes key None to the joiner")
-                .run();
+                .check();
     }
 
     @Test
@@ -173,6 +173,6 @@ class StreamJoinParityTest {
                 .pipe("left", "k2", "{\"v\":3}", 2000)
                 .pipe("left", "k9", "{\"v\":9}", 30000)
                 .knownDifference("F08", "the stream-stream outerJoin passes key None to the joiner")
-                .run();
+                .check();
     }
 }

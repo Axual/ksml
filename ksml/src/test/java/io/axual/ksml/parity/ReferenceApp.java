@@ -33,7 +33,7 @@ import java.util.concurrent.CountDownLatch;
  * Runs the Kafka Streams reference topology of one parity case against a real broker. It is started in the
  * {@code reference} service of {@code parity-docker/docker-compose.yml}.
  * <p>
- * The case is found by calling its test method with {@code parity.mode=capture}: {@link ParityCase#run()}
+ * The case is found by calling its test method with {@code parity.mode=capture}: {@link ParityCase#check()}
  * then only stores the case, so the reference topology is the exact same code as in the test.
  */
 public final class ReferenceApp {

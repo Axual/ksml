@@ -162,7 +162,7 @@ A new operation, or a change to how an operation behaves, needs a parity case.
                .ksml("parity/c60-example.yaml")
                .pipe("in", "k1", "{\"amount\":5}", 1000)
                .pipe("in", "k2", null, 2000)
-               .run();
+               .check();
    }
    ```
 
@@ -184,6 +184,8 @@ Useful options on `ParityCase`:
 - `dockerOnly()` and `skipInDocker(reason)`.
 - `global(topic)` for a global table topic.
 - `compareFinalValues()` for topics with several partitions.
+- `anyOrderInDocker()` when several tasks write to the same output partition, for example after a
+  `repartition`: in Docker mode the records are then compared without their order.
 
 ## Files
 

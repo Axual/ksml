@@ -75,18 +75,18 @@ class DockerOnlyParityTest {
     void c44aCountAcrossRestartWithDefaultStore() {
         countAcrossRestart("C44a", "count survives a restart: KSML store with default options", "parity/c12-count.yaml")
                 .knownDifference("F06", "a store with default options is in memory and has no changelog, so the count starts again at 0")
-                .run();
+                .check();
     }
 
     @Test
     void c44bCountAcrossRestartWithKafkaStreamsLikeStore() {
         countAcrossRestart("C44b", "count survives a restart: KSML store with persistent, logging and timestamped",
-                "parity/c44b-count-store-like-kafka-streams.yaml").run();
+                "parity/c44b-count-store-like-kafka-streams.yaml").check();
     }
 
     @Test
     void c44cCountAcrossRestartWithoutStore() {
-        countAcrossRestart("C44c", "count survives a restart: no KSML store definition", "parity/c44c-count-no-store.yaml").run();
+        countAcrossRestart("C44c", "count survives a restart: no KSML store definition", "parity/c44c-count-no-store.yaml").check();
     }
 
     @Test
@@ -106,7 +106,7 @@ class DockerOnlyParityTest {
                 .pipe("s_in", "k1", "{\"v\":1}", 2000)
                 .restartAfter(2)
                 .pipe("s_in", "k1", "{\"v\":2}", 3000)
-                .run();
+                .check();
     }
 
     private static String streamTableJoined(String key, String order, String customer) {
@@ -137,13 +137,15 @@ class DockerOnlyParityTest {
                 .pipe("in", "k2", "{\"region\":\"us\"}", 2000)
                 .pipe("in", "k3", "{\"region\":\"apac\"}", 3000)
                 .pipe("in", "k4", "{\"region\":\"eu\"}", 4000)
-                .run();
+                .check();
     }
 
     @Test
     void c46RepartitionWithPartitioner() {
         ParityCase.of("C46", "repartition with numberOfPartitions and a partitioner, output on 3 partitions")
                 .input("in").output("out").partitions("out", 3)
+                // Each repartition partition has its own task, and the tasks run in any order
+                .anyOrderInDocker()
                 .dockerOnly()
                 .reference(builder -> builder.stream("in", CONSUMED)
                         .repartition(Repartitioned.with(Serdes.String(), Serdes.String()).withNumberOfPartitions(3).withStreamPartitioner(BY_REGION))
@@ -154,7 +156,7 @@ class DockerOnlyParityTest {
                 .pipe("in", "k2", "{\"region\":\"us\"}", 2000)
                 .pipe("in", "k3", "{\"region\":\"apac\"}", 3000)
                 .pipe("in", "k4", "{\"region\":\"eu\"}", 4000)
-                .run();
+                .check();
     }
 
     @Test
@@ -174,6 +176,6 @@ class DockerOnlyParityTest {
                 .pipe("in", "k4", "{\"user\":\"carol\"}", 4000)
                 .pipe("in", "k5", "{\"user\":\"bob\"}", 5000)
                 .pipe("in", "k6", "{\"user\":\"alice\"}", 6000)
-                .run();
+                .check();
     }
 }

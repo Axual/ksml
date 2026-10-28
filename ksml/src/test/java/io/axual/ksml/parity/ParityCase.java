@@ -45,7 +45,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 public final class ParityCase {
     /**
-     * System property that picks how {@link #run()} works: {@code ttd} (default) runs both sides on a
+     * System property that picks how {@link #check()} works: {@code ttd} (default) runs both sides on a
      * {@code TopologyTestDriver}, {@code docker} runs both sides on real brokers with Docker Compose, and
      * {@code capture} only stores the case in {@link #captured} (used by {@link ReferenceApp}).
      */
@@ -77,6 +77,7 @@ public final class ParityCase {
     boolean compareShape = false;
     boolean compareChangelogs = false;
     boolean compareFinalValues = false;
+    boolean anyOrderInDocker = false;
     final Set<String> globalTopics = new HashSet<>();
     String findingId;
     String findingText;
@@ -175,6 +176,15 @@ public final class ParityCase {
     }
 
     /**
+     * In Docker mode, compares the records of each output topic without their order. Use this when several tasks
+     * write to the same output partition, because on real Kafka the tasks run in any order.
+     */
+    public ParityCase anyOrderInDocker() {
+        this.anyOrderInDocker = true;
+        return this;
+    }
+
+    /**
      * Marks an input topic that is read as a global table. A global consumer commits no offsets.
      */
     public ParityCase global(String topic) {
@@ -234,7 +244,7 @@ public final class ParityCase {
     /**
      * Runs the case for every optimization setting, writes the report and checks the outcome.
      */
-    public List<ParityComparison> run() {
+    public List<ParityComparison> check() {
         final var mode = System.getProperty(MODE_PROPERTY, "ttd");
         if (mode.equals("capture")) {
             captured = this;

@@ -113,7 +113,7 @@ class Kafka44ParityTest {
                 .pipe("s_in", "o2", "{\"customer\":\"c2\",\"amount\":5}", 3000)
                 .pipe("g_customers", "c2", "{\"name\":\"Bob\"}", 4000)
                 .pipe("s_in", "o3", "{\"customer\":\"c2\",\"amount\":7}", 5000)
-                .run();
+                .check();
     }
 
     @Test
@@ -129,7 +129,7 @@ class Kafka44ParityTest {
                 .pipe("in", "k3", "{\"n\":3}", 3000, Map.of("region", "drop"))
                 .pipe("in", "k4", "{\"n\":4}", 4000)
                 .pipe("in", "k5", "{\"n\":5}", 5000, Map.of("region", "eu"))
-                .run();
+                .check();
     }
 
     @Test
@@ -137,7 +137,7 @@ class Kafka44ParityTest {
         ParityCase.of("C46b", "repartition with a partitioner that reads a header, output on 3 partitions (KIP-1321)")
                 .input("in").output("out").partitions("out", 3).compareHeaders()
                 // Each repartition partition has its own task, and the tasks run in any order
-                .compareFinalValues()
+                .anyOrderInDocker()
                 .dockerOnly()
                 .reference(builder -> builder.stream("in", CONSUMED)
                         .repartition(Repartitioned.with(Serdes.String(), Serdes.String()).withNumberOfPartitions(3)
@@ -150,7 +150,7 @@ class Kafka44ParityTest {
                 .pipe("in", "k3", "{\"n\":3}", 3000, Map.of("region", "drop"))
                 .pipe("in", "k4", "{\"n\":4}", 4000)
                 .pipe("in", "k5", "{\"n\":5}", 5000, Map.of("region", "eu"))
-                .run();
+                .check();
     }
 
     @Test
@@ -173,7 +173,7 @@ class Kafka44ParityTest {
                 .pipe("t_customers", "c1", "{\"name\":\"Ann\"}", 1000, Map.of("region", "eu"))
                 .pipe("t_orders", "o1", "{\"customer\":\"c1\",\"amount\":10}", 2000, Map.of("region", "eu"))
                 .pipe("t_orders", "o2", "{\"customer\":\"c1\",\"amount\":5}", 3000)
-                .run();
+                .check();
     }
 
     @Test
@@ -195,7 +195,7 @@ class Kafka44ParityTest {
                 .pipe("in", "b", "{\"amount\":2}", 2000, Map.of("trace", "t-2"))
                 .pipe("in", "a", "{\"amount\":3}", 3000, Map.of("trace", "t-3"))
                 .pipe("in", "a", "{\"amount\":4}", 4000)
-                .run();
+                .check();
     }
 
     @Test
@@ -211,7 +211,7 @@ class Kafka44ParityTest {
                 .pipe("t_in", "k1", "{\"v\":2}", 2000, Map.of("trace", "t-2"))
                 .pipe("t_in", "k2", "{\"v\":3}", 3000, Map.of("trace", "t-3"))
                 .pipe("t_in", "k9", "{\"v\":9}", 20000, Map.of("trace", "t-9"))
-                .run();
+                .check();
     }
 
     @Test
@@ -232,7 +232,7 @@ class Kafka44ParityTest {
                 .pipe("right", "k1", "{\"v\":2}", 5000, Map.of("trace", "r-2"))
                 .pipe("left", "k2", "{\"v\":4}", 3000, Map.of("trace", "l-4"))
                 .pipe("left", "k9", "{\"v\":9}", 40000, Map.of("trace", "l-9"))
-                .run();
+                .check();
     }
 
     private static void countReference(StreamsBuilder builder) {
@@ -261,13 +261,13 @@ class Kafka44ParityTest {
 
     @Test
     void c52StreamsProtocolCountAcrossRestart() {
-        countAcrossRestart("C52", "group.protocol=streams: count with a persistent, logged store survives a restart").run();
+        countAcrossRestart("C52", "group.protocol=streams: count with a persistent, logged store survives a restart").check();
     }
 
     @Test
     void c53StreamsProtocolStaticMembership() {
         countAcrossRestart("C53", "group.protocol=streams with static membership (group.instance.id): count survives a restart")
                 .config("group.instance.id", "parity-static-1")
-                .run();
+                .check();
     }
 }

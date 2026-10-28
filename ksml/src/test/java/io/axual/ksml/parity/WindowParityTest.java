@@ -70,7 +70,7 @@ class WindowParityTest {
                 .pipe("in", "x", "{\"n\":6}", 16000)
                 .pipe("in", "a", "{\"n\":7}", 5000)
                 .pipe("in", "a", "{\"n\":8}", 11000)
-                .run();
+                .check();
     }
 
     @Test
@@ -87,7 +87,7 @@ class WindowParityTest {
                 .pipe("in", "a", "{\"n\":1}", 1000)
                 .pipe("in", "b", "{\"n\":2}", 2000)
                 .knownDifference("F09", "toStream with a mapper on a windowed table fails: the key is a struct, not a Window")
-                .run();
+                .check();
     }
 
     @Test
@@ -104,7 +104,7 @@ class WindowParityTest {
                 .pipe("in", "a", "{\"amount\":1}", 1000)
                 .pipe("in", "a", "{\"amount\":2}", 6000)
                 .pipe("in", "a", "{\"amount\":4}", 12000)
-                .run();
+                .check();
     }
 
     @Test
@@ -122,7 +122,7 @@ class WindowParityTest {
                 .pipe("in", "a", "{\"n\":2}", 3000)
                 .pipe("in", "a", "{\"n\":3}", 7000)
                 .pipe("in", "a", "{\"n\":4}", 20000)
-                .run();
+                .check();
     }
 
     @Test
@@ -142,7 +142,7 @@ class WindowParityTest {
                 .pipe("in", "a", "{\"amount\":4}", 5500)
                 .pipe("in", "a", "{\"amount\":8}", 30000)
                 .knownDifference("F14", "the required session store retention (1h here) changes which sessions merge")
-                .run();
+                .check();
     }
 
     @Test
@@ -161,7 +161,7 @@ class WindowParityTest {
                 .pipe("in", "a", "{\"amount\":2}", 10000)
                 .pipe("in", "a", "{\"amount\":4}", 5500)
                 .pipe("in", "a", "{\"amount\":8}", 30000)
-                .run();
+                .check();
     }
 
     @Test
@@ -181,7 +181,7 @@ class WindowParityTest {
                 .pipe("in", "b", "{\"n\":3}", 3000)
                 .pipe("in", "a", "{\"n\":4}", 12000)
                 .pipe("in", "x", "{\"n\":5}", 25000)
-                .run();
+                .check();
     }
 
     @Test
@@ -203,7 +203,7 @@ class WindowParityTest {
                 .pipe("in", "a", "{\"n\":4}", 12000)
                 .advanceWallClock(2000)
                 .pipe("in", "x", "{\"n\":5}", 25000)
-                .run();
+                .check();
     }
 
     @Test
@@ -221,6 +221,6 @@ class WindowParityTest {
                 .pipe("in_a", "k", "{\"n\":1}", 1000)
                 .pipe("in_a", "k", "{\"n\":2}", 5000)
                 .pipe("in_a", "k", "{\"n\":4}", 15000)
-                .run();
+                .check();
     }
 }

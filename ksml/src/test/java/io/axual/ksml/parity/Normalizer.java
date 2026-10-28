@@ -50,7 +50,7 @@ final class Normalizer {
             // A tombstone (no bytes) and the JSON text "null" are not the same thing on a topic
             if (parsed == null) return "<json text null>";
             return normalize(parsed);
-        } catch (Exception e) {
+        } catch (Exception _) {
             return "<not json: " + text + ">";
         }
     }

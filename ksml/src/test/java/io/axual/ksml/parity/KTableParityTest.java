@@ -69,7 +69,7 @@ class KTableParityTest {
                 .pipe("t_in", "k3", null, 5000)
                 .pipe("t_in", "k4", null, 6000)
                 .knownDifference("F16", "KSML always materializes a source table, so KTable.filter sends fewer tombstones (by design)")
-                .run();
+                .check();
     }
 
     @Test
@@ -91,7 +91,7 @@ class KTableParityTest {
                 .pipe("t_in", "k3", "{\"amount\":50}", 4000)
                 .pipe("t_in", "k3", null, 5000)
                 .pipe("t_in", "k4", null, 6000)
-                .run();
+                .check();
     }
 
     @Test
@@ -107,7 +107,7 @@ class KTableParityTest {
                 .pipe("t_in", "k2", "{\"amount\":1}", 3000)
                 .pipe("t_in", "k1", null, 4000)
                 .pipe("t_in", "k3", null, 5000)
-                .run();
+                .check();
     }
 
     @Test
@@ -119,7 +119,7 @@ class KTableParityTest {
                 .ksml("parity/c20-table-to-stream-mapper.yaml")
                 .pipe("t_in", "k1", "{\"amount\":5}", 1000)
                 .pipe("t_in", "k1", null, 2000)
-                .run();
+                .check();
     }
 
     private static void tableGroupByReference(StreamsBuilder builder) {
@@ -150,7 +150,7 @@ class KTableParityTest {
                 .reference(KTableParityTest::tableGroupByReference)
                 .ksml("parity/c21-table-group-by.yaml"))
                 .knownDifference("F01", "a new key is seen as an update of a DataNull value, the subtractor gets None and the app stops")
-                .run();
+                .check();
     }
 
     @Test
@@ -160,7 +160,7 @@ class KTableParityTest {
                 .reference(KTableParityTest::tableGroupByReference)
                 .ksml("parity/c21b-table-group-by-guarded.yaml"))
                 .knownDifference("F05", "the subtractor value parameter is typed as the aggregate type; the count is also wrong (F01)")
-                .run();
+                .check();
     }
 
     @Test
@@ -175,7 +175,7 @@ class KTableParityTest {
                 .pipe("t_in", "k1", "{\"v\":2}", 2000)
                 .pipe("t_in", "k2", "{\"v\":3}", 3000)
                 .pipe("t_in", "k9", "{\"v\":9}", 20000)
-                .run();
+                .check();
     }
 
     @Test
@@ -190,7 +190,7 @@ class KTableParityTest {
                 .pipe("t_in", "k2", "{\"v\":2}", 2000)
                 .pipe("t_in", "k9", "{\"v\":9}", 20000)
                 .knownDifference("F10", "bufferFullStrategy shutdownWhenFull is ignored for untilTimeLimit, KSML emits early")
-                .run();
+                .check();
     }
 
     private static final ValueJoiner<String, String, String> TABLE_JOINER = (l, r) -> {
@@ -221,7 +221,7 @@ class KTableParityTest {
                 .pipe("t_right", "k2", null, 5000)
                 .pipe("t_left", "k3", "{\"v\":3}", 6000)
                 .knownDifference("F01", "a table delete is joined as a None value instead of giving a tombstone")
-                .run();
+                .check();
     }
 
     private static final ValueJoiner<String, String, String> ENRICH = (order, customer) -> {
@@ -253,7 +253,7 @@ class KTableParityTest {
                 .pipe("t_orders", "o3", "{\"amount\":7}", 8000)
                 .pipe("t_orders", "o2", null, 9000)
                 .knownDifference("F01", "a tombstone on the orders table reaches the foreign-key extractor as None, so the app stops")
-                .run();
+                .check();
     }
 
     @Test
@@ -268,7 +268,7 @@ class KTableParityTest {
                 .ksml("parity/c36b-fk-join-other-key-type.yaml")
                 .pipe("t_customers", "1", "{\"name\":\"Ann\"}", 1000)
                 .pipe("t_orders", "o1", "{\"customer\":1,\"amount\":10}", 2000)
-                .run();
+                .check();
     }
 
     @Test
@@ -293,7 +293,7 @@ class KTableParityTest {
                 .pipe("s_orders", "o1", "{\"customer\":\"c2\",\"amount\":11}", 5000)
                 .pipe("s_orders", null, "{\"customer\":\"c1\",\"amount\":7}", 6000)
                 .pipe("s_orders", "o3", "{\"customer\":\"c1\",\"amount\":3}", 1500)
-                .run();
+                .check();
     }
 
     @Test
@@ -309,6 +309,6 @@ class KTableParityTest {
                 .pipe("t_customers", "c1", "{\"name\":\"Ann\"}", 1000)
                 .pipe("t_orders", "c1-o1", "{\"amount\":10}", 2000)
                 .knownDifference("F21", "no foreign-key extractor that reads the key")
-                .run();
+                .check();
     }
 }

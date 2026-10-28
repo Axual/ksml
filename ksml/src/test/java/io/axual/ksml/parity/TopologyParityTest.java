@@ -45,13 +45,15 @@ class TopologyParityTest {
     void c09bRepartition() {
         ParityCase.of("C09b", "repartition with numberOfPartitions")
                 .input("in").output("out").compareShape()
+                // Each repartition partition has its own task, and the tasks run in any order
+                .anyOrderInDocker()
                 .reference(builder -> builder.stream("in", CONSUMED)
                         .repartition(Repartitioned.with(Serdes.String(), Serdes.String()).withNumberOfPartitions(3))
                         .to("out", PRODUCED))
                 .ksml("parity/c09b-repartition.yaml")
                 .pipe("in", "k1", "{\"n\":1}", 1000)
                 .pipe("in", "k2", "{\"n\":2}", 2000)
-                .run();
+                .check();
     }
 
     @Test
@@ -72,7 +74,7 @@ class TopologyParityTest {
                 .pipe("in", "k2", "{\"user\":\"bob\",\"amount\":2}", 2000)
                 .pipe("in", "k3", "{\"user\":\"alice\",\"amount\":3}", 3000)
                 .knownDifference("F12", "optimization 'all' does not merge the repartition topics of a KSML selectKey")
-                .run();
+                .check();
     }
 
     @Test
@@ -89,7 +91,7 @@ class TopologyParityTest {
                 .ksml("parity/c42b-aggregate-store-like-kafka-streams.yaml")
                 .pipe("in", "a", "{\"amount\":1}", 1000)
                 .pipe("in", "a", "{\"amount\":2}", 2000)
-                .run();
+                .check();
     }
 
     @Test
@@ -103,6 +105,6 @@ class TopologyParityTest {
                 .pipe("in", "k1", "{\"amount\":10,\"div\":2}", 1000)
                 .pipe("in", "k2", "{\"amount\":10,\"div\":0}", 2000)
                 .pipe("in", "k3", "{\"amount\":9,\"div\":3}", 3000)
-                .run();
+                .check();
     }
 }
