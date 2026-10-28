@@ -1,0 +1,40 @@
+streams:
+  input:
+    topic: in
+    keyType: string
+    valueType: json
+  out_count:
+    topic: out_count
+    keyType: string
+    valueType: long
+  out_reduce:
+    topic: out_reduce
+    keyType: string
+    valueType: json
+
+pipelines:
+  rekey:
+    from: input
+    via:
+      - type: selectKey
+        mapper:
+          resultType: string
+          expression: value["user"]
+    as: rekeyed
+  count:
+    from: rekeyed
+    via:
+      - type: groupByKey
+      - type: count
+      - type: toStream
+    to: out_count
+  reduce:
+    from: rekeyed
+    via:
+      - type: groupByKey
+      - type: reduce
+        reducer:
+          resultType: json
+          expression: '{"amount": value1["amount"] + value2["amount"]}'
+      - type: toStream
+    to: out_reduce

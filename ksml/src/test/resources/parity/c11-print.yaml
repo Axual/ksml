@@ -1,0 +1,12 @@
+streams:
+  input:
+    topic: in
+    keyType: string
+    valueType: json
+
+pipelines:
+  main:
+    from: input
+    print:
+      filename: target/parity-print-ksml.txt
+      label: parity

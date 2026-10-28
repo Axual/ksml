@@ -1,0 +1,46 @@
+streams:
+  input:
+    topic: in
+    keyType: string
+    valueType: json
+  out_big:
+    topic: out_big
+    keyType: string
+    valueType: json
+  out_medium:
+    topic: out_medium
+    keyType: string
+    valueType: json
+  out_default:
+    topic: out_default
+    keyType: string
+    valueType: json
+  nd_big:
+    topic: nd_big
+    keyType: string
+    valueType: json
+  nd_medium:
+    topic: nd_medium
+    keyType: string
+    valueType: json
+
+pipelines:
+  with_default:
+    from: input
+    branch:
+      - if:
+          expression: value is not None and value["amount"] > 100
+        to: out_big
+      - if:
+          expression: value is not None and value["amount"] > 10
+        to: out_medium
+      - to: out_default
+  without_default:
+    from: input
+    branch:
+      - if:
+          expression: value is not None and value["amount"] > 100
+        to: nd_big
+      - if:
+          expression: value is not None and value["amount"] > 10
+        to: nd_medium

@@ -1,0 +1,77 @@
+streams:
+  left:
+    topic: left
+    keyType: string
+    valueType: json
+  right:
+    topic: right
+    keyType: string
+    valueType: json
+  out_join:
+    topic: out_join
+    keyType: string
+    valueType: json
+  out_left:
+    topic: out_left
+    keyType: string
+    valueType: json
+
+stores:
+  join_this:
+    type: window
+    keyType: string
+    valueType: json
+    windowSize: 20s
+    retention: 20s
+    retainDuplicates: true
+  join_other:
+    type: window
+    keyType: string
+    valueType: json
+    windowSize: 20s
+    retention: 20s
+    retainDuplicates: true
+  left_this:
+    type: window
+    keyType: string
+    valueType: json
+    windowSize: 20s
+    retention: 20s
+    retainDuplicates: true
+  left_other:
+    type: window
+    keyType: string
+    valueType: json
+    windowSize: 20s
+    retention: 20s
+    retainDuplicates: true
+
+functions:
+  joiner:
+    type: valueJoiner
+    resultType: json
+    expression: '{"key": key, "left": value1["v"] if value1 is not None else None, "right": value2["v"] if value2 is not None else None}'
+
+pipelines:
+  inner:
+    from: left
+    via:
+      - type: join
+        stream: right
+        valueJoiner: joiner
+        timeDifference: 10s
+        grace: 0s
+        thisStore: join_this
+        otherStore: join_other
+    to: out_join
+  left_join:
+    from: left
+    via:
+      - type: leftJoin
+        stream: right
+        valueJoiner: joiner
+        timeDifference: 10s
+        grace: 0s
+        thisStore: left_this
+        otherStore: left_other
+    to: out_left

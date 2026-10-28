@@ -1,0 +1,24 @@
+streams:
+  input:
+    topic: in
+    keyType: string
+    valueType: json
+  output:
+    topic: out
+    keyType: string
+    valueType: json
+  other:
+    topic: other
+    keyType: string
+    valueType: json
+
+pipelines:
+  main:
+    from: input
+    via:
+      - type: join
+        stream: other
+        valueJoiner:
+          resultType: json
+          expression: value1
+    to: output

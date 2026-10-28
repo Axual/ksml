@@ -1,0 +1,55 @@
+tables:
+  left:
+    topic: t_left
+    keyType: string
+    valueType: json
+  right:
+    topic: t_right
+    keyType: string
+    valueType: json
+
+streams:
+  out_join:
+    topic: out_join
+    keyType: string
+    valueType: json
+  out_left:
+    topic: out_left
+    keyType: string
+    valueType: json
+  out_outer:
+    topic: out_outer
+    keyType: string
+    valueType: json
+
+functions:
+  joiner:
+    type: valueJoiner
+    resultType: json
+    expression: '{"left": value1["v"] if value1 is not None else None, "right": value2["v"] if value2 is not None else None}'
+
+pipelines:
+  inner:
+    from: left
+    via:
+      - type: join
+        table: right
+        valueJoiner: joiner
+      - type: toStream
+    to: out_join
+  left_join:
+    from: left
+    via:
+      - type: leftJoin
+        table: right
+        valueJoiner: joiner
+      - type: toStream
+    to: out_left
+  outer_join:
+    from: left
+    via:
+      - type: outerJoin
+        table: right
+        valueJoiner: joiner
+      - type: toStream
+    to: out_outer

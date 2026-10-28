@@ -1,0 +1,29 @@
+streams:
+  input:
+    topic: in
+    keyType: string
+    valueType: json
+  filtered:
+    topic: out_filter
+    keyType: string
+    valueType: json
+  filtered_not:
+    topic: out_filternot
+    keyType: string
+    valueType: json
+
+pipelines:
+  keep_big:
+    from: input
+    via:
+      - type: filter
+        if:
+          expression: value is not None and value["amount"] > 10
+    to: filtered
+  drop_big:
+    from: input
+    via:
+      - type: filterNot
+        if:
+          expression: value is not None and value["amount"] > 10
+    to: filtered_not

@@ -1,0 +1,30 @@
+streams:
+  input:
+    topic: in
+    keyType: string
+    valueType: json
+  output:
+    topic: out
+    keyType: string
+    valueType: json
+
+pipelines:
+  main:
+    from: input
+    via:
+      - type: groupByKey
+      - type: windowByTime
+        windowType: tumbling
+        duration: 10s
+        grase: 5s
+      - type: count
+      - type: toStream
+      - type: mapKey
+        mapper:
+          resultType: string
+          expression: key["key"]
+      - type: mapValues
+        mapper:
+          resultType: json
+          expression: '{"count": value}'
+    to: output

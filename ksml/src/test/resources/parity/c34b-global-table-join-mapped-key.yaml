@@ -1,0 +1,48 @@
+# Kafka 4.4 (KIP-1340): the valueJoiner of a stream-globalTable join also gets the mapped key
+streams:
+  orders:
+    topic: s_in
+    keyType: string
+    valueType: json
+  out_join:
+    topic: out_join
+    keyType: string
+    valueType: json
+  out_left:
+    topic: out_left
+    keyType: string
+    valueType: json
+
+globalTables:
+  customers:
+    topic: g_customers
+    keyType: string
+    valueType: json
+
+functions:
+  customer_of:
+    type: keyValueMapper
+    resultType: string
+    expression: value["customer"]
+  joiner:
+    type: valueJoiner
+    resultType: json
+    expression: '{"key": key, "mappedKey": mappedKey, "amount": value1["amount"], "name": value2["name"] if value2 is not None else None}'
+
+pipelines:
+  inner:
+    from: orders
+    via:
+      - type: join
+        globalTable: customers
+        mapper: customer_of
+        valueJoiner: joiner
+    to: out_join
+  left:
+    from: orders
+    via:
+      - type: leftJoin
+        globalTable: customers
+        mapper: customer_of
+        valueJoiner: joiner
+    to: out_left

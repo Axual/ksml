@@ -1,0 +1,17 @@
+streams:
+  input:
+    topic: in
+    keyType: string
+    valueType: json
+
+functions:
+  route:
+    type: topicNameExtractor
+    resultType: string
+    expression: '"route_" + value["region"]'
+
+pipelines:
+  main:
+    from: input
+    toTopicNameExtractor:
+      topicNameExtractor: route

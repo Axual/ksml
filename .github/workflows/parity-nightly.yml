@@ -1,0 +1,98 @@
+name: Parity tests on real Kafka
+
+# Runs the parity cases in Docker mode every night: KSML, from an image built from main, and the same
+# topology in plain Kafka Streams, each on its own Kafka broker. Docker mode never fails a case, because
+# real Kafka timing can make small differences between runs. The report is kept as a build artifact.
+# See developerdocs/parity-tests.md.
+
+on:
+  schedule:
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  parity-docker:
+    name: Parity tests in Docker mode
+    if: github.repository == 'Axual/ksml'
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+
+      - name: Read GraalVM version
+        id: graalvm
+        run: echo "version=$(cat .graalvm-jdk-version)" >> "$GITHUB_OUTPUT"
+
+      - name: Set up GraalVM
+        uses: actions/setup-java@v6
+        with:
+          distribution: 'graalvm-community'
+          java-version: ${{ steps.graalvm.outputs.version }}
+          cache: 'maven'
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f  # v4.6.0
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build KSML
+        run: mvn -T1C clean package -DskipTests --no-transfer-progress
+
+      - name: Build the KSML image
+        run: |
+          mkdir -p build-output
+          cp ksml-runner/target/ksml-runner*.jar build-output/
+          cp -r ksml-runner/target/libs build-output/
+          cp ksml-runner/NOTICE.txt build-output/
+          cp LICENSE.txt build-output/
+          scripts/graalvm-tarballs.sh download
+          docker build --target ksml -t axual/ksml:local .
+
+      - name: Run the parity cases in Docker mode
+        timeout-minutes: 60
+        run: |
+          # The apps write their state into the run folder, so they must run as the runner user
+          PARITY_USER="$(id -u):0"
+          export PARITY_USER
+          mvn test -pl ksml -am -Dtest='*ParityTest' -Dparity.mode=docker \
+            -Dsurefire.failIfNoSpecifiedTests=false --no-transfer-progress
+
+      - name: Write the summary
+        if: always()
+        run: |
+          summary=ksml/target/parity-report-docker/summary.tsv
+          if [ ! -f "$summary" ]; then
+            echo "No parity report was written" >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          {
+            echo "## Parity tests in Docker mode"
+            echo
+            echo "| Status | Cases |"
+            echo "|---|--:|"
+            cut -f3 "$summary" | cut -d' ' -f1 | sort | uniq -c | awk '{print "| " $2 " | " $1 " |"}'
+            echo
+            echo "Cases with a new difference (DIFF):"
+            echo
+            awk -F'\t' '$3 == "DIFF" {print "- " $1 ": " $4}' "$summary"
+          } >> "$GITHUB_STEP_SUMMARY"
+          awk -F'\t' '$3 == "DIFF" {print "::warning title=Parity " $1 "::" $4}' "$summary"
+
+      - name: Keep the report
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: parity-report-docker-${{ github.run_number }}
+          path: ksml/target/parity-report-docker/
+          retention-days: 30
+          if-no-files-found: warn
+
+      - name: Stop the brokers
+        if: always()
+        run: docker compose -f parity-docker/docker-compose.yml --profile apps down -v

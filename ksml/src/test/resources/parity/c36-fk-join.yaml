@@ -1,0 +1,49 @@
+tables:
+  orders:
+    topic: t_orders
+    keyType: string
+    valueType: json
+  customers:
+    topic: t_customers
+    keyType: string
+    valueType: json
+
+streams:
+  out_fk:
+    topic: out_fk
+    keyType: string
+    valueType: json
+  out_fk_left:
+    topic: out_fk_left
+    keyType: string
+    valueType: json
+
+functions:
+  customer_of:
+    type: foreignKeyExtractor
+    resultType: string
+    expression: value.get("customer")
+  enrich:
+    type: valueJoiner
+    resultType: json
+    expression: '{"amount": value1["amount"], "name": value2["name"] if value2 is not None else None}'
+
+pipelines:
+  inner:
+    from: orders
+    via:
+      - type: join
+        table: customers
+        foreignKeyExtractor: customer_of
+        valueJoiner: enrich
+      - type: toStream
+    to: out_fk
+  left:
+    from: orders
+    via:
+      - type: leftJoin
+        table: customers
+        foreignKeyExtractor: customer_of
+        valueJoiner: enrich
+      - type: toStream
+    to: out_fk_left

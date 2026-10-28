@@ -1,0 +1,19 @@
+streams:
+  input:
+    topic: in
+    keyType: string
+    valueType: json
+
+functions:
+  by_region:
+    type: streamPartitioner
+    expression: '0 if value["region"] == "eu" else (1 if value["region"] == "us" else 2)'
+
+pipelines:
+  main:
+    from: input
+    to:
+      topic: out
+      keyType: string
+      valueType: json
+      partitioner: by_region

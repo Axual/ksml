@@ -1,0 +1,48 @@
+# Same as c36, with partitioners that read a header (Kafka 4.4, KIP-1321)
+tables:
+  orders:
+    topic: t_orders
+    keyType: string
+    valueType: json
+  customers:
+    topic: t_customers
+    keyType: string
+    valueType: json
+
+streams:
+  out_fk:
+    topic: out_fk
+    keyType: string
+    valueType: json
+
+functions:
+  customer_of:
+    type: foreignKeyExtractor
+    resultType: string
+    expression: value.get("customer")
+  enrich:
+    type: valueJoiner
+    resultType: json
+    expression: '{"amount": value1["amount"], "name": value2["name"] if value2 is not None else None}'
+  by_region_header:
+    type: streamPartitioner
+    code: |
+      region = None
+      for header in headers:
+        if header["key"] == "region":
+          region = header["value"]
+    expression: '[numPartitions - 1] if region == "eu" else [0]'
+    resultType: "[integer]"
+
+pipelines:
+  inner:
+    from: orders
+    via:
+      - type: join
+        table: customers
+        foreignKeyExtractor: customer_of
+        valueJoiner: enrich
+        partitioner: by_region_header
+        otherPartitioner: by_region_header
+      - type: toStream
+    to: out_fk

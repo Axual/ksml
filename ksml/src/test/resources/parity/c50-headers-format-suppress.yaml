@@ -1,0 +1,22 @@
+# Same as c22, run with dsl.store.format=HEADERS (the suppress buffer keeps headers in Kafka 4.4)
+tables:
+  input:
+    topic: t_in
+    keyType: string
+    valueType: json
+
+streams:
+  output:
+    topic: out
+    keyType: string
+    valueType: json
+
+pipelines:
+  main:
+    from: input
+    via:
+      - type: suppress
+        until: timeLimit
+        duration: 10s
+      - type: toStream
+    to: output

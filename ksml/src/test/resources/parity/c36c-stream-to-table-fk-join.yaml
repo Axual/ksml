@@ -1,0 +1,33 @@
+# Same shape as docs-examples/reference/functions/foreignkeyextractor-processor.yaml:
+# the orders stream becomes a table, then a foreign-key join picks the customer id from the order.
+streams:
+  orders:
+    topic: s_orders
+    keyType: string
+    valueType: json
+  output:
+    topic: out
+    keyType: string
+    valueType: json
+
+tables:
+  customers:
+    topic: t_customers
+    keyType: string
+    valueType: json
+
+pipelines:
+  main:
+    from: orders
+    via:
+      - type: toTable
+      - type: join
+        table: customers
+        foreignKeyExtractor:
+          resultType: string
+          expression: value.get("customer")
+        valueJoiner:
+          resultType: json
+          expression: '{"amount": value1["amount"], "name": value2["name"] if value2 is not None else None}'
+      - type: toStream
+    to: output

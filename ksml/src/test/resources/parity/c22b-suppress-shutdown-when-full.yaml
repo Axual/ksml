@@ -1,0 +1,23 @@
+tables:
+  input:
+    topic: t_in
+    keyType: string
+    valueType: json
+
+streams:
+  output:
+    topic: out
+    keyType: string
+    valueType: json
+
+pipelines:
+  main:
+    from: input
+    via:
+      - type: suppress
+        until: timeLimit
+        duration: 10s
+        maxRecords: "1"
+        bufferFullStrategy: shutdownWhenFull
+      - type: toStream
+    to: output

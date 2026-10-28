@@ -1,0 +1,42 @@
+streams:
+  input_a:
+    topic: in_a
+    keyType: string
+    valueType: json
+  output:
+    topic: out
+    keyType: string
+    valueType: long
+
+stores:
+  cogroup_window_store:
+    type: window
+    keyType: string
+    valueType: long
+    windowSize: 10s
+    retention: 1h
+
+pipelines:
+  main:
+    from: input_a
+    via:
+      - type: groupByKey
+      - type: cogroup
+        aggregator:
+          resultType: long
+          expression: aggregatedValue + value["n"]
+      - type: windowByTime
+        windowType: tumbling
+        duration: 10s
+        grace: 0s
+      - type: aggregate
+        store: cogroup_window_store
+        initializer:
+          resultType: long
+          expression: 0
+      - type: toStream
+      - type: mapKey
+        mapper:
+          resultType: string
+          expression: 'key["key"] + "@" + str(key["start"]) + "/" + str(key["end"])'
+    to: output
