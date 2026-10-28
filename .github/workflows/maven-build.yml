@@ -44,7 +44,7 @@ jobs:
         # credentials are empty and login would fail. Skip it for Dependabot; the
         # integration tests then pull container images anonymously.
         if: github.actor != 'dependabot[bot]'
-        uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f  # v4.6.0
+        uses: docker/login-action@81c6f93d4bc991e510b342a00b419b3bb4efc5c6  # v4.7.0
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
