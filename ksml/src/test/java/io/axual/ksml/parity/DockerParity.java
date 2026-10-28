@@ -297,7 +297,7 @@ final class DockerParity {
     /**
      * Waits until both apps have joined their group, have committed all input, and their output is quiet.
      */
-    private static void waitUntilDone(Map<String, String> env, ParityCase parityCase, String appId, SideResult ref, SideResult ksml) throws Exception {
+    private static void waitUntilDone(Map<String, String> env, ParityCase parityCase, String appId, SideResult ref, SideResult ksml) {
         final var sides = Map.of(KSML_BOOTSTRAP, ksml, REF_BOOTSTRAP, ref);
         final var services = Map.of(KSML_BOOTSTRAP, "ksml", REF_BOOTSTRAP, "reference");
         for (final var entry : sides.entrySet()) {
