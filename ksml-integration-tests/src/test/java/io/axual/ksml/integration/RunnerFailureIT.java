@@ -74,6 +74,7 @@ class RunnerFailureIT {
         assertThat(exitCode)
                 .as("KSML should exit after Kafka Streams failed, so it can be restarted")
                 .isPresent();
-        assertThat(exitCode.get()).as("exit code").isNotZero();
+        // run() returns 1; any other code means a crash or an outside kill
+        assertThat(exitCode.get()).as("exit code").isEqualTo(1);
     }
 }

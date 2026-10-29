@@ -59,8 +59,8 @@ Major dependency upgrades. This release moves KSML to Jackson 3, Apicurio Regist
 * Breaking change: a `join` or `leftJoin` with `foreignKeyExtractor` now needs a table as input. Before, the extractor was silently ignored. See [Upgrading to 2.0.0](migration-to-2.0.0.md).
 * Errors reported by KSML now keep their cause, so stack traces in the logs show "Caused by" sections. A parse error is logged once, not once for each parser level.
 * Fixed `aggregate` after `cogroup` and `windowBySession`, which always failed at startup with "Merger is expected to take at least 3 parameters".
-* Fixed: when Kafka Streams fails, for example after an error in a Python function, the KSML process now exits with exit code 1. Before, it kept running without processing anything, so Docker or Kubernetes did not restart it.
-* Fixed: on a stop signal (SIGTERM), for example from `docker stop` or a Kubernetes pod stop, KSML now commits the offsets of the processed records and closes Kafka Streams before it exits. Before, the last records were processed again after a restart, so a `count` counted them twice, and with `group.protocol: streams` and `group.instance.id` the restarted application could not join its group again. Give KSML enough time to stop, see [Stopping KSML](reference/configuration-reference.md#stopping-ksml).
+* Fixed: when Kafka Streams fails, for example after an error in a Python function, KSML now exits with code 1. Before, it kept running without processing, so Docker or Kubernetes did not restart it.
+* Fixed: on SIGTERM, KSML now commits and closes Kafka Streams before it exits, so records are not processed twice after a restart. See [Stopping KSML](reference/configuration-reference.md#stopping-ksml).
 
 ## 1.3.0 (2026-06-23)
 

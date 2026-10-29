@@ -104,6 +104,7 @@ public class KSMLRunner {
     private static final String WRITE_KSML_RUNNER_SCHEMA_ARGUMENT = "--runner-schema";
     // The shutdown hook waits slightly longer than the Kafka Streams close itself, so a full close can finish
     private static final Duration SHUTDOWN_HOOK_TIMEOUT = KafkaStreamsRunner.CLOSE_TIMEOUT.plusSeconds(5);
+    private static final Duration RUNNER_STARTUP_WAIT = Duration.ofSeconds(2);
 
     @NoArgsConstructor(access = AccessLevel.PRIVATE)
     @CommandLine.Command(name = "KSML", description = "Load and run KSML streaming pipelines")
@@ -321,6 +322,14 @@ public class KSMLRunner {
      * @throws Exception when the Prometheus exporter or executor shutdown fails
      */
     static void runRunners(KafkaProducerRunner producer, KafkaStreamsRunner streams, RestServer restServer, PrometheusConfig prometheusConfig) throws Exception {
+        runRunners(producer, streams, restServer, prometheusConfig, RUNNER_STARTUP_WAIT);
+    }
+
+    /**
+     * Same as {@link #runRunners(KafkaProducerRunner, KafkaStreamsRunner, RestServer, PrometheusConfig)},
+     * with a configurable wait for the runners to start, so tests do not need to wait.
+     */
+    static void runRunners(KafkaProducerRunner producer, KafkaStreamsRunner streams, RestServer restServer, PrometheusConfig prometheusConfig, Duration startupWait) throws Exception {
         // Completed when both runners have finished, so the shutdown hook can wait for them
         final var runnersDone = new CompletableFuture<Void>();
         var shutdownHook = new Thread(() -> shutdownRunners(producer, streams, runnersDone, SHUTDOWN_HOOK_TIMEOUT));
@@ -336,7 +345,7 @@ public class KSMLRunner {
 
             try {
                 // Allow the runner(s) to start
-                Utils.sleep(2000);
+                Utils.sleep(startupWait.toMillis());
 
                 if (restServer != null) {
                     // Run with the REST server
@@ -351,7 +360,12 @@ public class KSMLRunner {
                 CompletableFuture.allOf(producerFuture, streamsFuture).join();
             } finally {
                 // Also after a runner failure, otherwise the idle pool threads keep the JVM alive
-                closeExecutorService(executorService);
+                try {
+                    closeExecutorService(executorService);
+                } catch (ExecutionException e) {
+                    // Log only, so the runner error stays the main error
+                    log.warn("Could not stop the runner threads", e);
+                }
                 if (restServer != null) restServer.close();
             }
         } finally {
@@ -435,7 +449,8 @@ public class KSMLRunner {
         } catch (TimeoutException e) {
             log.warn("KSML runners did not stop within {}, exiting anyway", timeout);
         } catch (ExecutionException e) {
-            log.warn("KSML runners stopped with an error", e.getCause());
+            // runnersDone never fails; runner errors are logged where they happen
+            log.debug("Unexpected error while waiting for the runners", e);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             log.warn("Interrupted while waiting for the KSML runners to stop");

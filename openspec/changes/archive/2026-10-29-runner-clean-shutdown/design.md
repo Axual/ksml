@@ -38,7 +38,7 @@ Consequence: the hook needs something to wait on before the runners are submitte
 `KafkaStreamsRunner.CLOSE_TIMEOUT` is used as the Kafka Streams close timeout; the hook waits that plus 5 s so a full close can finish. The constant lives in `KafkaStreamsRunner` rather than `KSMLRunner`, because the `backend` package does not depend on `KSMLRunner` and should not start to. 30 s matches the Kubernetes default `terminationGracePeriodSeconds`. Decided with the user to keep it a constant rather than a new configuration option, to avoid growing the config surface and schema.
 
 **D3 — Always close Kafka Streams, with a bounded close.**
-`KafkaStreamsRunner.run()` closes the client in `finally` regardless of state, using the bounded close of the Kafka 4.4 API (`CloseOptions` with a timeout). The existing log lines are kept: `Stopping Kafka Streams` when it was running (the manual reproduction looks for it), `Kafka Streams has stopped` otherwise. The `RunnerException` for a `FAILED` state is still thrown, after the close.
+`KafkaStreamsRunner.run()` closes the client in `finally` regardless of state, using the bounded close of the Kafka 4.4 API (`CloseOptions` with a timeout). It logs `Stopping Kafka Streams` when it was running (the manual reproduction looks for it), `Kafka Streams failed, closing it` in a failed state, and `Kafka Streams has stopped` otherwise. The failed state is read before the close, so the result does not depend on the state Kafka Streams leaves after `close()`. The `RunnerException` for a failed state is still thrown, after the close.
 
 **D4 — Exit code returned from a testable `run(...)` method.**
 `main`'s body moves into a package-private static `run(...)` that returns `0` on success and `1` after reporting a fatal error via `FatalError.report`. `main` calls `System.exit(run(...))`. The schema-printing path keeps returning from `main` without `System.exit`, because `KSMLRunnerTest` calls `main` in-process for it. Testing an exit code without calling `System.exit` in the test JVM is the main reason for this split.
@@ -58,7 +58,7 @@ Phase 1 first extracts `run(...)` and the hook body `shutdownRunners(...)` **wit
 
 ## Risks / Trade-offs
 
-- [Shutdown can now take up to ~30 s] → Documented; orchestrators need a grace period of at least that. Kubernetes' default is exactly 30 s, so a close that needs the full budget may be killed at the edge — acceptable since a normal close takes far less, and the docs advise raising the grace period.
+- [Shutdown can now take up to 35 s] → Documented; orchestrators need a grace period of at least that. Kubernetes' default is exactly 30 s, so a close that needs the full budget may be killed at the edge — acceptable since a normal close takes far less, and the docs advise raising the grace period.
 - [`System.exit` called from `main` while shutdown hooks are running blocks that thread] → Harmless: the JVM exits once the hooks finish; the exit code is the one from the signal (143), as before.
 - [Producer close timing] → `KafkaProducerRunner` closes its producer via try-with-resources when its loop ends; the hook's wait covers that too. A producer blocked in a long send is bounded by the same timeout.
 - [Executor `shutdownNow` interrupting a runner] → Only after the runners' futures have completed or the 2 s grace in `closeExecutorService` elapsed; same as today on the success path.

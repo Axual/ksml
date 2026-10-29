@@ -338,6 +338,8 @@ public class KafkaStreamsRunner implements Runner {
     @Override
     public void run() {
         log.info("Starting Kafka Streams backend");
+        // Checked before close(), so the result does not depend on the state after close()
+        var failed = false;
         try {
             kafkaStreams.start();
             // Allow Kafka Streams to start up asynchronously
@@ -348,8 +350,11 @@ public class KafkaStreamsRunner implements Runner {
                 Utils.sleep(pollingSleepMs);
             }
         } finally {
+            failed = getState() == State.FAILED;
             if (isRunning()) {
                 log.info("Stopping Kafka Streams");
+            } else if (failed) {
+                log.info("Kafka Streams failed, closing it");
             } else {
                 log.info("Kafka Streams has stopped");
             }
@@ -358,7 +363,7 @@ public class KafkaStreamsRunner implements Runner {
                 log.warn("Kafka Streams did not close within {}", CLOSE_TIMEOUT);
             }
         }
-        if (getState() == State.FAILED) {
+        if (failed) {
             throw new RunnerException("Kafka Streams is in a failed state");
         }
     }

@@ -332,9 +332,12 @@ class KSMLRunnerHelpersTest {
         final var streams = mock(Runner.class);
         final var neverDone = new CompletableFuture<Void>();
 
+        final var start = System.nanoTime();
         assertTimeoutPreemptively(Duration.ofSeconds(5),
                 () -> KSMLRunner.shutdownRunners(null, streams, neverDone, Duration.ofMillis(200)));
         verify(streams).stop();
+        // It must wait the full timeout, not return at once
+        assertThat(Duration.ofNanos(System.nanoTime() - start)).isGreaterThanOrEqualTo(Duration.ofMillis(200));
     }
 
     // ---- runRunners ----------------------------------------------------------------------------
@@ -349,7 +352,7 @@ class KSMLRunnerHelpersTest {
             throw new RunnerException("Kafka Streams is in a failed state");
         }).when(streams).run();
 
-        assertThatThrownBy(() -> KSMLRunner.runRunners(null, streams, null, new PrometheusConfig()))
+        assertThatThrownBy(() -> KSMLRunner.runRunners(null, streams, null, new PrometheusConfig(), Duration.ZERO))
                 .hasRootCauseInstanceOf(RunnerException.class);
 
         // A lingering non-daemon runner thread keeps the JVM alive after a failure

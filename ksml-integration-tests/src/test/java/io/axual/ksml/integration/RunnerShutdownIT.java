@@ -73,8 +73,8 @@ class RunnerShutdownIT {
         KSMLRunnerTestUtil.waitForTopicMessages(bootstrapServers, OUTPUT_TOPIC, RECORD_COUNT, Duration.ofSeconds(60));
 
         final var exitCode = ksml.terminate(Duration.ofSeconds(60));
-        assertThat(exitCode).as("KSML should exit after SIGTERM").isPresent();
-        log.info("KSML exited with code {} after SIGTERM", exitCode.get());
+        // 143 is the JVM exit code for SIGTERM; 137 would mean a forced kill after a hook timeout
+        assertThat(exitCode).as("KSML should exit after SIGTERM").contains(143);
 
         assertThat(committedOffset(bootstrapServers))
                 .as("Kafka Streams should commit the offsets of all processed records when it is closed on SIGTERM")

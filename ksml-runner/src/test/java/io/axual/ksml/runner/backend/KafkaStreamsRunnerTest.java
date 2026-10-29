@@ -27,6 +27,7 @@ import io.axual.ksml.runner.config.ApplicationServerConfig;
 import io.axual.ksml.runner.exception.RunnerException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
+import org.apache.kafka.streams.CloseOptions;
 import org.apache.kafka.streams.KafkaStreams;
 import org.apache.kafka.streams.StreamsConfig;
 import org.apache.kafka.streams.Topology;
@@ -553,7 +554,40 @@ class KafkaStreamsRunnerTest {
 
             verify(mockStreams).start();
             // A client in ERROR still holds resources and threads, so it must be closed too
-            verify(mockStreams).close(any(org.apache.kafka.streams.CloseOptions.class));
+            verify(mockStreams).close(any(CloseOptions.class));
+        } finally {
+            executor.shutdownNow();
+            executor.awaitTermination(5, TimeUnit.SECONDS);
+        }
+    }
+
+    @Test
+    @DisplayName("A failure is reported even when close() changes the Kafka Streams state")
+    void testErrorReportedWhenCloseChangesState() throws Exception {
+        final var mockStreams = mock(KafkaStreams.class);
+        final var streamState = new AtomicReference<>(KafkaStreams.State.ERROR);
+        when(mockStreams.state()).thenAnswer(_ -> streamState.get());
+        // A future Kafka version could leave ERROR on close()
+        when(mockStreams.close(any(CloseOptions.class))).thenAnswer(_ -> {
+            streamState.set(KafkaStreams.State.NOT_RUNNING);
+            return true;
+        });
+
+        final var config = KafkaStreamsRunner.Config.builder()
+                .definitions(Map.of())
+                .kafkaConfig(INPUT_CONFIG_WITHOUT_PATTERNS)
+                .storageDirectory("tmp")
+                .build();
+        var runner = new KafkaStreamsRunner(config, (_, _) -> mockStreams, mock(KsmlTagEnricher.class));
+        runner.setSleepDurations(10, 10);
+
+        final var executor = Executors.newSingleThreadExecutor();
+        try {
+            assertThat(CompletableFuture.runAsync(runner, executor))
+                    .failsWithin(Duration.ofSeconds(5))
+                    .withThrowableOfType(ExecutionException.class)
+                    .havingCause()
+                    .isInstanceOf(RunnerException.class);
         } finally {
             executor.shutdownNow();
             executor.awaitTermination(5, TimeUnit.SECONDS);
@@ -647,13 +681,10 @@ class KafkaStreamsRunnerTest {
             @Override
             public Object answer(final InvocationOnMock invocation) throws Throwable {
                 streamState.set(KafkaStreams.State.NOT_RUNNING);
-                return invocation.getRawArguments().length == 0 ? null : Boolean.TRUE;
+                return Boolean.TRUE;
             }
         };
-        lenient().doAnswer(closeAnswer).when(mockStreams).close();
-        lenient().doAnswer(closeAnswer).when(mockStreams).close(any(Duration.class));
-        lenient().doAnswer(closeAnswer).when(mockStreams).close(any(KafkaStreams.CloseOptions.class));
-        lenient().doAnswer(closeAnswer).when(mockStreams).close(any(org.apache.kafka.streams.CloseOptions.class));
+        lenient().doAnswer(closeAnswer).when(mockStreams).close(any(CloseOptions.class));
 
 
         final var mockStreamsSupplier = new MockStreamsSupplier(mockStreams);
@@ -710,6 +741,7 @@ class KafkaStreamsRunnerTest {
             Awaitility.await("Wait for runner to stop")
                     .atMost(Duration.ofSeconds(30))
                     .until(future::isDone);
+            verify(mockStreams).close(any(CloseOptions.class));
         } finally {
             executor.shutdownNow();
             executor.awaitTermination(5, TimeUnit.SECONDS);

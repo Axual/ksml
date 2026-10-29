@@ -108,6 +108,8 @@ services:
     image: axual/ksml:snapshot
     hostname: kafka-data-generator
     restart: on-failure
+    # KSML needs up to 35 seconds to commit and close on stop
+    stop_grace_period: 40s
     networks:
       - ksml
     working_dir: /ksml
