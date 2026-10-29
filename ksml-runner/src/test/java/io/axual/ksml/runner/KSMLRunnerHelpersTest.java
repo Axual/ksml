@@ -31,6 +31,7 @@ import io.axual.ksml.execution.ErrorHandler;
 import io.axual.ksml.execution.ExecutionContext;
 import io.axual.ksml.generator.TopologyDefinition;
 import io.axual.ksml.generator.YAMLObjectMapper;
+import io.axual.ksml.runner.backend.KafkaStreamsRunner;
 import io.axual.ksml.runner.backend.Runner;
 import io.axual.ksml.runner.config.ApplicationServerConfig;
 import io.axual.ksml.runner.config.ErrorHandlingConfig;
@@ -40,19 +41,28 @@ import io.axual.ksml.runner.config.KSMLConfig;
 import io.axual.ksml.runner.config.KSMLRunnerConfig;
 import io.axual.ksml.runner.config.NotationConfig;
 import io.axual.ksml.runner.config.NotationConfig.NotationType;
+import io.axual.ksml.runner.config.PrometheusConfig;
 import io.axual.ksml.runner.config.SchemaRegistryConfig;
 import io.axual.ksml.runner.config.internal.StringMap;
 import io.axual.ksml.runner.exception.ConfigException;
+import io.axual.ksml.runner.exception.RunnerException;
 import org.apache.kafka.common.serialization.Serdes;
+import org.awaitility.Awaitility;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.lang.reflect.Field;
+import java.time.Duration;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.jupiter.api.Assertions.assertTimeoutPreemptively;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -295,6 +305,58 @@ class KSMLRunnerHelpersTest {
         // Null streams must not NPE, and an exception from stop() must be swallowed.
         assertThatCode(() -> KSMLRunner.stopRunnersQuietly(failing, null)).doesNotThrowAnyException();
         verify(failing).stop();
+    }
+
+    // ---- shutdownRunners -----------------------------------------------------------------------
+
+    @Test
+    @DisplayName("shutdownRunners stops both runners and waits until they have finished")
+    void shutdownRunnersWaitsForRunners() {
+        final var producer = mock(Runner.class);
+        final var streams = mock(Runner.class);
+        final var runnersDone = new CompletableFuture<Void>();
+        // The runners finish some time after being stopped, for example while Kafka Streams commits and closes
+        CompletableFuture.runAsync(() -> runnersDone.complete(null), CompletableFuture.delayedExecutor(500, TimeUnit.MILLISECONDS));
+
+        KSMLRunner.shutdownRunners(producer, streams, runnersDone, Duration.ofSeconds(10));
+
+        verify(producer).stop();
+        verify(streams).stop();
+        // If the hook returns before the runners are done, the JVM exits before Kafka Streams is closed
+        assertThat(runnersDone).as("shutdownRunners must not return before the runners have finished").isDone();
+    }
+
+    @Test
+    @DisplayName("shutdownRunners gives up waiting after the timeout")
+    void shutdownRunnersGivesUpAfterTimeout() {
+        final var streams = mock(Runner.class);
+        final var neverDone = new CompletableFuture<Void>();
+
+        assertTimeoutPreemptively(Duration.ofSeconds(5),
+                () -> KSMLRunner.shutdownRunners(null, streams, neverDone, Duration.ofMillis(200)));
+        verify(streams).stop();
+    }
+
+    // ---- runRunners ----------------------------------------------------------------------------
+
+    @Test
+    @DisplayName("runRunners propagates a streams runner failure and shuts down its runner threads")
+    void runRunnersShutsDownRunnerThreadsOnFailure() {
+        final var streams = mock(KafkaStreamsRunner.class);
+        final var runnerThread = new AtomicReference<Thread>();
+        doAnswer(invocation -> {
+            runnerThread.set(Thread.currentThread());
+            throw new RunnerException("Kafka Streams is in a failed state");
+        }).when(streams).run();
+
+        assertThatThrownBy(() -> KSMLRunner.runRunners(null, streams, null, new PrometheusConfig()))
+                .hasRootCauseInstanceOf(RunnerException.class);
+
+        // A lingering non-daemon runner thread keeps the JVM alive after a failure
+        assertThat(runnerThread.get()).isNotNull();
+        Awaitility.await("runner thread terminates")
+                .atMost(Duration.ofSeconds(5))
+                .untilAsserted(() -> assertThat(runnerThread.get().isAlive()).isFalse());
     }
 
     // ---- stopOtherOnFailure --------------------------------------------------------------------

@@ -32,10 +32,10 @@ Analysis of `main` at 995a4dde found five causes behind the two problems — two
 **D1 — The shutdown hook waits on the runner futures instead of closing the backends itself.**
 The hook calls `stopRunnersQuietly(producer, streams)` and then waits on `allOf(producerFuture, streamsFuture)` with a timeout. The runner threads stay the only owners of their clients, so there is no concurrent `close()` from two threads.
 *Alternative:* the hook calls `kafkaStreams.close()` directly (pre-PR #86 behavior). Rejected: it duplicates ownership and races with the runner's own `finally`.
-Consequence: the futures must exist before the hook is registered, so `runRunners` registers the hook after submitting the runners.
+Consequence: the hook needs something to wait on before the runners are submitted, because it is registered first (as before, so a signal during start-up is still handled). `runRunners` therefore gives the hook a `runnersDone` future that is completed when both runner futures complete, and also in `runRunners`' `finally`, so a waiting hook is released when the runners never started.
 
-**D2 — A fixed `SHUTDOWN_TIMEOUT` of 30 s.**
-Used as the Kafka Streams close timeout; the hook waits that plus a small margin so a full close can finish. 30 s matches the Kubernetes default `terminationGracePeriodSeconds`. Decided with the user to keep it a constant rather than a new configuration option, to avoid growing the config surface and schema.
+**D2 — A fixed close timeout of 30 s.**
+`KafkaStreamsRunner.CLOSE_TIMEOUT` is used as the Kafka Streams close timeout; the hook waits that plus 5 s so a full close can finish. The constant lives in `KafkaStreamsRunner` rather than `KSMLRunner`, because the `backend` package does not depend on `KSMLRunner` and should not start to. 30 s matches the Kubernetes default `terminationGracePeriodSeconds`. Decided with the user to keep it a constant rather than a new configuration option, to avoid growing the config surface and schema.
 
 **D3 — Always close Kafka Streams, with a bounded close.**
 `KafkaStreamsRunner.run()` closes the client in `finally` regardless of state, using the bounded close of the Kafka 4.4 API (`CloseOptions` with a timeout). The existing log lines are kept: `Stopping Kafka Streams` when it was running (the manual reproduction looks for it), `Kafka Streams has stopped` otherwise. The `RunnerException` for a `FAILED` state is still thrown, after the close.
@@ -70,5 +70,7 @@ No migration: no configuration or API change for users. Rollback is reverting th
 
 ## Open Questions
 
-- Exact `CloseOptions` factory method on the Kafka 4.4.0 classpath (`CloseOptions.timeout(Duration)` vs. the older `KafkaStreams.CloseOptions().timeout(...)`) — verify during implementation.
-- Failsafe property name for running single ITs in `ksml-integration-tests` (`-Dit.test=` vs. `-Dtest=`) — check the module pom.
+None left. Resolved during implementation:
+
+- Kafka 4.4.0 has `org.apache.kafka.streams.CloseOptions.timeout(Duration)`, used with `KafkaStreams.close(CloseOptions)`; the nested `KafkaStreams.CloseOptions` is the older variant.
+- Integration tests are skipped by default; run single ones with `mvn verify -pl ksml-integration-tests -Pintegration-tests -Dit.test=RunnerShutdownIT,RunnerFailureIT`.

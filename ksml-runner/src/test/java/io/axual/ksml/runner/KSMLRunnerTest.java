@@ -96,6 +96,25 @@ class KSMLRunnerTest {
     }
 
     @Test
+    @DisplayName("run returns exit code 1 when the configuration file does not exist")
+    void runReturnsOneForMissingConfigFile(@TempDir Path tempDir) {
+        final var cmd = KSMLRunner.Arguments.populate(new String[]{tempDir.resolve("missing.yaml").toString()});
+
+        assertThat(KSMLRunner.run(cmd)).isEqualTo(1);
+    }
+
+    @Test
+    @DisplayName("run returns exit code 1 instead of throwing when a fatal error occurs")
+    void runReturnsOneOnFatalError(@TempDir Path tempDir) throws Exception {
+        final var badFile = tempDir.resolve("bad-runner.yaml");
+        Files.writeString(badFile, "kafka: [unterminated");
+        final var cmd = KSMLRunner.Arguments.populate(new String[]{badFile.toString()});
+
+        // main() passes this exit code to System.exit, so a failed runner stops the process
+        assertThat(KSMLRunner.run(cmd)).isEqualTo(1);
+    }
+
+    @Test
     @DisplayName("closeExecutorService shuts an idle executor down gracefully")
     void closeExecutorServiceShutsDownGracefully() throws Exception {
         final ExecutorService executor = Executors.newSingleThreadExecutor();

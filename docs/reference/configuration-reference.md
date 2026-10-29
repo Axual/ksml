@@ -187,6 +187,17 @@ ksml:
       handler: continueOnFail
 ```
 
+#### Stopping KSML
+
+When an error stops processing, KSML closes Kafka Streams and the process exits with exit code 1. This happens after an error with the `stopOnFail` handler, and after any other error that KSML cannot handle, for example in a producer. Docker and Kubernetes see that the container stopped, and can restart it according to its restart policy. An error that is handled with `continueOnFail` or `retryOnFail` does not stop KSML.
+
+When KSML gets a stop signal (SIGTERM), for example from `docker stop`, a Kubernetes pod stop or a redeploy, it stops its producers and Kafka Streams, commits the offsets of the processed records and closes Kafka Streams before the process exits. This usually takes a few seconds, but can take up to 35 seconds. Give the container enough time to stop:
+
+* Kubernetes waits `terminationGracePeriodSeconds` (30 seconds by default) before it kills the container.
+* Docker waits 10 seconds by default. Use `docker stop --time` or `stop_grace_period` in Docker Compose to wait longer.
+
+If the process is killed before Kafka Streams is closed, the last records are processed again after a restart, and stateful operations like `count` count them twice.
+
 ### Feature Enablement
 
 Control which KSML features are enabled:

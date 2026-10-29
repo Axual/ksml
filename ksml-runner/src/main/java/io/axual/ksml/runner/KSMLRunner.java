@@ -83,6 +83,7 @@ import tools.jackson.databind.JsonNode;
 
 import java.io.File;
 import java.io.PrintWriter;
+import java.time.Duration;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -92,6 +93,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import static picocli.CommandLine.Option.NULL_VALUE;
 
@@ -100,6 +102,8 @@ public class KSMLRunner {
     private static final String DEFAULT_CONFIG_FILE_SHORT = "ksml-runner.yaml";
     private static final String WRITE_KSML_SCHEMA_ARGUMENT = "--schema";
     private static final String WRITE_KSML_RUNNER_SCHEMA_ARGUMENT = "--runner-schema";
+    // The shutdown hook waits slightly longer than the Kafka Streams close itself, so a full close can finish
+    private static final Duration SHUTDOWN_HOOK_TIMEOUT = KafkaStreamsRunner.CLOSE_TIMEOUT.plusSeconds(5);
 
     @NoArgsConstructor(access = AccessLevel.PRIVATE)
     @CommandLine.Command(name = "KSML", description = "Load and run KSML streaming pipelines")
@@ -176,22 +180,34 @@ public class KSMLRunner {
     public static void main(String[] args) {
         var cmd = Arguments.populate(args);
 
+        // Printing a schema runs in-process (also from tests), so return without System.exit
+        if (shouldExit(cmd)) {
+            log.info("Exiting after schema");
+            return;
+        }
+
+        final var exitCode = run(cmd);
+        // Explicit exit, so no remaining non-daemon thread can keep a stopped or failed KSML alive
+        System.exit(exitCode);
+    }
+
+    /**
+     * Loads the configuration and definitions, then runs the producer and/or streams runners until
+     * they finish. Extracted from {@code main} so the resulting exit code can be tested without
+     * calling {@link System#exit(int)}.
+     *
+     * @param cmd the parsed command line arguments
+     * @return the exit code for the process
+     */
+    static int run(Arguments cmd) {
         try {
-            // Load name and version from manifest
-            var ksmlTitle = determineTitle();
-
-            if (shouldExit(cmd)) {
-                log.info("Exiting after schema");
-                return;
-            }
-
-            log.info("Starting {}", ksmlTitle);
+            log.info("Starting {}", determineTitle());
 
             // Begin loading config file
             final var configFile = cmd.configFile();
             if (!configFile.exists()) {
                 log.error("Configuration file '{}' not found", configFile);
-                System.exit(1);
+                return 1;
             }
 
             final var config = readConfiguration(configFile);
@@ -226,10 +242,11 @@ public class KSMLRunner {
             }
         } catch (Throwable t) {
             log.error("KSML Stopping because of unhandled exception");
-            throw FatalError.report(t);
+            // report() logs the error; the exit code makes Docker or Kubernetes restart the process
+            FatalError.report(t);
+            return 1;
         }
-        // Explicit exit, need to find out which threads are actually stopping us
-        System.exit(0);
+        return 0;
     }
 
     /**
@@ -304,7 +321,9 @@ public class KSMLRunner {
      * @throws Exception when the Prometheus exporter or executor shutdown fails
      */
     static void runRunners(KafkaProducerRunner producer, KafkaStreamsRunner streams, RestServer restServer, PrometheusConfig prometheusConfig) throws Exception {
-        var shutdownHook = new Thread(() -> stopRunnersQuietly(producer, streams));
+        // Completed when both runners have finished, so the shutdown hook can wait for them
+        final var runnersDone = new CompletableFuture<Void>();
+        var shutdownHook = new Thread(() -> shutdownRunners(producer, streams, runnersDone, SHUTDOWN_HOOK_TIMEOUT));
         Runtime.getRuntime().addShutdownHook(shutdownHook);
 
         try (var prometheusExport = new PrometheusExport(prometheusConfig)) {
@@ -313,6 +332,7 @@ public class KSMLRunner {
 
             final var producerFuture = producer == null ? CompletableFuture.completedFuture(null) : CompletableFuture.runAsync(producer, executorService);
             final var streamsFuture = streams == null ? CompletableFuture.completedFuture(null) : CompletableFuture.runAsync(streams, executorService);
+            CompletableFuture.allOf(producerFuture, streamsFuture).whenComplete((_, _) -> runnersDone.complete(null));
 
             try {
                 // Allow the runner(s) to start
@@ -329,13 +349,29 @@ public class KSMLRunner {
 
                 // wait for all futures to finish
                 CompletableFuture.allOf(producerFuture, streamsFuture).join();
-
-                closeExecutorService(executorService);
             } finally {
+                // Also after a runner failure, otherwise the idle pool threads keep the JVM alive
+                closeExecutorService(executorService);
                 if (restServer != null) restServer.close();
             }
         } finally {
+            // Release a shutdown hook that is waiting, also when the runners never started
+            runnersDone.complete(null);
+            removeShutdownHook(shutdownHook);
+        }
+    }
+
+    /**
+     * Removes the shutdown hook, unless the JVM is already shutting down. In that case the hook is
+     * running or has run, and the JVM refuses to remove it.
+     *
+     * @param shutdownHook the hook to remove
+     */
+    private static void removeShutdownHook(Thread shutdownHook) {
+        try {
             Runtime.getRuntime().removeShutdownHook(shutdownHook);
+        } catch (IllegalStateException e) {
+            log.debug("Not removing the shutdown hook, the JVM is shutting down");
         }
     }
 
@@ -378,6 +414,32 @@ public class KSMLRunner {
             parsedDefinitions.put(name, parser.parse(ParseNode.fromRoot(definition, name)));
         });
         return parsedDefinitions;
+    }
+
+    /**
+     * Body of the JVM shutdown hook: stops the producer and streams runners, and waits until they
+     * have finished. The JVM exits as soon as the hook returns, so without the wait Kafka Streams
+     * would not get to commit its offsets and close. Either runner may be {@code null}. Extracted
+     * from {@code runRunners} for testability.
+     *
+     * @param producer    the producer runner, or {@code null}
+     * @param streams     the streams runner, or {@code null}
+     * @param runnersDone completes when both runners have finished
+     * @param timeout     the maximum time to wait for the runners to finish
+     */
+    static void shutdownRunners(Runner producer, Runner streams, CompletableFuture<?> runnersDone, Duration timeout) {
+        stopRunnersQuietly(producer, streams);
+        try {
+            runnersDone.get(timeout.toMillis(), TimeUnit.MILLISECONDS);
+            log.info("KSML runners stopped");
+        } catch (TimeoutException e) {
+            log.warn("KSML runners did not stop within {}, exiting anyway", timeout);
+        } catch (ExecutionException e) {
+            log.warn("KSML runners stopped with an error", e.getCause());
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            log.warn("Interrupted while waiting for the KSML runners to stop");
+        }
     }
 
     /**

@@ -47,7 +47,6 @@ public class KafkaProducerRunner implements Runner {
     private static final String UNDEFINED = "undefined";
     // Package-private so tests can schedule producers directly when exercising the produce loop.
     final IntervalSchedule scheduler = new IntervalSchedule();
-    private final AtomicBoolean hasFailed = new AtomicBoolean(false);
     private final AtomicBoolean stopRunning = new AtomicBoolean(false);
     private final Config config;
     private final Function<Map<String, Object>, Producer<byte[], byte[]>> producerFactory;
@@ -138,7 +137,7 @@ public class KafkaProducerRunner implements Runner {
      * @param producer the Kafka producer the messages are sent with
      */
     void runScheduledProducers(Producer<byte[], byte[]> producer) {
-        while (!stopRunning.get() && !hasFailed.get() && scheduler.hasScheduledItems()) {
+        while (!stopRunning.get() && scheduler.hasScheduledItems()) {
             var scheduledGenerator = scheduler.getScheduledItem();
             if (scheduledGenerator != null) {
                 scheduledGenerator.producer().produceMessages(producer);
