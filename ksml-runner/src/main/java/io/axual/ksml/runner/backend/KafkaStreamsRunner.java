@@ -39,12 +39,14 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.common.config.ConfigDef;
 import org.apache.kafka.common.utils.Utils;
+import org.apache.kafka.streams.CloseOptions;
 import org.apache.kafka.streams.KafkaStreams;
 import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.StreamsConfig;
 import org.apache.kafka.streams.Topology;
 import org.apache.kafka.streams.TopologyConfig;
 
+import java.time.Duration;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -71,6 +73,12 @@ import java.util.function.BiFunction;
  */
 @Slf4j
 public class KafkaStreamsRunner implements Runner {
+    /**
+     * Maximum time to close Kafka Streams, including the final commit. Matches the default Kubernetes
+     * termination grace period.
+     */
+    public static final Duration CLOSE_TIMEOUT = Duration.ofSeconds(30);
+
     @Getter
     private final KafkaStreams kafkaStreams;
     private final AtomicBoolean stopRunning = new AtomicBoolean(false);
@@ -323,13 +331,15 @@ public class KafkaStreamsRunner implements Runner {
      *     <li>Starts the Kafka Streams application</li>
      *     <li>Waits for a short period to allow asynchronous startup</li>
      *     <li>Continuously monitors the application state</li>
-     *     <li>Closes the application when stopped</li>
+     *     <li>Closes the application when stopped or failed, waiting at most {@link #CLOSE_TIMEOUT}</li>
      *     <li>Throws an exception if the application fails</li>
      * </ul>
      */
     @Override
     public void run() {
         log.info("Starting Kafka Streams backend");
+        // Checked before close(), so the result does not depend on the state after close()
+        var failed = false;
         try {
             kafkaStreams.start();
             // Allow Kafka Streams to start up asynchronously
@@ -340,14 +350,20 @@ public class KafkaStreamsRunner implements Runner {
                 Utils.sleep(pollingSleepMs);
             }
         } finally {
+            failed = getState() == State.FAILED;
             if (isRunning()) {
                 log.info("Stopping Kafka Streams");
-                kafkaStreams.close();
+            } else if (failed) {
+                log.info("Kafka Streams failed, closing it");
             } else {
                 log.info("Kafka Streams has stopped");
             }
+            // Always close, also in ERROR: a failed client still holds resources and threads
+            if (!kafkaStreams.close(CloseOptions.timeout(CLOSE_TIMEOUT))) {
+                log.warn("Kafka Streams did not close within {}", CLOSE_TIMEOUT);
+            }
         }
-        if (getState() == State.FAILED) {
+        if (failed) {
             throw new RunnerException("Kafka Streams is in a failed state");
         }
     }

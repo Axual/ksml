@@ -1,0 +1,15 @@
+ksml:
+  definitions:
+    processor: count-processor.yaml
+  storageDirectory: /ksml/state
+  createStorageDirectory: true
+
+kafka:
+  bootstrap.servers: broker:9093
+  application.id: io.ksml.runner.shutdown.sigterm.test
+  security.protocol: PLAINTEXT
+  acks: all
+  # Only the commit on close can store offsets within the test, so a missing close is always detected
+  commit.interval.ms: 300000
+  # Without the cache the count is forwarded right away, instead of at the next commit
+  statestore.cache.max.bytes: 0

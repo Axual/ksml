@@ -33,11 +33,13 @@ import org.testcontainers.lifecycle.Startable;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Properties;
 import java.util.concurrent.ExecutionException;
 
@@ -293,6 +295,26 @@ public class KSMLContainer implements Startable {
             runnerWrapper.stop();
             runnerWrapper = null;
         }
+    }
+
+    /**
+     * Waits for the KSML process to exit by itself.
+     *
+     * @param timeout maximum time to wait
+     * @return the exit code, or empty when KSML is still running after the timeout
+     */
+    public Optional<Integer> waitForExit(Duration timeout) throws InterruptedException {
+        return runnerWrapper == null ? Optional.empty() : runnerWrapper.waitForExit(timeout);
+    }
+
+    /**
+     * Sends SIGTERM to the KSML process and waits for it to exit.
+     *
+     * @param timeout maximum time to wait for the process to exit
+     * @return the exit code, or empty when KSML did not exit within the timeout
+     */
+    public Optional<Integer> terminate(Duration timeout) throws InterruptedException {
+        return runnerWrapper == null ? Optional.empty() : runnerWrapper.terminate(timeout);
     }
 
     public boolean isRunning() {

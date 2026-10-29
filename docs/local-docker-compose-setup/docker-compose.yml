@@ -43,6 +43,8 @@ services:
     networks:
       - ksml
     container_name: ksml
+    # KSML needs up to 35 seconds to commit and close on stop
+    stop_grace_period: 40s
     working_dir: /ksml
     volumes:
       - ./examples:/ksml
