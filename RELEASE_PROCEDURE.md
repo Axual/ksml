@@ -15,18 +15,22 @@
 For major/minor releases (e.g., 1.1.0, 2.0.0):
 
 1. Ensure all features are merged to `main`
-2. Set RC version in `main` branch:
+2. Check that the last run of the workflow "Parity tests on real Kafka" on `main` is green (GitHub -> Actions).
+   If it is red, read its job summary. Each listed case is a new difference between KSML and Kafka Streams,
+   a case that did not run, or a known difference that is gone. Fix it, or mention it in the release notes,
+   before you release. See [Parity tests](developerdocs/parity-tests.md).
+3. Set RC version in `main` branch:
    ```bash
    mvn versions:set -DgenerateBackupPoms=false
    # Enter version like: 1.1.0-RC1
    ```
-3. Run `mvn clean package -DskipTests -P '!sonarqube'` to update NOTICE.txt files
-4. Build, test, commit with message `Release 1.1.0-RC1`
-5. Tag: `git tag 1.1.0-RC1 -m "Release 1.1.0-RC1" -a`
-6. Push tag and test RC `git push origin 1.1.0-RC1`. For example by running e2e tests in Staging Cloud.
-7. Create additional RCs (RC2, RC3) as needed
-8. Go to GitHub -> Releases -> "Draft new release" -> "Generate release notes" -> uncheck "latest release" -> check "pre-release"-> OK
-9. Test the RC1 image from Harbor(for example in e2e tests in Staging Cloud)
+4. Run `mvn clean package -DskipTests -P '!sonarqube'` to update NOTICE.txt files
+5. Build, test, commit with message `Release 1.1.0-RC1`
+6. Tag: `git tag 1.1.0-RC1 -m "Release 1.1.0-RC1" -a`
+7. Push tag and test RC `git push origin 1.1.0-RC1`. For example by running e2e tests in Staging Cloud.
+8. Create additional RCs (RC2, RC3) as needed
+9. Go to GitHub -> Releases -> "Draft new release" -> "Generate release notes" -> uncheck "latest release" -> check "pre-release"-> OK
+10. Test the RC1 image from Harbor(for example in e2e tests in Staging Cloud)
 
 ### Step 2: Release Major/Minor Version (Major/Minor Releases Only)
 
@@ -226,6 +230,13 @@ This script will:
     - Correct version appears: `Starting KSML Runner x.x.x (2025-...)`
     - Wait ~2 minutes for examples to run without errors
     - Stop the script after verification
+- For 2.0.0 and later: run the parity tests in Docker mode against `axual/ksml:local` (about 25 minutes).
+  The nightly parity job only runs on `main`, so it does not check release branches:
+  ```bash
+  mvn test -pl ksml -am -Dtest='*ParityTest' -Dparity.mode=docker -Dsurefire.failIfNoSpecifiedTests=false
+  ```
+  Then check `ksml/target/parity-report-docker/summary.tsv`: it must have no `DIFF`, `HARNESS-ERROR`
+  or `MARKER-GONE` lines. See [Parity tests](developerdocs/parity-tests.md).
 
 ### Step 6: Update Release Notes
 
