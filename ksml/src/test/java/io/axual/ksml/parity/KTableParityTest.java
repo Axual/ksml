@@ -243,6 +243,8 @@ class KTableParityTest {
     void c36ForeignKeyJoin() {
         ParityCase.of("C36", "foreign-key join and leftJoin: the foreign key changes, the other side is deleted, a null foreign key")
                 .input("t_orders").input("t_customers").output("out_fk").output("out_fk_left")
+                .skipInDocker("the join runs in two tasks, and Docker mode writes all input before the start, so the order "
+                        + "between customer and order updates is not fixed on real Kafka, also in Kafka Streams")
                 .reference(KTableParityTest::fkJoinReference)
                 .ksml("parity/c36-fk-join.yaml")
                 .pipe("t_customers", "c1", "{\"name\":\"Ann\"}", 1000)
