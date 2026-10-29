@@ -344,8 +344,8 @@ public class KSMLRunner {
                 }
 
                 // If one runner fails, always stop the other one too
-                producerFuture.whenComplete((result, exc) -> stopOtherOnFailure(exc, "Producer failed", streams));
-                streamsFuture.whenComplete((result, exc) -> stopOtherOnFailure(exc, "Stream processing failed", producer));
+                producerFuture.whenComplete((_, exc) -> stopOtherOnFailure(exc, "Producer failed", streams));
+                streamsFuture.whenComplete((_, exc) -> stopOtherOnFailure(exc, "Stream processing failed", producer));
 
                 // wait for all futures to finish
                 CompletableFuture.allOf(producerFuture, streamsFuture).join();

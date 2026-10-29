@@ -344,7 +344,7 @@ class KSMLRunnerHelpersTest {
     void runRunnersShutsDownRunnerThreadsOnFailure() {
         final var streams = mock(KafkaStreamsRunner.class);
         final var runnerThread = new AtomicReference<Thread>();
-        doAnswer(invocation -> {
+        doAnswer(_ -> {
             runnerThread.set(Thread.currentThread());
             throw new RunnerException("Kafka Streams is in a failed state");
         }).when(streams).run();

@@ -105,7 +105,7 @@ public class KafkaProducerRunner implements Runner {
      */
     private void registerProducers() {
         try {
-            config.definitions.forEach((defName, definition) -> {
+            config.definitions.forEach((_, definition) -> {
                 // Log the start of the producer
                 log.info("Starting producer definition: name={}, version={}, namespace={}",
                         ofNullable(definition.name()).orElse(UNDEFINED),

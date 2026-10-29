@@ -330,7 +330,7 @@ class KafkaStreamsRunnerTest {
                 .storageDirectory("tmp")
                 .build();
 
-        var runner = new KafkaStreamsRunner(config, (topology, properties) -> mock(KafkaStreams.class), mock(KsmlTagEnricher.class));
+        var runner = new KafkaStreamsRunner(config, (_, _) -> mock(KafkaStreams.class), mock(KsmlTagEnricher.class));
 
         // Get the streams config
         var result = runner.getStreamsConfig(testCase.initialConfigs, testCase.storageDirectory, testCase.appServer);
@@ -498,7 +498,7 @@ class KafkaStreamsRunnerTest {
                 .storageDirectory("tmp")
                 .build();
 
-        var runner = new KafkaStreamsRunner(config, (topology, properties) -> mock(KafkaStreams.class), mock(KsmlTagEnricher.class));
+        var runner = new KafkaStreamsRunner(config, (_, _) -> mock(KafkaStreams.class), mock(KsmlTagEnricher.class));
 
         // Apply the interceptor logic
         runner.addCleanupInterceptor(testCase.configPrefix, testCase.inputConfig, testCase.addConfigIfMissing);
@@ -534,7 +534,7 @@ class KafkaStreamsRunnerTest {
                 .storageDirectory("tmp")
                 .build();
 
-        var runner = new KafkaStreamsRunner(config, (topology, properties) -> mockStreams, mock(KsmlTagEnricher.class));
+        var runner = new KafkaStreamsRunner(config, (_, _) -> mockStreams, mock(KsmlTagEnricher.class));
         runner.setSleepDurations(10, 10);
 
         final var executor = Executors.newSingleThreadExecutor();
@@ -581,7 +581,7 @@ class KafkaStreamsRunnerTest {
                 .storageDirectory("tmp")
                 .build();
 
-        var runner = new KafkaStreamsRunner(config, (topology, properties) -> mockStreams, mock(KsmlTagEnricher.class));
+        var runner = new KafkaStreamsRunner(config, (_, _) -> mockStreams, mock(KsmlTagEnricher.class));
 
         // Test all state mappings
         when(mockStreams.state()).thenReturn(KafkaStreams.State.CREATED);
@@ -641,7 +641,7 @@ class KafkaStreamsRunnerTest {
     void testStreamsRunner() throws Exception {
         final var mockStreams = mock(KafkaStreams.class);
         AtomicReference<KafkaStreams.State> streamState = new AtomicReference<>(KafkaStreams.State.CREATED);
-        lenient().doAnswer(a -> streamState.get()).when(mockStreams).state();
+        lenient().doAnswer(_ -> streamState.get()).when(mockStreams).state();
 
         final var closeAnswer = new Answer<>() {
             @Override
