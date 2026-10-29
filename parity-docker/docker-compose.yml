@@ -84,7 +84,7 @@ services:
     profiles: [ apps ]
     networks:
       - parity
-    entrypoint: [ "java", "--enable-native-access=ALL-UNNAMED", "-cp", "/parity/test-classes:/parity/extra/*:/opt/ksml/libs/*", "io.axual.ksml.parity.ReferenceApp" ]
+    entrypoint: [ "java", "--enable-native-access=ALL-UNNAMED", "-Dlogback.configurationFile=/parity/extra/logback.xml", "-cp", "/parity/test-classes:/parity/extra/*:/opt/ksml/libs/*", "io.axual.ksml.parity.ReferenceApp" ]
     user: ${PARITY_USER:-1024:0}
     environment:
       HOME: /home/ksml

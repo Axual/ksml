@@ -111,7 +111,7 @@ The parity tests in `ksml/src/test/java/io/axual/ksml/parity/` give the same inp
 mvn test -pl ksml -am -Dtest='*ParityTest' -Dsurefire.failIfNoSpecifiedTests=false
 ```
 
-A new operation, or a change to how an operation behaves, needs a parity case. When your change fixes a known difference, its test fails with "known difference Fxx is gone". Then remove the `knownDifference` marker in the same pull request.
+When your change fixes or changes a known difference, its test fails with "known difference Fxx is gone" or "known difference Fxx changed". Then remove the `knownDifference` marker, or update its number, in the same pull request.
 
 The same cases also run on real Kafka brokers with Docker Compose. CI does this every night. See [Parity tests](developerdocs/parity-tests.md) for how to run them, read the report and add a case.
 

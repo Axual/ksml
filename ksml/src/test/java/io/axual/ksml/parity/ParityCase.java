@@ -31,17 +31,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * One parity case: a plain Kafka Streams topology (the reference) and a KSML definition that should behave
- * the same. Both get the same input records on their own {@code TopologyTestDriver}, and the output topics,
- * named stores and topology shape are compared.
- * <p>
- * A case with {@link #knownDifference(String, String)} documents a difference that was found. Its test passes
- * while the difference is still there, and fails once KSML behaves like Kafka Streams, so the marker can be
- * removed.
+ * One parity case: a Kafka Streams topology (the reference) and a KSML definition that should behave the same.
  */
 public final class ParityCase {
     /**
@@ -81,6 +76,7 @@ public final class ParityCase {
     final Set<String> globalTopics = new HashSet<>();
     String findingId;
     String findingText;
+    int knownDifferences = -1;
     String referencePrintFile;
     String ksmlPrintFile;
     final Map<String, Integer> partitions = new LinkedHashMap<>();
@@ -127,6 +123,9 @@ public final class ParityCase {
     }
 
     public ParityCase ksml(String resource) {
+        if (ClassLoader.getSystemResource(resource) == null) {
+            throw new IllegalArgumentException("No KSML definition found at " + resource);
+        }
         this.ksmlResource = resource;
         return this;
     }
@@ -176,8 +175,10 @@ public final class ParityCase {
     }
 
     /**
-     * In Docker mode, compares the records of each output topic without their order. Use this when several tasks
-     * write to the same output partition, because on real Kafka the tasks run in any order.
+     * In Docker mode, compares the records of each output topic per partition and key, so only the order between
+     * keys is ignored. Use this when several tasks write to the same output partition, for example after a
+     * repartition, because on real Kafka the tasks run in any order. Records with the same key keep their order,
+     * which holds as long as the key decides the partition.
      */
     public ParityCase anyOrderInDocker() {
         this.anyOrderInDocker = true;
@@ -235,6 +236,22 @@ public final class ParityCase {
         return this;
     }
 
+    /**
+     * Marks a confirmed difference, with the number of differences the report lists for it (all optimization
+     * settings together). In test driver mode the test fails when that number changes: when the difference is
+     * gone, when a fix changes it, or when a new problem adds to it.
+     */
+    public ParityCase knownDifference(String findingId, String findingText, int differences) {
+        this.findingId = findingId;
+        this.findingText = findingText;
+        this.knownDifferences = differences;
+        return this;
+    }
+
+    /**
+     * Marks a confirmed difference in a Docker-only case. Docker mode does not fail a test, so there is no number
+     * to check. The report shows {@code MARKER-GONE} when the difference is gone.
+     */
     public ParityCase knownDifference(String findingId, String findingText) {
         this.findingId = findingId;
         this.findingText = findingText;
@@ -272,10 +289,18 @@ public final class ParityCase {
                         .isEmpty();
             }
         } else {
-            assertThat(comparisons.stream().anyMatch(c -> !c.differences().isEmpty()))
-                    .as("%s: known difference %s is gone, KSML now behaves like Kafka Streams. Remove the marker.%n%s",
-                            id, findingId, comparisons.getFirst().details())
-                    .isTrue();
+            assertThat(knownDifferences)
+                    .as("%s: a marker in test driver mode needs the number of differences it expects", id)
+                    .isNotNegative();
+            final var found = comparisons.stream().mapToInt(c -> c.differences().size()).sum();
+            final var advice = found == 0
+                    ? "is gone, KSML now behaves like Kafka Streams. Remove the marker."
+                    : "changed. Check the report, then fix KSML or update the number in the marker.";
+            assertThat(found)
+                    .as("%s: known difference %s %s Found %d differences, the marker expects %d.%n%s", id, findingId,
+                            advice, found, knownDifferences,
+                            comparisons.stream().map(ParityComparison::details).collect(Collectors.joining("\n")))
+                    .isEqualTo(knownDifferences);
         }
         return comparisons;
     }

@@ -68,7 +68,7 @@ class KTableParityTest {
                 .pipe("t_in", "k3", "{\"amount\":50}", 4000)
                 .pipe("t_in", "k3", null, 5000)
                 .pipe("t_in", "k4", null, 6000)
-                .knownDifference("F16", "KSML always materializes a source table, so KTable.filter sends fewer tombstones (by design)")
+                .knownDifference("F16", "KSML always materializes a source table, so KTable.filter sends fewer tombstones (by design)", 20)
                 .check();
     }
 
@@ -149,7 +149,7 @@ class KTableParityTest {
                 .input("t_users").output("out_count", Format.STRING, Format.LONG).output("out_sum", Format.STRING, Format.LONG)
                 .reference(KTableParityTest::tableGroupByReference)
                 .ksml("parity/c21-table-group-by.yaml"))
-                .knownDifference("F01", "a new key is seen as an update of a DataNull value, the subtractor gets None and the app stops")
+                .knownDifference("F01", "a new key is seen as an update of a DataNull value, the subtractor gets None and the app stops", 26)
                 .check();
     }
 
@@ -159,7 +159,7 @@ class KTableParityTest {
                 .input("t_users").output("out_count", Format.STRING, Format.LONG).output("out_sum", Format.STRING, Format.LONG)
                 .reference(KTableParityTest::tableGroupByReference)
                 .ksml("parity/c21b-table-group-by-guarded.yaml"))
-                .knownDifference("F05", "the subtractor value parameter is typed as the aggregate type; the count is also wrong (F01)")
+                .knownDifference("F05", "the subtractor value parameter is typed as the aggregate type; the count is also wrong (F01)", 22)
                 .check();
     }
 
@@ -189,7 +189,7 @@ class KTableParityTest {
                 .pipe("t_in", "k1", "{\"v\":1}", 1000)
                 .pipe("t_in", "k2", "{\"v\":2}", 2000)
                 .pipe("t_in", "k9", "{\"v\":9}", 20000)
-                .knownDifference("F10", "bufferFullStrategy shutdownWhenFull is ignored for untilTimeLimit, KSML emits early")
+                .knownDifference("F10", "bufferFullStrategy shutdownWhenFull is ignored for untilTimeLimit, KSML emits early", 8)
                 .check();
     }
 
@@ -220,7 +220,7 @@ class KTableParityTest {
                 .pipe("t_left", "k1", null, 4000)
                 .pipe("t_right", "k2", null, 5000)
                 .pipe("t_left", "k3", "{\"v\":3}", 6000)
-                .knownDifference("F01", "a table delete is joined as a None value instead of giving a tombstone")
+                .knownDifference("F01", "a table delete is joined as a None value instead of giving a tombstone", 6)
                 .check();
     }
 
@@ -232,16 +232,18 @@ class KTableParityTest {
         return Json.str(result);
     };
 
+    private static void fkJoinReference(StreamsBuilder builder) {
+        final var orders = builder.table("t_orders", CONSUMED);
+        final var customers = builder.table("t_customers", CONSUMED);
+        orders.join(customers, (String v) -> Json.text(v, "customer"), ENRICH).toStream().to("out_fk", PRODUCED);
+        orders.leftJoin(customers, (String v) -> Json.text(v, "customer"), ENRICH).toStream().to("out_fk_left", PRODUCED);
+    }
+
     @Test
     void c36ForeignKeyJoin() {
         ParityCase.of("C36", "foreign-key join and leftJoin: the foreign key changes, the other side is deleted, a null foreign key")
                 .input("t_orders").input("t_customers").output("out_fk").output("out_fk_left")
-                .reference(builder -> {
-                    final var orders = builder.table("t_orders", CONSUMED);
-                    final var customers = builder.table("t_customers", CONSUMED);
-                    orders.join(customers, (String v) -> Json.text(v, "customer"), ENRICH).toStream().to("out_fk", PRODUCED);
-                    orders.leftJoin(customers, (String v) -> Json.text(v, "customer"), ENRICH).toStream().to("out_fk_left", PRODUCED);
-                })
+                .reference(KTableParityTest::fkJoinReference)
                 .ksml("parity/c36-fk-join.yaml")
                 .pipe("t_customers", "c1", "{\"name\":\"Ann\"}", 1000)
                 .pipe("t_orders", "o1", "{\"customer\":\"c1\",\"amount\":10}", 2000)
@@ -251,8 +253,19 @@ class KTableParityTest {
                 .pipe("t_customers", "c1", null, 6000)
                 .pipe("t_customers", "c2", null, 7000)
                 .pipe("t_orders", "o3", "{\"amount\":7}", 8000)
-                .pipe("t_orders", "o2", null, 9000)
-                .knownDifference("F01", "a tombstone on the orders table reaches the foreign-key extractor as None, so the app stops")
+                .check();
+    }
+
+    @Test
+    void c36eForeignKeyJoinTombstone() {
+        ParityCase.of("C36e", "foreign-key join and leftJoin: a tombstone on the orders table")
+                .input("t_orders").input("t_customers").output("out_fk").output("out_fk_left")
+                .reference(KTableParityTest::fkJoinReference)
+                .ksml("parity/c36-fk-join.yaml")
+                .pipe("t_customers", "c1", "{\"name\":\"Ann\"}", 1000)
+                .pipe("t_orders", "o1", "{\"customer\":\"c1\",\"amount\":10}", 2000)
+                .pipe("t_orders", "o1", null, 3000)
+                .knownDifference("F01", "a tombstone on the orders table reaches the foreign-key extractor as None, so the app stops", 10)
                 .check();
     }
 
@@ -308,7 +321,7 @@ class KTableParityTest {
                 .ksml("parity/c38-fk-extractor-with-key.yaml")
                 .pipe("t_customers", "c1", "{\"name\":\"Ann\"}", 1000)
                 .pipe("t_orders", "c1-o1", "{\"amount\":10}", 2000)
-                .knownDifference("F21", "no foreign-key extractor that reads the key")
+                .knownDifference("F21", "no foreign-key extractor that reads the key", 6)
                 .check();
     }
 }

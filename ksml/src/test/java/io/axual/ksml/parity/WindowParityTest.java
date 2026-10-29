@@ -86,7 +86,7 @@ class WindowParityTest {
                 .ksml("parity/c24b-tumbling-count-tostream-mapper.yaml")
                 .pipe("in", "a", "{\"n\":1}", 1000)
                 .pipe("in", "b", "{\"n\":2}", 2000)
-                .knownDifference("F09", "toStream with a mapper on a windowed table fails: the key is a struct, not a Window")
+                .knownDifference("F09", "toStream with a mapper on a windowed table fails: the key is a struct, not a Window", 8)
                 .check();
     }
 
@@ -141,7 +141,7 @@ class WindowParityTest {
                 .pipe("in", "a", "{\"amount\":2}", 10000)
                 .pipe("in", "a", "{\"amount\":4}", 5500)
                 .pipe("in", "a", "{\"amount\":8}", 30000)
-                .knownDifference("F14", "the required session store retention (1h here) changes which sessions merge")
+                .knownDifference("F14", "the required session store retention (1h here) changes which sessions merge", 10)
                 .check();
     }
 
@@ -188,6 +188,9 @@ class WindowParityTest {
     void c28EmitStrategyOnWindowCloseVersusSuppress() {
         ParityCase.of("C28", "Kafka Streams emitStrategy(onWindowClose) against the KSML workaround with suppress")
                 .input("in").output("out", Format.STRING, Format.LONG)
+                // Kafka Streams checks for closed windows at most once per second of wall-clock time, so on real Kafka
+                // it would emit nothing in the short test
+                .config("__emit.interval.ms.kstreams.windowed.aggregation__", "0")
                 .reference(builder -> builder.stream("in", CONSUMED)
                         .groupByKey(GROUPED)
                         .windowedBy(TimeWindows.ofSizeWithNoGrace(Duration.ofSeconds(10)))

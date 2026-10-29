@@ -73,7 +73,7 @@ class TopologyParityTest {
                 .pipe("in", "k1", "{\"user\":\"alice\",\"amount\":1}", 1000)
                 .pipe("in", "k2", "{\"user\":\"bob\",\"amount\":2}", 2000)
                 .pipe("in", "k3", "{\"user\":\"alice\",\"amount\":3}", 3000)
-                .knownDifference("F12", "optimization 'all' does not merge the repartition topics of a KSML selectKey")
+                .knownDifference("F12", "optimization 'all' does not merge the repartition topics of a KSML selectKey", 1)
                 .check();
     }
 

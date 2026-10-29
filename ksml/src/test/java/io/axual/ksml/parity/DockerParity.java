@@ -186,12 +186,20 @@ final class DockerParity {
         builder.environment().put("KSML_IMAGE", IMAGE);
         builder.environment().put("PARITY_RUN_DIR", RUN_DIR.toString());
         builder.environment().putAll(env);
-        final var process = builder.start();
-        final var output = new String(process.getInputStream().readAllBytes(), UTF_8);
-        if (!process.waitFor(5, TimeUnit.MINUTES) || process.exitValue() != 0) {
-            throw new IOException("docker compose " + String.join(" ", args) + " failed: " + output);
+        // Output goes to a file, so the timeout also works while the command still writes or hangs
+        final var outputFile = Files.createTempFile("parity-compose", ".log");
+        try {
+            final var process = builder.redirectOutput(outputFile.toFile()).start();
+            final var finished = process.waitFor(5, TimeUnit.MINUTES);
+            if (!finished) process.destroyForcibly();
+            final var output = Files.readString(outputFile, UTF_8);
+            if (!finished || process.exitValue() != 0) {
+                throw new IOException("docker compose " + String.join(" ", args) + (finished ? " failed: " : " timed out: ") + output);
+            }
+            return output;
+        } finally {
+            Files.deleteIfExists(outputFile);
         }
-        return output;
     }
 
     private static Admin admin(String bootstrap) {
@@ -256,6 +264,15 @@ final class DockerParity {
                 Files.copy(Paths.get(entry), RUN_DIR.resolve("extra").resolve(name));
             }
         }
+        // Without a config the reference app logs at DEBUG; INFO matches the KSML runner
+        Files.writeString(RUN_DIR.resolve("extra").resolve("logback.xml"), """
+                <configuration>
+                  <appender name="OUT" class="ch.qos.logback.core.ConsoleAppender">
+                    <encoder><pattern>%d{HH:mm:ss.SSS} %-5level %logger - %msg%n</pattern></encoder>
+                  </appender>
+                  <root level="INFO"><appender-ref ref="OUT"/></root>
+                </configuration>
+                """);
     }
 
     private static void produce(ParityCase parityCase, int from, int to) throws Exception {

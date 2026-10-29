@@ -88,7 +88,7 @@ class GroupedStreamParityTest {
                 .pipe("in", null, "{\"n\":4}", 4000)
                 .pipe("in", "a", null, 5000)
                 .pipe("in", "b", "{\"n\":5}", 6000)
-                .knownDifference("F01", "a tombstone reaches Kafka Streams as DataNull, not null, so count counts it")
+                .knownDifference("F01", "a tombstone reaches Kafka Streams as DataNull, not null, so count counts it", 8)
                 .check();
     }
 
@@ -124,7 +124,7 @@ class GroupedStreamParityTest {
                 .pipe("in", "a", "{\"amount\":2}", 2000)
                 .pipe("in", "a", null, 3000)
                 .pipe("in", "a", "{\"amount\":4}", 4000)
-                .knownDifference("F01", "a tombstone reaches the reducer as None instead of being skipped, the app stops")
+                .knownDifference("F01", "a tombstone reaches the reducer as None instead of being skipped, the app stops", 6)
                 .check();
     }
 
@@ -145,7 +145,7 @@ class GroupedStreamParityTest {
                 .pipe("in", "a", "{\"amount\":2}", 3000)
                 .pipe("in", "a", null, 4000)
                 .pipe("in", "a", "{\"amount\":4}", 5000)
-                .knownDifference("F01", "a tombstone reaches the aggregator as None instead of being skipped, the app stops")
+                .knownDifference("F01", "a tombstone reaches the aggregator as None instead of being skipped, the app stops", 8)
                 .check();
     }
 
@@ -166,7 +166,7 @@ class GroupedStreamParityTest {
                 .pipe("in", "a", "{\"amount\":2}", 3000)
                 .pipe("in", "a", null, 4000)
                 .pipe("in", "a", "{\"amount\":4}", 5000)
-                .knownDifference("F01", "even with a None guard, KSML writes one extra aggregate record for the tombstone")
+                .knownDifference("F01", "even with a None guard, KSML writes one extra aggregate record for the tombstone", 6)
                 .check();
     }
 

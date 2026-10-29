@@ -103,11 +103,9 @@ public record ParityComparison(ParityCase parityCase, String optimization, SideR
     private static List<SideResult.Rec> recordsToCompare(ParityCase parityCase, List<SideResult.Rec> records) {
         if (parityCase.compareFinalValues) return finalValues(records);
         if (parityCase.anyOrderInDocker && "docker".equals(System.getProperty(ParityCase.MODE_PROPERTY))) {
+            // A stable sort, so the records of one key keep the order in which they were written
             return records.stream()
-                    .sorted(Comparator.comparingInt(SideResult.Rec::partition)
-                            .thenComparing(r -> Normalizer.render(r.key()))
-                            .thenComparingLong(SideResult.Rec::timestamp)
-                            .thenComparing(r -> Normalizer.render(r.value())))
+                    .sorted(Comparator.comparingInt(SideResult.Rec::partition).thenComparing(r -> Normalizer.render(r.key())))
                     .toList();
         }
         return records;
@@ -166,7 +164,11 @@ public record ParityComparison(ParityCase parityCase, String optimization, SideR
 
     String status() {
         if (ksml.harnessError != null) return "HARNESS-ERROR";
-        if (differences.isEmpty()) return "SAME";
+        if (differences.isEmpty()) {
+            // Docker mode does not fail a test. The test driver guards all other markers, and some of their
+            // differences (such as the topology shape) never show in Docker mode
+            return parityCase.findingId != null && parityCase.dockerOnly ? "MARKER-GONE " + parityCase.findingId : "SAME";
+        }
         return parityCase.findingId != null ? "KNOWN-DIFF " + parityCase.findingId : "DIFF";
     }
 

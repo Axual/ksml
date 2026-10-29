@@ -268,6 +268,7 @@ class Kafka44ParityTest {
     void c53StreamsProtocolStaticMembership() {
         countAcrossRestart("C53", "group.protocol=streams with static membership (group.instance.id): count survives a restart")
                 .config("group.instance.id", "parity-static-1")
+                .knownDifference("F27", "the runner does not close Kafka Streams on SIGTERM, so the static member cannot join again")
                 .check();
     }
 }

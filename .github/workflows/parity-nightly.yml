@@ -1,9 +1,10 @@
 name: Parity tests on real Kafka
 
 # Runs the parity cases in Docker mode every night: KSML, from an image built from main, and the same
-# topology in plain Kafka Streams, each on its own Kafka broker. Docker mode never fails a case, because
-# real Kafka timing can make small differences between runs. The report is kept as a build artifact.
-# See developerdocs/parity-tests.md.
+# topology in plain Kafka Streams, each on its own Kafka broker. It runs nightly, not on pull requests, because
+# a full run takes 21 to 27 minutes. The tests themselves do not fail on a difference; the step "Check the
+# report" fails the job on a new difference, a case that did not run, or a marker that is no longer needed.
+# The report is kept as a build artifact. See developerdocs/parity-tests.md.
 
 on:
   schedule:
@@ -63,14 +64,17 @@ jobs:
           mvn test -pl ksml -am -Dtest='*ParityTest' -Dparity.mode=docker \
             -Dsurefire.failIfNoSpecifiedTests=false --no-transfer-progress
 
-      - name: Write the summary
+      - name: Check the report
         if: always()
         run: |
           summary=ksml/target/parity-report-docker/summary.tsv
           if [ ! -f "$summary" ]; then
             echo "No parity report was written" >> "$GITHUB_STEP_SUMMARY"
-            exit 0
+            echo "::error::No parity report was written"
+            exit 1
           fi
+          # A new difference, a case that did not run, or a marker that is no longer needed
+          problems() { awk -F'\t' '$3 == "DIFF" || $3 == "HARNESS-ERROR" || $3 ~ /^MARKER-GONE/' "$summary"; }
           {
             echo "## Parity tests in Docker mode"
             echo
@@ -78,11 +82,14 @@ jobs:
             echo "|---|--:|"
             cut -f3 "$summary" | cut -d' ' -f1 | sort | uniq -c | awk '{print "| " $2 " | " $1 " |"}'
             echo
-            echo "Cases with a new difference (DIFF):"
+            echo "Cases to look at (a new difference, did not run, or a marker that is no longer needed):"
             echo
-            awk -F'\t' '$3 == "DIFF" {print "- " $1 ": " $4}' "$summary"
+            problems | awk -F'\t' '{print "- " $1 " " $3 " (" $4 "): " substr($5, 1, 300)}'
           } >> "$GITHUB_STEP_SUMMARY"
-          awk -F'\t' '$3 == "DIFF" {print "::warning title=Parity " $1 "::" $4}' "$summary"
+          if [ -n "$(problems)" ]; then
+            problems | awk -F'\t' '{print "::error title=Parity " $1 "::" $3 ": " substr($5, 1, 300)}'
+            exit 1
+          fi
 
       - name: Keep the report
         if: always()
