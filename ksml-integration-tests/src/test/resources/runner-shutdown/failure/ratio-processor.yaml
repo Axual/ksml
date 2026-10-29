@@ -1,0 +1,19 @@
+streams:
+  input:
+    topic: crash_in
+    keyType: string
+    valueType: json
+
+pipelines:
+  ratio:
+    from: input
+    via:
+      - type: mapValues
+        mapper:
+          # A record with div 0 raises a ZeroDivisionError, which stops Kafka Streams
+          expression: '{"ratio": value["amount"] // value["div"]}'
+          resultType: json
+    to:
+      topic: crash_out
+      keyType: string
+      valueType: json
