@@ -106,9 +106,7 @@ public abstract class Invoker {
         return result;
     }
 
-    // Kafka Streams only sees a missing key or value (a tombstone) when it is a real null. A None result of a user
-    // function is either DataNull or a typed null (for example a DataString without a value), so neither may reach
-    // Kafka Streams as an object.
+    // Kafka Streams needs a real null for a tombstone, so map None (DataNull or a typed null) to null
     protected static DataObject nullIfNone(DataObject value) {
         final var isNone = switch (value) {
             case null -> true;
@@ -121,8 +119,12 @@ public abstract class Invoker {
         return isNone ? null : value;
     }
 
+    protected static Object nullIfNone(Object value) {
+        return value instanceof DataObject dataObject ? nullIfNone(dataObject) : value;
+    }
+
     protected static KeyValue<Object, Object> nullIfNone(KeyValue<Object, Object> keyValue) {
-        return new KeyValue<>(nullIfNone((DataObject) keyValue.key), nullIfNone((DataObject) keyValue.value));
+        return new KeyValue<>(nullIfNone(keyValue.key), nullIfNone(keyValue.value));
     }
 
     protected void verifyNoResult() {

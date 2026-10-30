@@ -25,9 +25,11 @@ import io.axual.ksml.testutil.KSMLTestExtension;
 import io.axual.ksml.testutil.KSMLTopic;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.avro.generic.GenericRecord;
+import org.apache.kafka.streams.KeyValue;
 import org.apache.kafka.streams.TestInputTopic;
 import org.apache.kafka.streams.TestOutputTopic;
 import org.junit.jupiter.api.extension.ExtendWith;
+import tools.jackson.databind.ObjectMapper;
 
 import java.util.List;
 
@@ -47,6 +49,28 @@ public class KSMLJoinTest {
 
     @KSMLTopic(topic = "ksml_sensoralert")
     TestOutputTopic<String, String> sensorAlerts;
+
+    @KSMLTopic(topic = "left_topic")
+    TestInputTopic<String, String> leftTable;
+
+    @KSMLTopic(topic = "right_topic")
+    TestInputTopic<String, String> rightTable;
+
+    @KSMLTopic(topic = "output_topic")
+    TestOutputTopic<String, String> tableJoinOut;
+
+    @KSMLTest(topology = "pipelines/test-join-table-tombstone.yaml")
+    void testTableJoinTombstoneDeletesRow() {
+        leftTable.pipeInput("key1", "{\"v\": 1}");
+        rightTable.pipeInput("key1", "{\"v\": 2}");
+        leftTable.pipeInput("key1", (String) null);
+
+        // the delete on the left table should delete the joined row, like in Kafka Streams
+        final var result = tableJoinOut.readKeyValuesToList();
+        assertThat(result).hasSize(2);
+        assertThat(new ObjectMapper().readTree(result.get(0).value)).isEqualTo(new ObjectMapper().readTree("{\"left\": 1, \"right\": 2}"));
+        assertThat(result.get(1)).isEqualTo(new KeyValue<>("key1", null));
+    }
 
     @KSMLTest(topology = "pipelines/test-joining.yaml", schemaDirectory = "schemas")
     void testJoin() throws Exception {

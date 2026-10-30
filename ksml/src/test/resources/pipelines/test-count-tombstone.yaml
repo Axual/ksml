@@ -1,10 +1,10 @@
 streams:
   orders:
-    topic: tomb_in
+    topic: input_topic
     keyType: string
     valueType: json
   counts:
-    topic: tomb_count_out
+    topic: output_topic
     keyType: string
     valueType: long
 

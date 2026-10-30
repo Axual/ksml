@@ -27,6 +27,8 @@ import org.apache.kafka.streams.KeyValue;
 import org.apache.kafka.streams.TestInputTopic;
 import org.apache.kafka.streams.TestOutputTopic;
 import org.junit.jupiter.api.extension.ExtendWith;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 
 import java.util.List;
 
@@ -35,6 +37,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 @ExtendWith(KSMLTestExtension.class)
 @SuppressWarnings("java:S2187")
 public class KSMLReduceTest {
+
+    private static final ObjectMapper MAPPER = new ObjectMapper();
 
     @KSMLTopic(topic = "inMessages")
     TestInputTopic<String, String> inMessages;
@@ -62,5 +66,21 @@ public class KSMLReduceTest {
                 new KeyValue<>("key2", "foo"),
                 new KeyValue<>("key2", "foobar")
         );
+    }
+
+    @KSMLTest(topology = "pipelines/test-reduce-tombstone.yaml")
+    void testReduceSkipsTombstones() {
+        // given a tombstone between three orders, on a json topic
+        inMessages.pipeInput("a", "{\"amount\": 1}");
+        inMessages.pipeInput("a", "{\"amount\": 2}");
+        inMessages.pipeInput("a", (String) null);
+        inMessages.pipeInput("a", "{\"amount\": 4}");
+
+        // the reducer should not be called for the tombstone, like in Kafka Streams
+        final List<JsonNode> sums = outMessages.readValuesToList().stream().map(MAPPER::readTree).toList();
+        assertThat(sums).containsExactly(
+                MAPPER.readTree("{\"amount\": 1}"),
+                MAPPER.readTree("{\"amount\": 3}"),
+                MAPPER.readTree("{\"amount\": 7}"));
     }
 }

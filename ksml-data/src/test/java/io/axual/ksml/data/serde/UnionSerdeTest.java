@@ -152,7 +152,7 @@ class UnionSerdeTest {
     }
 
     @Test
-    @DisplayName("deserializer: null -> null, empty is not a tombstone, tries in order and returns first compatible")
+    @DisplayName("deserializer: null -> null, empty -> DataNull, tries in order and returns first compatible")
     void deserializeNullsAndOrdering() {
         final var union = new UnionType(
                 new UnionType.Member(STR_TYPE),
@@ -178,10 +178,9 @@ class UnionSerdeTest {
         };
         final var serde = new UnionSerde(union, false, supplier);
 
-        // A tombstone (null) stays null, so Kafka Streams can recognize it
+        // null (a tombstone) -> null, empty -> DataNull.INSTANCE
         assertThat(serde.deserializer().deserialize(TOPIC, null)).isNull();
-        // Like in Kafka, empty bytes are not a tombstone: the first member that can read them wins
-        assertThat(serde.deserializer().deserialize(TOPIC, new byte[]{})).isEqualTo("");
+        assertThat(serde.deserializer().deserialize(TOPIC, new byte[]{})).isSameAs(DataNull.INSTANCE);
 
         // Bytes that could be read by multiple members should yield the first compatible (String first)
         final var bytes = "A".getBytes();
