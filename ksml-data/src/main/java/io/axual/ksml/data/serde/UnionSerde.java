@@ -37,8 +37,7 @@ import java.util.Map;
 /**
  * Serde for KSML union types. It maintains a list of member Serdes and tries them
  * in order for serialization and deserialization, accepting the first compatible
- * type. Null values are always supported. A null is deserialized as null (a tombstone), and empty bytes
- * as DataNull.
+ * type. Null values are always supported and mapped to DataNull for deserialization.
  */
 public class UnionSerde implements Serde<Object> {
     private record MemberSerde(DataType type, Serializer<Object> serializer, Deserializer<Object> deserializer) {
@@ -131,9 +130,9 @@ public class UnionSerde implements Serde<Object> {
 
         @Override
         public Object deserialize(String topic, byte[] data) {
-            // Keep a tombstone a real null, so Kafka Streams sees it
-            if (data == null) return null;
-            if (data.length == 0) return DataNull.INSTANCE;
+            if (data == null || data.length == 0) {
+                return DataNull.INSTANCE;
+            }
 
             for (final var memberSerde : memberSerdes) {
                 try {

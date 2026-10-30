@@ -29,8 +29,9 @@ import java.nio.ByteBuffer;
 import java.util.Map;
 
 /**
- * Wraps the Serde of any notation, so that a tombstone (null bytes) is always deserialized as null. Notation
- * deserializers can turn null bytes into a typed null object, which Kafka Streams would see as a normal value.
+ * Wraps the Serde of any notation, so that a tombstone is always null bytes on a topic and null inside Kafka
+ * Streams. Notations can turn null bytes into a typed null object, which Kafka Streams would see as a normal value,
+ * or write null as a value instead of a tombstone.
  */
 public class TombstoneSerde implements Serde<Object> {
     private final Serde<Object> serde;
@@ -51,12 +52,34 @@ public class TombstoneSerde implements Serde<Object> {
 
     @Override
     public Serializer<Object> serializer() {
-        return serde.serializer();
+        return new TombstoneSerializer(serde.serializer());
     }
 
     @Override
     public Deserializer<Object> deserializer() {
         return new TombstoneDeserializer(serde.deserializer());
+    }
+
+    private record TombstoneSerializer(Serializer<Object> serializer) implements Serializer<Object> {
+        @Override
+        public void configure(Map<String, ?> configs, boolean isKey) {
+            serializer.configure(configs, isKey);
+        }
+
+        @Override
+        public byte[] serialize(String topic, Object data) {
+            return data != null ? serializer.serialize(topic, data) : null;
+        }
+
+        @Override
+        public byte[] serialize(String topic, Headers headers, Object data) {
+            return data != null ? serializer.serialize(topic, headers, data) : null;
+        }
+
+        @Override
+        public void close() {
+            serializer.close();
+        }
     }
 
     private record TombstoneDeserializer(Deserializer<Object> deserializer) implements Deserializer<Object> {

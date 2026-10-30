@@ -1,0 +1,23 @@
+# A groupBy mapper that returns None gives a null key, so the record is skipped, like in Kafka Streams.
+
+streams:
+  orders:
+    topic: json_input_topic
+    keyType: string
+    valueType: json
+  counts:
+    topic: output_topic
+    keyType: json
+    valueType: long
+
+pipelines:
+  count_per_region:
+    from: orders
+    via:
+      - type: groupBy
+        mapper:
+          expression: '{"region": value["region"]} if "region" in value else None'
+          resultType: json
+      - type: count
+      - type: toStream
+    to: counts

@@ -400,6 +400,8 @@ The `keySelector` can be defined using:
 - `expression`: A simple expression returning the grouping key
 - `code`: A Python code block returning the grouping key
 
+A `keySelector` that returns `None` gives a `null` key, so the record is skipped, like in Kafka Streams.
+
 #### Example
 
 ```yaml

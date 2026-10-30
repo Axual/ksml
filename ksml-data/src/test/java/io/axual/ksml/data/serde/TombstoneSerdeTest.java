@@ -29,17 +29,18 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 class TombstoneSerdeTest {
     private static final String TOPIC = "topic";
 
-    // Like a vendor notation: null bytes become a typed null object, other bytes become their length
+    // Like a vendor notation: null bytes become a typed null object, and null is written as a value
     private static final Serde<Object> NOTATION_SERDE = new Serde<>() {
         @Override
         public Serializer<Object> serializer() {
-            return (topic, data) -> data != null ? data.toString().getBytes() : null;
+            return (topic, data) -> String.valueOf(data).getBytes(StandardCharsets.UTF_8);
         }
 
         @Override
@@ -67,9 +68,16 @@ class TombstoneSerdeTest {
     }
 
     @Test
-    @DisplayName("Serializing is left to the notation")
-    void serializerIsFromTheNotation() {
-        assertThat(serde.serializer().serialize(TOPIC, "ab")).isEqualTo("ab".getBytes());
+    @DisplayName("null is serialized as a tombstone, also when the notation would write a value")
+    void nullIsTombstone() {
         assertThat(serde.serializer().serialize(TOPIC, null)).isNull();
+        assertThat(serde.serializer().serialize(TOPIC, new RecordHeaders(), null)).isNull();
+    }
+
+    @Test
+    @DisplayName("Other data is serialized by the notation")
+    void otherDataGoesToTheNotationSerializer() {
+        assertThat(serde.serializer().serialize(TOPIC, "ab")).isEqualTo("ab".getBytes(StandardCharsets.UTF_8));
+        assertThat(serde.serializer().serialize(TOPIC, new RecordHeaders(), "ab")).isEqualTo("ab".getBytes(StandardCharsets.UTF_8));
     }
 }

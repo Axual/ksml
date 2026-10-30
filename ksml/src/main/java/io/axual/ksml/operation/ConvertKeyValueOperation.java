@@ -48,9 +48,13 @@ public class ConvertKeyValueOperation extends BaseOperation {
 
         // Set up the mapping function to convert the key and value
         KeyValueMapper<Object, Object, KeyValue<Object, Object>> converter = (key, value) -> {
-            // Keep a null key and a tombstone null
-            var convertedKey = key != null ? mapper.convert(k.userType().notation(), flattenValue(key), kr.userType()) : null;
-            var convertedValue = value != null ? mapper.convert(v.userType().notation(), flattenValue(value), vr.userType()) : null;
+            // A null key or a tombstone must stay null, else Kafka Streams sees a key or a value
+            var convertedKey = key != null
+                    ? mapper.convert(k.userType().notation(), flattenValue(key), kr.userType())
+                    : null;
+            var convertedValue = value != null
+                    ? mapper.convert(v.userType().notation(), flattenValue(value), vr.userType())
+                    : null;
 
             return new KeyValue<>(convertedKey, convertedValue);
         };

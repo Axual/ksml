@@ -152,7 +152,7 @@ class UnionSerdeTest {
     }
 
     @Test
-    @DisplayName("deserializer: null -> null, empty -> DataNull, tries in order and returns first compatible")
+    @DisplayName("deserializer: null/empty -> DataNull, tries in order and returns first compatible")
     void deserializeNullsAndOrdering() {
         final var union = new UnionType(
                 new UnionType.Member(STR_TYPE),
@@ -178,8 +178,8 @@ class UnionSerdeTest {
         };
         final var serde = new UnionSerde(union, false, supplier);
 
-        // null (a tombstone) -> null, empty -> DataNull.INSTANCE
-        assertThat(serde.deserializer().deserialize(TOPIC, null)).isNull();
+        // null/empty -> DataNull.INSTANCE
+        assertThat(serde.deserializer().deserialize(TOPIC, null)).isSameAs(DataNull.INSTANCE);
         assertThat(serde.deserializer().deserialize(TOPIC, new byte[]{})).isSameAs(DataNull.INSTANCE);
 
         // Bytes that could be read by multiple members should yield the first compatible (String first)
