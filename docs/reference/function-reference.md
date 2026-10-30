@@ -244,6 +244,37 @@ parameters:
 **Important:** The `parameters` property **adds to** the built-in parameters - it doesn't replace them. Built-in
 parameters like `key` and `value` are still available in your function code.
 
+## Tombstones and `None`
+
+A tombstone is a record with a key but no value. It means "delete this key". In Python, the value of a tombstone is
+`None`. KSML handles tombstones like Kafka Streams does.
+
+### Functions that are not called for a tombstone
+
+| Function              | Operation                                   | What happens with a tombstone                                                                                 |
+|-----------------------|---------------------------------------------|---------------------------------------------------------------------------------------------------------------|
+| `reducer`             | `reduce` after `groupBy` or `groupByKey`    | The record is skipped                                                                                         |
+| `aggregator`          | `aggregate` after `groupBy` or `groupByKey` | The record is skipped                                                                                         |
+| `foreignKeyExtractor` | foreign-key `join` and `leftJoin`           | The joined row is deleted                                                                                     |
+| `valueJoiner`         | `join` or `leftJoin` of a stream with a table or global table | The stream record is skipped                                                                |
+| `valueJoiner`         | `join`, `leftJoin` or `outerJoin` of two tables | When the row can not exist any more, it is deleted. Otherwise (`leftJoin`, `outerJoin`) the joiner gets `None` for the deleted side |
+
+`count` also skips tombstones. Other functions, like a `predicate` or a `valueTransformer` on a stream, still get
+`None` for a tombstone.
+
+### Returning `None`
+
+A function that returns `None` gives Kafka Streams a real `null`:
+
+* As a **value**, for example from a `valueTransformer` or `valueJoiner`, it is a tombstone. A later `count`, `reduce`
+  or `aggregate` skips it, and a topic gets a tombstone. A `None` in the list of a `flatMap` or `flatMapValues` is a
+  tombstone too.
+* From a `reducer` or `aggregator`, it deletes the key from the store, and the next step gets a tombstone.
+* As a **key**, for example from a `keyTransformer`, it is a `null` key.
+* From the `mapper` (a `keyValueMapper`) of a join with a global table, there is nothing to look up. A `join` skips the
+  record, and a `leftJoin` calls the `valueJoiner` with `None` for `value2`.
+* From a `foreignKeyExtractor`, a `join` leaves the row out, and a `leftJoin` joins it with `None`.
+
 ## Function Types Overview
 
 Below is a table with all 21 function types in KSML.
