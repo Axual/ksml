@@ -42,6 +42,6 @@ public class UserForeignKeyExtractor extends Invoker implements UnaryOperator<Ob
 
     @Override
     public DataObject apply(Object value) {
-        return timeExecutionOf(() -> function.call(NATIVE_MAPPER.toDataObject(value)));
+        return timeExecutionOf(() -> nullIfNone(function.call(NATIVE_MAPPER.toDataObject(value))));
     }
 }

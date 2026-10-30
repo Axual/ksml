@@ -39,6 +39,6 @@ public class UserInitializer extends Invoker implements Initializer<Object> {
 
     @Override
     public DataObject apply() {
-        return timeExecutionOf(function::call);
+        return timeExecutionOf(() -> nullIfNone(function.call()));
     }
 }
