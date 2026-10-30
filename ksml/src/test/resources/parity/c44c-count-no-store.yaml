@@ -1,0 +1,19 @@
+# Same as c12, without a store definition
+streams:
+  input:
+    topic: in
+    keyType: string
+    valueType: json
+  output:
+    topic: out
+    keyType: string
+    valueType: long
+
+pipelines:
+  main:
+    from: input
+    via:
+      - type: groupByKey
+      - type: count
+      - type: toStream
+    to: output

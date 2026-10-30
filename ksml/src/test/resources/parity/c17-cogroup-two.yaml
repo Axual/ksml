@@ -1,0 +1,48 @@
+# Kafka Streams: a.groupByKey().cogroup(aggA).cogroup(b.groupByKey(), aggB).aggregate(init)
+# The second grouped stream is saved with "as" in an earlier pipeline, and added with "stream".
+streams:
+  input_a:
+    topic: in_a
+    keyType: string
+    valueType: json
+  input_b:
+    topic: in_b
+    keyType: string
+    valueType: json
+  output:
+    topic: out
+    keyType: string
+    valueType: json
+
+stores:
+  cogroup_store:
+    type: keyValue
+    keyType: string
+    valueType: json
+
+pipelines:
+  group_b:
+    from: input_b
+    via:
+      - type: groupByKey
+    as: grouped_b
+  main:
+    from: input_a
+    via:
+      - type: groupByKey
+      - type: cogroup
+        aggregator:
+          resultType: json
+          expression: '{"a": aggregatedValue["a"] + value["n"], "b": aggregatedValue["b"]}'
+      - type: cogroup
+        stream: grouped_b
+        aggregator:
+          resultType: json
+          expression: '{"a": aggregatedValue["a"], "b": aggregatedValue["b"] + value["n"]}'
+      - type: aggregate
+        store: cogroup_store
+        initializer:
+          resultType: json
+          expression: '{"a": 0, "b": 0}'
+      - type: toStream
+    to: output

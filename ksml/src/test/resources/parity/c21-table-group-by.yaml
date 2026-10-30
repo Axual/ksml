@@ -1,0 +1,53 @@
+tables:
+  users:
+    topic: t_users
+    keyType: string
+    valueType: json
+
+streams:
+  out_count:
+    topic: out_count
+    keyType: string
+    valueType: long
+  out_sum:
+    topic: out_sum
+    keyType: string
+    valueType: long
+
+stores:
+  sum_store:
+    type: keyValue
+    keyType: string
+    valueType: long
+
+pipelines:
+  count_per_region:
+    from: users
+    via:
+      - type: groupBy
+        mapper:
+          resultType: tuple(string, json)
+          expression: '(value["region"], value)'
+      - type: count
+      - type: toStream
+    to: out_count
+  sum_per_region:
+    from: users
+    via:
+      - type: groupBy
+        mapper:
+          resultType: tuple(string, json)
+          expression: '(value["region"], value)'
+      - type: aggregate
+        store: sum_store
+        initializer:
+          resultType: long
+          expression: 0
+        adder:
+          resultType: long
+          expression: aggregatedValue + value["amount"]
+        subtractor:
+          resultType: long
+          expression: aggregatedValue - value["amount"]
+      - type: toStream
+    to: out_sum

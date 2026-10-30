@@ -1,0 +1,31 @@
+streams:
+  input:
+    topic: in
+    keyType: string
+    valueType: json
+  out_flatmap:
+    topic: out_flatmap
+    keyType: string
+    valueType: json
+  out_flatmapvalues:
+    topic: out_flatmapvalues
+    keyType: string
+    valueType: json
+
+pipelines:
+  flat_map:
+    from: input
+    via:
+      - type: flatMap
+        mapper:
+          resultType: list(tuple(string, json))
+          expression: '[(key + "-" + str(i), {"item": item}) for i, item in enumerate(value["items"])]'
+    to: out_flatmap
+  flat_map_values:
+    from: input
+    via:
+      - type: flatMapValues
+        mapper:
+          resultType: list(json)
+          expression: '[{"item": item} for item in value["items"]]'
+    to: out_flatmapvalues

@@ -1,0 +1,21 @@
+streams:
+  input_a:
+    topic: in_a
+    keyType: string
+    valueType: json
+  input_b:
+    topic: in_b
+    keyType: string
+    valueType: json
+  output:
+    topic: out
+    keyType: string
+    valueType: json
+
+pipelines:
+  main:
+    from: input_a
+    via:
+      - type: merge
+        stream: input_b
+    to: output

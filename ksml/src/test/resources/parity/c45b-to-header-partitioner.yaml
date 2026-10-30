@@ -1,0 +1,26 @@
+# Kafka 4.4 (KIP-1321): a partitioner that reads a header; an empty list drops the record
+streams:
+  input:
+    topic: in
+    keyType: string
+    valueType: json
+
+functions:
+  by_region_header:
+    type: streamPartitioner
+    code: |
+      region = None
+      for header in headers:
+        if header["key"] == "region":
+          region = header["value"]
+    expression: '[] if region == "drop" else ([0] if region == "eu" else ([1] if region == "us" else [2]))'
+    resultType: "[integer]"
+
+pipelines:
+  main:
+    from: input
+    to:
+      topic: out
+      keyType: string
+      valueType: json
+      partitioner: by_region_header

@@ -1,0 +1,31 @@
+streams:
+  input:
+    topic: in
+    keyType: string
+    valueType: json
+  output:
+    topic: out
+    keyType: string
+    valueType: json
+
+stores:
+  agg_store:
+    type: keyValue
+    keyType: string
+    valueType: json
+
+pipelines:
+  main:
+    from: input
+    via:
+      - type: groupByKey
+      - type: aggregate
+        store: agg_store
+        initializer:
+          resultType: json
+          expression: '{"count": 0, "sum": 0}'
+        aggregator:
+          resultType: json
+          expression: 'aggregatedValue if value is None else {"count": aggregatedValue["count"] + 1, "sum": aggregatedValue["sum"] + value["amount"]}'
+      - type: toStream
+    to: output

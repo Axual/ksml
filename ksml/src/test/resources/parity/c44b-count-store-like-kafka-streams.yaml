@@ -1,0 +1,29 @@
+# Same as c12, with the store options set to the Kafka Streams defaults
+streams:
+  input:
+    topic: in
+    keyType: string
+    valueType: json
+  output:
+    topic: out
+    keyType: string
+    valueType: long
+
+stores:
+  count_store:
+    type: keyValue
+    keyType: string
+    valueType: long
+    persistent: true
+    logging: true
+    timestamped: true
+
+pipelines:
+  main:
+    from: input
+    via:
+      - type: groupByKey
+      - type: count
+        store: count_store
+      - type: toStream
+    to: output

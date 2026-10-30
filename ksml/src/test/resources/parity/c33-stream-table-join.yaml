@@ -1,0 +1,41 @@
+streams:
+  orders:
+    topic: s_in
+    keyType: string
+    valueType: json
+  out_join:
+    topic: out_join
+    keyType: string
+    valueType: json
+  out_left:
+    topic: out_left
+    keyType: string
+    valueType: json
+
+tables:
+  customers:
+    topic: t_tab
+    keyType: string
+    valueType: json
+
+functions:
+  joiner:
+    type: valueJoiner
+    resultType: json
+    expression: '{"key": key, "order": value1["v"] if value1 is not None else None, "customer": value2["name"] if value2 is not None else None}'
+
+pipelines:
+  inner:
+    from: orders
+    via:
+      - type: join
+        table: customers
+        valueJoiner: joiner
+    to: out_join
+  left:
+    from: orders
+    via:
+      - type: leftJoin
+        table: customers
+        valueJoiner: joiner
+    to: out_left

@@ -1,0 +1,99 @@
+# Parity tests on real Kafka: KSML (from the image built on main) against plain Kafka Streams.
+# Each side gets its own broker, so both apps can use the same topic names and application id.
+# The JUnit driver (io.axual.ksml.parity.DockerParity) starts the brokers, writes the run folder,
+# starts the two apps for every case and compares what they write.
+#
+#   ./build-local-docker.sh                                  (builds the image axual/ksml:local from this repo)
+#   mvn test -pl ksml -am -Dtest='*ParityTest' -Dparity.mode=docker -Dsurefire.failIfNoSpecifiedTests=false
+name: ksml-parity
+
+networks:
+  parity:
+    name: ksml_parity
+
+x-broker-env: &broker-env
+  KAFKA_PROCESS_ROLES: 'controller,broker'
+  KAFKA_NODE_ID: 0
+  KAFKA_CONTROLLER_LISTENER_NAMES: 'CONTROLLER'
+  KAFKA_LISTENERS: 'INNER://:9093,OUTER://:9092,CONTROLLER://:9090'
+  KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: 'INNER:PLAINTEXT,OUTER:PLAINTEXT,CONTROLLER:PLAINTEXT'
+  KAFKA_INTER_BROKER_LISTENER_NAME: INNER
+  KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+  KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+  KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+  KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+  KAFKA_AUTO_CREATE_TOPICS_ENABLE: 'false'
+  KAFKA_NUM_PARTITIONS: 1
+  # The test records have timestamps in 1970, so time-based retention would delete them during a test
+  KAFKA_LOG_RETENTION_MS: -1
+
+x-broker-health: &broker-health
+  test: /opt/kafka/bin/kafka-topics.sh --bootstrap-server localhost:9093 --list
+  interval: 3s
+  timeout: 10s
+  retries: 30
+  start_period: 5s
+
+services:
+  broker-ksml:
+    image: apache/kafka:4.4.0
+    hostname: broker-ksml
+    ports:
+      - "19092:9092"
+    networks:
+      - parity
+    environment:
+      <<: *broker-env
+      KAFKA_CONTROLLER_QUORUM_VOTERS: '0@broker-ksml:9090'
+      KAFKA_ADVERTISED_LISTENERS: 'INNER://broker-ksml:9093,OUTER://localhost:19092'
+      CLUSTER_ID: 'cGFyaXR5LWtzbWwtYnJva2Vy'
+    healthcheck: *broker-health
+
+  broker-ref:
+    image: apache/kafka:4.4.0
+    hostname: broker-ref
+    ports:
+      - "29092:9092"
+    networks:
+      - parity
+    environment:
+      <<: *broker-env
+      KAFKA_CONTROLLER_QUORUM_VOTERS: '0@broker-ref:9090'
+      KAFKA_ADVERTISED_LISTENERS: 'INNER://broker-ref:9093,OUTER://localhost:29092'
+      CLUSTER_ID: 'cGFyaXR5LXJlZi1icm9rZXI'
+    healthcheck: *broker-health
+
+  # The KSML runner from the image, with the case definition and runner config in the run folder
+  ksml:
+    image: ${KSML_IMAGE:-axual/ksml:local}
+    profiles: [ apps ]
+    # On Linux, set PARITY_USER to "$(id -u):0", so the test can delete the state that the app writes into the run folder
+    user: ${PARITY_USER:-1024:0}
+    environment:
+      HOME: /home/ksml
+    networks:
+      - parity
+    working_dir: /ksml
+    volumes:
+      - ${PARITY_RUN_DIR:-../ksml/target/parity-docker-run}/ksml:/ksml
+    command: [ "ksml-runner.yaml" ]
+
+  # The Kafka Streams reference topology of the same case, run on the JVM and libraries of the same image
+  reference:
+    image: ${KSML_IMAGE:-axual/ksml:local}
+    profiles: [ apps ]
+    networks:
+      - parity
+    entrypoint: [ "java", "--enable-native-access=ALL-UNNAMED", "-Dlogback.configurationFile=/parity/extra/logback.xml", "-cp", "/parity/test-classes:/parity/extra/*:/opt/ksml/libs/*", "io.axual.ksml.parity.ReferenceApp" ]
+    user: ${PARITY_USER:-1024:0}
+    environment:
+      HOME: /home/ksml
+      REF_CLASS: ${REF_CLASS:-}
+      REF_METHOD: ${REF_METHOD:-}
+      APP_ID: ${APP_ID:-parity}
+      BOOTSTRAP: broker-ref:9093
+      STATE_DIR: /ref/state
+    volumes:
+      - ../ksml/target/test-classes:/parity/test-classes:ro
+      - ${PARITY_RUN_DIR:-../ksml/target/parity-docker-run}/extra:/parity/extra:ro
+      - ${PARITY_RUN_DIR:-../ksml/target/parity-docker-run}/ref:/ref

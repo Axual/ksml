@@ -1,0 +1,44 @@
+streams:
+  left:
+    topic: left
+    keyType: string
+    valueType: json
+  right:
+    topic: right
+    keyType: string
+    valueType: json
+  output:
+    topic: out
+    keyType: string
+    valueType: json
+
+stores:
+  left_store:
+    type: window
+    keyType: string
+    valueType: json
+    windowSize: 20s
+    retention: 20s
+    retainDuplicates: true
+  right_store:
+    type: window
+    keyType: string
+    valueType: json
+    windowSize: 20s
+    retention: 20s
+    retainDuplicates: true
+
+pipelines:
+  main:
+    from: left
+    via:
+      - type: outerJoin
+        stream: right
+        valueJoiner:
+          resultType: json
+          expression: '{"key": key, "left": value1["v"] if value1 is not None else None, "right": value2["v"] if value2 is not None else None}'
+        timeDifference: 10s
+        grace: 0s
+        thisStore: left_store
+        otherStore: right_store
+    to: output
