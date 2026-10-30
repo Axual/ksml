@@ -24,6 +24,7 @@ import io.axual.ksml.testutil.KSMLTest;
 import io.axual.ksml.testutil.KSMLTestExtension;
 import io.axual.ksml.testutil.KSMLTopic;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.kafka.streams.KeyValue;
 import org.apache.kafka.streams.TestInputTopic;
 import org.apache.kafka.streams.TestOutputTopic;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -62,5 +63,20 @@ class KSMLCountTest {
         assertThat(keyValueMap.get("keyFirst")).as("keyFirst should have counted 3 records").isEqualTo(3);
         assertThat(keyValueMap.get("keySecond")).as("keySecond should have counted 2 records").isEqualTo(2);
         assertThat(keyValueMap.get("keyThird")).as("keyThird should have counted 1 records").isEqualTo(1);
+    }
+
+    @KSMLTest(topology = "pipelines/test-count-tombstone.yaml")
+    void testCountSkipsTombstones() {
+        // given a tombstone between three orders, on a json topic
+        inputTopic.pipeInput("a", "{\"amount\": 1}");
+        inputTopic.pipeInput("a", "{\"amount\": 2}");
+        inputTopic.pipeInput("a", (String) null);
+        inputTopic.pipeInput("a", "{\"amount\": 4}");
+
+        // the tombstone should not be counted, like in Kafka Streams
+        assertThat(outputTopic.readKeyValuesToList()).containsExactly(
+                new KeyValue<>("a", 1L),
+                new KeyValue<>("a", 2L),
+                new KeyValue<>("a", 3L));
     }
 }

@@ -44,6 +44,21 @@ class KSMLFlatMapValuesTest {
     @KSMLTopic(topic = "output_topic")
     protected TestOutputTopic<String, String> outputTopic;
 
+    @KSMLTopic(topic = "count_topic", valueSerde = KSMLTopic.SerdeType.LONG)
+    protected TestOutputTopic<String, Long> countTopic;
+
+    @KSMLTest(topology = "pipelines/test-flatmapvalues-none.yaml")
+    void testFlatMapValuesNoneIsTombstone() {
+        // given that the mapper returns [value, None] for every message
+        inputTopic.pipeInput("keyFirst", "value1");
+        inputTopic.pipeInput("keyFirst", "value2");
+
+        // the None values are tombstones, so the count skips them
+        assertThat(countTopic.readKeyValuesToList()).containsExactly(
+                new KeyValue<>("keyFirst", 1L),
+                new KeyValue<>("keyFirst", 2L));
+    }
+
     @KSMLTest(topology = "pipelines/test-flatmapvalues-code.yaml")
     void testFlatMapValuesCode() {
         log.debug("testFlatMapValuesCode()");

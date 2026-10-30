@@ -1,10 +1,10 @@
 streams:
   orders:
-    topic: tomb_in
+    topic: inMessages
     keyType: string
     valueType: json
   sums:
-    topic: tomb_reduce_out
+    topic: outMessages
     keyType: string
     valueType: json
 
