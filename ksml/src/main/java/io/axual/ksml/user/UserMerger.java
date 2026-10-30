@@ -40,6 +40,6 @@ public class UserMerger extends Invoker implements Merger<Object, Object> {
 
     @Override
     public DataObject apply(Object key, Object value1, Object value2) {
-        return timeExecutionOf(() -> nullIfNone(function.call(NATIVE_MAPPER.toDataObject(key), NATIVE_MAPPER.toDataObject(value1), NATIVE_MAPPER.toDataObject(value2))));
+        return timeExecutionOf(() -> function.call(NATIVE_MAPPER.toDataObject(key), NATIVE_MAPPER.toDataObject(value1), NATIVE_MAPPER.toDataObject(value2)));
     }
 }

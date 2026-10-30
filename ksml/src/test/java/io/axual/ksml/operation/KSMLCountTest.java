@@ -24,6 +24,7 @@ import io.axual.ksml.testutil.KSMLTest;
 import io.axual.ksml.testutil.KSMLTestExtension;
 import io.axual.ksml.testutil.KSMLTopic;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.avro.generic.GenericRecord;
 import org.apache.kafka.streams.KeyValue;
 import org.apache.kafka.streams.TestInputTopic;
 import org.apache.kafka.streams.TestOutputTopic;
@@ -43,6 +44,9 @@ class KSMLCountTest {
 
     @KSMLTopic(topic = "output_topic", valueSerde = KSMLTopic.SerdeType.LONG)
     protected TestOutputTopic<String, Long> outputTopic;
+
+    @KSMLTopic(topic = "ksml_sensordata_avro", valueSerde = KSMLTopic.SerdeType.AVRO)
+    protected TestInputTopic<String, GenericRecord> avroTopic;
 
     @KSMLTest(topology = "pipelines/test-count.yaml")
     void testCount() {
@@ -78,5 +82,32 @@ class KSMLCountTest {
                 new KeyValue<>("a", 1L),
                 new KeyValue<>("a", 2L),
                 new KeyValue<>("a", 3L));
+    }
+
+    @KSMLTest(topology = "pipelines/test-count-tombstone-avro.yaml", schemaDirectory = "schemas")
+    void testCountSkipsTombstonesOnAvroTopic() {
+        // given a tombstone between two records, on an avro topic
+        avroTopic.pipeInput("a", SensorData.builder().color("blue").build().toRecord());
+        avroTopic.pipeInput("a", (GenericRecord) null);
+        avroTopic.pipeInput("a", SensorData.builder().color("red").build().toRecord());
+
+        // the tombstone should not be counted, like in Kafka Streams
+        assertThat(outputTopic.readKeyValuesToList()).containsExactly(
+                new KeyValue<>("a", 1L),
+                new KeyValue<>("a", 2L));
+    }
+
+    @KSMLTest(topology = "pipelines/test-count-null-key.yaml")
+    void testCountSkipsNullKeys() {
+        // given records with a null key, on a topic with a json key
+        inputTopic.pipeInput("{\"id\": 1}", "x");
+        inputTopic.pipeInput((String) null, "y");
+        inputTopic.pipeInput((String) null, "z");
+
+        // the records with a null key should be skipped, like in Kafka Streams
+        final var result = outputTopic.readKeyValuesToList();
+        assertThat(result).hasSize(1);
+        assertThat(result.getFirst().key).isEqualToIgnoringWhitespace("{\"id\":1}");
+        assertThat(result.getFirst().value).isEqualTo(1L);
     }
 }

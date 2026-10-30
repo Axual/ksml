@@ -88,8 +88,10 @@ class InvokerTest {
     }
 
     @Test
-    @DisplayName("Something that is not a DataObject is returned as is")
+    @DisplayName("A key or value that is not a DataObject is returned as is")
     void notADataObject() {
-        assertThat(nullIfNone((Object) "native")).isEqualTo("native");
+        final var result = nullIfNone(new KeyValue<Object, Object>("native", "v"));
+        assertThat(result.key).isEqualTo("native");
+        assertThat(result.value).isEqualTo("v");
     }
 }
