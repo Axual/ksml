@@ -44,6 +44,8 @@ public class ConvertKeyOperation extends BaseOperation {
 
         // Set up the mapping function to convert the value
         final KeyValueMapper<Object, Object, Object> converter = (key, value) -> {
+            // Keep a null key a null key
+            if (key == null) return null;
             final var keyAsData = flattenValue(key);
             return mapper.convert(k.userType().notation(), keyAsData, kr.userType());
         };

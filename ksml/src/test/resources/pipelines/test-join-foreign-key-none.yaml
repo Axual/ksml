@@ -1,0 +1,52 @@
+# A foreignKeyExtractor that returns None: join leaves the order out, leftJoin joins it with None.
+
+tables:
+  orders:
+    topic: orders_topic
+    keyType: long
+    valueType: json
+  customers:
+    topic: customers_topic
+    keyType: string
+    valueType: string
+
+streams:
+  joined_orders:
+    topic: joined_orders_topic
+    keyType: long
+    valueType: string
+  left_joined_orders:
+    topic: left_joined_orders_topic
+    keyType: long
+    valueType: string
+
+functions:
+  customer_of_order:
+    type: foreignKeyExtractor
+    expression: value.get("customer_id")
+    resultType: string
+  order_with_customer:
+    type: valueJoiner
+    expression: value1["item"] + "@" + (value2 if value2 is not None else "unknown")
+    resultType: string
+
+pipelines:
+  fk_join:
+    from: orders
+    via:
+      - type: join
+        table: customers
+        foreignKeyExtractor: customer_of_order
+        valueJoiner: order_with_customer
+      - type: toStream
+    to: joined_orders
+
+  fk_left_join:
+    from: orders
+    via:
+      - type: leftJoin
+        table: customers
+        foreignKeyExtractor: customer_of_order
+        valueJoiner: order_with_customer
+      - type: toStream
+    to: left_joined_orders

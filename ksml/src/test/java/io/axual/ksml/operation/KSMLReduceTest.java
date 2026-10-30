@@ -20,12 +20,15 @@ package io.axual.ksml.operation;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.testutil.KSMLDriver;
 import io.axual.ksml.testutil.KSMLTest;
 import io.axual.ksml.testutil.KSMLTestExtension;
 import io.axual.ksml.testutil.KSMLTopic;
 import org.apache.kafka.streams.KeyValue;
 import org.apache.kafka.streams.TestInputTopic;
 import org.apache.kafka.streams.TestOutputTopic;
+import org.apache.kafka.streams.TopologyTestDriver;
+import org.apache.kafka.streams.state.KeyValueStore;
 import org.junit.jupiter.api.extension.ExtendWith;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
@@ -45,6 +48,12 @@ public class KSMLReduceTest {
 
     @KSMLTopic(topic = "outMessages")
     TestOutputTopic<String, String> outMessages;
+
+    @KSMLTopic(topic = "count_topic", valueSerde = KSMLTopic.SerdeType.LONG)
+    TestOutputTopic<String, Long> countTopic;
+
+    @KSMLDriver
+    TopologyTestDriver testDriver;
 
     @KSMLTest(topology = "pipelines/test-reduce.yaml")
     void testReduce() {
@@ -82,5 +91,24 @@ public class KSMLReduceTest {
                 MAPPER.readTree("{\"amount\": 1}"),
                 MAPPER.readTree("{\"amount\": 3}"),
                 MAPPER.readTree("{\"amount\": 7}"));
+    }
+
+    @KSMLTest(topology = "pipelines/test-reduce-none.yaml")
+    void testReducerNoneDeletesKey() {
+        // given that the reducer returns None for an amount of 0
+        inMessages.pipeInput("a", "{\"amount\": 1}");
+        inMessages.pipeInput("a", "{\"amount\": 2}");
+        inMessages.pipeInput("a", "{\"amount\": 0}");
+
+        // the None deletes the key from the store
+        final KeyValueStore<String, Object> store = testDriver.getKeyValueStore("sum_store");
+        assertThat(store.get("a")).isNull();
+
+        // and the next step gets a tombstone, so the count of the results skips it
+        inMessages.pipeInput("a", "{\"amount\": 5}");
+        assertThat(countTopic.readKeyValuesToList()).containsExactly(
+                new KeyValue<>("a", 1L),
+                new KeyValue<>("a", 2L),
+                new KeyValue<>("a", 3L));
     }
 }

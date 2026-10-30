@@ -119,7 +119,7 @@ public abstract class Invoker {
         return isNone ? null : value;
     }
 
-    protected static Object nullIfNone(Object value) {
+    private static Object nullIfNone(Object value) {
         return value instanceof DataObject dataObject ? nullIfNone(dataObject) : value;
     }
 

@@ -634,6 +634,7 @@ A tombstone is a record with a `null` value: a delete. Joins handle tombstones a
 
 | Join                        | Tombstone or `None`                                       | Result                                                                                         |
 |-----------------------------|-----------------------------------------------------------|------------------------------------------------------------------------------------------------|
+| Two streams                 | Tombstone on either stream                                | The record is skipped, also in `leftJoin` and `outerJoin`                                      |
 | Stream with a table         | Tombstone on the stream                                   | The record is skipped                                                                          |
 | Stream with a table         | Tombstone on the table                                    | Later stream records find no row: `join` skips them, `leftJoin` gets `None` for `value2`       |
 | Stream with a global table  | Tombstone on the stream                                   | The record is skipped                                                                          |

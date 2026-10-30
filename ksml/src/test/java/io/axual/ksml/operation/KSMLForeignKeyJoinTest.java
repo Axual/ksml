@@ -74,4 +74,17 @@ class KSMLForeignKeyJoinTest {
                 new KeyValue<>(1L, "book@Alice"),
                 new KeyValue<>(1L, null));
     }
+
+    @KSMLTest(topology = "pipelines/test-join-foreign-key-none.yaml")
+    @DisplayName("a foreignKeyExtractor that returns None: join leaves the row out, leftJoin joins it with None")
+    void testForeignKeyExtractorNone() {
+        customers.pipeInput("cust1", "Alice");
+        orders.pipeInput(1L, "{\"customer_id\": \"cust1\", \"item\": \"book\"}");
+        orders.pipeInput(2L, "{\"item\": \"pen\"}");
+
+        assertThat(joined.readKeyValuesToList()).containsExactly(new KeyValue<>(1L, "book@Alice"));
+        assertThat(leftJoined.readKeyValuesToList()).containsExactly(
+                new KeyValue<>(1L, "book@Alice"),
+                new KeyValue<>(2L, "pen@unknown"));
+    }
 }

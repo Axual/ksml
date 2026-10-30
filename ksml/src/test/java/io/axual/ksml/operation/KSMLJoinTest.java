@@ -41,6 +41,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 @SuppressWarnings("java:S2187")
 public class KSMLJoinTest {
 
+    private static final ObjectMapper MAPPER = new ObjectMapper();
+
     @KSMLTopic(topic = "ksml_sensordata_avro", valueSerde = KSMLTopic.SerdeType.AVRO)
     TestInputTopic<String, GenericRecord> sensorIn;
 
@@ -59,6 +61,9 @@ public class KSMLJoinTest {
     @KSMLTopic(topic = "output_topic")
     TestOutputTopic<String, String> tableJoinOut;
 
+    @KSMLTopic(topic = "count_topic", valueSerde = KSMLTopic.SerdeType.LONG)
+    TestOutputTopic<String, Long> joinCountTopic;
+
     @KSMLTest(topology = "pipelines/test-join-table-tombstone.yaml")
     void testTableJoinTombstoneDeletesRow() {
         leftTable.pipeInput("key1", "{\"v\": 1}");
@@ -68,7 +73,7 @@ public class KSMLJoinTest {
         // the delete on the left table should delete the joined row, like in Kafka Streams
         final var result = tableJoinOut.readKeyValuesToList();
         assertThat(result).hasSize(2);
-        assertThat(new ObjectMapper().readTree(result.get(0).value)).isEqualTo(new ObjectMapper().readTree("{\"left\": 1, \"right\": 2}"));
+        assertThat(MAPPER.readTree(result.get(0).value)).isEqualTo(MAPPER.readTree("{\"left\": 1, \"right\": 2}"));
         assertThat(result.get(1)).isEqualTo(new KeyValue<>("key1", null));
     }
 
@@ -112,5 +117,18 @@ public class KSMLJoinTest {
                 .hasNode("sensordata").withChild("city").withTextValue("Amsterdam")
                 .hasNode("sensordata").withChild("type").withTextValue("HUMIDITY")
                 .hasNode("sensordata").withChild("value").withTextValue("80");
+    }
+
+    @KSMLTest(topology = "pipelines/test-join-joiner-none.yaml")
+    void testValueJoinerNoneIsTombstone() {
+        rightTable.pipeInput("a", "{\"name\": \"Ann\"}");
+        leftTable.pipeInput("a", "{\"amount\": 1}");
+        leftTable.pipeInput("a", "{\"amount\": 0}");
+        leftTable.pipeInput("a", "{\"amount\": 2}");
+
+        // the joiner returns None for an amount of 0, which is a tombstone, so the count skips it
+        assertThat(joinCountTopic.readKeyValuesToList()).containsExactly(
+                new KeyValue<>("a", 1L),
+                new KeyValue<>("a", 2L));
     }
 }

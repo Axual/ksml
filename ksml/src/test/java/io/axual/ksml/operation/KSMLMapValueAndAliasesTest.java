@@ -24,6 +24,7 @@ import io.axual.ksml.testutil.KSMLTopic;
 import io.axual.ksml.testutil.KSMLTopologyTest;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.avro.generic.GenericRecord;
+import org.apache.kafka.streams.KeyValue;
 import org.apache.kafka.streams.TestInputTopic;
 import org.apache.kafka.streams.TestOutputTopic;
 import org.junit.jupiter.api.DisplayName;
@@ -45,6 +46,12 @@ public class KSMLMapValueAndAliasesTest {
 
     @KSMLTopic(topic = "output_topic")
     TestOutputTopic<String, String> outputTopic;
+
+    @KSMLTopic(topic = "json_input_topic")
+    TestInputTopic<String, String> jsonInputTopic;
+
+    @KSMLTopic(topic = "count_topic", valueSerde = KSMLTopic.SerdeType.LONG)
+    TestOutputTopic<String, Long> countTopic;
 
     List<GenericRecord> inputs = List.of(
             SensorData.builder().city("AMS").type(HUMIDITY).unit("%").value("80").build().toRecord(),
@@ -75,6 +82,30 @@ public class KSMLMapValueAndAliasesTest {
         assertThat(keyValues.get(2).value).isEqualTo("TEMPERATURE 25");
         assertThat(keyValues.get(3).value).isEqualTo("TEMPERATURE 27");
     }
+
+    @KSMLTopologyTest(topologies = "pipelines/test-transformvalue-table-none.yaml")
+    void testTransformValueOnTableNoneDeletesRow() {
+        // given that the mapper returns None for an amount of 0
+        jsonInputTopic.pipeInput("a", "{\"amount\": 1}");
+        jsonInputTopic.pipeInput("a", "{\"amount\": 0}");
+        jsonInputTopic.pipeInput("a", "{\"amount\": 2}");
+
+        // the None value deletes the row, so the count after toStream skips it
+        assertThat(countTopic.readKeyValuesToList()).containsExactly(
+                new KeyValue<>("a", 1L),
+                new KeyValue<>("a", 2L));
+    }
+
+    @KSMLTopologyTest(topologies = "pipelines/test-mapvalues-none.yaml")
+    void testMapValuesNoneIsTombstone() {
+        // given that the mapper returns None for an amount of 0
+        jsonInputTopic.pipeInput("a", "{\"amount\": 1}");
+        jsonInputTopic.pipeInput("a", "{\"amount\": 0}");
+        jsonInputTopic.pipeInput("a", "{\"amount\": 2}");
+
+        // the None value is a tombstone, so the count skips it
+        assertThat(countTopic.readKeyValuesToList()).containsExactly(
+                new KeyValue<>("a", 1L),
+                new KeyValue<>("a", 2L));
+    }
 }
-
-
