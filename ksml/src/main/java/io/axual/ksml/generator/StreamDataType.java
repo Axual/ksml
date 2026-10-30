@@ -22,6 +22,7 @@ package io.axual.ksml.generator;
 
 
 import io.axual.ksml.data.mapper.DataTypeFlattener;
+import io.axual.ksml.data.serde.TombstoneSerde;
 import io.axual.ksml.data.serde.UnionSerde;
 import io.axual.ksml.data.type.UnionType;
 import io.axual.ksml.execution.ExecutionContext;
@@ -46,8 +47,8 @@ public record StreamDataType(UserType userType, boolean isKey) {
     public Serde<Object> serde() {
         final var notation = ExecutionContext.INSTANCE.notationLibrary().get(userType.notation());
         if (userType.dataType() instanceof UnionType unionType)
-            return new UnionSerde(FLATTENER.flatten(unionType), isKey, notation::serde);
+            return new TombstoneSerde(new UnionSerde(FLATTENER.flatten(unionType), isKey, notation::serde));
         var serde = notation.serde(FLATTENER.flatten(userType.dataType()), isKey);
-        return ExecutionContext.INSTANCE.wrapSerde(serde);
+        return new TombstoneSerde(ExecutionContext.INSTANCE.wrapSerde(serde));
     }
 }

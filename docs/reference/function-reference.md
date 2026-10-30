@@ -256,8 +256,8 @@ A tombstone is a record with a key but no value. It means "delete this key". In 
 | `reducer`             | `reduce` after `groupBy` or `groupByKey`    | The record is skipped                                                                                         |
 | `aggregator`          | `aggregate` after `groupBy` or `groupByKey` | The record is skipped                                                                                         |
 | `foreignKeyExtractor` | foreign-key `join` and `leftJoin`           | The joined row is deleted                                                                                     |
-| `valueJoiner`         | `join` or `leftJoin` of a stream with a table or global table | The stream record is skipped                                                                |
-| `valueJoiner`         | `join`, `leftJoin` or `outerJoin` of two tables | When the row can not exist any more, it is deleted. Otherwise (`leftJoin`, `outerJoin`) the joiner gets `None` for the deleted side |
+| `valueJoiner`         | a join of a stream with a stream, table or global table | The stream record is skipped                                                                      |
+| `valueJoiner`         | `join` of two tables                        | The joined row is deleted. For `leftJoin` and `outerJoin`, see [Tombstones in joins](operation-reference.md#tombstones-in-joins) |
 
 `count` also skips tombstones. Other functions, like a `predicate` or a `valueTransformer` on a stream, still get
 `None` for a tombstone.

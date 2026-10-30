@@ -181,7 +181,7 @@ The new steps add Kafka topics to your application: `toTable` adds a state store
 
 ## Tombstones are handled like in Kafka Streams
 
-A tombstone is a record with a key but no value. It means "delete this key". On the 1.x line, KSML did not give a tombstone on a `json` topic (or another union type) to Kafka Streams as a `null`, and neither a `None` returned by a function. So Kafka Streams did not see a delete:
+A tombstone is a record with a key but no value. It means "delete this key". On the 1.x line, KSML did not give a tombstone to Kafka Streams as a `null`, for example on a `json` or `avro` topic, nor a `None` returned by a function. So Kafka Streams did not see a delete:
 
 * `count` counted tombstones.
 * `reduce` and `aggregate` called the function with `None`, which often stopped the application with a `TypeError`.
@@ -193,9 +193,10 @@ KSML 2.0.0 handles tombstones like Kafka Streams. This changes the result of som
 * `count`, `reduce` and `aggregate` skip a tombstone. A `reducer` or `aggregator` is no longer called with `None` as the value, so code in it that handles `None` does not run for a tombstone any more.
 * A function that returns `None` gives a tombstone. From a `reducer` or `aggregator`, it deletes the key from the store. As a value, a later `count`, `reduce` or `aggregate` skips it.
 * A key mapper that returns `None` gives a real `null` key.
+* `groupByKey`, `count`, `reduce` and `aggregate` skip a record with a `null` key, like Kafka Streams. Before, a `null` key on a topic with a `json` key could stop the application with a `NullPointerException`.
 * A join between tables writes a tombstone when the joined row is deleted. Consumers of the output topic get these tombstones.
 
-An empty value (zero bytes) is not a tombstone, and is not changed: it still reaches your functions as `None`.
+An empty value (zero bytes) is not a tombstone: it still reaches your functions as `None`. But if a function returns that `None`, the result is now a tombstone.
 
 [Tombstones and `None`](reference/function-reference.md#tombstones-and-none) and [Tombstones in joins](reference/operation-reference.md#tombstones-in-joins) list the details.
 

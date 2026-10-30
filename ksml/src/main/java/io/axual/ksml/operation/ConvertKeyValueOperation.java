@@ -48,11 +48,9 @@ public class ConvertKeyValueOperation extends BaseOperation {
 
         // Set up the mapping function to convert the key and value
         KeyValueMapper<Object, Object, KeyValue<Object, Object>> converter = (key, value) -> {
-            var keyAsData = flattenValue(key);
-            var convertedKey = mapper.convert(k.userType().notation(), keyAsData, kr.userType());
-
-            var valueAsData = flattenValue(value);
-            var convertedValue = mapper.convert(v.userType().notation(), valueAsData, vr.userType());
+            // Keep a null key and a tombstone null
+            var convertedKey = key != null ? mapper.convert(k.userType().notation(), flattenValue(key), kr.userType()) : null;
+            var convertedValue = value != null ? mapper.convert(v.userType().notation(), flattenValue(value), vr.userType()) : null;
 
             return new KeyValue<>(convertedKey, convertedValue);
         };

@@ -59,7 +59,7 @@ Major dependency upgrades. This release moves KSML to Jackson 3, Apicurio Regist
 * Breaking change: a `join` or `leftJoin` with `foreignKeyExtractor` now needs a table as input. Before, the extractor was silently ignored. See [Upgrading to 2.0.0](migration-to-2.0.0.md).
 * Errors reported by KSML now keep their cause, so stack traces in the logs show "Caused by" sections. A parse error is logged once, not once for each parser level.
 * Fixed `aggregate` after `cogroup` and `windowBySession`, which always failed at startup with "Merger is expected to take at least 3 parameters".
-* Breaking change: tombstones (records with a `null` value) are now handled like in Kafka Streams. `count`, `reduce` and `aggregate` skip them, a join between tables writes a delete, and a function that returns `None` gives a tombstone. Before, a tombstone on a `json` topic was counted, `reduce` and `aggregate` called Python with `None`, and a join with a global table failed when its `mapper` returned `None`. See [Upgrading to 2.0.0](migration-to-2.0.0.md).
+* Breaking change: tombstones are now handled like in Kafka Streams. `count`, `reduce` and `aggregate` skip them, a join between tables writes a delete, and a function that returns `None` gives a tombstone. See [Upgrading to 2.0.0](migration-to-2.0.0.md).
 
 ## 1.3.0 (2026-06-23)
 

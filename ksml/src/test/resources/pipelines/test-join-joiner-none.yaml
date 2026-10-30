@@ -1,0 +1,35 @@
+# A valueJoiner that returns None gives a tombstone, so the count after the join skips it.
+
+streams:
+  orders:
+    topic: left_topic
+    keyType: string
+    valueType: json
+  counts:
+    topic: count_topic
+    keyType: string
+    valueType: long
+
+tables:
+  customers:
+    topic: right_topic
+    keyType: string
+    valueType: json
+
+functions:
+  joiner:
+    type: valueJoiner
+    expression: 'None if value1["amount"] == 0 else {"amount": value1["amount"], "name": value2["name"]}'
+    resultType: json
+
+pipelines:
+  count_orders:
+    from: orders
+    via:
+      - type: join
+        table: customers
+        valueJoiner: joiner
+      - type: groupByKey
+      - type: count
+      - type: toStream
+    to: counts

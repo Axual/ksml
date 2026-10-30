@@ -1,0 +1,27 @@
+# A transformValue on a table that returns None deletes the row, so the count after toStream skips it.
+
+tables:
+  orders:
+    topic: json_input_topic
+    keyType: string
+    valueType: json
+
+streams:
+  counts:
+    topic: count_topic
+    keyType: string
+    valueType: long
+
+pipelines:
+  count_orders:
+    from: orders
+    via:
+      - type: transformValue
+        mapper:
+          expression: value if value["amount"] > 0 else None
+          resultType: json
+      - type: toStream
+      - type: groupByKey
+      - type: count
+      - type: toStream
+    to: counts
