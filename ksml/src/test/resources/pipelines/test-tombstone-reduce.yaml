@@ -1,0 +1,21 @@
+streams:
+  orders:
+    topic: tomb_in
+    keyType: string
+    valueType: json
+  sums:
+    topic: tomb_reduce_out
+    keyType: string
+    valueType: json
+
+pipelines:
+  sum_orders:
+    from: orders
+    via:
+      - type: groupByKey
+      - type: reduce
+        reducer:
+          expression: '{"amount": value1["amount"] + value2["amount"]}'
+          resultType: json
+      - type: toStream
+    to: sums

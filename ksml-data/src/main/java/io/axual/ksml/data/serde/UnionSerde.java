@@ -130,9 +130,9 @@ public class UnionSerde implements Serde<Object> {
 
         @Override
         public Object deserialize(String topic, byte[] data) {
-            if (data == null || data.length == 0) {
-                return DataNull.INSTANCE;
-            }
+            // A tombstone must stay a real null, so Kafka Streams can recognize it. Like in Kafka, empty bytes
+            // are not a tombstone, so they are passed on to the member deserializers.
+            if (data == null) return null;
 
             for (final var memberSerde : memberSerdes) {
                 try {

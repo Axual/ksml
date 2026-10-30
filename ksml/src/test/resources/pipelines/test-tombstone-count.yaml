@@ -1,0 +1,18 @@
+streams:
+  orders:
+    topic: tomb_in
+    keyType: string
+    valueType: json
+  counts:
+    topic: tomb_count_out
+    keyType: string
+    valueType: long
+
+pipelines:
+  count_orders:
+    from: orders
+    via:
+      - type: groupByKey
+      - type: count
+      - type: toStream
+    to: counts
