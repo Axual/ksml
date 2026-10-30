@@ -68,7 +68,7 @@ public class UserKeyValueToKeyValueListTransformer extends Invoker implements Ke
             final var convertedResult = new ArrayList<KeyValue<Object, Object>>();
             for (DataObject element : list) {
                 final var convertedKeyValue = function.convertToKeyValue(element, kr, vr);
-                convertedResult.add(convertedKeyValue);
+                convertedResult.add(nullIfNone(convertedKeyValue));
             }
             return convertedResult;
         }

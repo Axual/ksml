@@ -51,6 +51,6 @@ public class UserKeyValueTransformer extends Invoker implements KeyValueMapper<O
         final var kr = ((TupleType) function.resultType.dataType()).subType(0);
         final var vr = ((TupleType) function.resultType.dataType()).subType(1);
         final var result = timeExecutionOf(() -> function.call(stores, NATIVE_MAPPER.toDataObject(key), NATIVE_MAPPER.toDataObject(value)));
-        return function.convertToKeyValue(result, kr, vr);
+        return nullIfNone(function.convertToKeyValue(result, kr, vr));
     }
 }

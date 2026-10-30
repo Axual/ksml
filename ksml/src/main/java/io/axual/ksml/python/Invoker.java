@@ -22,8 +22,12 @@ package io.axual.ksml.python;
 
 
 import com.codahale.metrics.Timer;
+import io.axual.ksml.data.object.DataList;
+import io.axual.ksml.data.object.DataMap;
 import io.axual.ksml.data.object.DataNull;
 import io.axual.ksml.data.object.DataObject;
+import io.axual.ksml.data.object.DataPrimitive;
+import io.axual.ksml.data.object.DataStruct;
 import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.exception.TopologyException;
 import io.axual.ksml.metric.MetricName;
@@ -31,6 +35,7 @@ import io.axual.ksml.metric.MetricTags;
 import io.axual.ksml.metric.Metrics;
 import io.axual.ksml.type.UserType;
 import io.axual.ksml.user.UserFunction;
+import org.apache.kafka.streams.KeyValue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -99,6 +104,25 @@ public abstract class Invoker {
         Arrays.fill(result, requiredArguments.length, argumentCount - 1, DataNull.INSTANCE);
         result[argumentCount - 1] = optionalArgument.get();
         return result;
+    }
+
+    // Kafka Streams only sees a missing key or value (a tombstone) when it is a real null. A None result of a user
+    // function is either DataNull or a typed null (for example a DataString without a value), so neither may reach
+    // Kafka Streams as an object.
+    protected static DataObject nullIfNone(DataObject value) {
+        final var isNone = switch (value) {
+            case null -> true;
+            case DataPrimitive<?> primitive -> primitive.value() == null;
+            case DataList list -> list.isNull();
+            case DataMap map -> map.isNull();
+            case DataStruct struct -> struct.isNull();
+            default -> false;
+        };
+        return isNone ? null : value;
+    }
+
+    protected static KeyValue<Object, Object> nullIfNone(KeyValue<Object, Object> keyValue) {
+        return new KeyValue<>(nullIfNone((DataObject) keyValue.key), nullIfNone((DataObject) keyValue.value));
     }
 
     protected void verifyNoResult() {
