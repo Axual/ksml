@@ -48,6 +48,9 @@ public class KSMLGroupByTest {
     @KSMLTopic(topic = "output_topic", valueSerde = KSMLTopic.SerdeType.LONG)
     TestOutputTopic<String, Long> outputTopic;
 
+    @KSMLTopic(topic = "json_input_topic")
+    TestInputTopic<String, String> jsonInputTopic;
+
     List<GenericRecord> inputs = List.of(
             SensorData.builder().city("AMS").type(HUMIDITY).unit("%").value("80").build().toRecord(),
             SensorData.builder().city("UTR").type(HUMIDITY).unit("%").value("75").build().toRecord(),
@@ -76,6 +79,18 @@ public class KSMLGroupByTest {
         assertThat(groupedRecords.get("AMS")).as("records for AMS should be counted").isEqualTo(2L);
         assertThat(groupedRecords.get("UTR")).as("records for UTR should be counted").isEqualTo(2L);
     }
+
+    @KSMLTest(topology = "pipelines/test-groupby-none-key.yaml")
+    void testGroupByNoneKeySkipsRecord() {
+        // given that the mapper returns None for the orders without a region
+        jsonInputTopic.pipeInput("o1", "{\"region\": \"eu\"}");
+        jsonInputTopic.pipeInput("o2", "{}");
+        jsonInputTopic.pipeInput("o3", "{}");
+
+        // the orders without a region get a null key, so they are skipped
+        final var result = outputTopic.readKeyValuesToList();
+        assertThat(result).hasSize(1);
+        assertThat(result.getFirst().key).isEqualToIgnoringWhitespace("{\"region\":\"eu\"}");
+        assertThat(result.getFirst().value).isEqualTo(1L);
+    }
 }
-
-
