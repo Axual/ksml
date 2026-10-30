@@ -54,7 +54,7 @@ public class UserKeyValueToValueListTransformer extends Invoker implements Value
         final var result = timeExecutionOf(() -> function.call(stores, NATIVE_MAPPER.toDataObject(key), NATIVE_MAPPER.toDataObject(value)));
         if (result instanceof DataList list) {
             final var newList = new ArrayList<>();
-            list.forEach(newList::add);
+            list.forEach(element -> newList.add(nullIfNone(element)));
             return newList;
         }
         throw new ExecutionException("Expected list result from keyValueToKeyValueList transformer: " + function.name);

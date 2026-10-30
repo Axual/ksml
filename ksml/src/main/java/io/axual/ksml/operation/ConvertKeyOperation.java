@@ -44,6 +44,8 @@ public class ConvertKeyOperation extends BaseOperation {
 
         // Set up the mapping function to convert the value
         final KeyValueMapper<Object, Object, Object> converter = (key, value) -> {
+            // A null key must stay null, else Kafka Streams does not skip it
+            if (key == null) return null;
             final var keyAsData = flattenValue(key);
             return mapper.convert(k.userType().notation(), keyAsData, kr.userType());
         };

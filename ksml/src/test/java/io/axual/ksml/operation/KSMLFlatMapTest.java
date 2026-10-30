@@ -44,6 +44,9 @@ class KSMLFlatMapTest {
     @KSMLTopic(topic = "output_topic")
     protected TestOutputTopic<String, String> outputTopic;
 
+    @KSMLTopic(topic = "count_topic", valueSerde = KSMLTopic.SerdeType.LONG)
+    protected TestOutputTopic<String, Long> countTopic;
+
     @KSMLTest(topology = "pipelines/test-flatmap.yaml")
     void testFlatMap() {
         log.debug("testFlatMap()");
@@ -59,5 +62,17 @@ class KSMLFlatMapTest {
         assertThat(keyValues.get(0).value).as("value should be copied").isEqualTo("someValue");
         assertThat(keyValues.get(1).key).as("key should be copied and changed").isEqualTo("someKey-b");
         assertThat(keyValues.get(1).value).as("value should be copied and changed").isEqualTo("someValue-b");
+    }
+
+    @KSMLTest(topology = "pipelines/test-flatmap-none-value.yaml")
+    void testFlatMapNoneValueIsTombstone() {
+        // given that the mapper returns [(key, value), (key, None)] for every message
+        inputTopic.pipeInput("a", "{\"v\": 1}");
+        inputTopic.pipeInput("a", "{\"v\": 2}");
+
+        // the None values are tombstones, so the count skips them
+        assertThat(countTopic.readKeyValuesToList()).containsExactly(
+                new KeyValue<>("a", 1L),
+                new KeyValue<>("a", 2L));
     }
 }

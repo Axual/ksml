@@ -45,6 +45,25 @@ public class KSMLAggregatePipelinesTest {
     @KSMLTopic(topic = "output_topic", valueSerde = KSMLTopic.SerdeType.LONG)
     TestOutputTopic<String, Long> outputTopic;
 
+    @KSMLTopic(topic = "orders_topic")
+    TestInputTopic<String, String> ordersTopic;
+
+    @KSMLTopologyTest(topologies = "pipelines/test-aggregate-tombstone.yaml")
+    @DisplayName("aggregate should skip tombstones, like Kafka Streams")
+    void testAggregateSkipsTombstones() {
+        // given a tombstone between three orders, on a json topic
+        ordersTopic.pipeInput("a", "{\"amount\": 1}");
+        ordersTopic.pipeInput("a", "{\"amount\": 2}");
+        ordersTopic.pipeInput("a", (String) null);
+        ordersTopic.pipeInput("a", "{\"amount\": 4}");
+
+        // the aggregator should not be called for the tombstone
+        assertThat(outputTopic.readKeyValuesToList()).containsExactly(
+                new KeyValue<>("a", 1L),
+                new KeyValue<>("a", 3L),
+                new KeyValue<>("a", 7L));
+    }
+
     @KSMLTopologyTest(topologies = {"pipelines/test-aggregate-store.yaml", "pipelines/test-aggregate-inline.yaml"})
     @DisplayName("aggregate should work with a named or inline keyValue store")
     void testAggregate() {

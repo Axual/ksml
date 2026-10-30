@@ -1,0 +1,30 @@
+# A reducer that returns None deletes the key from the store, and the next step gets a tombstone.
+
+streams:
+  orders:
+    topic: inMessages
+    keyType: string
+    valueType: json
+  counts:
+    topic: count_topic
+    keyType: string
+    valueType: long
+
+pipelines:
+  sum_orders:
+    from: orders
+    via:
+      - type: groupByKey
+      - type: reduce
+        store:
+          name: sum_store
+          type: keyValue
+        reducer:
+          expression: 'None if value2["amount"] == 0 else {"amount": value1["amount"] + value2["amount"]}'
+          resultType: json
+      - type: toStream
+      # Count the results of the reducer, to see that None is a tombstone
+      - type: groupByKey
+      - type: count
+      - type: toStream
+    to: counts

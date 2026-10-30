@@ -1,0 +1,51 @@
+# When the mapper returns None, there is no customer to look up: join drops the order, and leftJoin
+# joins it with None.
+
+streams:
+  orders:
+    topic: orders
+    keyType: string
+    valueType: string
+  joinOut:
+    topic: joinOut
+    keyType: string
+    valueType: string
+  leftJoinOut:
+    topic: leftJoinOut
+    keyType: string
+    valueType: string
+
+globalTables:
+  customers:
+    topic: customers
+    keyType: string
+    valueType: string
+
+functions:
+  customer_of_order:
+    type: keyValueMapper
+    expression: value if value != "no-customer" else None
+    resultType: string
+  join_order_with_customer:
+    type: valueJoiner
+    expression: key + "|" + str(value2)
+    resultType: string
+
+pipelines:
+  join_with_customer:
+    from: orders
+    via:
+      - type: join
+        globalTable: customers
+        mapper: customer_of_order
+        valueJoiner: join_order_with_customer
+    to: joinOut
+
+  left_join_with_customer:
+    from: orders
+    via:
+      - type: leftJoin
+        globalTable: customers
+        mapper: customer_of_order
+        valueJoiner: join_order_with_customer
+    to: leftJoinOut

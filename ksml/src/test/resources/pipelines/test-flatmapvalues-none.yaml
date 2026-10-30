@@ -1,0 +1,24 @@
+# A None in the list of flatMapValues is a tombstone, so the count after it skips it.
+
+streams:
+  test_input:
+    topic: input_topic
+    keyType: string
+    valueType: string
+  test_count:
+    topic: count_topic
+    keyType: string
+    valueType: long
+
+pipelines:
+  main:
+    from: test_input
+    via:
+      - type: flatMapValues
+        mapper:
+          resultType: "[string]"
+          expression: "[value, None]"
+      - type: groupByKey
+      - type: count
+      - type: toStream
+    to: test_count

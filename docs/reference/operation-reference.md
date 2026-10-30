@@ -400,6 +400,8 @@ The `keySelector` can be defined using:
 - `expression`: A simple expression returning the grouping key
 - `code`: A Python code block returning the grouping key
 
+A `keySelector` that returns `None` gives a `null` key, so the record is skipped, like in Kafka Streams.
+
 #### Example
 
 ```yaml
@@ -525,6 +527,10 @@ The `initializer`, `aggregator` and `merger` can be defined using:
 - `expression`: A simple expression
 - `code`: A Python code block
 
+A record with a `null` key or a `null` value (a tombstone) is skipped, like in Kafka Streams: the `aggregator` is not
+called for it. An `aggregator` that returns `None` deletes the key from the store. See
+[Tombstones and `None`](function-reference.md#tombstones-and-none).
+
 #### Example
 
 ```yaml
@@ -577,6 +583,8 @@ Counts the number of records for each key.
 
 None.
 
+A record with a `null` key or a `null` value (a tombstone) is not counted, like in Kafka Streams.
+
 #### Example
 
 ```yaml
@@ -602,6 +610,10 @@ The `reducer` can be defined using:
 - `expression`: A simple expression
 - `code`: A Python code block
 
+A record with a `null` key or a `null` value (a tombstone) is skipped, like in Kafka Streams: the `reducer` is not
+called for it. A `reducer` that returns `None` deletes the key from the store. See
+[Tombstones and `None`](function-reference.md#tombstones-and-none).
+
 #### Example
 
 ```yaml
@@ -617,6 +629,24 @@ The `reducer` can be defined using:
 Join operations combine data from multiple streams or tables based on matching keys, enabling you to correlate related events from different data sources.
 
 The stream or table to join with can be defined under `streams` or `tables`, or be the result of an earlier pipeline in the same definition file, saved with `as`. A `globalTable` must always be defined under `globalTables`, because Kafka Streams can not make a GlobalKTable from a pipeline result. See [Joining with the Result of Another Pipeline](../tutorials/intermediate/joins.md#joining-with-the-result-of-another-pipeline).
+
+### Tombstones in joins
+
+A tombstone is a record with a `null` value: a delete. Joins handle tombstones and `None` like Kafka Streams:
+
+| Join                        | Tombstone or `None`                                       | Result                                                                                         |
+|-----------------------------|-----------------------------------------------------------|------------------------------------------------------------------------------------------------|
+| Two streams                 | Tombstone on either stream                                | The record is skipped, also in `leftJoin` and `outerJoin`                                      |
+| Stream with a table         | Tombstone on the stream                                   | The record is skipped                                                                          |
+| Stream with a table         | Tombstone on the table                                    | Later stream records find no row: `join` skips them, `leftJoin` gets `None` for `value2`       |
+| Stream with a global table  | Tombstone on the stream                                   | The record is skipped                                                                          |
+| Stream with a global table  | The `mapper` returns `None`                               | Nothing to look up: `join` skips the record, `leftJoin` gets `None` for `value2`               |
+| Two tables                  | Tombstone on one side                                     | `join` deletes the joined row. `leftJoin` deletes it for a tombstone on the left, and gets `None` for `value2` for one on the right. `outerJoin` gets `None` for the deleted side, and deletes the row when both sides are gone |
+| Foreign-key join            | Tombstone on the input table                              | The joined row is deleted. The `foreignKeyExtractor` is not called                             |
+| Foreign-key join            | Tombstone on the joined table                             | `join` deletes the joined rows, `leftJoin` gets `None` for `value2`                            |
+| Foreign-key join            | The `foreignKeyExtractor` returns `None`                  | `join` leaves the row out, `leftJoin` joins it with `None`                                     |
+
+A `valueJoiner` that returns `None` gives a tombstone. See [Tombstones and `None`](function-reference.md#tombstones-and-none).
 
 ### `join`
 

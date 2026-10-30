@@ -44,6 +44,8 @@ public class ConvertValueOperation extends BaseOperation {
 
         // Set up the mapping function to convert the value
         ValueMapper<Object, Object> converter = value -> {
+            // A tombstone must stay null, else Kafka Streams sees a value
+            if (value == null) return null;
             final var valueAsData = flattenValue(value);
             return mapper.convert(v.userType().notation(), valueAsData, vr.userType());
         };

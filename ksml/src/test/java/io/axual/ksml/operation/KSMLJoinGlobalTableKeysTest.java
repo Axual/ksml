@@ -71,4 +71,18 @@ class KSMLJoinGlobalTableKeysTest {
         assertThat(tableJoinOut.readKeyValuesToList()).containsExactly(
                 new KeyValue<>("order1", "order1|None|customer1|fragile"));
     }
+
+    @KSMLTest(topology = "pipelines/test-join-globaltable-none-key.yaml")
+    void mapperThatReturnsNoneMeansNoLookup() {
+        customers.pipeInput("customer1", "Alice");
+
+        orders.pipeInput("order1", "customer1");
+        orders.pipeInput("order2", "no-customer");
+
+        assertThat(joinOut.readKeyValuesToList()).containsExactly(
+                new KeyValue<>("order1", "order1|Alice"));
+        assertThat(leftJoinOut.readKeyValuesToList()).containsExactly(
+                new KeyValue<>("order1", "order1|Alice"),
+                new KeyValue<>("order2", "order2|None"));
+    }
 }
