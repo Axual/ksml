@@ -68,12 +68,12 @@ public class TombstoneSerde implements Serde<Object> {
 
         @Override
         public byte[] serialize(String topic, Object data) {
-            return !DataObject.isNone(data) ? serializer.serialize(topic, data) : null;
+            return DataObject.isNone(data) ? null : serializer.serialize(topic, data);
         }
 
         @Override
         public byte[] serialize(String topic, Headers headers, Object data) {
-            return !DataObject.isNone(data) ? serializer.serialize(topic, headers, data) : null;
+            return DataObject.isNone(data) ? null : serializer.serialize(topic, headers, data);
         }
 
         @Override
