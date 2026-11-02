@@ -329,8 +329,8 @@ public class ExecutableProducer {
 
         if (producerStrategy.validateMessage(key, value)) {
             // keep produced key and value to determine rescheduling later. None stays null, so it is written as a tombstone
-            key = !DataObject.isNone(key) ? DATA_OBJECT_CONVERTER.convert(DEFAULT_NOTATION, key, keyType) : null;
-            value = !DataObject.isNone(value) ? DATA_OBJECT_CONVERTER.convert(DEFAULT_NOTATION, value, valueType) : null;
+            key = DataObject.isNone(key) ? null : DATA_OBJECT_CONVERTER.convert(DEFAULT_NOTATION, key, keyType);
+            value = DataObject.isNone(value) ? null : DATA_OBJECT_CONVERTER.convert(DEFAULT_NOTATION, value, valueType);
 
             var okay = true;
 
