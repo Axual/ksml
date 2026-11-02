@@ -83,27 +83,15 @@ public class KSMLMapValueAndAliasesTest {
         assertThat(keyValues.get(3).value).isEqualTo("TEMPERATURE 27");
     }
 
-    @KSMLTopologyTest(topologies = "pipelines/test-transformvalue-table-none.yaml")
-    void testTransformValueOnTableNoneDeletesRow() {
+    @KSMLTopologyTest(topologies = {"pipelines/test-mapvalues-none.yaml", "pipelines/test-transformvalue-table-none.yaml"})
+    @DisplayName("A mapper that returns None gives a tombstone, on a stream and on a table")
+    void testMapperNoneIsTombstone() {
         // given that the mapper returns None for an amount of 0
         jsonInputTopic.pipeInput("a", "{\"amount\": 1}");
         jsonInputTopic.pipeInput("a", "{\"amount\": 0}");
         jsonInputTopic.pipeInput("a", "{\"amount\": 2}");
 
-        // the None value deletes the row, so the count after toStream skips it
-        assertThat(countTopic.readKeyValuesToList()).containsExactly(
-                new KeyValue<>("a", 1L),
-                new KeyValue<>("a", 2L));
-    }
-
-    @KSMLTopologyTest(topologies = "pipelines/test-mapvalues-none.yaml")
-    void testMapValuesNoneIsTombstone() {
-        // given that the mapper returns None for an amount of 0
-        jsonInputTopic.pipeInput("a", "{\"amount\": 1}");
-        jsonInputTopic.pipeInput("a", "{\"amount\": 0}");
-        jsonInputTopic.pipeInput("a", "{\"amount\": 2}");
-
-        // the None value is a tombstone, so the count skips it
+        // the None is a tombstone (on a table: it deletes the row), so the count skips it
         assertThat(countTopic.readKeyValuesToList()).containsExactly(
                 new KeyValue<>("a", 1L),
                 new KeyValue<>("a", 2L));
