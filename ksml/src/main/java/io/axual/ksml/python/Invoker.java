@@ -22,12 +22,8 @@ package io.axual.ksml.python;
 
 
 import com.codahale.metrics.Timer;
-import io.axual.ksml.data.object.DataList;
-import io.axual.ksml.data.object.DataMap;
 import io.axual.ksml.data.object.DataNull;
 import io.axual.ksml.data.object.DataObject;
-import io.axual.ksml.data.object.DataPrimitive;
-import io.axual.ksml.data.object.DataStruct;
 import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.exception.TopologyException;
 import io.axual.ksml.metric.MetricName;
@@ -108,23 +104,13 @@ public abstract class Invoker {
 
     // Kafka Streams needs a real null for a tombstone, so map None (DataNull or a typed null) to null
     protected static DataObject nullIfNone(DataObject value) {
-        final var isNone = switch (value) {
-            case null -> true;
-            case DataPrimitive<?> primitive -> primitive.value() == null;
-            case DataList list -> list.isNull();
-            case DataMap map -> map.isNull();
-            case DataStruct struct -> struct.isNull();
-            default -> false;
-        };
-        return isNone ? null : value;
-    }
-
-    private static Object nullIfNone(Object value) {
-        return value instanceof DataObject dataObject ? nullIfNone(dataObject) : value;
+        return DataObject.isNone(value) ? null : value;
     }
 
     protected static KeyValue<Object, Object> nullIfNone(KeyValue<Object, Object> keyValue) {
-        return new KeyValue<>(nullIfNone(keyValue.key), nullIfNone(keyValue.value));
+        return new KeyValue<>(
+                DataObject.isNone(keyValue.key) ? null : keyValue.key,
+                DataObject.isNone(keyValue.value) ? null : keyValue.value);
     }
 
     protected void verifyNoResult() {
