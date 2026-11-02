@@ -1,0 +1,33 @@
+# An aggregator that returns None deletes the key from the store, and the next step gets a tombstone.
+
+streams:
+  orders:
+    topic: orders_topic
+    keyType: string
+    valueType: json
+  counts:
+    topic: count_topic
+    keyType: string
+    valueType: long
+
+pipelines:
+  sum_orders:
+    from: orders
+    via:
+      - type: groupByKey
+      - type: aggregate
+        store:
+          name: sum_store
+          type: keyValue
+        initializer:
+          expression: 0
+          resultType: long
+        aggregator:
+          expression: None if value["amount"] == 0 else aggregatedValue + value["amount"]
+          resultType: long
+      - type: toStream
+      # Count the results of the aggregator, to see that None is a tombstone
+      - type: groupByKey
+      - type: count
+      - type: toStream
+    to: counts
