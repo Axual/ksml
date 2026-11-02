@@ -20,6 +20,8 @@ package io.axual.ksml.data.serde;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.object.DataNull;
+import io.axual.ksml.data.object.DataString;
 import io.axual.ksml.data.object.DataStruct;
 import org.apache.kafka.common.header.internals.RecordHeaders;
 import org.apache.kafka.common.serialization.Deserializer;
@@ -72,6 +74,15 @@ class TombstoneSerdeTest {
     void nullIsTombstone() {
         assertThat(serde.serializer().serialize(TOPIC, null)).isNull();
         assertThat(serde.serializer().serialize(TOPIC, new RecordHeaders(), null)).isNull();
+    }
+
+    @Test
+    @DisplayName("None, also DataNull or a typed null, is serialized as a tombstone")
+    void noneIsTombstone() {
+        assertThat(serde.serializer().serialize(TOPIC, DataNull.INSTANCE)).isNull();
+        assertThat(serde.serializer().serialize(TOPIC, new DataString())).isNull();
+        assertThat(serde.serializer().serialize(TOPIC, new RecordHeaders(), new DataStruct(null, true))).isNull();
+        assertThat(serde.serializer().serialize(TOPIC, new DataString(""))).as("an empty string is a value").isNotNull();
     }
 
     @Test
