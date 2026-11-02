@@ -25,6 +25,7 @@ import io.axual.ksml.data.mapper.DataObjectConverter;
 import io.axual.ksml.data.object.DataList;
 import io.axual.ksml.data.object.DataObject;
 import io.axual.ksml.data.object.DataTuple;
+import io.axual.ksml.data.serde.TombstoneSerde;
 import io.axual.ksml.definition.ProducerDefinition;
 import io.axual.ksml.exception.TopologyException;
 import io.axual.ksml.execution.ExecutionContext;
@@ -140,16 +141,19 @@ public class ExecutableProducer {
         final var producerStrategy = new ProducerStrategy(context, namespace, name, tags, producerDefinition);
 
         // Initialize serializers
-        final var keyNotation = ExecutionContext.INSTANCE.notationLibrary().get(target.keyType().notation());
-        final var keySerde = keyNotation.serde(target.keyType().dataType(), true);
-        final var keySerializer = new ResolvingSerializer<>(keySerde.serializer(), kafkaConfig);
-        final var valueNotation = ExecutionContext.INSTANCE.notationLibrary().get(target.valueType().notation());
-        final var valueSerde = valueNotation.serde(target.valueType().dataType(), false);
-        final var valueSerializer = new ResolvingSerializer<>(valueSerde.serializer(), kafkaConfig);
+        final var keySerializer = serializerFor(target.keyType(), true, kafkaConfig);
+        final var valueSerializer = serializerFor(target.valueType(), false, kafkaConfig);
 
         // Set up the producer
         final var producerTarget = new ProducerTarget(target.topic(), target.keyType(), target.valueType(), keySerializer, valueSerializer);
         return new ExecutableProducer(generator, producerStrategy, tags, partitioner, producerTarget);
+    }
+
+    /** Returns the serializer for a key or value type. It writes null as a tombstone, like in pipelines. */
+    static Serializer<Object> serializerFor(UserType type, boolean isKey, Map<String, String> kafkaConfig) {
+        final var notation = ExecutionContext.INSTANCE.notationLibrary().get(type.notation());
+        final var serde = new TombstoneSerde(notation.serde(type.dataType(), isKey));
+        return new ResolvingSerializer<>(serde.serializer(), kafkaConfig);
     }
 
     public void produceMessages(Producer<byte[], byte[]> producer) {
@@ -324,9 +328,9 @@ public class ExecutableProducer {
         var value = tuple.elements().get(1);
 
         if (producerStrategy.validateMessage(key, value)) {
-            // keep produced key and value to determine rescheduling later
-            key = DATA_OBJECT_CONVERTER.convert(DEFAULT_NOTATION, key, keyType);
-            value = DATA_OBJECT_CONVERTER.convert(DEFAULT_NOTATION, value, valueType);
+            // keep produced key and value to determine rescheduling later. None stays null, so it is written as a tombstone
+            key = !DataObject.isNone(key) ? DATA_OBJECT_CONVERTER.convert(DEFAULT_NOTATION, key, keyType) : null;
+            value = !DataObject.isNone(value) ? DATA_OBJECT_CONVERTER.convert(DEFAULT_NOTATION, value, valueType) : null;
 
             var okay = true;
 
