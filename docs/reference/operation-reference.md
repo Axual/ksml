@@ -392,15 +392,15 @@ Groups records by a new key derived from the record.
 
 #### Parameters
 
-| Parameter     | Type   | Required | Description                         |
-|---------------|--------|----------|-------------------------------------|
-| `keySelector` | Object | Yes      | Specifies how to select the new key |
+| Parameter | Type   | Required | Description                         |
+|-----------|--------|----------|-------------------------------------|
+| `mapper`  | Object | Yes      | Specifies how to select the new key |
 
-The `keySelector` can be defined using:
+The `mapper` can be defined using:
 - `expression`: A simple expression returning the grouping key
 - `code`: A Python code block returning the grouping key
 
-A `keySelector` that returns `None` gives a `null` key, so the record is skipped, like in Kafka Streams.
+A `mapper` that returns `None` gives a `null` key, so the record is skipped, like in Kafka Streams.
 
 #### Example
 
@@ -419,6 +419,8 @@ Groups records by their existing key for subsequent aggregation operations.
 #### Parameters
 
 None. This operation is typically followed by an aggregation operation.
+
+A record with a `null` key is skipped, like in Kafka Streams.
 
 #### Example
 

@@ -1052,15 +1052,11 @@ Monitor state store sizes:
 **Solution:** Always use `groupByKey` or `groupBy` before aggregating
 
 ### Null Value Handling
-**Problem:** Null values can cause aggregation failures
+**Problem:** A tombstone (a record with a `null` value) is a delete, not a value
 
-**Solution:** Check for nulls in aggregator functions:
-```yaml
-code: |
-  if value is None:
-    return aggregatedValue
-  # ... rest of logic
-```
+**Solution:** `aggregate`, `reduce` and `count` skip tombstones, so the `aggregator` never gets `None` as the value.
+To act on a delete, handle it before the grouping, for example with a `mapValues`. See
+[Tombstones and `None`](../../reference/function-reference.md#tombstones-and-none).
 
 ### Type Mismatches
 **Problem:** Result type doesn't match expression output
