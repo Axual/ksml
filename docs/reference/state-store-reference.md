@@ -169,8 +169,107 @@ This example demonstrates:
 - `store.get(key)` - Retrieve value from state store (returns None if not found)
 - `store.put(key, value)` - Store key-value pair in state store
 
-**Other key-value store methods:**
+See [Key-Value Store Methods](#key-value-store-methods) for all methods.
 
+### With Session Operations
+
+Session stores track user activity with inactivity gaps and automatic timeout:
+```yaml
+pipelines:
+  user_session_analysis:
+    from: user_clicks
+    via:
+      - type: groupByKey
+      - type: windowBySession
+        inactivityGap: 2m  # Close session after 2 minutes of inactivity
+        grace: 30s
+      - type: count
+        store:
+          name: user_sessions
+          type: session
+          retention: 1h
+          caching: false
+```
+
+**Full example:**
+
+- [Session store type example](../tutorials/intermediate/windowing.md#session-window-user-activity-analysis)
+
+**Session store patterns:**
+
+- **Activity tracking**: Monitor user engagement and session duration
+- **Timeout detection**: Identify inactive sessions for cleanup
+- **State aggregation**: Accumulate metrics within session boundaries
+
+### With Windowed Operations
+
+Window stores require specific configuration that varies by operation type:
+
+#### For Aggregations (Count, Aggregate, etc.)
+
+```yaml
+pipelines:
+  count_clicks_5min:
+    from: user_clicks
+    via:
+      - type: groupByKey
+      - type: windowByTime
+        windowType: tumbling
+        duration: 5m
+        grace: 30s
+      - type: count
+        store:
+          name: click_counts_5min
+          type: window
+          windowSize: 5m          # Must match window duration
+          retention: 35m          # windowSize + grace + buffer
+          caching: false
+```
+
+#### For Stream-Stream Joins
+
+```yaml
+pipelines:
+  join_streams:
+    from: stream1
+    via:
+      - type: join
+        stream: stream2
+        timeDifference: 15m
+        grace: 5m
+        thisStore:
+          type: window
+          windowSize: 30m         # Must be 2 × timeDifference
+          retention: 35m          # 2 × timeDifference + grace
+          retainDuplicates: true
+```
+
+### Retention Guidelines
+
+**For Window Aggregations:**
+```
+retention = windowSize + gracePeriod + processingBuffer
+```
+
+**For Stream-Stream Joins:**
+```
+windowSize = 2 × timeDifference
+retention = 2 × timeDifference + gracePeriod
+```
+
+**Full examples:**
+
+- [Windowed Aggregations](../tutorials/intermediate/windowing.md#tumbling-window-click-counting)
+- [Stream-Stream Joins](../tutorials/intermediate/joins.md#stream-stream-join)
+
+## Python Store Methods
+
+Python functions can call these methods on the stores listed in their `stores`.
+
+### Key-Value Store Methods
+
+- `store.get(key)` - The value of the key, or `None`
+- `store.put(key, value)` - Store the value. A value `None` deletes the key
 - `store.delete(key)` - Remove a key, and return its old value
 - `store.putIfAbsent(key, value)` - Store the value only if the key has none, and return the existing value
 - `store.putAll(entries)` - Store many entries in one call. `entries` is a list or an iterator of `(key, value)` pairs or dicts with `key` and `value`, so `store.putAll(other_store.all())` copies a store. All entries are kept in memory first, so use this for small stores only. A value `None` deletes the key
@@ -336,97 +435,6 @@ to close an iterator before the KSML function returns, use `contextlib.closing()
 
 Iterators also have the methods `hasNext()`, `next()` (returns `None` after the last entry), `peekNextKey()`
 (returns the next key without moving forward, or `None`) and `close()`.
-
-### With Session Operations
-
-Session stores track user activity with inactivity gaps and automatic timeout:
-```yaml
-pipelines:
-  user_session_analysis:
-    from: user_clicks
-    via:
-      - type: groupByKey
-      - type: windowBySession
-        inactivityGap: 2m  # Close session after 2 minutes of inactivity
-        grace: 30s
-      - type: count
-        store:
-          name: user_sessions
-          type: session
-          retention: 1h
-          caching: false
-```
-
-**Full example:**
-
-- [Session store type example](../tutorials/intermediate/windowing.md#session-window-user-activity-analysis)
-
-**Session store patterns:**
-
-- **Activity tracking**: Monitor user engagement and session duration
-- **Timeout detection**: Identify inactive sessions for cleanup
-- **State aggregation**: Accumulate metrics within session boundaries
-
-### With Windowed Operations
-
-Window stores require specific configuration that varies by operation type:
-
-#### For Aggregations (Count, Aggregate, etc.)
-
-```yaml
-pipelines:
-  count_clicks_5min:
-    from: user_clicks
-    via:
-      - type: groupByKey
-      - type: windowByTime
-        windowType: tumbling
-        duration: 5m
-        grace: 30s
-      - type: count
-        store:
-          name: click_counts_5min
-          type: window
-          windowSize: 5m          # Must match window duration
-          retention: 35m          # windowSize + grace + buffer
-          caching: false
-```
-
-#### For Stream-Stream Joins
-
-```yaml
-pipelines:
-  join_streams:
-    from: stream1
-    via:
-      - type: join
-        stream: stream2
-        timeDifference: 15m
-        grace: 5m
-        thisStore:
-          type: window
-          windowSize: 30m         # Must be 2 × timeDifference
-          retention: 35m          # 2 × timeDifference + grace
-          retainDuplicates: true
-```
-
-### Retention Guidelines
-
-**For Window Aggregations:**
-```
-retention = windowSize + gracePeriod + processingBuffer
-```
-
-**For Stream-Stream Joins:**
-```
-windowSize = 2 × timeDifference
-retention = 2 × timeDifference + gracePeriod
-```
-
-**Full examples:**
-
-- [Windowed Aggregations](../tutorials/intermediate/windowing.md#tumbling-window-click-counting)
-- [Stream-Stream Joins](../tutorials/intermediate/joins.md#stream-stream-join)
 
 ## Storage Architecture
 
