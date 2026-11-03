@@ -23,6 +23,7 @@ package io.axual.ksml.python;
 import io.axual.ksml.data.exception.DataException;
 import lombok.extern.slf4j.Slf4j;
 import org.graalvm.polyglot.Context;
+import org.graalvm.polyglot.Value;
 
 /**
  * Raises Python TypeError/ValueError for bad arguments, so {@code except Exception} catches them. Use
@@ -49,15 +50,32 @@ public final class PythonErrors {
         return raise("ValueError", message, cause);
     }
 
+    /**
+     * The Python type name of a value, such as {@code str}. Never the value itself: it may be user data. Without an
+     * entered Python context (a call from Java), the Java class name.
+     */
+    public static String typeName(Object value) {
+        final var context = currentContext();
+        if (context == null) return value == null ? "null" : value.getClass().getSimpleName();
+        return builtin(context, "type").execute(value).getMember("__name__").asString();
+    }
+
     /** Without an entered Python context (a call from Java), throws a {@link DataException} instead. */
     private static RuntimeException raise(String exceptionType, String message, Throwable cause) {
-        final Context context;
+        final var context = currentContext();
+        if (context == null) throw new DataException(message, cause);
+        throw builtin(context, exceptionType).newInstance(message).throwException();
+    }
+
+    private static Context currentContext() {
         try {
-            context = Context.getCurrent();
+            return Context.getCurrent();
         } catch (IllegalStateException e) {
-            throw new DataException(message, cause != null ? cause : e);
+            return null;
         }
-        final var type = context.getBindings("python").getMember("__builtins__").getMember(exceptionType);
-        throw type.newInstance(message).throwException();
+    }
+
+    private static Value builtin(Context context, String name) {
+        return context.getBindings("python").getMember("__builtins__").getMember(name);
     }
 }
