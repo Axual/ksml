@@ -219,6 +219,28 @@ if last is not None and last["timestamp"] > timestamp_limit:
 store.put(key, value)  # stored with the timestamp of the current record
 ```
 
+### Timestamped Window Stores
+
+A windowed aggregation, such as `count` or `aggregate`, keeps its results in a timestamped window store. When a
+Python function lists this store in its `stores`, it gets the same methods as on a plain window store, with the same
+results:
+
+- `store.fetch(key, time)` returns only the value
+- `store.fetch(...)`, `store.backwardFetch(...)`, `store.fetchAll(...)`, `store.backwardFetchAll(...)`, `store.all()`
+  and `store.backwardAll()` give entries with `key` and `value`
+- `store.put(key, value, window_start)` stores the value with the timestamp of the record that is being processed
+
+To work with the timestamps, use these methods:
+
+- `store.fetchWithTimestamp(key, time)` - A dict with `value` and `timestamp`, or `None` if there is no value
+- `store.put(key, value, window_start, timestamp)` - Store the value with the given timestamp
+- `fetchWithTimestamp`, `backwardFetchWithTimestamp`, `fetchAllWithTimestamp`, `backwardFetchAllWithTimestamp`,
+  `allWithTimestamp` and `backwardAllWithTimestamp` - The same arguments as the methods without `WithTimestamp`, and
+  entries with `key`, `value` and `timestamp`
+
+Set `timestamped: true` on the store that the aggregation uses. Without it, the store does not keep timestamps and
+the `*WithTimestamp` methods return `-1` as the timestamp.
+
 ### Reading Many Entries with Iterators
 
 Store methods that return many entries return an iterator. Each entry is a dict with `key` and `value`.

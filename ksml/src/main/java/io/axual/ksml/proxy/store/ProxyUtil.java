@@ -256,7 +256,7 @@ public class ProxyUtil {
         } else if (store instanceof SessionStore<?, ?> sessionStore) {
             return new SessionStoreProxy((SessionStore<Object, Object>) sessionStore);
         } else if (store instanceof TimestampedWindowStore<?, ?> timestampedWindowStore) {
-            return new TimestampedWindowStoreProxy((TimestampedWindowStore<Object, Object>) timestampedWindowStore);
+            return new TimestampedWindowStoreProxy((TimestampedWindowStore<Object, Object>) timestampedWindowStore, recordTimestamp);
         } else if (store instanceof WindowStore<?, ?> windowStore) {
             return new WindowStoreProxy((WindowStore<Object, Object>) windowStore);
         }
