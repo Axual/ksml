@@ -1,7 +1,7 @@
 # $schema: https://raw.githubusercontent.com/Axual/ksml/refs/heads/main/docs/ksml-language-spec.json
 
-# Calls range, reverseRange, reverseAll, prefixScan and putAll from Python on an in-memory, a RocksDB and a cached
-# RocksDB key-value store. The result of each store is returned as one line of text.
+# Calls range, reverseRange, reverseAll, prefixScan, putAll, get, put, putIfAbsent and delete from Python on an
+# in-memory, a RocksDB and a cached RocksDB key-value store. The result of each store is returned as one line of text.
 streams:
   keyvalue_methods_input:
     topic: keyvalue_methods_input
@@ -91,6 +91,12 @@ functions:
         # Copy a store with putAll(other.all())
         copy.putAll(store.all())
         line += " copy=" + keys(copy.all())
+        # Single-key methods: each returns the plain value
+        store.put("d", "5")
+        line += " get=" + store.get("d")
+        line += " putIfAbsent=" + str(store.putIfAbsent("d", "6"))
+        line += " delete=" + str(store.delete("d"))
+        line += " afterPutDelete=" + keys(store.all())
         return line
     code: |
       result = "\n".join([
