@@ -283,6 +283,16 @@ class KeyValueStoreProxyTest {
     }
 
     @Test
+    @DisplayName("putAll ignores a timestamp field in a dict, so entries from a timestamped store can be copied")
+    void putAllIgnoresTimestampField() {
+        runPython("""
+                store.putAll([{"key": "a", "value": "1", "timestamp": 700}])
+                []
+                """);
+        verify(delegate).putAll(List.of(KeyValue.pair("a", "1")));
+    }
+
+    @Test
     @DisplayName("putAll accepts tuples and dicts mixed in one list")
     void putAllWithMixedEntries() {
         runPython("""
