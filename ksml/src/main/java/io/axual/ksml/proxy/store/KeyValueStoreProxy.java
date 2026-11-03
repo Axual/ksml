@@ -20,7 +20,6 @@ package io.axual.ksml.proxy.store;
  * =========================LICENSE_END==================================
  */
 
-import org.apache.kafka.common.serialization.StringSerializer;
 import org.apache.kafka.streams.state.KeyValueStore;
 import org.graalvm.polyglot.HostAccess;
 
@@ -57,16 +56,15 @@ public class KeyValueStoreProxy extends AbstractStateStoreProxy<KeyValueStore<Ob
     }
 
     /**
-     * Returns the entries whose key starts with the given string. The prefix is serialized as UTF-8, so this only
-     * gives meaningful results for stores with string keys. A prefix that is not a string raises a Python
-     * {@code TypeError}. An empty prefix returns all entries.
+     * Entries whose key starts with the string prefix, serialized as UTF-8; an empty prefix gives all entries.
+     * A prefix that is not a string raises TypeError.
      */
     @HostAccess.Export
     public Object prefixScan(Object prefix) {
         final var stringPrefix = ProxyUtil.toStringPrefix(prefix);
         // Kafka's in-memory and caching stores fail on an empty prefix; every key starts with ""
         if (stringPrefix.isEmpty()) return ProxyUtil.toPython(delegate.all());
-        return ProxyUtil.toPython(delegate.prefixScan(stringPrefix, new StringSerializer()));
+        return ProxyUtil.toPython(delegate.prefixScan(stringPrefix, ProxyUtil.PREFIX_SERIALIZER));
     }
 
     @HostAccess.Export
