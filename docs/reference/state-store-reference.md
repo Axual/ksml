@@ -169,6 +169,41 @@ This example demonstrates:
 - `store.get(key)` - Retrieve value from state store (returns None if not found)
 - `store.put(key, value)` - Store key-value pair in state store
 
+### Reading Many Entries with Iterators
+
+Store methods that return many entries return an iterator: `all()` on key-value and window stores, `fetch()`,
+`fetchAll()` and their `backward` variants on window stores, and `fetch()` and `findSessions()` on session stores.
+Each entry is a dict with `key` and `value`. For window and session stores, the key of an `all()`, `fetchAll()` or
+session entry is a dict with the window (`start`, `end`, `startTime`, `endTime`) and the original `key`. For
+`fetch(key, timeFrom, timeTo)` on a window store, the key is the window start time.
+
+Use the iterator like any Python iterator:
+
+```python
+for entry in store.all():
+  log.info("key={}, value={}", entry["key"], entry["value"])
+
+entries = list(store.all())
+```
+
+A store iterator holds resources (for RocksDB stores, native memory) until it is closed. KSML closes it once
+all entries are read. When a loop can end early with `break`, `return` or an exception, wrap the iterator in
+`contextlib.closing()` so it is always closed:
+
+```python
+import contextlib
+
+with contextlib.closing(store.all()) as entries:
+  for entry in entries:
+    if entry["value"] == value:
+      break
+```
+
+A plain `with store.all() as entries:` does not work; use `contextlib.closing()`.
+
+Iterators also have the methods `hasNext()`, `next()` (returns `None` after the last entry), `peekNextKey()`
+(returns the next key without moving forward, or `None`) and `close()`.
+
 ### With Session Operations
 
 Session stores track user activity with inactivity gaps and automatic timeout:
