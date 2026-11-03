@@ -22,6 +22,7 @@ package io.axual.ksml.python;
 
 import lombok.extern.slf4j.Slf4j;
 import org.graalvm.polyglot.Context;
+import org.graalvm.polyglot.Value;
 
 /**
  * Raises Python exceptions from Java code that Python calls, such as the state store proxies.
@@ -54,8 +55,16 @@ public final class PythonErrors {
         return raise("ValueError", message);
     }
 
+    /** The Python type name of a value, such as {@code str}. Never the value itself: it may be user data. */
+    public static String typeName(Object value) {
+        return builtin("type").execute(value).getMember("__name__").asString();
+    }
+
     private static RuntimeException raise(String exceptionType, String message) {
-        final var type = Context.getCurrent().getBindings("python").getMember("__builtins__").getMember(exceptionType);
-        throw type.newInstance(message).throwException();
+        throw builtin(exceptionType).newInstance(message).throwException();
+    }
+
+    private static Value builtin(String name) {
+        return Context.getCurrent().getBindings("python").getMember("__builtins__").getMember(name);
     }
 }

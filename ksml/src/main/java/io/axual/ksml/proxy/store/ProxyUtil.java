@@ -163,7 +163,7 @@ public class ProxyUtil {
         final Value iterator;
         if (value.hasIterator()) iterator = value.getIterator();
         else if (value.isIterator()) iterator = value;
-        else throw PythonErrors.typeError("putAll needs a list or an iterator of entries, got: " + value);
+        else throw PythonErrors.typeError("putAll needs a list or an iterator of entries, got " + PythonErrors.typeName(value));
 
         final var result = new ArrayList<Entry>();
         while (iterator.hasIteratorNextElement()) {
@@ -177,7 +177,7 @@ public class ProxyUtil {
         final var name = "putAll entry " + position;
         if (entry.hasArrayElements()) {
             if (entry.getArraySize() != 2)
-                throw PythonErrors.valueError(name + " must have 2 elements (key, value), got " + entry.getArraySize() + ": " + entry);
+                throw PythonErrors.valueError(name + " must have 2 elements (key, value), got " + entry.getArraySize());
             return new Entry(
                     fromPython(entry.getArrayElement(0), name + " key"),
                     fromPython(entry.getArrayElement(1), name + " value"),
@@ -185,13 +185,13 @@ public class ProxyUtil {
         }
         if (entry.hasHashEntries()) {
             if (!entry.hasHashEntry(KEY_FIELD) || !entry.hasHashEntry(VALUE_FIELD))
-                throw PythonErrors.valueError(name + " must have \"key\" and \"value\", got: " + entry);
+                throw PythonErrors.valueError(name + " must have \"key\" and \"value\", got " + PythonErrors.typeName(entry));
             return new Entry(
                     fromPython(entry.getHashValue(KEY_FIELD), name + " key"),
                     fromPython(entry.getHashValue(VALUE_FIELD), name + " value"),
                     readTimestamp ? toTimestamp(entry, name) : null);
         }
-        throw PythonErrors.typeError(name + " must be a (key, value) pair or a dict with \"key\" and \"value\", got: " + entry);
+        throw PythonErrors.typeError(name + " must be a (key, value) pair or a dict with \"key\" and \"value\", got " + PythonErrors.typeName(entry));
     }
 
     /** Reads the optional timestamp field of a dict entry. A missing field or {@code None} means "no timestamp". */
@@ -200,13 +200,13 @@ public class ProxyUtil {
         final var timestamp = entry.getHashValue(TIMESTAMP_FIELD);
         if (timestamp.isNull()) return null;
         if (timestamp.isNumber() && timestamp.fitsInLong()) return timestamp.asLong();
-        throw PythonErrors.typeError(name + " timestamp must be an int, got: " + timestamp);
+        throw PythonErrors.typeError(name + " timestamp must be an int, got " + PythonErrors.typeName(timestamp));
     }
 
     /** Converts the Python argument of {@code prefixScan} to a string prefix. */
     public static String toStringPrefix(Object prefix) {
         if (fromPython(prefix, "prefixScan prefix") instanceof String result) return result;
-        throw PythonErrors.typeError("prefixScan needs a string prefix, got: " + prefix);
+        throw PythonErrors.typeError("prefixScan needs a string prefix, got " + PythonErrors.typeName(prefix));
     }
 
     /**
