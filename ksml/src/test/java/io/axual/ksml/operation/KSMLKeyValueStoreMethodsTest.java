@@ -53,7 +53,7 @@ public class KSMLKeyValueStoreMethodsTest {
         final var values = output.readValuesToList();
         assertThat(values).hasSize(1);
         final var expected = " range=a:1,ab:4,b:2 reverseRange=b:2,ab:4,a:1 reverseAll=c:3,b:2,ab:4,a:1"
-                + " prefixScan=a:1,ab:4 afterDelete=a:1,ab:4,b:2 badEntry=rejected x=None copy=a:1,ab:4,b:2";
+                + " prefixScan=a:1,ab:4 afterDelete=a:1,ab:4,b:2 badEntry=TypeError x=None copy=a:1,ab:4,b:2";
         assertThat(List.of(values.get(0).split("\\n"))).containsExactly("memory" + expected, "rocksdb" + expected);
     }
 }

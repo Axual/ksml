@@ -60,12 +60,12 @@ functions:
         # A None value deletes the key; an iterator is accepted as input
         store.putAll(iter([("c", None)]))
         line += " afterDelete=" + keys(store.all())
-        # A bad entry raises an error and writes nothing
+        # A bad entry raises a Python error, which except Exception catches, and writes nothing
         try:
           store.putAll([("x", "9"), 42])
           line += " badEntry=accepted"
-        except Exception:
-          line += " badEntry=rejected"
+        except Exception as e:
+          line += " badEntry=" + type(e).__name__
         line += " x=" + str(store.get("x"))
         # Copy a store with putAll(other.all())
         copy.putAll(store.all())

@@ -59,6 +59,8 @@ Major dependency upgrades. This release moves KSML to Jackson 3, Apicurio Regist
 * Breaking change: a `join` or `leftJoin` with `foreignKeyExtractor` now needs a table as input. Before, the extractor was silently ignored. See [Upgrading to 2.0.0](migration-to-2.0.0.md).
 * Errors reported by KSML now keep their cause, so stack traces in the logs show "Caused by" sections. A parse error is logged once, not once for each parser level.
 * Fixed `aggregate` after `cogroup` and `windowBySession`, which always failed at startup with "Merger is expected to take at least 3 parameters".
+* State store iterators work like Python iterators: `for entry in store.all():`, `list()`, `next()` and `contextlib.closing()`. The store iterator is closed once all entries are read. `hasNext()`, `next()` and `close()` still work, and `peekNextKey()` is new. See [State Store Reference](reference/state-store-reference.md#reading-many-entries-with-iterators).
+* Key-value stores have the methods `range`, `reverseRange`, `reverseAll`, `prefixScan` and `putAll` in Python again. They were missing since `HostAccess.EXPLICIT` was introduced. `putAll` and `prefixScan` raise `TypeError` or `ValueError` for a bad argument, so `except Exception` catches it.
 
 ## 1.3.0 (2026-06-23)
 

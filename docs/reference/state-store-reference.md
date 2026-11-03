@@ -169,6 +169,25 @@ This example demonstrates:
 - `store.get(key)` - Retrieve value from state store (returns None if not found)
 - `store.put(key, value)` - Store key-value pair in state store
 
+**Other key-value store methods:**
+
+- `store.delete(key)` - Remove a key, and return its old value
+- `store.putIfAbsent(key, value)` - Store the value only if the key has none, and return the existing value
+- `store.putAll(entries)` - Store many entries in one call. `entries` is a list or an iterator of `(key, value)` pairs or dicts with `key` and `value`, so `store.putAll(other_store.all())` copies a store. A value `None` deletes the key
+- `store.range(from_key, to_key)` and `store.reverseRange(from_key, to_key)` - Entries from `from_key` to `to_key`, both included, in key order or in reverse. `None` means no bound
+- `store.all()` and `store.reverseAll()` - All entries, in key order or in reverse
+- `store.prefixScan(prefix)` - Entries whose key starts with `prefix`. The prefix is compared with the stored keys as UTF-8 bytes, so use it for stores with string keys
+- `store.approximateNumEntries()` - Estimated number of entries
+
+Keys are ordered by their serialized bytes. For string keys this is alphabetical order (`"a"`, `"ab"`, `"b"`).
+
+`putAll` and `prefixScan` check their arguments and raise a Python error that you can catch with `except Exception`:
+
+- `TypeError` - the argument has the wrong kind: `putAll` gets something that is not a list or an iterator, or an entry that is not a pair or a dict; `prefixScan` gets a prefix that is not a string
+- `ValueError` - the argument has the right kind, but wrong content: a pair that does not have 2 elements, or a dict without `key` or `value`
+
+The message names the position of the bad entry, for example `putAll entry 1 must be a (key, value) pair ...`. A `putAll` call with a bad entry writes nothing.
+
 ### Reading Many Entries with Iterators
 
 Store methods that return many entries return an iterator: `all()` on key-value and window stores, `fetch()`,
