@@ -1,7 +1,7 @@
 # $schema: https://raw.githubusercontent.com/Axual/ksml/refs/heads/main/docs/ksml-language-spec.json
 
-# Iterates over key-value, window and session stores in the Python styles (for, list(), next(), contextlib.closing),
-# with an in-memory and a RocksDB store of each type. The result of each store is returned as one line of text.
+# Iterates over key-value, window and session stores in the Python styles (for, list(), next(), contextlib.closing)
+# and with hasNext()/next() without close(), with an in-memory and a RocksDB store of each type. The result of each store is returned as one line of text.
 streams:
   iterator_input:
     topic: store_iterator_input
@@ -76,7 +76,13 @@ functions:
           first = describe(next(it))
         with contextlib.closing(make()) as it:
           closing = ",".join(describe(e) for e in it)
-        return name + " for=" + for_loop + " list=" + as_list + " next=" + first + " closing=" + closing
+        it = make()
+        java_style = []
+        while it.hasNext():
+          java_style.append(describe(it.next()))
+        java_style = ",".join(java_style)
+        return (name + " for=" + for_loop + " list=" + as_list + " next=" + first + " closing=" + closing
+                + " hasNext=" + java_style)
 
       def kv_entry(e):
         return e["key"] + ":" + e["value"]

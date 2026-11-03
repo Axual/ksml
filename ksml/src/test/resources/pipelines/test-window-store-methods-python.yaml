@@ -1,0 +1,87 @@
+# $schema: https://raw.githubusercontent.com/Axual/ksml/refs/heads/main/docs/ksml-language-spec.json
+
+# Regression test for plain window stores (AXPD-11068): a Python function puts each record in an in-memory and a
+# RocksDB window store, and on the third record calls every window store method. Each iterator is read with a for
+# loop and with a hasNext() loop without close(). The result of each store is returned as one line of text.
+streams:
+  window_methods_input:
+    topic: window_methods_input
+    keyType: string
+    valueType: string
+  window_methods_output:
+    topic: window_methods_output
+    keyType: string
+    valueType: string
+
+stores:
+  window_memory:
+    type: window
+    keyType: string
+    valueType: string
+    retention: 1h
+    windowSize: 1m
+    persistent: false
+    caching: false
+    logging: false
+  window_rocksdb:
+    type: window
+    keyType: string
+    valueType: string
+    retention: 1h
+    windowSize: 1m
+    persistent: true
+    caching: false
+    logging: false
+
+functions:
+  check_window_stores:
+    type: valueTransformer
+    globalCode: |
+      def describe(e):
+        # Single-key fetches have the window start as key, the other iterators a windowed key
+        if type(e["key"]) is dict:
+          return e["key"]["key"] + "@" + str(e["key"]["start"]) + ":" + e["value"]
+        return str(e["key"]) + ":" + e["value"]
+
+      def read(make):
+        # Reads one iterator with a for loop, and a second one with hasNext()/next() without close()
+        for_loop = ",".join(describe(e) for e in make())
+        it = make()
+        java_style = []
+        while it.hasNext():
+          java_style.append(describe(it.next()))
+        java_style = ",".join(java_style)
+        return for_loop if for_loop == java_style else for_loop + "!hasNext=" + java_style
+
+      def check(name, store):
+        line = name
+        line += " fetch=" + store.fetch("a", 0)
+        line += " missing=" + str(store.fetch("x", 0))
+        line += " fetchRange=" + read(lambda: store.fetch("a", 0, 60000))
+        line += " backwardFetchRange=" + read(lambda: store.backwardFetch("a", 0, 60000))
+        line += " fetchKeys=" + read(lambda: store.fetch("a", "b", 0, 60000))
+        line += " backwardFetchKeys=" + read(lambda: store.backwardFetch("a", "b", 0, 60000))
+        line += " all=" + read(lambda: store.all())
+        line += " backwardAll=" + read(lambda: store.backwardAll())
+        line += " fetchAll=" + read(lambda: store.fetchAll(0, 60000))
+        line += " backwardFetchAll=" + read(lambda: store.backwardFetchAll(0, 60000))
+        return line
+    code: |
+      # Values "1" and "2" go to the window that starts at 0, value "3" to the window that starts at 60000
+      window_start = (int(value) - 1) // 2 * 60000
+      window_memory.put(key, value, window_start)
+      window_rocksdb.put(key, value, window_start)
+      result = check("memory", window_memory) + "\n" + check("rocksdb", window_rocksdb) if value == "3" else ""
+    expression: result
+    resultType: string
+    stores:
+      - window_memory
+      - window_rocksdb
+
+pipelines:
+  window_methods_pipeline:
+    from: window_methods_input
+    via:
+      - type: transformValue
+        mapper: check_window_stores
+    to: window_methods_output
