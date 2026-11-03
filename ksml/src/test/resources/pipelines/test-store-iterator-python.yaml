@@ -91,7 +91,8 @@ functions:
       kv_rocksdb.put(key, value)
       window_memory.put(key, value, 0)
       window_rocksdb.put(key, value, 0)
-      session_key = {"key": key, "start": 0, "end": 0}
+      # Session times above the int range and start < end: SessionStoreProxy.put ignores other session keys
+      session_key = {"key": key, "start": 3000000000, "end": 3000000001}
       session_memory.put(session_key, value)
       session_rocksdb.put(session_key, value)
 

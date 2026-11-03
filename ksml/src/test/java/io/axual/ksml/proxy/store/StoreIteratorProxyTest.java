@@ -49,6 +49,7 @@ class StoreIteratorProxyTest {
         private final List<KeyValue<K, Object>> entries;
         private int position = 0;
         private boolean closed = false;
+        private int closeCount = 0;
 
         FakeKeyValueIterator(List<KeyValue<K, Object>> entries) {
             this.entries = entries;
@@ -74,6 +75,7 @@ class StoreIteratorProxyTest {
         @Override
         public void close() {
             closed = true;
+            closeCount++;
         }
     }
 
@@ -248,5 +250,32 @@ class StoreIteratorProxyTest {
                 """);
         assertThat(result.getArraySize()).isZero();
         assertThat(kafkaIterator.closed).isTrue();
+    }
+
+    @Test
+    @DisplayName("the Java next() returns null when there are no more entries")
+    void javaNextReturnsNullWhenUsedUp() {
+        kafkaIterator = new FakeKeyValueIterator<>(List.of());
+        assertThat(new StoreIteratorProxy(kafkaIterator).next()).isNull();
+    }
+
+    @Test
+    @DisplayName("close only closes the Kafka iterator once, also after it was used up")
+    void closeIsIdempotent() {
+        kafkaIterator = new FakeKeyValueIterator<>(List.of());
+        final var proxy = new StoreIteratorProxy(kafkaIterator);
+        assertThat(proxy.hasNext()).isFalse();
+        proxy.close();
+        proxy.close();
+        assertThat(kafkaIterator.closeCount).isEqualTo(1);
+    }
+
+    @Test
+    @DisplayName("after close, hasNext() is false and next() returns null")
+    void closedIteratorHasNoEntries() {
+        final var proxy = new StoreIteratorProxy(kafkaIterator);
+        proxy.close();
+        assertThat(proxy.hasNext()).isFalse();
+        assertThat(proxy.next()).isNull();
     }
 }

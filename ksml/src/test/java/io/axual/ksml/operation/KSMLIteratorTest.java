@@ -96,8 +96,9 @@ public class KSMLIteratorTest {
     @KSMLTest(topology = "pipelines/test-store-iterator-python.yaml")
     @DisplayName("store iterators work with Python for, list(), next() and contextlib.closing")
     void testPythonIteration() {
-        iteratorInput.pipeInput("a", "1");
-        iteratorInput.pipeInput("b", "2");
+        // Fixed record timestamps, so the window entries at time 0 are within the store retention
+        iteratorInput.pipeInput("a", "1", 1000L);
+        iteratorInput.pipeInput("b", "2", 1000L);
 
         final var values = iteratorOutput.readValuesToList();
         assertThat(values).hasSize(2);
@@ -108,7 +109,7 @@ public class KSMLIteratorTest {
                 "window_memory.fetch for=0:2 list=0:2 next=0:2 closing=0:2",
                 "window_rocksdb.all for=a@0:1,b@0:2 list=a@0:1,b@0:2 next=a@0:1 closing=a@0:1,b@0:2",
                 "window_rocksdb.fetch for=0:2 list=0:2 next=0:2 closing=0:2",
-                "session_memory.fetch for=b@0:2 list=b@0:2 next=b@0:2 closing=b@0:2",
-                "session_rocksdb.fetch for=b@0:2 list=b@0:2 next=b@0:2 closing=b@0:2");
+                "session_memory.fetch for=b@3000000000:2 list=b@3000000000:2 next=b@3000000000:2 closing=b@3000000000:2",
+                "session_rocksdb.fetch for=b@3000000000:2 list=b@3000000000:2 next=b@3000000000:2 closing=b@3000000000:2");
     }
 }
