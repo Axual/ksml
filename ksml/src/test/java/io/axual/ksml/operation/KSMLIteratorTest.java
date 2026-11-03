@@ -25,7 +25,13 @@ import io.axual.ksml.testutil.KSMLTestExtension;
 import io.axual.ksml.testutil.KSMLTopic;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.streams.TestInputTopic;
+import org.apache.kafka.streams.TestOutputTopic;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.extension.ExtendWith;
+
+import java.util.List;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 @Slf4j
 @ExtendWith(KSMLTestExtension.class)
@@ -34,6 +40,12 @@ public class KSMLIteratorTest {
 
     @KSMLTopic(topic = "sensor_ownership_data")
     TestInputTopic<String, String> inputTopic;
+
+    @KSMLTopic(topic = "store_iterator_input")
+    TestInputTopic<String, String> iteratorInput;
+
+    @KSMLTopic(topic = "store_iterator_output")
+    TestOutputTopic<String, String> iteratorOutput;
 
     /**
      * Test KeyValueIterator proxy with KeyValueStore.all() and related methods.
@@ -75,5 +87,28 @@ public class KSMLIteratorTest {
         inputTopic.pipeInput("sensor4", "value4");
 
         // No exception is thrown and all messages could be processed
+    }
+
+    /**
+     * Python iterates over key-value, window and session stores (in-memory and RocksDB) with for, list(),
+     * next() and contextlib.closing. Each line of the output is the result of one store method.
+     */
+    @KSMLTest(topology = "pipelines/test-store-iterator-python.yaml")
+    @DisplayName("store iterators work with Python for, list(), next() and contextlib.closing")
+    void testPythonIteration() {
+        iteratorInput.pipeInput("a", "1");
+        iteratorInput.pipeInput("b", "2");
+
+        final var values = iteratorOutput.readValuesToList();
+        assertThat(values).hasSize(2);
+        assertThat(List.of(values.get(1).split("\n"))).containsExactly(
+                "kv_memory.all for=a:1,b:2 list=a:1,b:2 next=a:1 closing=a:1,b:2",
+                "kv_rocksdb.all for=a:1,b:2 list=a:1,b:2 next=a:1 closing=a:1,b:2",
+                "window_memory.all for=a@0:1,b@0:2 list=a@0:1,b@0:2 next=a@0:1 closing=a@0:1,b@0:2",
+                "window_memory.fetch for=0:2 list=0:2 next=0:2 closing=0:2",
+                "window_rocksdb.all for=a@0:1,b@0:2 list=a@0:1,b@0:2 next=a@0:1 closing=a@0:1,b@0:2",
+                "window_rocksdb.fetch for=0:2 list=0:2 next=0:2 closing=0:2",
+                "session_memory.fetch for=b@0:2 list=b@0:2 next=b@0:2 closing=b@0:2",
+                "session_rocksdb.fetch for=b@0:2 list=b@0:2 next=b@0:2 closing=b@0:2");
     }
 }
