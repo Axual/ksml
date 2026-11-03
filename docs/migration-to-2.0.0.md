@@ -21,6 +21,7 @@ Before you upgrade, check each item below:
 * Rename any `as` name that is also a name under `streams`, `tables` or `globalTables`.
 * Add `toTable` before any `join` or `leftJoin` with `foreignKeyExtractor` that has a stream as input.
 * Do not keep a store iterator in a global variable for a later function call.
+* If Python code reads `get(key)["value"]` or `["timestamp"]` on a store with `timestamped: true`, use `getWithTimestamp(key)` instead. The same applies to the results of `delete` and `putIfAbsent`.
 * If you build your own code on top of the KSML libraries, update the Jackson package names.
 * If you use `KeyValueIteratorProxy` or `WindowStoreIteratorProxy`, use `StoreIteratorProxy` instead, and create store proxies with `ProxyUtil.wrapStateStore`.
 
@@ -203,6 +204,26 @@ while it.hasNext():
 for entry in store.all():
   ...
 ```
+
+## Timestamped key-value stores return the value
+
+In KSML 1.x, Python code that used a key-value store with `timestamped: true` got a dict with `value` and `timestamp` from `get`, `delete` and `putIfAbsent`. In KSML 2.0.0 these methods return only the value, as on a store without `timestamped: true`. A timestamped store now has the same methods as a plain key-value store, so the same Python code works on both.
+
+To read the timestamp, use `getWithTimestamp`:
+
+```python
+# Before (KSML 1.x)
+last = store.get(key)
+color = last["value"]["color"]
+
+# After (KSML 2.0.0)
+last = store.getWithTimestamp(key)
+color = last["value"]["color"]
+```
+
+There is no `deleteWithTimestamp`. If you need the old timestamp, call `getWithTimestamp` before `delete`.
+
+`put(key, value)` without a timestamp now works on a timestamped store, and uses the timestamp of the record that is being processed. `put(key, value, timestamp)` still works. See [Timestamped Key-Value Stores](reference/state-store-reference.md#timestamped-key-value-stores).
 
 ## Avro logical types
 

@@ -26,12 +26,14 @@ import io.axual.ksml.store.StateStores;
 import org.apache.kafka.streams.processor.StateStore;
 import org.apache.kafka.streams.processor.api.FixedKeyProcessor;
 import org.apache.kafka.streams.processor.api.FixedKeyProcessorContext;
+import org.apache.kafka.streams.processor.api.FixedKeyRecord;
 
 public abstract class FixedKeyOperationProcessor implements FixedKeyProcessor<Object, Object, Object> {
     protected FixedKeyProcessorContext<Object, Object> context;
     private final String name;
     private final String[] storeNames;
     protected final StateStores stores = new StateStores();
+    private long recordTimestamp;
 
     protected FixedKeyOperationProcessor(String name, String[] storeNames) {
         this.name = name;
@@ -48,7 +50,16 @@ public abstract class FixedKeyOperationProcessor implements FixedKeyProcessor<Ob
                 throw new ExecutionException("Could not connect processor '" + name + "' to state store '" + storeName + "'");
             }
             // Wrap the store in a proxy for security
-            stores.put(storeName, ProxyUtil.wrapStateStore(store));
+            stores.put(storeName, ProxyUtil.wrapStateStore(store, () -> recordTimestamp));
         }
     }
+
+    /** Remembers the timestamp of the record, so Python writes to timestamped stores can use it, then processes it. */
+    @Override
+    public final void process(FixedKeyRecord<Object, Object> rec) {
+        recordTimestamp = rec.timestamp();
+        processRecord(rec);
+    }
+
+    protected abstract void processRecord(FixedKeyRecord<Object, Object> rec);
 }

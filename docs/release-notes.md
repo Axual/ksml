@@ -65,6 +65,7 @@ Major dependency upgrades. This release moves KSML to Jackson 3, Apicurio Regist
 * Breaking change: a store iterator can not be used after the function that created it returned, for example from a global. This now raises an error. See [Upgrading to 2.0.0](migration-to-2.0.0.md).
 * Breaking change for Java code that extends KSML: `KeyValueIteratorProxy` and `WindowStoreIteratorProxy` are removed. Use `StoreIteratorProxy`, which wraps every store iterator. See [Upgrading to 2.0.0](migration-to-2.0.0.md).
 * Key-value stores have the methods `range`, `reverseRange`, `reverseAll`, `prefixScan` and `putAll` in Python again. They were missing since 1.2.0. `putAll` and `prefixScan` raise `TypeError` or `ValueError` for a bad argument, so `except Exception` catches it.
+* Breaking change: on a key-value store with `timestamped: true`, `get`, `delete` and `putIfAbsent` return only the value, as on a plain key-value store. Use `getWithTimestamp` to read the timestamp. Timestamped key-value stores now have all key-value store methods, `put(key, value)` without a timestamp uses the timestamp of the current record, and `allWithTimestamp`, `rangeWithTimestamp`, `reverseRangeWithTimestamp`, `reverseAllWithTimestamp` and `prefixScanWithTimestamp` return entries with their timestamp. See [Upgrading to 2.0.0](migration-to-2.0.0.md#timestamped-key-value-stores-return-the-value).
 
 ## 1.3.0 (2026-06-23)
 
