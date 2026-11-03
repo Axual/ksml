@@ -37,7 +37,6 @@ import org.apache.kafka.streams.state.ValueAndTimestamp;
 import org.apache.kafka.streams.state.VersionedKeyValueStore;
 import org.apache.kafka.streams.state.VersionedRecord;
 import org.apache.kafka.streams.state.WindowStore;
-import org.apache.kafka.streams.state.WindowStoreIterator;
 
 /**
  * Utility class for creating proxy objects and converted values returned to Python
@@ -65,8 +64,7 @@ public class ProxyUtil {
         if (object instanceof ValueAndTimestamp<?> vat) return resultFrom(vat);
         if (object instanceof VersionedRecord<?> vr) return resultFrom(vr);
         if (object instanceof KeyValue<?, ?> kv) return resultFrom(kv);
-        if (object instanceof WindowStoreIterator<?> wis) return new WindowStoreIteratorProxy(wis);
-        if (object instanceof KeyValueIterator<?, ?> kvi) return new KeyValueIteratorProxy(kvi);
+        if (object instanceof KeyValueIterator<?, ?> kvi) return new StoreIteratorProxy(kvi);
 
         // Normal processing, ensuring flattened data structures
         if (object instanceof Windowed<?> windowed)

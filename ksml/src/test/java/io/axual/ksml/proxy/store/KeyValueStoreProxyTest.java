@@ -95,10 +95,10 @@ class KeyValueStoreProxyTest {
     }
 
     @Test
-    @DisplayName("all wraps the delegate iterator in a KeyValueIteratorProxy")
+    @DisplayName("all wraps the delegate iterator in a StoreIteratorProxy")
     void allWrapsIteratorInProxy() {
         when(delegate.all()).thenReturn(iterator);
-        assertThat(proxy().all()).isInstanceOf(KeyValueIteratorProxy.class);
+        assertThat(proxy().all()).isInstanceOf(StoreIteratorProxy.class);
     }
 
     @Test
