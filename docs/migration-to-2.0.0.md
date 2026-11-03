@@ -24,6 +24,7 @@ Before you upgrade, check each item below:
 * If you build your own code on top of the KSML libraries, update the Jackson package names.
 * If you extend `OperationProcessor` or `FixedKeyOperationProcessor`, implement `processRecord` instead of `process`.
 * If you create a `TimestampedKeyValueStoreProxy` or `TimestampedWindowStoreProxy` yourself, pass a `LongSupplier` that gives the timestamp of the record that is being processed.
+* If you use `KeyValueIteratorProxy` or `WindowStoreIteratorProxy`, use `StoreIteratorProxy` instead, and create store proxies with `ProxyUtil.wrapStateStore`.
 
 ## Apicurio Registry 3
 
