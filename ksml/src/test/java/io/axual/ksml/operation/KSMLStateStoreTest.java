@@ -26,6 +26,7 @@ import io.axual.ksml.testutil.KSMLDriver;
 import io.axual.ksml.testutil.KSMLTest;
 import io.axual.ksml.testutil.KSMLTestExtension;
 import io.axual.ksml.testutil.KSMLTopic;
+import io.axual.ksml.testutil.KSMLTopologyTest;
 import org.apache.avro.generic.GenericRecord;
 import org.apache.kafka.streams.TestInputTopic;
 import org.apache.kafka.streams.TopologyTestDriver;
@@ -50,8 +51,10 @@ public class KSMLStateStoreTest {
     @KSMLDriver
     TopologyTestDriver topologyTestDriver;
 
-    @KSMLTest(topology = "pipelines/test-state-store.yaml", schemaDirectory = "schemas")
-    @DisplayName("Test messages are stored in a key/value store")
+    // The second file has timestamped: true, the default after AXPD-12445; the Python code and results stay the same
+    @KSMLTopologyTest(topologies = {"pipelines/test-state-store.yaml", "pipelines/test-state-store-default-timestamped.yaml"},
+            schemaDirectory = "schemas")
+    @DisplayName("Test messages are stored in a key/value store, plain and timestamped")
     void testJoin() {
 
         // given that we get events with a higher reading in matching cities

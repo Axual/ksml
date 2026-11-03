@@ -1,0 +1,133 @@
+# $schema: https://raw.githubusercontent.com/Axual/ksml/refs/heads/main/docs/ksml-language-spec.json
+
+# Copy of test-keyvalue-store-methods-python.yaml, with timestamped: true on every key-value store (AXPD-11068).
+# AXPD-12445 makes timestamped: true the default, so a store without options becomes this store. The test runs
+# both files with the same assertions: Python code written for a plain store must work unchanged.
+# Keep both files in sync.
+
+# Calls range, reverseRange, reverseAll, prefixScan, putAll, get, put, putIfAbsent and delete from Python on an
+# in-memory, a RocksDB and a cached RocksDB key-value store. The result of each store is returned as one line of text.
+streams:
+  keyvalue_methods_input:
+    topic: keyvalue_methods_input
+    keyType: string
+    valueType: string
+  keyvalue_methods_output:
+    topic: keyvalue_methods_output
+    keyType: string
+    valueType: string
+
+stores:
+  kv_memory:
+    type: keyValue
+    keyType: string
+    valueType: string
+    persistent: false
+    caching: false
+    logging: false
+    timestamped: true
+  kv_memory_copy:
+    type: keyValue
+    keyType: string
+    valueType: string
+    persistent: false
+    caching: false
+    logging: false
+    timestamped: true
+  kv_rocksdb:
+    type: keyValue
+    keyType: string
+    valueType: string
+    persistent: true
+    caching: false
+    logging: false
+    timestamped: true
+  kv_rocksdb_copy:
+    type: keyValue
+    keyType: string
+    valueType: string
+    persistent: true
+    caching: false
+    logging: false
+    timestamped: true
+  # Kafka's caching store merges its cache with the store for range, prefixScan and putAll
+  kv_cached:
+    type: keyValue
+    keyType: string
+    valueType: string
+    persistent: true
+    caching: true
+    logging: false
+    timestamped: true
+  kv_cached_copy:
+    type: keyValue
+    keyType: string
+    valueType: string
+    persistent: true
+    caching: true
+    logging: false
+    timestamped: true
+
+functions:
+  call_store_methods:
+    type: valueTransformer
+    globalCode: |
+      def keys(entries):
+        return ",".join(e["key"] + ":" + e["value"] for e in entries)
+
+      def check(name, store, copy):
+        # Tuples and dicts mixed in one putAll
+        store.putAll([("a", "1"), {"key": "b", "value": "2"}, ("c", "3"), ["ab", "4"]])
+        line = name
+        line += " range=" + keys(store.range("a", "b"))
+        line += " reverseRange=" + keys(store.reverseRange("a", "b"))
+        line += " reverseAll=" + keys(store.reverseAll())
+        line += " prefixScan=" + keys(store.prefixScan("a"))
+        # None means no bound
+        line += " rangeFromNone=" + keys(store.range(None, "ab"))
+        line += " rangeToNone=" + keys(store.range("b", None))
+        line += " rangeAll=" + keys(store.range(None, None))
+        line += " reverseRangeFromNone=" + keys(store.reverseRange(None, "ab"))
+        line += " reverseRangeToNone=" + keys(store.reverseRange("b", None))
+        # A None value deletes the key; an iterator is accepted as input
+        store.putAll(iter([("c", None)]))
+        line += " afterDelete=" + keys(store.all())
+        # A bad entry raises a Python error, which except Exception catches, and writes nothing
+        try:
+          store.putAll([("x", "9"), 42])
+          line += " badEntry=accepted"
+        except Exception as e:
+          line += " badEntry=" + type(e).__name__
+        line += " x=" + str(store.get("x"))
+        # Copy a store with putAll(other.all())
+        copy.putAll(store.all())
+        line += " copy=" + keys(copy.all())
+        # Single-key methods: each returns the plain value
+        store.put("d", "5")
+        line += " get=" + store.get("d")
+        line += " putIfAbsent=" + str(store.putIfAbsent("d", "6"))
+        line += " delete=" + str(store.delete("d"))
+        line += " afterPutDelete=" + keys(store.all())
+        return line
+    code: |
+      result = "\n".join([
+        check("memory", kv_memory, kv_memory_copy),
+        check("rocksdb", kv_rocksdb, kv_rocksdb_copy),
+        check("cached", kv_cached, kv_cached_copy)])
+    expression: result
+    resultType: string
+    stores:
+      - kv_memory
+      - kv_memory_copy
+      - kv_rocksdb
+      - kv_rocksdb_copy
+      - kv_cached
+      - kv_cached_copy
+
+pipelines:
+  call_store_methods_pipeline:
+    from: keyvalue_methods_input
+    via:
+      - type: transformValue
+        mapper: call_store_methods
+    to: keyvalue_methods_output
