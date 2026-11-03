@@ -41,9 +41,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 @SuppressWarnings("java:S2187")
 public class KSMLIteratorTest {
 
-    @KSMLTopic(topic = "sensor_ownership_data")
-    TestInputTopic<String, String> inputTopic;
-
     @KSMLTopic(topic = "store_iterator_input")
     TestInputTopic<String, String> iteratorInput;
 
@@ -52,48 +49,6 @@ public class KSMLIteratorTest {
 
     @KSMLDriver
     TopologyTestDriver driver;
-
-    /**
-     * Test KeyValueIterator proxy with KeyValueStore.all() and related methods.
-     * Verifies that hasNext(), next(), and close() are accessible from Python by calling them in the pipeline.
-     * This test currently checks for exceptions, as the proxy does not support all methods yet.
-     */
-    @KSMLTest(topology = "pipelines/test-keyvalue-iterator.yaml")
-    void testKeyValueStoreIterator() {
-        // Send data to trigger the forEach function which tests the iterator
-        inputTopic.pipeInput("sensor1", "value1");
-        inputTopic.pipeInput("sensor2", "value2");
-        inputTopic.pipeInput("sensor3", "value3");
-
-        // No exception is thrown and all messages could be processed
-    }
-
-    /**
-     * Test WindowStoreIterator proxy with WindowStore.fetch() and
-     * KeyValueIterator proxy with WindowStore.all().
-     * Verifies that hasNext(), next(), and close() are accessible from Python.
-     */
-    @KSMLTest(topology = "pipelines/test-window-iterator.yaml")
-    void testWindowStoreIterator() {
-        // Send data to trigger the forEach function which tests the iterator
-        inputTopic.pipeInput("sensor1", "value1");
-        inputTopic.pipeInput("sensor2", "value2");
-
-        // No exception is thrown and all messages could be processed
-    }
-
-    /**
-     * Test KeyValueIterator proxy with SessionStore.fetch() and findSessions().
-     * Verifies that hasNext(), next(), and close() are accessible from Python.
-     */
-    @KSMLTest(topology = "pipelines/test-session-iterator.yaml")
-    void testSessionStoreIterator() {
-        // Send data to trigger the forEach function which tests the iterator
-        inputTopic.pipeInput("sensor3", "value3");
-        inputTopic.pipeInput("sensor4", "value4");
-
-        // No exception is thrown and all messages could be processed
-    }
 
     /**
      * Python iterates over key-value, window and session stores (in-memory and RocksDB) with for, list(),
