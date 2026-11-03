@@ -1,0 +1,117 @@
+# $schema: https://raw.githubusercontent.com/Axual/ksml/refs/heads/main/docs/ksml-language-spec.json
+
+# Calls the key-value store methods and the *WithTimestamp methods from Python on an in-memory and a RocksDB
+# timestamped key-value store. The result of each store is returned as one line of text.
+streams:
+  timestamped_methods_input:
+    topic: timestamped_methods_input
+    keyType: string
+    valueType: string
+  timestamped_methods_output:
+    topic: timestamped_methods_output
+    keyType: string
+    valueType: string
+
+stores:
+  ts_memory:
+    type: keyValue
+    timestamped: true
+    keyType: string
+    valueType: string
+    persistent: false
+    caching: false
+    logging: false
+  ts_memory_copy:
+    type: keyValue
+    timestamped: true
+    keyType: string
+    valueType: string
+    persistent: false
+    caching: false
+    logging: false
+  ts_rocksdb:
+    type: keyValue
+    timestamped: true
+    keyType: string
+    valueType: string
+    persistent: true
+    caching: false
+    logging: false
+  ts_rocksdb_copy:
+    type: keyValue
+    timestamped: true
+    keyType: string
+    valueType: string
+    persistent: true
+    caching: false
+    logging: false
+
+functions:
+  call_store_methods:
+    type: valueTransformer
+    globalCode: |
+      def keys(entries):
+        return ",".join(e["key"] + ":" + e["value"] for e in entries)
+
+      def stamped(entries):
+        return ",".join(e["key"] + ":" + e["value"] + "@" + str(e["timestamp"]) for e in entries)
+
+      def check(name, store, copy):
+        # Without a timestamp, put, putIfAbsent and putAll use the timestamp of the record (1000)
+        store.put("a", "1")
+        store.put("b", "2", 500)
+        store.putIfAbsent("c", "3")
+        store.putAll([("d", "5"), {"key": "ab", "value": "4", "timestamp": 700}])
+        line = name
+        line += " get=" + str(store.get("a"))
+        line += " getWithTimestamp=" + str(store.getWithTimestamp("a")["timestamp"])
+        line += " missing=" + str(store.getWithTimestamp("x"))
+        line += " all=" + keys(store.all())
+        line += " range=" + keys(store.range("a", "b"))
+        line += " reverseRange=" + keys(store.reverseRange("a", "b"))
+        line += " reverseAll=" + keys(store.reverseAll())
+        line += " prefixScan=" + keys(store.prefixScan("a"))
+        line += " allWithTimestamp=" + stamped(store.allWithTimestamp())
+        line += " rangeWithTimestamp=" + stamped(store.rangeWithTimestamp("a", "b"))
+        line += " reverseRangeWithTimestamp=" + stamped(store.reverseRangeWithTimestamp("a", "b"))
+        line += " reverseAllWithTimestamp=" + stamped(store.reverseAllWithTimestamp())
+        line += " prefixScanWithTimestamp=" + stamped(store.prefixScanWithTimestamp("a"))
+        # delete and putIfAbsent return only the value
+        line += " putIfAbsent=" + str(store.putIfAbsent("a", "9", 900))
+        line += " delete=" + str(store.delete("c"))
+        # A None value in putAll deletes the key
+        store.putAll([("d", None)])
+        line += " afterDelete=" + keys(store.all())
+        # A bad entry and a tuple of three raise a Python error and write nothing
+        try:
+          store.putAll([("x", "9"), 42])
+          line += " badEntry=accepted"
+        except Exception as e:
+          line += " badEntry=" + type(e).__name__
+        try:
+          store.putAll([("x", "9", 900)])
+          line += " threeTuple=accepted"
+        except Exception as e:
+          line += " threeTuple=" + type(e).__name__
+        line += " x=" + str(store.get("x"))
+        # Copy a store with its timestamps
+        copy.putAll(store.allWithTimestamp())
+        line += " copy=" + stamped(copy.allWithTimestamp())
+        return line
+    code: |
+      result = check("memory", ts_memory, ts_memory_copy) + "\n" + check("rocksdb", ts_rocksdb, ts_rocksdb_copy)
+    expression: result
+    resultType: string
+    stores:
+      - ts_memory
+      - ts_memory_copy
+      - ts_rocksdb
+      - ts_rocksdb_copy
+
+pipelines:
+  call_store_methods_pipeline:
+    from: timestamped_methods_input
+    via:
+      - type: transformValue
+        mapper: call_store_methods
+    to: timestamped_methods_output
