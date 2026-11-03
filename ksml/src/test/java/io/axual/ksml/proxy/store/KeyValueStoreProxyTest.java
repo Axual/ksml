@@ -32,6 +32,7 @@ import org.apache.kafka.streams.processor.StateStore;
 import org.apache.kafka.streams.processor.StateStoreContext;
 import org.apache.kafka.streams.state.KeyValueIterator;
 import org.apache.kafka.streams.state.KeyValueStore;
+import org.assertj.core.api.SoftAssertions;
 import org.graalvm.polyglot.PolyglotException;
 import org.graalvm.polyglot.Value;
 import org.junit.jupiter.api.DisplayName;
@@ -369,6 +370,18 @@ class KeyValueStoreProxyTest {
     void prefixScanWithNonStringPrefix() {
         assertThat(pythonErrorOf("store.prefixScan(42)")).startsWith("TypeError: ").contains("string prefix");
         verify(delegate, never()).prefixScan(any(), any());
+    }
+
+    @Test
+    @DisplayName("caller error messages name the Python type, never the value, which can be user data")
+    void callerErrorMessagesHaveNoValues() {
+        final var softly = new SoftAssertions();
+        softly.assertThat(pythonErrorOf("store.putAll([\"secret\"])")).contains("got str").doesNotContain("secret");
+        softly.assertThat(pythonErrorOf("store.putAll(1234567)")).contains("got int").doesNotContain("1234567");
+        softly.assertThat(pythonErrorOf("store.putAll([(\"secret\", \"1\", \"2\")])")).contains("got 3").doesNotContain("secret");
+        softly.assertThat(pythonErrorOf("store.putAll([{\"key\": \"secret\"}])")).contains("got dict").doesNotContain("secret");
+        softly.assertThat(pythonErrorOf("store.prefixScan(1234567)")).contains("got int").doesNotContain("1234567");
+        softly.assertAll();
     }
 
     @Test

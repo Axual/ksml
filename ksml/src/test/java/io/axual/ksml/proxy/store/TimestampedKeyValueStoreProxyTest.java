@@ -324,6 +324,13 @@ class TimestampedKeyValueStoreProxyTest {
     }
 
     @Test
+    @DisplayName("the timestamp error message names the Python type, never the value")
+    void putAllTimestampErrorHasNoValue() {
+        assertThat(pythonErrorOf("store.putAll([{\"key\": \"a\", \"value\": \"1\", \"timestamp\": \"secret\"}])"))
+                .contains("got str").doesNotContain("secret");
+    }
+
+    @Test
     @DisplayName("putAll with a tuple of three raises ValueError: a timestamp per entry only comes from the dict field")
     void putAllWithThreeTupleIsAnError() {
         assertThat(pythonErrorOf("store.putAll([(\"a\", \"1\", 700)])"))
