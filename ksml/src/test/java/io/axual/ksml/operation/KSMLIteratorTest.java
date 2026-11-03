@@ -54,9 +54,9 @@ public class KSMLIteratorTest {
     @KSMLDriver
     TopologyTestDriver driver;
 
-    /** Each output line is the result of one store method, read in all Python styles. */
+    /** Each output line is the result of one store method, read in all Python styles. Afterwards no store has an open iterator. */
     @KSMLTest(topology = "pipelines/test-store-iterator-python.yaml")
-    @DisplayName("store iterators work with Python for, list(), next() and contextlib.closing")
+    @DisplayName("store iterators work with Python for, list(), next(), contextlib.closing and hasNext(), and are closed")
     void testPythonIteration() {
         // Fixed record timestamps, so the window entries at time 0 are within the store retention
         iteratorInput.pipeInput("a", "1", 1000L);
@@ -66,23 +66,26 @@ public class KSMLIteratorTest {
         assertThat(values).hasSize(2);
         // The first record: each store has one entry
         assertThat(List.of(values.get(0).split("\n"))).containsExactly(
-                "kv_memory.all for=a:1 list=a:1 next=a:1 closing=a:1",
-                "kv_rocksdb.all for=a:1 list=a:1 next=a:1 closing=a:1",
-                "window_memory.all for=a@0:1 list=a@0:1 next=a@0:1 closing=a@0:1",
-                "window_memory.fetch for=0:1 list=0:1 next=0:1 closing=0:1",
-                "window_rocksdb.all for=a@0:1 list=a@0:1 next=a@0:1 closing=a@0:1",
-                "window_rocksdb.fetch for=0:1 list=0:1 next=0:1 closing=0:1",
-                "session_memory.fetch for=a@3000000000:1 list=a@3000000000:1 next=a@3000000000:1 closing=a@3000000000:1",
-                "session_rocksdb.fetch for=a@3000000000:1 list=a@3000000000:1 next=a@3000000000:1 closing=a@3000000000:1");
+                "kv_memory.all for=a:1 list=a:1 next=a:1 closing=a:1 hasNext=a:1",
+                "kv_rocksdb.all for=a:1 list=a:1 next=a:1 closing=a:1 hasNext=a:1",
+                "window_memory.all for=a@0:1 list=a@0:1 next=a@0:1 closing=a@0:1 hasNext=a@0:1",
+                "window_memory.fetch for=0:1 list=0:1 next=0:1 closing=0:1 hasNext=0:1",
+                "window_rocksdb.all for=a@0:1 list=a@0:1 next=a@0:1 closing=a@0:1 hasNext=a@0:1",
+                "window_rocksdb.fetch for=0:1 list=0:1 next=0:1 closing=0:1 hasNext=0:1",
+                "session_memory.fetch for=a@3000000000:1 list=a@3000000000:1 next=a@3000000000:1 closing=a@3000000000:1 hasNext=a@3000000000:1",
+                "session_rocksdb.fetch for=a@3000000000:1 list=a@3000000000:1 next=a@3000000000:1 closing=a@3000000000:1 hasNext=a@3000000000:1");
         assertThat(List.of(values.get(1).split("\n"))).containsExactly(
-                "kv_memory.all for=a:1,b:2 list=a:1,b:2 next=a:1 closing=a:1,b:2",
-                "kv_rocksdb.all for=a:1,b:2 list=a:1,b:2 next=a:1 closing=a:1,b:2",
-                "window_memory.all for=a@0:1,b@0:2 list=a@0:1,b@0:2 next=a@0:1 closing=a@0:1,b@0:2",
-                "window_memory.fetch for=0:2 list=0:2 next=0:2 closing=0:2",
-                "window_rocksdb.all for=a@0:1,b@0:2 list=a@0:1,b@0:2 next=a@0:1 closing=a@0:1,b@0:2",
-                "window_rocksdb.fetch for=0:2 list=0:2 next=0:2 closing=0:2",
-                "session_memory.fetch for=b@3000000000:2 list=b@3000000000:2 next=b@3000000000:2 closing=b@3000000000:2",
-                "session_rocksdb.fetch for=b@3000000000:2 list=b@3000000000:2 next=b@3000000000:2 closing=b@3000000000:2");
+                "kv_memory.all for=a:1,b:2 list=a:1,b:2 next=a:1 closing=a:1,b:2 hasNext=a:1,b:2",
+                "kv_rocksdb.all for=a:1,b:2 list=a:1,b:2 next=a:1 closing=a:1,b:2 hasNext=a:1,b:2",
+                "window_memory.all for=a@0:1,b@0:2 list=a@0:1,b@0:2 next=a@0:1 closing=a@0:1,b@0:2 hasNext=a@0:1,b@0:2",
+                "window_memory.fetch for=0:2 list=0:2 next=0:2 closing=0:2 hasNext=0:2",
+                "window_rocksdb.all for=a@0:1,b@0:2 list=a@0:1,b@0:2 next=a@0:1 closing=a@0:1,b@0:2 hasNext=a@0:1,b@0:2",
+                "window_rocksdb.fetch for=0:2 list=0:2 next=0:2 closing=0:2 hasNext=0:2",
+                "session_memory.fetch for=b@3000000000:2 list=b@3000000000:2 next=b@3000000000:2 closing=b@3000000000:2 hasNext=b@3000000000:2",
+                "session_rocksdb.fetch for=b@3000000000:2 list=b@3000000000:2 next=b@3000000000:2 closing=b@3000000000:2 hasNext=b@3000000000:2");
+        for (final var store : List.of("kv_memory", "kv_rocksdb", "window_memory", "window_rocksdb", "session_memory", "session_rocksdb")) {
+            assertThat(openIterators(driver, store)).as(store).isZero();
+        }
     }
 
     @KSMLTest(topology = "pipelines/test-store-iterator-early-exit-python.yaml")

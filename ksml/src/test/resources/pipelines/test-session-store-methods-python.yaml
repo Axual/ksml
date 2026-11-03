@@ -1,0 +1,90 @@
+# $schema: https://raw.githubusercontent.com/Axual/ksml/refs/heads/main/docs/ksml-language-spec.json
+
+# Regression test for session stores (AXPD-11068): a Python function puts each record in an in-memory and a RocksDB
+# session store, and on the third record calls every session store method. Each iterator is read with a for loop and
+# with a hasNext() loop without close(). The result of each store is returned as one line of text.
+streams:
+  session_methods_input:
+    topic: session_methods_input
+    keyType: string
+    valueType: string
+  session_methods_output:
+    topic: session_methods_output
+    keyType: string
+    valueType: string
+
+stores:
+  session_memory:
+    type: session
+    keyType: string
+    valueType: string
+    retention: 1h
+    persistent: false
+    caching: false
+    logging: false
+  session_rocksdb:
+    type: session
+    keyType: string
+    valueType: string
+    retention: 1h
+    persistent: true
+    caching: false
+    logging: false
+
+functions:
+  check_session_stores:
+    type: valueTransformer
+    globalCode: |
+      # Session times above the int range and start < end: SessionStoreProxy.put ignores other session keys
+      BASE = 3000000000
+
+      def session(key, offset):
+        return {"key": key, "start": BASE + offset, "end": BASE + offset + 1}
+
+      def describe(e):
+        return e["key"]["key"] + "@" + str(e["key"]["start"] - BASE) + ":" + e["value"]
+
+      def read(make):
+        # Reads one iterator with a for loop, and a second one with hasNext()/next() without close()
+        for_loop = ",".join(describe(e) for e in make())
+        it = make()
+        java_style = []
+        while it.hasNext():
+          java_style.append(describe(it.next()))
+        java_style = ",".join(java_style)
+        return for_loop if for_loop == java_style else for_loop + "!hasNext=" + java_style
+
+      def check(name, store):
+        line = name
+        line += " fetchSession=" + store.fetchSession("a", BASE + 10, BASE + 11)
+        line += " missing=" + str(store.fetchSession("a", BASE + 20, BASE + 21))
+        line += " fetch=" + read(lambda: store.fetch("a"))
+        line += " backwardFetch=" + read(lambda: store.backwardFetch("a"))
+        line += " fetchKeys=" + read(lambda: store.fetch("a", "b"))
+        line += " backwardFetchKeys=" + read(lambda: store.backwardFetch("a", "b"))
+        line += " findSessions=" + read(lambda: store.findSessions("a", BASE, BASE + 40))
+        line += " backwardFindSessions=" + read(lambda: store.backwardFindSessions("a", BASE, BASE + 40))
+        # Sessions that end at or after 15 and start at or before 40: a@10 ends at 11, so it is left out
+        line += " findSessionsKeys=" + read(lambda: store.findSessions("a", "b", BASE + 15, BASE + 40))
+        line += " backwardFindSessionsKeys=" + read(lambda: store.backwardFindSessions("a", "b", BASE + 15, BASE + 40))
+        store.remove(session("a", 10))
+        line += " afterRemove=" + read(lambda: store.fetch("a"))
+        return line
+    code: |
+      # Value "1" is the session at 10, value "2" at 20 and value "3" at 30
+      session_memory.put(session(key, int(value) * 10), value)
+      session_rocksdb.put(session(key, int(value) * 10), value)
+      result = check("memory", session_memory) + "\n" + check("rocksdb", session_rocksdb) if value == "3" else ""
+    expression: result
+    resultType: string
+    stores:
+      - session_memory
+      - session_rocksdb
+
+pipelines:
+  session_methods_pipeline:
+    from: session_methods_input
+    via:
+      - type: transformValue
+        mapper: check_session_stores
+    to: session_methods_output
