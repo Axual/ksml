@@ -64,8 +64,10 @@ class TimestampedKeyValueStoreProxyTest {
         pythonContext.close();
     }
 
+    private static final long RECORD_TIMESTAMP = 1234L;
+
     private TimestampedKeyValueStoreProxy proxy() {
-        return new TimestampedKeyValueStoreProxy(delegate);
+        return new TimestampedKeyValueStoreProxy(delegate, () -> RECORD_TIMESTAMP);
     }
 
     /** Runs Python code with {@code store} bound to the proxy, and returns the result as a list of strings. */
@@ -190,24 +192,28 @@ class TimestampedKeyValueStoreProxyTest {
     }
 
     @Test
-    @DisplayName("put(key, value) without a timestamp works from Python and stores the value")
-    void putWithoutTimestampFromPython() {
+    @DisplayName("put(key, value) without a timestamp stores the value with the record timestamp")
+    void putWithoutTimestampUsesRecordTimestamp() {
         runPython("""
                 store.put("key", "value")
                 []
                 """);
         final ArgumentCaptor<ValueAndTimestamp<Object>> captor = ArgumentCaptor.captor();
-        verify(delegate).put(eq("key"), captor.capture());
-        assertThat(captor.getValue().value()).isEqualTo("value");
+        verify(delegate).put(any(), captor.capture());
+        assertThat(captor.getValue().timestamp()).isEqualTo(RECORD_TIMESTAMP);
+        assertThat(captor.getValue().value()).isNotNull();
     }
 
     @Test
-    @DisplayName("putIfAbsent(key, value) without a timestamp works from Python and returns only the existing value")
-    void putIfAbsentWithoutTimestampFromPython() {
-        when(delegate.putIfAbsent(eq("key"), any())).thenReturn(ValueAndTimestamp.make("old", 50L));
+    @DisplayName("putIfAbsent(key, value) without a timestamp uses the record timestamp and returns only the existing value")
+    void putIfAbsentWithoutTimestampUsesRecordTimestamp() {
+        when(delegate.putIfAbsent(any(), any())).thenReturn(ValueAndTimestamp.make("old", 50L));
         assertThat(runPython("""
                 [store.putIfAbsent("key", "new")]
                 """)).containsExactly("old");
+        final ArgumentCaptor<ValueAndTimestamp<Object>> captor = ArgumentCaptor.captor();
+        verify(delegate).putIfAbsent(any(), captor.capture());
+        assertThat(captor.getValue().timestamp()).isEqualTo(RECORD_TIMESTAMP);
     }
 
     @Test
@@ -258,13 +264,14 @@ class TimestampedKeyValueStoreProxyTest {
     }
 
     @Test
-    @DisplayName("putAll with tuples and dicts writes all values with one delegate putAll")
+    @DisplayName("putAll with tuples and dicts writes all values with the record timestamp in one delegate putAll")
     void putAllWithTuplesAndDicts() {
         runPython("""
                 store.putAll([("a", "1"), {"key": "b", "value": "2"}, ["c", "3"]])
                 []
                 """);
-        assertThat(capturePutAll()).extracting(kv -> kv.key + "=" + kv.value.value()).containsExactly("a=1", "b=2", "c=3");
+        assertThat(capturePutAll()).containsExactly(
+                entry("a", "1", RECORD_TIMESTAMP), entry("b", "2", RECORD_TIMESTAMP), entry("c", "3", RECORD_TIMESTAMP));
         verify(delegate, never()).put(any(), any());
     }
 
@@ -306,6 +313,14 @@ class TimestampedKeyValueStoreProxyTest {
                 .startsWith("TypeError: ").contains("putAll entry 1");
         verify(delegate, never()).putAll(anyList());
         verify(delegate, never()).put(any(), any());
+    }
+
+    @Test
+    @DisplayName("putAll with a timestamp field that is not an int raises TypeError, and writes nothing")
+    void putAllWithBadTimestampField() {
+        assertThat(pythonErrorOf("store.putAll([{\"key\": \"a\", \"value\": \"1\", \"timestamp\": \"soon\"}])"))
+                .startsWith("TypeError: ").contains("putAll entry 0 timestamp");
+        verify(delegate, never()).putAll(anyList());
     }
 
     @Test

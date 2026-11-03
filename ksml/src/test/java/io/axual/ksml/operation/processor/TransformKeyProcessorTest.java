@@ -24,6 +24,8 @@ import io.axual.ksml.exception.ExecutionException;
 import org.apache.kafka.streams.processor.api.ProcessorContext;
 import org.apache.kafka.streams.processor.api.Record;
 import org.apache.kafka.streams.state.KeyValueStore;
+import org.apache.kafka.streams.state.ValueAndTimestamp;
+import org.apache.kafka.streams.state.TimestampedKeyValueStore;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -33,6 +35,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.concurrent.atomic.AtomicReference;
 
+import io.axual.ksml.proxy.store.TimestampedKeyValueStoreProxy;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
@@ -102,5 +105,24 @@ class TransformKeyProcessorTest {
         processor.init(context);
 
         verify(context, never()).getStateStore(any());
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    @DisplayName("a write without a timestamp to a timestamped store uses the timestamp of the record being processed")
+    void timestampedStoreWriteUsesRecordTimestamp() {
+        final TimestampedKeyValueStore<Object, Object> store = mock(TimestampedKeyValueStore.class);
+        when(context.getStateStore("store")).thenReturn(store);
+        final var processor = new TransformKeyProcessor("mapKey", (stores, rec) -> {
+            ((TimestampedKeyValueStoreProxy) stores.get("store")).put("k", "v");
+            return rec.key();
+        }, new String[]{"store"});
+        processor.init(context);
+
+        processor.process(new Record<>("key", "value", 1234L));
+
+        final ArgumentCaptor<ValueAndTimestamp<Object>> captor = ArgumentCaptor.captor();
+        verify(store).put(any(), captor.capture());
+        assertThat(captor.getValue().timestamp()).isEqualTo(1234L);
     }
 }

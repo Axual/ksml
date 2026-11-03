@@ -36,7 +36,7 @@ public class TransformKeyProcessor extends OperationProcessor {
     }
 
     @Override
-    public void process(Record<Object, Object> rec) {
+    protected void processRecord(Record<Object, Object> rec) {
         var k = action.apply(stores, rec);
         context.forward(rec.withKey(k));
     }

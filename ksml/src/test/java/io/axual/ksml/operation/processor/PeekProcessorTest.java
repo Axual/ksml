@@ -26,6 +26,8 @@ import org.apache.kafka.streams.processor.api.FixedKeyRecord;
 import org.apache.kafka.streams.processor.api.InternalFixedKeyRecordFactory;
 import org.apache.kafka.streams.processor.api.Record;
 import org.apache.kafka.streams.state.KeyValueStore;
+import org.apache.kafka.streams.state.ValueAndTimestamp;
+import org.apache.kafka.streams.state.TimestampedKeyValueStore;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -35,6 +37,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
+import io.axual.ksml.proxy.store.TimestampedKeyValueStoreProxy;
+import org.mockito.ArgumentCaptor;
+import static org.mockito.ArgumentMatchers.any;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.mock;
@@ -94,5 +99,22 @@ class PeekProcessorTest {
         assertThatThrownBy(() -> processor.init(context))
                 .isInstanceOf(ExecutionException.class)
                 .hasMessageContaining("state store");
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    @DisplayName("a write without a timestamp to a timestamped store uses the timestamp of the record being processed")
+    void timestampedStoreWriteUsesRecordTimestamp() {
+        final TimestampedKeyValueStore<Object, Object> store = mock(TimestampedKeyValueStore.class);
+        when(context.getStateStore("store")).thenReturn(store);
+        final var processor = new PeekProcessor("peek",
+                (stores, rec) -> ((TimestampedKeyValueStoreProxy) stores.get("store")).put("k", "v"), new String[]{"store"});
+        processor.init(context);
+
+        processor.process(InternalFixedKeyRecordFactory.create(new Record<>("key", "value", 1234L)));
+
+        final ArgumentCaptor<ValueAndTimestamp<Object>> captor = ArgumentCaptor.captor();
+        verify(store).put(any(), captor.capture());
+        assertThat(captor.getValue().timestamp()).isEqualTo(1234L);
     }
 }

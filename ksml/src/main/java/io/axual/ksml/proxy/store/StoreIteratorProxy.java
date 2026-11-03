@@ -22,6 +22,7 @@ package io.axual.ksml.proxy.store;
 
 import io.axual.ksml.proxy.base.AbstractProxy;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.kafka.streams.KeyValue;
 import org.apache.kafka.streams.state.KeyValueIterator;
 import org.graalvm.polyglot.Value;
 import org.graalvm.polyglot.proxy.ProxyArray;
@@ -33,6 +34,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.function.Function;
 
 /**
  * Python view of a Kafka store iterator. Works with Python {@code for}/{@code next()}/{@code list()}
@@ -50,6 +52,7 @@ public class StoreIteratorProxy implements AbstractProxy, ProxyIterator, ProxyOb
     }
 
     private final KeyValueIterator<?, ?> iterator;
+    private final Function<KeyValue<?, ?>, Object> entryToPython;
     private final Map<String, ProxyExecutable> members = Map.of(
             "hasNext", args -> hasNext(),
             "next", args -> next(),
@@ -62,7 +65,13 @@ public class StoreIteratorProxy implements AbstractProxy, ProxyIterator, ProxyOb
     private boolean closedByCallEnd = false;
 
     public StoreIteratorProxy(KeyValueIterator<?, ?> iterator) {
+        this(iterator, ProxyUtil::toPython);
+    }
+
+    /** Creates an iterator proxy that converts each Kafka entry for Python with the given function. */
+    public StoreIteratorProxy(KeyValueIterator<?, ?> iterator, Function<KeyValue<?, ?>, Object> entryToPython) {
         this.iterator = iterator;
+        this.entryToPython = entryToPython;
         final var scope = SCOPE.get();
         if (scope != null) scope.created.add(this);
     }
@@ -118,7 +127,7 @@ public class StoreIteratorProxy implements AbstractProxy, ProxyIterator, ProxyOb
     @Override
     public Object getNext() {
         if (!hasNext()) throw new NoSuchElementException();
-        return ProxyUtil.toPython(iterator.next());
+        return entryToPython.apply(iterator.next());
     }
 
     /** Java style next: returns the next entry, or {@code null} when there is none. */

@@ -188,6 +188,37 @@ Keys are ordered by their serialized bytes. For string keys this is UTF-8 byte o
 
 The message names the position of the bad entry, for example `putAll entry 1 must be a (key, value) pair ...`. A `putAll` call with a bad entry writes nothing.
 
+### Timestamped Key-Value Stores
+
+A key-value store with `timestamped: true` keeps a timestamp with each value. In Python it has the same methods as a
+plain key-value store, and they return the same results, so the same code works on both kinds of store:
+
+- `store.get(key)`, `store.delete(key)` and `store.putIfAbsent(key, value)` return only the value
+- `store.all()`, `store.range(...)`, `store.reverseRange(...)`, `store.reverseAll()` and `store.prefixScan(prefix)`
+  give entries with `key` and `value`
+- `store.put(key, value)`, `store.putIfAbsent(key, value)` and `store.putAll(entries)` store the values with the
+  timestamp of the record that is being processed
+
+To work with the timestamps, use these methods. They only exist on timestamped stores:
+
+- `store.getWithTimestamp(key)` - A dict with `value` and `timestamp`, or `None` if the key is not found
+- `store.put(key, value, timestamp)` and `store.putIfAbsent(key, value, timestamp)` - Store the value with the given
+  timestamp in milliseconds
+- `store.allWithTimestamp()`, `store.rangeWithTimestamp(from_key, to_key)`,
+  `store.reverseRangeWithTimestamp(from_key, to_key)`, `store.reverseAllWithTimestamp()` and
+  `store.prefixScanWithTimestamp(prefix)` - Entries with `key`, `value` and `timestamp`
+
+In `putAll`, a dict entry can have a `timestamp` field. That entry is stored with this timestamp, so
+`store.putAll(other_store.allWithTimestamp())` copies a store with its timestamps. A `(key, value, timestamp)` tuple
+is not accepted. A plain key-value store ignores the `timestamp` field.
+
+```python
+last = store.getWithTimestamp(key)
+if last is not None and last["timestamp"] > timestamp_limit:
+  log.info("recent value: {}", last["value"])
+store.put(key, value)  # stored with the timestamp of the current record
+```
+
 ### Reading Many Entries with Iterators
 
 Store methods that return many entries return an iterator. Each entry is a dict with `key` and `value`.
