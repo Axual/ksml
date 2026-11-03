@@ -1,0 +1,41 @@
+# Copy of test-state-store.yaml, with timestamped: true on every key-value store (AXPD-11068).
+# AXPD-12445 makes timestamped: true the default, so a store without options becomes this store. The test runs
+# both files with the same assertions: Python code written for a plain store must work unchanged.
+# Keep both files in sync.
+
+streams:
+  sensor_source_avro:
+    topic: ksml_sensordata_avro
+    keyType: string
+    valueType: avro:SensorData
+
+stores:
+  last_sensor_data_store:
+    type: keyValue
+    timestamped: true
+    keyType: string
+    valueType: json
+    persistent: false
+    historyRetention: 1h
+    caching: false
+    logging: false
+
+functions:
+  process_message:
+    type: forEach
+    code: |
+      last_value = last_sensor_data_store.get(key)
+      if last_value != None:
+        log.info("Found last value: {} = {}", key, last_value)
+        # log.info("last value color was {}", last_value["color"])
+        log.info("last value color was {}", last_value.get("color"))
+      last_sensor_data_store.put(key, value)
+      if value != None:
+        log.info("Stored new value: {} = {}", key, value)
+    stores:
+      - last_sensor_data_store
+
+pipelines:
+  process_message:
+    from: sensor_source_avro
+    forEach: process_message
