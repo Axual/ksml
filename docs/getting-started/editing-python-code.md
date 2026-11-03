@@ -181,11 +181,13 @@ The `ksml.py` module provides type definitions for:
 - `metrics.timer(name)` - Create/get a timer metric
 
 #### State Stores
-Three store types are available:
+The main store types are:
 
 - **`KeyValueStore`** - Simple key-value operations: `get()`, `put()`, `putAll()`, `delete()`, `range()`, `reverseRange()`, `all()`, `reverseAll()`, `prefixScan()`
 - **`SessionStore`** - Session-windowed store: `fetch()`, `findSessions()`, `put()`, `remove()`
-- **`WindowStore`** - Time-windowed store: `fetch()`, `fetchAll()`, `put()`, `all()`
+- **`WindowStore`** - Time-windowed store: `fetch()`, `fetchAll()`, `backwardFetch()`, `put()`, `all()`
+
+Timestamped stores have the same methods, plus `*WithTimestamp` methods. See [State Store Reference](../reference/state-store-reference.md#python-store-methods).
 
 ??? info "Complete ksml.py module (click to expand)"
 

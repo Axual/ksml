@@ -21,7 +21,7 @@ Before you upgrade, check each item below:
 * Rename any `as` name that is also a name under `streams`, `tables` or `globalTables`.
 * Add `toTable` before any `join` or `leftJoin` with `foreignKeyExtractor` that has a stream as input.
 * If Python code reads `get(key)["value"]` or `["timestamp"]` on a store with `timestamped: true`, use `getWithTimestamp(key)` instead. The same applies to the results of `delete` and `putIfAbsent`, and to `fetch(key, time)` on the store of a windowed aggregation (use `fetchWithTimestamp`).
-* If you build your own code on top of the KSML libraries, update the Jackson package names.
+* If you build your own code on top of the KSML libraries, update the Jackson package names. Subclasses of `OperationProcessor` and `FixedKeyOperationProcessor` override `processRecord` instead of `process`. Use `StoreIteratorProxy` instead of `KeyValueIteratorProxy` and `WindowStoreIteratorProxy`, and create store proxies with `ProxyUtil.wrapStateStore`.
 
 ## Apicurio Registry 3
 
@@ -179,7 +179,7 @@ After `toStream`, a record can have a `null` value when the customer is deleted 
 
 The new steps add Kafka topics to your application: `toTable` adds a state store with a changelog topic, and the foreign-key join adds a subscription store with a changelog topic and two internal topics for subscription registrations and responses. If topics are created by hand or need ACLs in your cluster, set them up before the upgrade.
 
-## Timestamped key-value stores return the value
+## Timestamped stores return the value
 
 In KSML 1.x, Python code that used a key-value store with `timestamped: true` got a dict with `value` and `timestamp` from `get`, `delete` and `putIfAbsent`. In KSML 2.0.0 these methods return only the value, as on a store without `timestamped: true`. A timestamped store now has the same methods as a plain key-value store, so the same Python code works on both.
 
