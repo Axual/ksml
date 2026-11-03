@@ -20,7 +20,6 @@ package io.axual.ksml.proxy.store;
  * =========================LICENSE_END==================================
  */
 
-import org.apache.kafka.common.serialization.StringSerializer;
 import org.apache.kafka.streams.state.TimestampedKeyValueStore;
 import org.apache.kafka.streams.state.ValueAndTimestamp;
 import org.graalvm.polyglot.HostAccess;
@@ -96,19 +95,15 @@ public class TimestampedKeyValueStoreProxy extends AbstractStateStoreProxy<Times
         return ProxyUtil.toPythonTimestamped(delegate.reverseRange(ProxyUtil.fromPython(from, "reverseRangeWithTimestamp from"), ProxyUtil.fromPython(to, "reverseRangeWithTimestamp to")), true);
     }
 
-    /**
-     * Returns the entries whose key starts with the given string. The prefix is serialized as UTF-8, so this only
-     * gives meaningful results for stores with string keys. A prefix that is not a string raises a Python
-     * {@code TypeError}.
-     */
+    /** Entries whose key starts with the string prefix, serialized as UTF-8. A non-string prefix raises TypeError. */
     @HostAccess.Export
     public Object prefixScan(Object prefix) {
-        return ProxyUtil.toPythonTimestamped(delegate.prefixScan(ProxyUtil.toStringPrefix(prefix), new StringSerializer()), false);
+        return ProxyUtil.toPythonTimestamped(delegate.prefixScan(ProxyUtil.toStringPrefix(prefix), ProxyUtil.PREFIX_SERIALIZER), false);
     }
 
     @HostAccess.Export
     public Object prefixScanWithTimestamp(Object prefix) {
-        return ProxyUtil.toPythonTimestamped(delegate.prefixScan(ProxyUtil.toStringPrefix(prefix), new StringSerializer()), true);
+        return ProxyUtil.toPythonTimestamped(delegate.prefixScan(ProxyUtil.toStringPrefix(prefix), ProxyUtil.PREFIX_SERIALIZER), true);
     }
 
     @HostAccess.Export
