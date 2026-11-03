@@ -21,7 +21,7 @@ Before you upgrade, check each item below:
 * Rename any `as` name that is also a name under `streams`, `tables` or `globalTables`.
 * Add `toTable` before any `join` or `leftJoin` with `foreignKeyExtractor` that has a stream as input.
 * Do not keep a store iterator in a global variable for a later function call.
-* If Python code reads `get(key)["value"]` or `["timestamp"]` on a store with `timestamped: true`, use `getWithTimestamp(key)` instead. The same applies to the results of `delete` and `putIfAbsent`.
+* If Python code reads `get(key)["value"]` or `["timestamp"]` on a store with `timestamped: true`, use `getWithTimestamp(key)` instead. The same applies to the results of `delete` and `putIfAbsent`, and to `fetch(key, time)` on the store of a windowed aggregation (use `fetchWithTimestamp`).
 * If you build your own code on top of the KSML libraries, update the Jackson package names.
 * If you use `KeyValueIteratorProxy` or `WindowStoreIteratorProxy`, use `StoreIteratorProxy` instead, and create store proxies with `ProxyUtil.wrapStateStore`.
 
@@ -222,6 +222,8 @@ color = last["value"]["color"]
 ```
 
 There is no `deleteWithTimestamp`. If you need the old timestamp, call `getWithTimestamp` before `delete`.
+
+The same applies to the store of a windowed aggregation that a Python function uses: `fetch(key, time)` returns only the value, as on a plain window store. Use `fetchWithTimestamp(key, time)` to read the timestamp. See [Timestamped Window Stores](reference/state-store-reference.md#timestamped-window-stores).
 
 `put(key, value)` without a timestamp now works on a timestamped store, and uses the timestamp of the record that is being processed. `put(key, value, timestamp)` still works. See [Timestamped Key-Value Stores](reference/state-store-reference.md#timestamped-key-value-stores).
 

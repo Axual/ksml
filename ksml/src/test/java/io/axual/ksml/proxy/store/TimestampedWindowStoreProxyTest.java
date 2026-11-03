@@ -64,8 +64,10 @@ class TimestampedWindowStoreProxyTest {
         pythonContext.close();
     }
 
+    private static final long RECORD_TIMESTAMP = 1234L;
+
     private TimestampedWindowStoreProxy proxy() {
-        return new TimestampedWindowStoreProxy(delegate);
+        return new TimestampedWindowStoreProxy(delegate, () -> RECORD_TIMESTAMP);
     }
 
     /** Runs Python code with {@code store} bound to the proxy, and returns the result as a list of strings. */
@@ -196,7 +198,7 @@ class TimestampedWindowStoreProxyTest {
     }
 
     @Test
-    @DisplayName("put(key, value, windowStart) without a timestamp works from Python and stores the value in the window")
+    @DisplayName("put(key, value, windowStart) without a timestamp stores the value in the window with the record timestamp")
     void putWithoutTimestampFromPython() {
         runPython("""
                 store.put("key", "value", 60000)
@@ -205,14 +207,7 @@ class TimestampedWindowStoreProxyTest {
         final ArgumentCaptor<ValueAndTimestamp<Object>> captor = ArgumentCaptor.captor();
         verify(delegate).put(eq("key"), captor.capture(), eq(60000L));
         assertThat(captor.getValue().value()).isEqualTo("value");
-    }
-
-    @Test
-    @DisplayName("put forwards an existing ValueAndTimestamp unchanged to the delegate")
-    void putForwardsValueAndTimestamp() {
-        final ValueAndTimestamp<Object> value = ValueAndTimestamp.make("value", 5L);
-        proxy().put("key", value, 100L);
-        verify(delegate).put("key", value, 100L);
+        assertThat(captor.getValue().timestamp()).isEqualTo(RECORD_TIMESTAMP);
     }
 
     @Test
