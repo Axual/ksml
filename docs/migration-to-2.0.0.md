@@ -20,6 +20,7 @@ Before you upgrade, check each item below:
 * If Python code calls a `streamPartitioner` function by position, pass `headers` before `numPartitions`, or call it by name.
 * Rename any `as` name that is also a name under `streams`, `tables` or `globalTables`.
 * Add `toTable` before any `join` or `leftJoin` with `foreignKeyExtractor` that has a stream as input.
+* If Python code reads `get(key)["value"]` or `["timestamp"]` on a store with `timestamped: true`, use `getWithTimestamp(key)` instead. The same applies to the results of `delete` and `putIfAbsent`.
 * If you build your own code on top of the KSML libraries, update the Jackson package names.
 
 ## Apicurio Registry 3
@@ -177,6 +178,26 @@ The result of the join is then a table that is updated when an order or its cust
 After `toStream`, a record can have a `null` value when the customer is deleted or the order gets another customer. Make the next steps accept `None`, or add a `filter` that drops these records.
 
 The new steps add Kafka topics to your application: `toTable` adds a state store with a changelog topic, and the foreign-key join adds a subscription store with a changelog topic and two internal topics for subscription registrations and responses. If topics are created by hand or need ACLs in your cluster, set them up before the upgrade.
+
+## Timestamped key-value stores return the value
+
+In KSML 1.x, Python code that used a key-value store with `timestamped: true` got a dict with `value` and `timestamp` from `get`, `delete` and `putIfAbsent`. In KSML 2.0.0 these methods return only the value, as on a store without `timestamped: true`. A timestamped store now has the same methods as a plain key-value store, so the same Python code works on both.
+
+To read the timestamp, use `getWithTimestamp`:
+
+```python
+# Before (KSML 1.x)
+last = store.get(key)
+color = last["value"]["color"]
+
+# After (KSML 2.0.0)
+last = store.getWithTimestamp(key)
+color = last["value"]["color"]
+```
+
+There is no `deleteWithTimestamp`. If you need the old timestamp, call `getWithTimestamp` before `delete`.
+
+`put(key, value)` without a timestamp now works on a timestamped store, and uses the timestamp of the record that is being processed. `put(key, value, timestamp)` still works. See [Timestamped Key-Value Stores](reference/state-store-reference.md#timestamped-key-value-stores).
 
 ## Avro logical types
 

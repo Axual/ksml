@@ -21,6 +21,7 @@ package io.axual.ksml.proxy.store;
  */
 
 import io.axual.ksml.proxy.base.AbstractProxy;
+import org.apache.kafka.streams.KeyValue;
 import org.apache.kafka.streams.state.KeyValueIterator;
 import org.graalvm.polyglot.Value;
 import org.graalvm.polyglot.proxy.ProxyArray;
@@ -30,6 +31,7 @@ import org.graalvm.polyglot.proxy.ProxyObject;
 
 import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.function.Function;
 
 /**
  * Wraps a Kafka Streams store iterator ({@link KeyValueIterator}, which includes
@@ -44,6 +46,7 @@ import java.util.NoSuchElementException;
  */
 public class StoreIteratorProxy implements AbstractProxy, ProxyIterator, ProxyObject {
     private final KeyValueIterator<?, ?> iterator;
+    private final Function<KeyValue<?, ?>, Object> entryToPython;
     private final Map<String, ProxyExecutable> members = Map.of(
             "hasNext", args -> hasNext(),
             "next", args -> next(),
@@ -55,7 +58,13 @@ public class StoreIteratorProxy implements AbstractProxy, ProxyIterator, ProxyOb
     private boolean closed = false;
 
     public StoreIteratorProxy(KeyValueIterator<?, ?> iterator) {
+        this(iterator, ProxyUtil::toPython);
+    }
+
+    /** Creates an iterator proxy that converts each Kafka entry for Python with the given function. */
+    public StoreIteratorProxy(KeyValueIterator<?, ?> iterator, Function<KeyValue<?, ?>, Object> entryToPython) {
         this.iterator = iterator;
+        this.entryToPython = entryToPython;
     }
 
     /** Returns whether there is a next entry, and closes the Kafka iterator when there is none. */
@@ -71,13 +80,13 @@ public class StoreIteratorProxy implements AbstractProxy, ProxyIterator, ProxyOb
     @Override
     public Object getNext() {
         if (!hasNext()) throw new NoSuchElementException();
-        return ProxyUtil.toPython(iterator.next());
+        return entryToPython.apply(iterator.next());
     }
 
     /** Java style next: returns the next entry, or {@code null} when there is none. */
     public Object next() {
         if (!hasNext()) return null;
-        return ProxyUtil.toPython(iterator.next());
+        return entryToPython.apply(iterator.next());
     }
 
     /** Returns the key of the next entry without moving forward, or {@code null} when there is none. */
