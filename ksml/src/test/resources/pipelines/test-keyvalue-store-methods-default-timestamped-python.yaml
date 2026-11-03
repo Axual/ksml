@@ -1,8 +1,6 @@
 # $schema: https://raw.githubusercontent.com/Axual/ksml/refs/heads/main/docs/ksml-language-spec.json
 
-# Copy of test-keyvalue-store-methods-python.yaml, with timestamped: true on every key-value store (AXPD-11068).
-# AXPD-12445 makes timestamped: true the default, so a store without options becomes this store. The test runs
-# both files with the same assertions: Python code written for a plain store must work unchanged.
+# Copy of test-keyvalue-store-methods-python.yaml with timestamped: true on every key-value store.
 # Keep both files in sync.
 
 # Calls range, reverseRange, reverseAll, prefixScan, putAll, get, put, putIfAbsent and delete from Python on an

@@ -33,8 +33,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * Calls the key-value store methods from Python, on an in-memory and a RocksDB store (AXPD-11068). The test runs once
- * on plain stores and once on the same stores with timestamped: true, the default after AXPD-12445: the results must
- * be the same.
+ * on plain stores and once with timestamped: true: the results must be the same.
  */
 @ExtendWith(KSMLTestExtension.class)
 @SuppressWarnings("java:S2187")

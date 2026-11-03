@@ -27,6 +27,8 @@ import io.axual.ksml.data.value.Struct;
 import io.axual.ksml.python.PythonDataObjectMapper;
 import io.axual.ksml.python.PythonErrors;
 import io.axual.ksml.python.PythonNativeMapper;
+import org.apache.kafka.common.serialization.Serializer;
+import org.apache.kafka.common.serialization.StringSerializer;
 import org.apache.kafka.streams.KeyValue;
 import org.apache.kafka.streams.kstream.Windowed;
 import org.apache.kafka.streams.processor.StateStore;
@@ -56,6 +58,8 @@ public class ProxyUtil {
     private static final DataObjectFlattener FLATTENER = new DataObjectFlattener();
     private static final PythonNativeMapper NATIVE_MAPPER = new PythonNativeMapper();
     private static final PythonDataObjectMapper DATA_OBJECT_MAPPER = new PythonDataObjectMapper(true);
+    /** Serializes {@code prefixScan} prefixes as UTF-8. */
+    static final Serializer<String> PREFIX_SERIALIZER = new StringSerializer();
 
     private ProxyUtil() {
     }
@@ -132,20 +136,15 @@ public class ProxyUtil {
     }
 
     /**
-     * Converts the Python argument of {@code putAll} to Kafka entries. The argument is a list or an iterator of
-     * (key, value) pairs or dicts with key and value. A bad entry raises a Python {@code TypeError} or
-     * {@code ValueError} that names its position, before anything is written. A {@code timestamp} field in a dict is
-     * ignored.
+     * Converts the {@code putAll} argument: a list or an iterator of (key, value) pairs or dicts with key and value.
+     * A bad entry raises TypeError or ValueError with its position, before anything is written. A dict
+     * {@code timestamp} field is ignored.
      */
     public static List<KeyValue<Object, Object>> toKeyValueList(Object entries) {
         return toEntries(entries, false).stream().map(e -> KeyValue.pair(e.key(), e.value())).toList();
     }
 
-    /**
-     * Converts the Python argument of {@code putAll} on a timestamped store to Kafka entries. A dict entry with a
-     * {@code timestamp} field is written with that timestamp; all other entries get the timestamp of the record that
-     * is being processed. A value {@code None} becomes {@code null}, which deletes the key.
-     */
+    /** Like {@link #toKeyValueList}, but uses a dict {@code timestamp} field; other entries get the record timestamp. */
     public static List<KeyValue<Object, ValueAndTimestamp<Object>>> toTimestampedKeyValueList(Object entries, LongSupplier recordTimestamp) {
         final var result = new ArrayList<KeyValue<Object, ValueAndTimestamp<Object>>>();
         for (final var e : toEntries(entries, true)) {
@@ -210,8 +209,8 @@ public class ProxyUtil {
     }
 
     /**
-     * Converts a Python argument to a Java value. A value that cannot be converted raises a Python
-     * {@code ValueError}, because it is a caller error.
+     * Converts a Python argument to a Java value; a failed conversion raises ValueError. GraalVM already converts
+     * {@code Object} parameters, so this only catches errors for polyglot {@code Value}s, such as putAll entries.
      */
     public static Object fromPython(Object object, String name) {
         try {

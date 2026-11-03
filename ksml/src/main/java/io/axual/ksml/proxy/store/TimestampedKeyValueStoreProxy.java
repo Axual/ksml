@@ -20,7 +20,6 @@ package io.axual.ksml.proxy.store;
  * =========================LICENSE_END==================================
  */
 
-import org.apache.kafka.common.serialization.StringSerializer;
 import org.apache.kafka.streams.state.TimestampedKeyValueStore;
 import org.apache.kafka.streams.state.ValueAndTimestamp;
 import org.graalvm.polyglot.HostAccess;
@@ -97,19 +96,15 @@ public class TimestampedKeyValueStoreProxy extends AbstractStateStoreProxy<Times
         return ProxyUtil.toPythonTimestamped(delegate.reverseRange(ProxyUtil.fromPython(from, "reverseRangeWithTimestamp from"), ProxyUtil.fromPython(to, "reverseRangeWithTimestamp to")), true);
     }
 
-    /**
-     * Returns the entries whose key starts with the given string. The prefix is serialized as UTF-8, so this only
-     * gives meaningful results for stores with string keys. A prefix that is not a string raises a Python
-     * {@code TypeError}.
-     */
+    /** Entries whose key starts with the string prefix, serialized as UTF-8. A non-string prefix raises TypeError. */
     @HostAccess.Export
     public Object prefixScan(Object prefix) {
-        return ProxyUtil.toPythonTimestamped(delegate.prefixScan(ProxyUtil.toStringPrefix(prefix), new StringSerializer()), false);
+        return ProxyUtil.toPythonTimestamped(delegate.prefixScan(ProxyUtil.toStringPrefix(prefix), ProxyUtil.PREFIX_SERIALIZER), false);
     }
 
     @HostAccess.Export
     public Object prefixScanWithTimestamp(Object prefix) {
-        return ProxyUtil.toPythonTimestamped(delegate.prefixScan(ProxyUtil.toStringPrefix(prefix), new StringSerializer()), true);
+        return ProxyUtil.toPythonTimestamped(delegate.prefixScan(ProxyUtil.toStringPrefix(prefix), ProxyUtil.PREFIX_SERIALIZER), true);
     }
 
     @HostAccess.Export
@@ -136,12 +131,7 @@ public class TimestampedKeyValueStoreProxy extends AbstractStateStoreProxy<Times
         delegate.put(DATA_OBJECT_MAPPER.toDataObject(key), ValueAndTimestamp.make(DATA_OBJECT_MAPPER.toDataObject(value), timestamp));
     }
 
-    /**
-     * Writes all entries with one call to the store. Entries are (key, value) pairs or dicts with key and value,
-     * in a list or an iterator. A dict with a {@code timestamp} field is written with that timestamp, all other
-     * entries with the timestamp of the record that is being processed. All entries are converted first, so a bad
-     * entry writes nothing and raises a Python {@code TypeError} or {@code ValueError}.
-     */
+    /** Writes all entries in one call; see {@link ProxyUtil#toTimestampedKeyValueList}. */
     @HostAccess.Export
     public void putAll(Object entries) {
         delegate.putAll(ProxyUtil.toTimestampedKeyValueList(entries, recordTimestamp));

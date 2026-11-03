@@ -20,7 +20,6 @@ package io.axual.ksml.proxy.store;
  * =========================LICENSE_END==================================
  */
 
-import org.apache.kafka.common.serialization.StringSerializer;
 import org.apache.kafka.streams.state.KeyValueStore;
 import org.graalvm.polyglot.HostAccess;
 
@@ -56,14 +55,10 @@ public class KeyValueStoreProxy extends AbstractStateStoreProxy<KeyValueStore<Ob
         return ProxyUtil.toPython(delegate.reverseRange(ProxyUtil.fromPython(from, "reverseRange from"), ProxyUtil.fromPython(to, "reverseRange to")));
     }
 
-    /**
-     * Returns the entries whose key starts with the given string. The prefix is serialized as UTF-8, so this only
-     * gives meaningful results for stores with string keys. A prefix that is not a string raises a Python
-     * {@code TypeError}.
-     */
+    /** Entries whose key starts with the string prefix, serialized as UTF-8. A non-string prefix raises TypeError. */
     @HostAccess.Export
     public Object prefixScan(Object prefix) {
-        return ProxyUtil.toPython(delegate.prefixScan(ProxyUtil.toStringPrefix(prefix), new StringSerializer()));
+        return ProxyUtil.toPython(delegate.prefixScan(ProxyUtil.toStringPrefix(prefix), ProxyUtil.PREFIX_SERIALIZER));
     }
 
     @HostAccess.Export
@@ -88,11 +83,7 @@ public class KeyValueStoreProxy extends AbstractStateStoreProxy<KeyValueStore<Ob
         delegate.put(NATIVE_MAPPER.fromPython(key), NATIVE_MAPPER.fromPython(value));
     }
 
-    /**
-     * Writes all entries with one call to the store. Entries are (key, value) pairs or dicts with key and value,
-     * in a list or an iterator. All entries are converted first, so a bad entry writes nothing and raises a Python
-     * {@code TypeError} or {@code ValueError}.
-     */
+    /** Writes all entries in one call; see {@link ProxyUtil#toKeyValueList}. */
     @HostAccess.Export
     public void putAll(Object entries) {
         delegate.putAll(ProxyUtil.toKeyValueList(entries));

@@ -25,14 +25,8 @@ import org.graalvm.polyglot.Context;
 import org.graalvm.polyglot.Value;
 
 /**
- * Raises Python exceptions from Java code that Python calls, such as the state store proxies.
- * <p>
- * A Java exception reaches Python as a {@code ForeignException}, which {@code except Exception} does not catch.
- * Use these methods for caller errors (a bad argument), so Python code can handle them the normal way. System errors
- * (a closed store, a RocksDB failure) stay Java exceptions. Must be called while a Python context is entered, which
- * is always the case for a method that Python calls.
- * <p>
- * Use {@code throw PythonErrors.typeError(...)}: the methods never return normally.
+ * Raises Python TypeError or ValueError for caller errors, so Python {@code except Exception} catches them. Other
+ * errors stay Java exceptions. Call from methods that Python calls, as {@code throw PythonErrors.typeError(...)}.
  */
 @Slf4j
 public final class PythonErrors {
