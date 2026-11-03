@@ -188,6 +188,38 @@ Keys are ordered by their serialized bytes, not by their value. For string keys 
 
 The message names the position of the bad entry, for example `putAll entry 1 must be a (key, value) pair ...`. A `putAll` call with a bad entry writes nothing.
 
+### Window Store Methods
+
+Times are in milliseconds. `time_from` and `time_to` select windows by their start time, both included.
+
+- `store.put(key, value, window_start)` - Store the value in the window that starts at `window_start`
+- `store.fetch(key, time)` - The value of the window that starts at `time`, or `None`
+- `store.fetch(key, time_from, time_to)` and `store.backwardFetch(key, time_from, time_to)` - The windows of one
+  key, oldest first or newest first. The key of each entry is the window start time
+- `store.fetch(key_from, key_to, time_from, time_to)` and `store.backwardFetch(key_from, key_to, time_from, time_to)` -
+  The windows of a range of keys
+- `store.fetchAll(time_from, time_to)` and `store.backwardFetchAll(time_from, time_to)` - The windows of all keys
+- `store.all()` and `store.backwardAll()` - All windows in the store
+
+### Session Store Methods
+
+A session is identified by a dict with `key`, `start` and `end` (times in milliseconds).
+
+- `store.put(session, value)` - Store the value of a session
+- `store.remove(session)` - Remove a session
+- `store.fetchSession(key, session_start, session_end)` - The value of one session, or `None`
+- `store.fetch(key)` and `store.backwardFetch(key)` - All sessions of one key, oldest first or newest first
+- `store.fetch(key_from, key_to)` and `store.backwardFetch(key_from, key_to)` - All sessions of a range of keys
+- `store.findSessions(key, earliest_session_end, latest_session_start)` and
+  `store.backwardFindSessions(key, earliest_session_end, latest_session_start)` - The sessions of one key that end at
+  or after `earliest_session_end` and start at or before `latest_session_start`
+- `store.findSessions(key_from, key_to, earliest_session_end, latest_session_start)` and
+  `store.backwardFindSessions(key_from, key_to, earliest_session_end, latest_session_start)` - The same for a range
+  of keys
+
+The order of entries for a range of keys depends on the store: an in-memory store returns them by time first, a
+RocksDB store by key first.
+
 ### Timestamped Key-Value Stores
 
 A key-value store with `timestamped: true` keeps a timestamp with each value. The store of a `count`, `aggregate`,
@@ -233,8 +265,8 @@ store.put(key, value)  # stored with the timestamp of the current record
 ### Timestamped Window Stores
 
 A windowed aggregation, such as `count` or `aggregate`, keeps its results in a timestamped window store. When a
-Python function lists this store in its `stores`, it gets the same methods as on a plain window store, with the same
-results:
+Python function lists this store in its `stores`, it gets the same methods as a
+[plain window store](#window-store-methods), with the same results:
 
 - `store.fetch(key, time)` returns only the value
 - `store.fetch(...)`, `store.backwardFetch(...)`, `store.fetchAll(...)`, `store.backwardFetchAll(...)`, `store.all()`
