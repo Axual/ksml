@@ -1,0 +1,90 @@
+# $schema: https://raw.githubusercontent.com/Axual/ksml/refs/heads/main/docs/ksml-language-spec.json
+
+# Calls range, reverseRange, reverseAll, prefixScan and putAll from Python on an in-memory and a RocksDB key-value
+# store. The result of each store is returned as one line of text.
+streams:
+  keyvalue_methods_input:
+    topic: keyvalue_methods_input
+    keyType: string
+    valueType: string
+  keyvalue_methods_output:
+    topic: keyvalue_methods_output
+    keyType: string
+    valueType: string
+
+stores:
+  kv_memory:
+    type: keyValue
+    keyType: string
+    valueType: string
+    persistent: false
+    caching: false
+    logging: false
+  kv_memory_copy:
+    type: keyValue
+    keyType: string
+    valueType: string
+    persistent: false
+    caching: false
+    logging: false
+  kv_rocksdb:
+    type: keyValue
+    keyType: string
+    valueType: string
+    persistent: true
+    caching: false
+    logging: false
+  kv_rocksdb_copy:
+    type: keyValue
+    keyType: string
+    valueType: string
+    persistent: true
+    caching: false
+    logging: false
+
+functions:
+  call_store_methods:
+    type: valueTransformer
+    globalCode: |
+      def keys(entries):
+        return ",".join(e["key"] + ":" + e["value"] for e in entries)
+
+      def check(name, store, copy):
+        # Tuples and dicts mixed in one putAll
+        store.putAll([("a", "1"), {"key": "b", "value": "2"}, ("c", "3"), ["ab", "4"]])
+        line = name
+        line += " range=" + keys(store.range("a", "b"))
+        line += " reverseRange=" + keys(store.reverseRange("a", "b"))
+        line += " reverseAll=" + keys(store.reverseAll())
+        line += " prefixScan=" + keys(store.prefixScan("a"))
+        # A None value deletes the key; an iterator is accepted as input
+        store.putAll(iter([("c", None)]))
+        line += " afterDelete=" + keys(store.all())
+        # A bad entry raises an error and writes nothing
+        try:
+          store.putAll([("x", "9"), 42])
+          line += " badEntry=accepted"
+        except Exception:
+          line += " badEntry=rejected"
+        line += " x=" + str(store.get("x"))
+        # Copy a store with putAll(other.all())
+        copy.putAll(store.all())
+        line += " copy=" + keys(copy.all())
+        return line
+    code: |
+      result = check("memory", kv_memory, kv_memory_copy) + "\n" + check("rocksdb", kv_rocksdb, kv_rocksdb_copy)
+    expression: result
+    resultType: string
+    stores:
+      - kv_memory
+      - kv_memory_copy
+      - kv_rocksdb
+      - kv_rocksdb_copy
+
+pipelines:
+  call_store_methods_pipeline:
+    from: keyvalue_methods_input
+    via:
+      - type: transformValue
+        mapper: call_store_methods
+    to: keyvalue_methods_output

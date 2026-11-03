@@ -23,8 +23,6 @@ package io.axual.ksml.proxy.store;
 import io.axual.ksml.python.PythonContext;
 import io.axual.ksml.python.PythonContextConfig;
 import org.apache.kafka.streams.KeyValue;
-import org.apache.kafka.streams.state.KeyValueIterator;
-import org.apache.kafka.streams.state.WindowStoreIterator;
 import org.graalvm.polyglot.Value;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -33,7 +31,6 @@ import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.NoSuchElementException;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -43,48 +40,6 @@ import static org.assertj.core.api.Assertions.assertThat;
  * ({@code hasNext()}, {@code next()}, {@code close()}), and that the Kafka iterator is closed (AXPD-11068).
  */
 class StoreIteratorProxyTest {
-
-    /** Kafka key-value iterator over fixed entries that records whether it was closed. */
-    private static class FakeKeyValueIterator<K> implements KeyValueIterator<K, Object> {
-        private final List<KeyValue<K, Object>> entries;
-        private int position = 0;
-        private boolean closed = false;
-        private int closeCount = 0;
-
-        FakeKeyValueIterator(List<KeyValue<K, Object>> entries) {
-            this.entries = entries;
-        }
-
-        @Override
-        public boolean hasNext() {
-            return position < entries.size();
-        }
-
-        @Override
-        public KeyValue<K, Object> next() {
-            if (!hasNext()) throw new NoSuchElementException();
-            return entries.get(position++);
-        }
-
-        @Override
-        public K peekNextKey() {
-            if (!hasNext()) throw new NoSuchElementException();
-            return entries.get(position).key;
-        }
-
-        @Override
-        public void close() {
-            closed = true;
-            closeCount++;
-        }
-    }
-
-    /** Kafka window store iterator: the key of each entry is the window start time. */
-    private static class FakeWindowStoreIterator extends FakeKeyValueIterator<Long> implements WindowStoreIterator<Object> {
-        FakeWindowStoreIterator(List<KeyValue<Long, Object>> entries) {
-            super(entries);
-        }
-    }
 
     private PythonContext pythonContext;
     private FakeKeyValueIterator<?> kafkaIterator;
@@ -232,7 +187,7 @@ class StoreIteratorProxyTest {
     @Test
     @DisplayName("a window store iterator works in a for loop, with the window start time as key, and is closed")
     void windowStoreIteratorForLoop() {
-        kafkaIterator = new FakeWindowStoreIterator(List.of(
+        kafkaIterator = new FakeKeyValueIterator.Window(List.of(
                 KeyValue.pair(1000L, "x"), KeyValue.pair(2000L, "y")));
         final var result = run("""
                 [str(e["key"]) + "=" + e["value"] for e in it]
