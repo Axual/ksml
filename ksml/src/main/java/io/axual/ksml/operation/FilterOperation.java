@@ -59,7 +59,8 @@ public class FilterOperation extends StoreOperation {
                 name,
                 FilterProcessor::new,
                 (stores, rec) -> userPred.test(stores, flattenValue(rec.key()), flattenValue(rec.value())),
-                storeNames);
+                storeNames,
+                context::stateStore);
         final var output = name != null
                 ? input.stream.processValues(supplier, Named.as(name), storeNames)
                 : input.stream.processValues(supplier, storeNames);

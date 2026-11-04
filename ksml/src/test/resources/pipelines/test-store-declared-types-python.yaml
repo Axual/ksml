@@ -1,0 +1,210 @@
+# $schema: https://raw.githubusercontent.com/Axual/ksml/refs/heads/main/docs/ksml-language-spec.json
+
+# Writes and reads Python values on stores with declared simple key and value types (AXPD-11068). A Python int must
+# work on a long or int store whatever its size, so counters work; a value that does not fit the store type raises a
+# Python error that except Exception catches, and writes nothing. The result of each store is one line of text.
+streams:
+  declared_types_input:
+    topic: declared_types_input
+    keyType: string
+    valueType: string
+  declared_types_output:
+    topic: declared_types_output
+    keyType: string
+    valueType: string
+
+stores:
+  kv_long:
+    type: keyValue
+    keyType: long
+    valueType: long
+    persistent: false
+    caching: false
+    logging: false
+  kv_long_rocksdb:
+    type: keyValue
+    keyType: long
+    valueType: long
+    persistent: true
+    caching: false
+    logging: false
+  kv_timestamped_long:
+    type: keyValue
+    timestamped: true
+    keyType: long
+    valueType: long
+    persistent: false
+    caching: false
+    logging: false
+  kv_versioned_long:
+    type: keyValue
+    versioned: true
+    keyType: long
+    valueType: long
+    persistent: true
+    segmentInterval: 60s
+    historyRetention: 1h
+    caching: false
+    logging: false
+  window_long:
+    type: window
+    keyType: long
+    valueType: long
+    windowSize: 1m
+    retention: 1h
+    persistent: false
+    caching: false
+    logging: false
+  window_timestamped_long:
+    type: window
+    timestamped: true
+    keyType: long
+    valueType: long
+    windowSize: 1m
+    retention: 1h
+    persistent: false
+    caching: false
+    logging: false
+  session_long:
+    type: session
+    keyType: long
+    valueType: long
+    retention: 1h
+    persistent: false
+    caching: false
+    logging: false
+  kv_int:
+    type: keyValue
+    keyType: int
+    valueType: int
+    persistent: false
+    caching: false
+    logging: false
+  kv_double:
+    type: keyValue
+    keyType: long
+    valueType: double
+    persistent: false
+    caching: false
+    logging: false
+  kv_string:
+    type: keyValue
+    keyType: string
+    valueType: string
+    persistent: false
+    caching: false
+    logging: false
+
+functions:
+  check_declared_types:
+    type: valueTransformer
+    globalCode: |
+      # Session times above the int range, so they reach the proxy as a Java Long
+      BASE = 3000000000
+
+      def write(f):
+        # "ok", or the type of the Python error
+        try:
+          f()
+          return "ok"
+        except Exception as e:
+          return type(e).__name__
+
+      def read(f):
+        # The value read, or the type of the Python error
+        try:
+          return str(f())
+        except Exception as e:
+          return type(e).__name__
+
+      def check(name, put, get):
+        x = 5
+        line = name
+        line += " put=" + write(lambda: put(1, x))
+        line += " get=" + read(lambda: get(1))
+        # A counter: the value read back is incremented and written again
+        line += " increment=" + write(lambda: put(1, get(1) + 1))
+        line += " after=" + read(lambda: get(1))
+        line += " large=" + write(lambda: put(2, 2 ** 40)) + "/" + read(lambda: get(2))
+        line += " huge=" + write(lambda: put(3, 10 ** 30))
+        line += " fraction=" + write(lambda: put(3, 1.5))
+        line += " wholeFloat=" + write(lambda: put(3, 5.0))
+        line += " str=" + write(lambda: put(3, "5"))
+        line += " bool=" + write(lambda: put(3, True))
+        line += " floatKey=" + write(lambda: put(3.0, 5))
+        line += " hugeKey=" + read(lambda: get(10 ** 30))
+        # None of the failed writes above wrote anything
+        line += " missing=" + read(lambda: get(3))
+        return line
+
+      def check_put_all(store):
+        x = 6
+        line = " putAll=" + write(lambda: store.putAll([(4, x), {"key": 5, "value": x}, (6, 7)]))
+        line += " putAllRead=" + read(lambda: [store.get(4), store.get(5), store.get(6)])
+        line += " putAllHuge=" + write(lambda: store.putAll([(7, 10 ** 30)]))
+        line += " putAllFloat=" + write(lambda: store.putAll([(7, 1.5)]))
+        line += " putAllMissing=" + read(lambda: store.get(7))
+        line += " delete=" + write(lambda: store.put(4, None)) + "/" + read(lambda: store.get(4))
+        return line
+
+      def check_kv(name, store):
+        return check(name, lambda k, v: store.put(k, v), lambda k: store.get(k)) + check_put_all(store)
+
+      def versioned_get(store, key):
+        record = store.get(key)
+        return record["value"] if record is not None else None
+
+      def session(key):
+        return {"key": key, "start": BASE, "end": BASE + 1}
+
+      def check_others(kv_int, kv_double, kv_string):
+        line = "int"
+        line += " put=" + write(lambda: kv_int.put(1, 5)) + "/" + read(lambda: kv_int.get(1))
+        line += " large=" + write(lambda: kv_int.put(2, 2 ** 40))
+        line += " largeKey=" + write(lambda: kv_int.put(2 ** 40, 5))
+        line += " missing=" + read(lambda: kv_int.get(2))
+        line += "\ndouble"
+        line += " int=" + write(lambda: kv_double.put(1, 5)) + "/" + read(lambda: kv_double.get(1))
+        line += " float=" + write(lambda: kv_double.put(1, 1.5)) + "/" + read(lambda: kv_double.get(1))
+        line += " str=" + write(lambda: kv_double.put(1, "5"))
+        line += "\nstring"
+        line += " put=" + write(lambda: kv_string.put("a", "b")) + "/" + read(lambda: kv_string.get("a"))
+        line += " intValue=" + write(lambda: kv_string.put("a", 5))
+        line += " intKey=" + write(lambda: kv_string.put(5, "b"))
+        line += " dictValue=" + write(lambda: kv_string.put("a", {"b": 1}))
+        line += " putAllInt=" + write(lambda: kv_string.putAll([("a", 5)]))
+        line += " after=" + read(lambda: kv_string.get("a"))
+        return line
+    code: |
+      lines = [
+        check_kv("keyValue", kv_long),
+        check_kv("keyValueRocksdb", kv_long_rocksdb),
+        check_kv("timestamped", kv_timestamped_long),
+        check("versioned", lambda k, v: kv_versioned_long.put(k, v, 1000), lambda k: versioned_get(kv_versioned_long, k)),
+        check("window", lambda k, v: window_long.put(k, v, 0), lambda k: window_long.fetch(k, 0)),
+        check("timestampedWindow", lambda k, v: window_timestamped_long.put(k, v, 0), lambda k: window_timestamped_long.fetch(k, 0)),
+        check("session", lambda k, v: session_long.put(session(k), v), lambda k: session_long.fetchSession(k, BASE, BASE + 1)),
+        check_others(kv_int, kv_double, kv_string),
+      ]
+      result = "\n".join(lines)
+    expression: result
+    resultType: string
+    stores:
+      - kv_long
+      - kv_long_rocksdb
+      - kv_timestamped_long
+      - kv_versioned_long
+      - window_long
+      - window_timestamped_long
+      - session_long
+      - kv_int
+      - kv_double
+      - kv_string
+
+pipelines:
+  check_declared_types_pipeline:
+    from: declared_types_input
+    via:
+      - type: transformValue
+        mapper: check_declared_types
+    to: declared_types_output

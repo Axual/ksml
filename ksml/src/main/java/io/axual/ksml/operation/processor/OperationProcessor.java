@@ -20,22 +20,33 @@ package io.axual.ksml.operation.processor;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.definition.StateStoreDefinition;
 import io.axual.ksml.exception.ExecutionException;
 import io.axual.ksml.proxy.store.ProxyUtil;
 import io.axual.ksml.store.StateStores;
 import org.apache.kafka.streams.processor.StateStore;
 import org.apache.kafka.streams.processor.api.Processor;
 import org.apache.kafka.streams.processor.api.ProcessorContext;
+import org.apache.kafka.streams.processor.api.Record;
+
+import java.util.function.Function;
 
 public abstract class OperationProcessor implements Processor<Object, Object, Object, Object> {
     protected ProcessorContext<Object, Object> context;
     private final String name;
     private final String[] storeNames;
     protected final StateStores stores = new StateStores();
+    private long recordTimestamp;
+    private Function<String, StateStoreDefinition> storeDefinitions = storeName -> null;
 
     protected OperationProcessor(String name, String[] storeNames) {
         this.name = name;
         this.storeNames = storeNames;
+    }
+
+    /** Sets where {@link #init} looks up the definitions, and so the declared types, of the stores it wraps. */
+    void storeDefinitions(Function<String, StateStoreDefinition> storeDefinitions) {
+        this.storeDefinitions = storeDefinitions;
     }
 
     @Override
@@ -48,7 +59,16 @@ public abstract class OperationProcessor implements Processor<Object, Object, Ob
                 throw new ExecutionException("Could not connect processor '" + name + "' to state store '" + storeName + "'");
             }
             // Wrap the store in a proxy for security
-            stores.put(storeName, ProxyUtil.wrapStateStore(store));
+            stores.put(storeName, ProxyUtil.wrapStateStore(store, storeDefinitions.apply(storeName), () -> recordTimestamp));
         }
     }
+
+    /** Remembers the timestamp of the record, so Python writes to timestamped stores can use it, then processes it. */
+    @Override
+    public final void process(Record<Object, Object> rec) {
+        recordTimestamp = rec.timestamp();
+        processRecord(rec);
+    }
+
+    protected abstract void processRecord(Record<Object, Object> rec);
 }

@@ -27,6 +27,7 @@ import org.apache.kafka.streams.KeyValue;
 import org.apache.kafka.streams.kstream.Windowed;
 import org.apache.kafka.streams.kstream.internals.SessionWindow;
 import org.apache.kafka.streams.state.KeyValueIterator;
+import org.apache.kafka.streams.state.TimestampedKeyValueStore;
 import org.apache.kafka.streams.state.ValueAndTimestamp;
 import org.apache.kafka.streams.state.VersionedRecord;
 import org.apache.kafka.streams.state.WindowStoreIterator;
@@ -111,8 +112,8 @@ class ProxyUtilTest {
         final KeyValueIterator<Object, Object> iterator = mock();
         when(iterator.hasNext()).thenReturn(true);
         final var proxy = ProxyUtil.toPython(iterator);
-        assertThat(proxy).isInstanceOf(KeyValueIteratorProxy.class);
-        assertThat(((KeyValueIteratorProxy) proxy).hasNext()).isTrue();
+        assertThat(proxy).isInstanceOf(StoreIteratorProxy.class);
+        assertThat(((StoreIteratorProxy) proxy).hasNext()).isTrue();
         verify(iterator).hasNext();
     }
 
@@ -122,8 +123,8 @@ class ProxyUtilTest {
         final WindowStoreIterator<Object> iterator = mock();
         when(iterator.hasNext()).thenReturn(true);
         final var proxy = ProxyUtil.toPython(iterator);
-        assertThat(proxy).isInstanceOf(WindowStoreIteratorProxy.class);
-        assertThat(((WindowStoreIteratorProxy) proxy).hasNext()).isTrue();
+        assertThat(proxy).isInstanceOf(StoreIteratorProxy.class);
+        assertThat(((StoreIteratorProxy) proxy).hasNext()).isTrue();
         verify(iterator).hasNext();
     }
 
@@ -141,5 +142,23 @@ class ProxyUtilTest {
         final var result = (Value) ProxyUtil.toPython(windowed);
         assertThat(result.getMetaObject().getMetaSimpleName()).isEqualTo("dict");
         assertThat(result.getHashValue("key").asString()).isEqualTo("key");
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    @DisplayName("a timestamped store wrapped outside record processing raises ValueError for a write without a timestamp")
+    void timestampedStoreWithoutRecordNeedsATimestamp() {
+        final TimestampedKeyValueStore<Object, Object> store = mock(TimestampedKeyValueStore.class);
+        pythonContext.context().getBindings("python").putMember("store", ProxyUtil.wrapStateStore(store));
+        final var result = pythonContext.context().eval("python", """
+                def run():
+                    try:
+                        store.put("k", "v")
+                        return "no error"
+                    except Exception as e:
+                        return type(e).__name__ + ": " + str(e)
+                run()
+                """);
+        assertThat(result.asString()).startsWith("ValueError: ").contains("needs a timestamp");
     }
 }

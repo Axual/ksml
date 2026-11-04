@@ -37,7 +37,7 @@ public class TransformMetadataProcessor extends FixedKeyOperationProcessor {
     }
 
     @Override
-    public void process(FixedKeyRecord<Object, Object> rec) {
+    protected void processRecord(FixedKeyRecord<Object, Object> rec) {
         var result = action.apply(stores, rec);
         if (result.timestamp() != null) rec = rec.withTimestamp(result.timestamp());
         if (result.headers() != null) rec = rec.withHeaders(result.headers());

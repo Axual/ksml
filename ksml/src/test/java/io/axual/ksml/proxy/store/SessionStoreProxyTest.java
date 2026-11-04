@@ -23,11 +23,15 @@ package io.axual.ksml.proxy.store;
 import io.axual.ksml.data.mapper.DataObjectFlattener;
 import io.axual.ksml.data.object.DataObject;
 import io.axual.ksml.data.object.DataString;
+import io.axual.ksml.python.PythonContext;
+import io.axual.ksml.python.PythonContextConfig;
 import org.apache.kafka.streams.kstream.Windowed;
 import org.apache.kafka.streams.kstream.internals.SessionWindow;
 import org.apache.kafka.streams.state.KeyValueIterator;
 import org.apache.kafka.streams.state.SessionStore;
 import org.graalvm.polyglot.Value;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -50,6 +54,17 @@ import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
 class SessionStoreProxyTest {
+    private static PythonContext pythonContext;
+
+    @BeforeAll
+    static void setUpContext() {
+        pythonContext = new PythonContext(PythonContextConfig.builder().build());
+    }
+
+    @AfterAll
+    static void tearDownContext() {
+        pythonContext.close();
+    }
 
     @Mock
     private SessionStore<Object, Object> delegate;
@@ -77,25 +92,25 @@ class SessionStoreProxyTest {
     }
 
     @ParameterizedTest(name = "{0} by key returns iterator proxy")
-    @DisplayName("single-key session lookups wrap the delegate result in a KeyValueIteratorProxy")
+    @DisplayName("single-key session lookups wrap the delegate result in a StoreIteratorProxy")
     @MethodSource("singleKeyOperations")
     void singleKeyOperationsReturnIteratorProxy(String name, Function<SessionStoreProxy, Object> operation) {
         lenient().when(delegate.fetch(any())).thenReturn(iterator);
         lenient().when(delegate.backwardFetch(any())).thenReturn(iterator);
         lenient().when(delegate.findSessions(any(), anyLong(), anyLong())).thenReturn(iterator);
         lenient().when(delegate.backwardFindSessions(any(), anyLong(), anyLong())).thenReturn(iterator);
-        assertThat(operation.apply(proxy())).isInstanceOf(KeyValueIteratorProxy.class);
+        assertThat(operation.apply(proxy())).isInstanceOf(StoreIteratorProxy.class);
     }
 
     @ParameterizedTest(name = "{0} by key range returns iterator proxy")
-    @DisplayName("key-range session lookups wrap the delegate result in a KeyValueIteratorProxy")
+    @DisplayName("key-range session lookups wrap the delegate result in a StoreIteratorProxy")
     @MethodSource("keyRangeOperations")
     void keyRangeOperationsReturnIteratorProxy(String name, Function<SessionStoreProxy, Object> operation) {
         lenient().when(delegate.fetch(any(), any())).thenReturn(iterator);
         lenient().when(delegate.backwardFetch(any(), any())).thenReturn(iterator);
         lenient().when(delegate.findSessions(any(), any(), anyLong(), anyLong())).thenReturn(iterator);
         lenient().when(delegate.backwardFindSessions(any(), any(), anyLong(), anyLong())).thenReturn(iterator);
-        assertThat(operation.apply(proxy())).isInstanceOf(KeyValueIteratorProxy.class);
+        assertThat(operation.apply(proxy())).isInstanceOf(StoreIteratorProxy.class);
     }
 
     @Test
@@ -129,10 +144,74 @@ class SessionStoreProxyTest {
         verify(delegate).remove(any());
     }
 
+    /** Runs Python code with {@code store} bound to the proxy; returns "ok", or "ErrorType: message". */
+    private String run(String call) {
+        pythonContext.context().getBindings("python").putMember("store", proxy());
+        return pythonContext.context().eval("python", """
+                def run():
+                    try:
+                        %s
+                        return "ok"
+                    except Exception as e:
+                        return type(e).__name__ + ": " + str(e)
+                run()
+                """.formatted(call)).asString();
+    }
+
+    private Windowed<Object> storedSessionKey() {
+        final ArgumentCaptor<Windowed<Object>> captor = ArgumentCaptor.captor();
+        verify(delegate).put(captor.capture(), any());
+        return captor.getValue();
+    }
+
     @Test
-    @DisplayName("put does nothing when the key is not a windowed key")
-    void putIgnoresNonWindowedKey() {
-        proxy().put("plainKey", "aggregate");
+    @DisplayName("put accepts session times in the int range")
+    void putWithSmallSessionTimes() {
+        assertThat(run("store.put({'key': 'a', 'start': 10, 'end': 20}, 'v')")).isEqualTo("ok");
+        final var stored = storedSessionKey();
+        assertThat(stored.key()).isEqualTo("a");
+        assertThat(stored.window().start()).isEqualTo(10L);
+        assertThat(stored.window().end()).isEqualTo(20L);
+    }
+
+    @Test
+    @DisplayName("put accepts a single-record session, where start equals end")
+    void putWithSingleRecordSession() {
+        assertThat(run("store.put({'key': 'a', 'start': 3000000000, 'end': 3000000000}, 'v')")).isEqualTo("ok");
+        final var stored = storedSessionKey();
+        assertThat(stored.window().start()).isEqualTo(3000000000L);
+        assertThat(stored.window().end()).isEqualTo(3000000000L);
+    }
+
+    @Test
+    @DisplayName("remove accepts a session key as reads return it, with startTime and endTime")
+    void removeWithSessionKeyFromRead() {
+        assertThat(run("store.remove({'key': 'a', 'start': 10, 'end': 10, 'startTime': 'x', 'endTime': 'y'})")).isEqualTo("ok");
+        final ArgumentCaptor<Windowed<Object>> captor = ArgumentCaptor.captor();
+        verify(delegate).remove(captor.capture());
+        assertThat(captor.getValue().window().start()).isEqualTo(10L);
+        assertThat(captor.getValue().window().end()).isEqualTo(10L);
+    }
+
+    @Test
+    @DisplayName("put and remove raise TypeError or ValueError for a malformed session key, and write nothing")
+    void malformedSessionKeys() {
+        lenient().when(delegate.name()).thenReturn("sessions");
+        assertThat(run("store.put('a', 'v')"))
+                .isEqualTo("TypeError: Store sessions: session key must be a dict with \"key\", \"start\" and \"end\", got str");
+        assertThat(run("store.remove(5)"))
+                .isEqualTo("TypeError: Store sessions: session key must be a dict with \"key\", \"start\" and \"end\", got int");
+        assertThat(run("store.put({'key': 'a', 'start': 10}, 'v')"))
+                .isEqualTo("ValueError: Store sessions: session key must have \"key\", \"start\" and \"end\"");
+        assertThat(run("store.put({'key': 'a', 'start': '10', 'end': 20}, 'v')"))
+                .isEqualTo("TypeError: Store sessions: session key start must be int, got str");
+        assertThat(run("store.put({'key': 'a', 'start': 10, 'end': 20.0}, 'v')"))
+                .isEqualTo("TypeError: Store sessions: session key end must be int, got float");
+        assertThat(run("store.put({'key': 'a', 'start': 10, 'end': 10 ** 30}, 'v')"))
+                .isEqualTo("ValueError: Store sessions: session key end int is out of range for long");
+        assertThat(run("store.put({'key': 'a', 'start': 20, 'end': 10}, 'v')"))
+                .isEqualTo("ValueError: Store sessions: session key start must not be after end");
         verify(delegate, never()).put(any(), any());
+        verify(delegate, never()).remove(any());
     }
 }
