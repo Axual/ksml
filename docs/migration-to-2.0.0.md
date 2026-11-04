@@ -20,7 +20,7 @@ Before you upgrade, check each item below:
 * If Python code calls a `streamPartitioner` function by position, pass `headers` before `numPartitions`, or call it by name.
 * Rename any `as` name that is also a name under `streams`, `tables` or `globalTables`.
 * Add `toTable` before any `join` or `leftJoin` with `foreignKeyExtractor` that has a stream as input.
-* If Python code reads `get(key)["value"]` or `["timestamp"]` on a store with `timestamped: true`, use `getWithTimestamp(key)` instead. The same applies to the results of `delete` and `putIfAbsent`, and to `fetch(key, time)` on the store of a windowed aggregation (use `fetchWithTimestamp`).
+* If Python code reads `get(key)["value"]` or `["timestamp"]` on a store with `timestamped: true`, or on the store of a `count`, `aggregate`, `reduce` or table, use `getWithTimestamp(key)` instead. The same applies to the results of `delete` and `putIfAbsent`, and to `fetch(key, time)` on the store of a windowed aggregation (use `fetchWithTimestamp`).
 * If you build your own code on top of the KSML libraries, update the Jackson package names.
 
 ## Apicurio Registry 3
@@ -181,7 +181,14 @@ The new steps add Kafka topics to your application: `toTable` adds a state store
 
 ## Timestamped key-value stores return the value
 
-In KSML 1.x, Python code that used a key-value store with `timestamped: true` got a dict with `value` and `timestamp` from `get`, `delete` and `putIfAbsent`. In KSML 2.0.0 these methods return only the value, as on a store without `timestamped: true`. A timestamped store now has the same methods as a plain key-value store, so the same Python code works on both.
+In KSML 1.x, Python code that used a timestamped key-value store got a dict with `value` and `timestamp` from `get`, `delete` and `putIfAbsent`. In KSML 2.0.0 these methods return only the value, as on a plain key-value store. A timestamped store now has the same methods as a plain key-value store, so the same Python code works on both.
+
+This affects:
+
+* stores with `timestamped: true`
+* the stores of `count`, `aggregate`, `reduce` and tables, also without `timestamped: true`, because Kafka Streams always makes these stores timestamped
+
+Search your Python code for `["value"]` and `["timestamp"]` on store results. Old code does not always fail: if the stored value has its own `value` field, `store.get(key)["value"]` now reads that field, without an error.
 
 To read the timestamp, use `getWithTimestamp`:
 

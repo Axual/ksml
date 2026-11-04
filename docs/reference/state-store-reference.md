@@ -190,8 +190,10 @@ The message names the position of the bad entry, for example `putAll entry 1 mus
 
 ### Timestamped Key-Value Stores
 
-A key-value store with `timestamped: true` keeps a timestamp with each value. In Python it has the same methods as a
-plain key-value store, and they return the same results, so the same code works on both kinds of store:
+A key-value store with `timestamped: true` keeps a timestamp with each value. The store of a `count`, `aggregate`,
+`reduce` or table is also a timestamped store in Python, with or without `timestamped: true`. In Python it has the
+same methods as a plain key-value store, and they return the same results, so the same code works on both kinds of
+store:
 
 - `store.get(key)`, `store.delete(key)` and `store.putIfAbsent(key, value)` return only the value
 - `store.all()`, `store.range(...)`, `store.reverseRange(...)`, `store.reverseAll()` and `store.prefixScan(prefix)`
@@ -207,6 +209,9 @@ To work with the timestamps, use these methods. They only exist on timestamped s
 - `store.allWithTimestamp()`, `store.rangeWithTimestamp(from_key, to_key)`,
   `store.reverseRangeWithTimestamp(from_key, to_key)`, `store.reverseAllWithTimestamp()` and
   `store.prefixScanWithTimestamp(prefix)` - Entries with `key`, `value` and `timestamp`
+
+The store of a `count`, `aggregate`, `reduce` or table keeps timestamps only with `timestamped: true` or
+`persistent: false`. Otherwise, the `*WithTimestamp` methods return `-1` as the timestamp.
 
 In `putAll`, a dict entry can have a `timestamp` field. That entry is stored with this timestamp, so
 `store.putAll(other_store.allWithTimestamp())` copies a store with its timestamps. A `(key, value, timestamp)` tuple
@@ -238,8 +243,8 @@ To work with the timestamps, use these methods:
   `allWithTimestamp` and `backwardAllWithTimestamp` - The same arguments as the methods without `WithTimestamp`, and
   entries with `key`, `value` and `timestamp`
 
-Set `timestamped: true` on the store that the aggregation uses. Without it, the store does not keep timestamps and
-the `*WithTimestamp` methods return `-1` as the timestamp.
+The store of a windowed aggregation keeps timestamps only with `timestamped: true` or `persistent: false`.
+Otherwise, the `*WithTimestamp` methods return `-1` as the timestamp.
 
 ### Reading Many Entries with Iterators
 
