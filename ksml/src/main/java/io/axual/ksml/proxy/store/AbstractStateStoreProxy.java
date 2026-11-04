@@ -44,7 +44,7 @@ import java.math.BigInteger;
 public abstract class AbstractStateStoreProxy<T extends StateStore> implements StateStore, AbstractProxy {
     protected static final PythonNativeMapper NATIVE_MAPPER = new PythonNativeMapper();
     protected static final PythonDataObjectMapper DATA_OBJECT_MAPPER = new PythonDataObjectMapper(true);
-    private static final NativeDataObjectMapper JAVA_MAPPER = new NativeDataObjectMapper();
+    protected static final NativeDataObjectMapper JAVA_MAPPER = new NativeDataObjectMapper();
     protected final T delegate;
     /** The store's declared key type, or {@code null} when unknown. */
     protected final DataType keyType;
@@ -86,8 +86,7 @@ public abstract class AbstractStateStoreProxy<T extends StateStore> implements S
                 ? JAVA_MAPPER.fromDataObject(dataObject)
                 : NATIVE_MAPPER.fromPython(container == byte[].class ? type : null, object);
         if (value == null) return null;
-        final boolean isInteger = value instanceof Byte || value instanceof Short || value instanceof Integer
-                || value instanceof Long || value instanceof BigInteger;
+        final boolean isInteger = isInteger(value);
         final boolean fits;
         if (container == Byte.class || container == Short.class || container == Integer.class || container == Long.class) {
             fits = isInteger;
@@ -103,7 +102,7 @@ public abstract class AbstractStateStoreProxy<T extends StateStore> implements S
             return object;
         }
         if (!fits)
-            throw PythonErrors.typeError(storeError(role) + " must be " + type + ", got " + typeName(value, isInteger));
+            throw PythonErrors.typeError(storeError(role) + " must be " + type + ", got " + typeName(value));
         try {
             if (value instanceof BigInteger bigInteger) {
                 if (container == Float.class || container == Double.class)
@@ -112,17 +111,24 @@ public abstract class AbstractStateStoreProxy<T extends StateStore> implements S
             }
             return DATA_OBJECT_MAPPER.toDataObject(type, value);
         } catch (ArithmeticException | DataException e) {
-            throw PythonErrors.valueError(storeError(role) + " " + typeName(value, isInteger) + " is out of range for " + type, e);
+            throw PythonErrors.valueError(storeError(role) + " " + typeName(value) + " is out of range for " + type, e);
         }
     }
 
-    /** The Python type name; a large int arrives as a BigInteger, which Python would call ForeignNumber. */
-    private static String typeName(Object value, boolean isInteger) {
-        return isInteger ? "int" : PythonErrors.typeName(value);
+    /** Whether a value is a Python int: GraalVM passes it as Byte, Short, Integer, Long or BigInteger by its size. */
+    protected static boolean isInteger(Object value) {
+        return value instanceof Byte || value instanceof Short || value instanceof Integer
+                || value instanceof Long || value instanceof BigInteger;
     }
 
-    private String storeError(String role) {
-        return "Store " + name() + ": " + role;
+    /** The Python type name; a large int arrives as a BigInteger, which Python would call ForeignNumber. */
+    protected static String typeName(Object value) {
+        return isInteger(value) ? "int" : PythonErrors.typeName(value);
+    }
+
+    /** The start of an error message about this store, followed by what is wrong. */
+    protected String storeError(String subject) {
+        return "Store " + name() + ": " + subject;
     }
 
     @HostAccess.Export

@@ -20,19 +20,27 @@ package io.axual.ksml.proxy.store;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.mapper.DataObjectFlattener;
+import io.axual.ksml.data.object.DataObject;
 import io.axual.ksml.data.type.DataType;
-import io.axual.ksml.data.type.WindowedType;
+import io.axual.ksml.python.PythonErrors;
 import org.apache.kafka.streams.kstream.Windowed;
+import org.apache.kafka.streams.kstream.internals.SessionWindow;
 import org.apache.kafka.streams.state.SessionStore;
 import org.graalvm.polyglot.HostAccess;
+
+import java.math.BigInteger;
+import java.util.Map;
+
+import static io.axual.ksml.dsl.WindowedSchema.WINDOWED_SCHEMA_END_FIELD;
+import static io.axual.ksml.dsl.WindowedSchema.WINDOWED_SCHEMA_KEY_FIELD;
+import static io.axual.ksml.dsl.WindowedSchema.WINDOWED_SCHEMA_START_FIELD;
 
 /**
  * A proxy for accessing Kafka Streams SessionStore in Python code. This proxy mediates between Python and Java data
  * types and delegates all operations to the underlying store.
  */
 public class SessionStoreProxy extends AbstractStateStoreProxy<SessionStore<Object, Object>> {
-    private static final DataObjectFlattener FLATTENER = new DataObjectFlattener();
+    private static final String SESSION_KEY_FIELDS_MESSAGE = "session key must %s \"key\", \"start\" and \"end\"";
 
     public SessionStoreProxy(SessionStore<Object, Object> delegate) {
         this(delegate, null, null);
@@ -94,19 +102,38 @@ public class SessionStoreProxy extends AbstractStateStoreProxy<SessionStore<Obje
 
     @HostAccess.Export
     public void put(final Object sessionKey, final Object aggregate) {
-        final var key = FLATTENER.toDataObject(NATIVE_MAPPER.fromPython(sessionKey));
-        final var windowedKey = FLATTENER.unflatten(new WindowedType(DataType.UNKNOWN), key);
-        if (windowedKey instanceof Windowed<?> windowed) {
-            delegate.put(new Windowed<>(toKey(windowed.key()), windowed.window()), NATIVE_MAPPER.fromPython(toValue(aggregate)));
-        }
+        delegate.put(toSessionKey(sessionKey), NATIVE_MAPPER.fromPython(toValue(aggregate)));
     }
 
     @HostAccess.Export
     public void remove(final Object sessionKey) {
-        final var key = FLATTENER.toDataObject(NATIVE_MAPPER.fromPython(sessionKey));
-        final var windowedKey = FLATTENER.unflatten(new WindowedType(DataType.UNKNOWN), key);
-        if (windowedKey instanceof Windowed<?> windowed) {
-            delegate.remove(new Windowed<>(toKey(windowed.key()), windowed.window()));
-        }
+        delegate.remove(toSessionKey(sessionKey));
+    }
+
+    /**
+     * Reads a session key: a dict with {@code key}, {@code start} and {@code end}, as reads return it (other fields,
+     * such as {@code startTime}, are ignored). The key gets the store's key type, start and end must be ints, and a
+     * single-record session has start equal to end. A malformed session key raises TypeError or ValueError.
+     */
+    private Windowed<Object> toSessionKey(Object sessionKey) {
+        final var value = sessionKey instanceof DataObject dataObject
+                ? JAVA_MAPPER.fromDataObject(dataObject)
+                : NATIVE_MAPPER.fromPython(sessionKey);
+        if (!(value instanceof Map<?, ?> fields))
+            throw PythonErrors.typeError(storeError(SESSION_KEY_FIELDS_MESSAGE.formatted("be a dict with") + ", got " + typeName(value)));
+        if (!fields.containsKey(WINDOWED_SCHEMA_KEY_FIELD) || !fields.containsKey(WINDOWED_SCHEMA_START_FIELD) || !fields.containsKey(WINDOWED_SCHEMA_END_FIELD))
+            throw PythonErrors.valueError(storeError(SESSION_KEY_FIELDS_MESSAGE.formatted("have")));
+        final var start = toSessionTime(fields.get(WINDOWED_SCHEMA_START_FIELD), WINDOWED_SCHEMA_START_FIELD);
+        final var end = toSessionTime(fields.get(WINDOWED_SCHEMA_END_FIELD), WINDOWED_SCHEMA_END_FIELD);
+        if (start > end) throw PythonErrors.valueError(storeError("session key start must not be after end"));
+        return new Windowed<>(toKey(fields.get(WINDOWED_SCHEMA_KEY_FIELD)), new SessionWindow(start, end));
+    }
+
+    private long toSessionTime(Object time, String field) {
+        final var name = "session key " + field;
+        if (time instanceof BigInteger)
+            throw PythonErrors.valueError(storeError(name + " int is out of range for long"));
+        if (!isInteger(time)) throw PythonErrors.typeError(storeError(name + " must be int, got " + typeName(time)));
+        return ((Number) time).longValue();
     }
 }
