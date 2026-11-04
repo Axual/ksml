@@ -231,7 +231,12 @@ public class ProxyUtil {
      * Python {@code ValueError}, because there is no record timestamp to use.
      */
     public static StateStore wrapStateStore(StateStore store) {
-        return wrapStateStore(store, ProxyUtil::noRecordTimestamp);
+        return wrapStateStore(store, (StateStoreDefinition) null);
+    }
+
+    /** Like {@link #wrapStateStore(StateStore)}, and converts keys and values to the types the definition declares. */
+    public static StateStore wrapStateStore(StateStore store, StateStoreDefinition definition) {
+        return wrapStateStore(store, definition, ProxyUtil::noRecordTimestamp);
     }
 
     private static long noRecordTimestamp() {
