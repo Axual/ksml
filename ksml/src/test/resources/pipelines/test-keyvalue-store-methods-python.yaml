@@ -1,7 +1,8 @@
 # $schema: https://raw.githubusercontent.com/Axual/ksml/refs/heads/main/docs/ksml-language-spec.json
 
-# Calls range, reverseRange, reverseAll, prefixScan, putAll, get, put, putIfAbsent and delete from Python on an
-# in-memory, a RocksDB and a cached RocksDB key-value store. The result of each store is returned as one line of text.
+# Calls the key-value store methods from Python on in-memory, RocksDB and cached RocksDB stores, plain and
+# timestamped.
+# Each store kind returns one line of text; the results must be the same.
 streams:
   keyvalue_methods_input:
     topic: keyvalue_methods_input
@@ -56,6 +57,54 @@ stores:
     persistent: true
     caching: true
     logging: false
+  ts_memory:
+    type: keyValue
+    timestamped: true
+    keyType: string
+    valueType: string
+    persistent: false
+    caching: false
+    logging: false
+  ts_memory_copy:
+    type: keyValue
+    timestamped: true
+    keyType: string
+    valueType: string
+    persistent: false
+    caching: false
+    logging: false
+  ts_rocksdb:
+    type: keyValue
+    timestamped: true
+    keyType: string
+    valueType: string
+    persistent: true
+    caching: false
+    logging: false
+  ts_rocksdb_copy:
+    type: keyValue
+    timestamped: true
+    keyType: string
+    valueType: string
+    persistent: true
+    caching: false
+    logging: false
+  ts_cached:
+    type: keyValue
+    timestamped: true
+    keyType: string
+    valueType: string
+    persistent: true
+    caching: true
+    logging: false
+  ts_cached_copy:
+    type: keyValue
+    timestamped: true
+    keyType: string
+    valueType: string
+    persistent: true
+    caching: true
+    logging: false
 
 functions:
   call_store_methods:
@@ -102,7 +151,10 @@ functions:
       result = "\n".join([
         check("memory", kv_memory, kv_memory_copy),
         check("rocksdb", kv_rocksdb, kv_rocksdb_copy),
-        check("cached", kv_cached, kv_cached_copy)])
+        check("cached", kv_cached, kv_cached_copy),
+        check("memory_ts", ts_memory, ts_memory_copy),
+        check("rocksdb_ts", ts_rocksdb, ts_rocksdb_copy),
+        check("cached_ts", ts_cached, ts_cached_copy)])
     expression: result
     resultType: string
     stores:
@@ -112,6 +164,12 @@ functions:
       - kv_rocksdb_copy
       - kv_cached
       - kv_cached_copy
+      - ts_memory
+      - ts_memory_copy
+      - ts_rocksdb
+      - ts_rocksdb_copy
+      - ts_cached
+      - ts_cached_copy
 
 pipelines:
   call_store_methods_pipeline:

@@ -20,9 +20,9 @@ package io.axual.ksml.operation;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.testutil.KSMLTest;
 import io.axual.ksml.testutil.KSMLTestExtension;
 import io.axual.ksml.testutil.KSMLTopic;
-import io.axual.ksml.testutil.KSMLTopologyTest;
 import org.apache.kafka.streams.TestInputTopic;
 import org.apache.kafka.streams.TestOutputTopic;
 import org.junit.jupiter.api.DisplayName;
@@ -33,8 +33,8 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * Calls the key-value store methods from Python, on an in-memory, a RocksDB and a cached RocksDB store. The test
- * runs once on plain stores and once on the same stores with timestamped: true: the results must be the same.
+ * Calls the key-value store methods from Python on in-memory, RocksDB and cached RocksDB stores, plain and with
+ * timestamped: true. The results must be the same.
  */
 @ExtendWith(KSMLTestExtension.class)
 @SuppressWarnings("java:S2187")
@@ -46,8 +46,7 @@ public class KSMLKeyValueStoreMethodsTest {
     @KSMLTopic(topic = "keyvalue_methods_output")
     TestOutputTopic<String, String> output;
 
-    @KSMLTopologyTest(topologies = {"pipelines/test-keyvalue-store-methods-python.yaml",
-            "pipelines/test-keyvalue-store-methods-default-timestamped-python.yaml"})
+    @KSMLTest(topology = "pipelines/test-keyvalue-store-methods-python.yaml")
     @DisplayName("Key-value store methods work from Python on in-memory, RocksDB and cached stores, plain and timestamped")
     void testKeyValueStoreMethods() {
         input.pipeInput("trigger", "go");
@@ -60,7 +59,8 @@ public class KSMLKeyValueStoreMethodsTest {
                 + " reverseRangeFromNone=ab:4,a:1 reverseRangeToNone=c:3,b:2"
                 + " afterDelete=a:1,ab:4,b:2 badEntry=TypeError x=None copy=a:1,ab:4,b:2"
                 + " get=5 putIfAbsent=5 delete=5 afterPutDelete=a:1,ab:4,b:2";
-        assertThat(List.of(values.get(0).split("\\n")))
-                .containsExactly("memory" + expected, "rocksdb" + expected, "cached" + expected);
+        assertThat(List.of(values.get(0).split("\\n"))).containsExactly(
+                "memory" + expected, "rocksdb" + expected, "cached" + expected,
+                "memory_ts" + expected, "rocksdb_ts" + expected, "cached_ts" + expected);
     }
 }
