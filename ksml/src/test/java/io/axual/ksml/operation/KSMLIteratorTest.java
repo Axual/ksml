@@ -91,7 +91,7 @@ public class KSMLIteratorTest {
     }
 
     @KSMLTest(topology = "pipelines/test-store-iterator-early-exit-python.yaml")
-    @DisplayName("store iterators left open by return, break, an exception or next() are closed when the function returns")
+    @DisplayName("store iterators left open by return, break, an exception or next() are closed, and close() closes only once")
     void testEarlyExitClosesIterators() {
         earlyExitInput.pipeInput("a", "1");
         earlyExitInput.pipeInput("b", "2");
@@ -99,8 +99,8 @@ public class KSMLIteratorTest {
         final var values = earlyExitOutput.readValuesToList();
         assertThat(values).hasSize(2);
         assertThat(List.of(values.get(1).split("\n"))).containsExactly(
-                "memory return=a break=a exception=a next=a",
-                "rocksdb return=a break=a exception=a next=a");
+                "memory return=a break=a exception=a next=a close=a,b closeEarly=a",
+                "rocksdb return=a break=a exception=a next=a close=a,b closeEarly=a");
         assertThat(openIterators(driver, "early_exit_memory")).isZero();
         assertThat(openIterators(driver, "early_exit_rocksdb")).isZero();
     }
