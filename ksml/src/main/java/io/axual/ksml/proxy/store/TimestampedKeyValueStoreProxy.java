@@ -134,7 +134,7 @@ public class TimestampedKeyValueStoreProxy extends AbstractStateStoreProxy<Times
     /** Writes all entries in one call; see {@link ProxyUtil#toTimestampedKeyValueList}. */
     @HostAccess.Export
     public void putAll(Object entries) {
-        delegate.putAll(ProxyUtil.toTimestampedKeyValueList(entries, recordTimestamp));
+        delegate.putAll(ProxyUtil.toTimestampedKeyValueList(entries, recordTimestamp, DATA_OBJECT_MAPPER::toDataObject));
     }
 
     /** Stores the value with the record timestamp if the key has none, and returns the existing value. */

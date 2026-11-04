@@ -86,7 +86,7 @@ public class KeyValueStoreProxy extends AbstractStateStoreProxy<KeyValueStore<Ob
     /** Writes all entries in one call; see {@link ProxyUtil#toKeyValueList}. */
     @HostAccess.Export
     public void putAll(Object entries) {
-        delegate.putAll(ProxyUtil.toKeyValueList(entries));
+        delegate.putAll(ProxyUtil.toKeyValueList(entries, NATIVE_MAPPER::fromPython));
     }
 
     @HostAccess.Export
