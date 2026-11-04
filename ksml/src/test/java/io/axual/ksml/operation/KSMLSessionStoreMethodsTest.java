@@ -64,6 +64,11 @@ public class KSMLSessionStoreMethodsTest {
                 + " fetch=a@10:1,a@30:3 backwardFetch=a@30:3,a@10:1";
         final var findSingleKey = " findSessions=a@10:1,a@30:3 backwardFindSessions=a@30:3,a@10:1";
         final var afterRemove = " afterRemove=a@30:3";
+        // Session times in the int range and start == end work, a session key read back can be removed, and a
+        // malformed session key raises a Python error instead of being ignored
+        final var sessionKeys = " keys small=ok/s1 single=ok/s2 roundTrip=ok,ok/0 notDict=TypeError missing=ValueError"
+                + " strStart=TypeError floatStart=TypeError huge=ValueError reversed=ValueError removeNotDict=TypeError"
+                + " written=0";
         // The in-memory store orders by session end, then key; RocksDB orders by key, then session end
         assertThat(lines).containsExactly(
                 "memory" + singleKey
@@ -75,7 +80,9 @@ public class KSMLSessionStoreMethodsTest {
                         + " fetchKeys=a@10:1,a@30:3,b@20:2 backwardFetchKeys=b@20:2,a@30:3,a@10:1"
                         + findSingleKey
                         + " findSessionsKeys=a@30:3,b@20:2 backwardFindSessionsKeys=b@20:2,a@30:3"
-                        + afterRemove);
+                        + afterRemove,
+                "memory" + sessionKeys,
+                "rocksdb" + sessionKeys);
 
         assertThat(openIterators(driver, "session_memory")).isZero();
         assertThat(openIterators(driver, "session_rocksdb")).isZero();
