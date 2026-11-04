@@ -1,0 +1,36 @@
+name: "Assertions read and write a long store with Python ints"
+definition: pipelines/test-long-store.yaml
+
+streams:
+  numbers:
+    topic: ksml_numbers
+    keyType: string
+    valueType: string
+
+tests:
+  counts_per_number:
+    description: "Keys and values in assertion code are converted to the store's declared long type"
+    produce:
+      - to: numbers
+        messages:
+          - key: "a"
+            value: "1"
+          - key: "b"
+            value: "1"
+          - key: "c"
+            value: "2"
+
+    assert:
+      - stores:
+          - number_counts
+        code: |
+          assert number_counts.get(1) == 2, f"Expected 2 for 1, got {number_counts.get(1)}"
+          assert number_counts.get(2) == 1, f"Expected 1 for 2, got {number_counts.get(2)}"
+          assert number_counts.get(3) is None, "Expected nothing for 3"
+          number_counts.put(3, 7)
+          assert number_counts.get(3) == 7, f"Expected 7 for 3, got {number_counts.get(3)}"
+          try:
+            number_counts.put(4, 1.5)
+            assert False, "Expected a TypeError for a float on a long store"
+          except TypeError:
+            pass
