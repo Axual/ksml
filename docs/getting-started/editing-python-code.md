@@ -187,6 +187,9 @@ Three store types are available:
 - **`SessionStore`** - Session-windowed store: `fetch()`, `findSessions()`, `put()`, `remove()`
 - **`WindowStore`** - Time-windowed store: `fetch()`, `fetchAll()`, `put()`, `all()`
 
+Store methods that return many entries, like `all()` and `fetch()`, return a **`StoreIterator`**. Use it in a `for`
+loop, or with `next()` and `list()`. See [Reading Many Entries with Iterators](../reference/state-store-reference.md#reading-many-entries-with-iterators).
+
 ??? info "Complete ksml.py module (click to expand)"
 
     ```python
