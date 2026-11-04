@@ -180,7 +180,7 @@ class TimestampedKeyValueStoreProxyTest {
                 value -> assertThat(value.asLong()).isEqualTo(3L));
     }
 
-    // ==================== Same API as a plain key-value store (AXPD-11068) ====================
+    // ==================== Same API as a plain key-value store ====================
 
     @Test
     @DisplayName("putIfAbsent with a timestamp returns only the existing value")
@@ -320,6 +320,22 @@ class TimestampedKeyValueStoreProxyTest {
     void putAllWithBadTimestampField() {
         assertThat(pythonErrorOf("store.putAll([{\"key\": \"a\", \"value\": \"1\", \"timestamp\": \"soon\"}])"))
                 .startsWith("TypeError: ").contains("putAll entry 0 timestamp");
+        verify(delegate, never()).putAll(anyList());
+    }
+
+    @Test
+    @DisplayName("putAll with a float timestamp raises TypeError, like a session key time")
+    void putAllWithFloatTimestamp() {
+        assertThat(pythonErrorOf("store.putAll([{\"key\": \"a\", \"value\": \"1\", \"timestamp\": 10.0}])"))
+                .isEqualTo("TypeError: putAll entry 0 timestamp must be an int, got float");
+        verify(delegate, never()).putAll(anyList());
+    }
+
+    @Test
+    @DisplayName("putAll with a timestamp out of the long range raises ValueError")
+    void putAllWithTimestampOutOfRange() {
+        assertThat(pythonErrorOf("store.putAll([{\"key\": \"a\", \"value\": \"1\", \"timestamp\": 10**30}])"))
+                .isEqualTo("ValueError: putAll entry 0 timestamp is out of range for long");
         verify(delegate, never()).putAll(anyList());
     }
 

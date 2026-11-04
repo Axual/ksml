@@ -141,13 +141,7 @@ if TYPE_CHECKING:
         def putIfAbsent(self, key: Any, value: Any) -> Optional[Any]: ...
         def putIfAbsent(self, key: Any, value: Any, timestamp: int) -> Optional[Any]: ...
         def putAll(self, entries: Union[Iterable[Tuple[Any, Any]], Iterable[Dict[str, Any]]]) -> None:
-            """Writes all entries in one call: (key, value) pairs or dicts with "key" and "value".
-
-            A dict with a "timestamp" field is written with that timestamp, so store.putAll(other.allWithTimestamp())
-            copies a store with its timestamps. All other entries get the timestamp of the record that is being
-            processed. A value None deletes the key. Raises TypeError or ValueError for a bad entry, which then
-            writes nothing.
-            """
+            """Like KeyValueStore.putAll; a dict entry may have a "timestamp". Default timestamp: the record's."""
             ...
         def delete(self, key: Any) -> Optional[Any]: ...
         def range(self, from_key: Any, to_key: Any) -> StoreIterator:

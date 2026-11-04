@@ -32,7 +32,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * Calls the window store methods and the *WithTimestamp methods from Python on the timestamped window store of a
- * windowed aggregate, for an in-memory and a RocksDB store (AXPD-11068). Methods without a timestamp in their name
+ * windowed aggregate, for an in-memory and a RocksDB store. Methods without a timestamp in their name
  * return the same results as on a plain window store.
  */
 @ExtendWith(KSMLTestExtension.class)

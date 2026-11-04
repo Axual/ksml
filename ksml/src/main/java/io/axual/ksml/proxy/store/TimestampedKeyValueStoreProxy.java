@@ -38,7 +38,6 @@ import java.util.function.LongSupplier;
 public class TimestampedKeyValueStoreProxy extends AbstractStateStoreProxy<TimestampedKeyValueStore<Object, Object>> {
     private final LongSupplier recordTimestamp;
 
-    @HostAccess.Export
     public TimestampedKeyValueStoreProxy(TimestampedKeyValueStore<Object, Object> delegate, LongSupplier recordTimestamp) {
         super(delegate);
         this.recordTimestamp = recordTimestamp;

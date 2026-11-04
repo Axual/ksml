@@ -33,7 +33,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * Calls the key-value store methods and the *WithTimestamp methods from Python on an in-memory and a RocksDB
- * timestamped key-value store (AXPD-11068). Methods without a timestamp in their name return the same results as on a
+ * timestamped key-value store. Methods without a timestamp in their name return the same results as on a
  * plain key-value store.
  */
 @ExtendWith(KSMLTestExtension.class)
