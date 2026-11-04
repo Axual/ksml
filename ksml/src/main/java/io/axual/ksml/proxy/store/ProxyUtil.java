@@ -187,7 +187,7 @@ public class ProxyUtil {
         }
         if (entry.hasHashEntries()) {
             if (!entry.hasHashEntry(KEY_FIELD) || !entry.hasHashEntry(VALUE_FIELD))
-                throw PythonErrors.valueError(name + " must have \"key\" and \"value\", got " + PythonErrors.typeName(entry));
+                throw PythonErrors.valueError(name + " has no \"" + (entry.hasHashEntry(KEY_FIELD) ? VALUE_FIELD : KEY_FIELD) + "\"");
             return new Entry(
                     fromPython(entry.getHashValue(KEY_FIELD), name + " key"),
                     fromPython(entry.getHashValue(VALUE_FIELD), name + " value"),
@@ -201,8 +201,10 @@ public class ProxyUtil {
         if (!entry.hasHashEntry(TIMESTAMP_FIELD)) return null;
         final var timestamp = entry.getHashValue(TIMESTAMP_FIELD);
         if (timestamp.isNull()) return null;
-        if (timestamp.isNumber() && timestamp.fitsInLong()) return timestamp.asLong();
-        throw PythonErrors.typeError(name + " timestamp must be an int, got " + PythonErrors.typeName(timestamp));
+        final var type = PythonErrors.typeName(timestamp);
+        if (!"int".equals(type)) throw PythonErrors.typeError(name + " timestamp must be an int, got " + type);
+        if (!timestamp.fitsInLong()) throw PythonErrors.valueError(name + " timestamp is out of range for long");
+        return timestamp.asLong();
     }
 
     /** Converts the Python argument of {@code prefixScan} to a string prefix. */

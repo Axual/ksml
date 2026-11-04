@@ -373,7 +373,9 @@ class KeyValueStoreProxyTest {
         assertThat(pythonErrorOf("store.putAll([(\"a\", \"1\", \"2\")])"))
                 .startsWith("ValueError: ").contains("putAll entry 0");
         assertThat(pythonErrorOf("store.putAll([{\"key\": \"a\"}])"))
-                .startsWith("ValueError: ").contains("putAll entry 0");
+                .isEqualTo("ValueError: putAll entry 0 has no \"value\"");
+        assertThat(pythonErrorOf("store.putAll([{\"value\": \"1\"}])"))
+                .isEqualTo("ValueError: putAll entry 0 has no \"key\"");
         verify(delegate, never()).putAll(anyList());
     }
 
@@ -391,7 +393,7 @@ class KeyValueStoreProxyTest {
         softly.assertThat(pythonErrorOf("store.putAll([\"secret\"])")).contains("got str").doesNotContain("secret");
         softly.assertThat(pythonErrorOf("store.putAll(1234567)")).contains("got int").doesNotContain("1234567");
         softly.assertThat(pythonErrorOf("store.putAll([(\"secret\", \"1\", \"2\")])")).contains("got 3").doesNotContain("secret");
-        softly.assertThat(pythonErrorOf("store.putAll([{\"key\": \"secret\"}])")).contains("got dict").doesNotContain("secret");
+        softly.assertThat(pythonErrorOf("store.putAll([{\"key\": \"secret\"}])")).contains("has no \"value\"").doesNotContain("secret");
         softly.assertThat(pythonErrorOf("store.prefixScan(1234567)")).contains("got int").doesNotContain("1234567");
         softly.assertAll();
     }
