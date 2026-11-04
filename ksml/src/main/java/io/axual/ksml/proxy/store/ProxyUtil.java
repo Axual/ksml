@@ -46,6 +46,7 @@ import org.graalvm.polyglot.Value;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.LongSupplier;
+import java.util.function.UnaryOperator;
 
 /**
  * Utility class for creating proxy objects and converted values returned to Python
@@ -138,16 +139,16 @@ public class ProxyUtil {
     /**
      * Converts the {@code putAll} argument: a list or an iterator of (key, value) pairs or dicts with key and value.
      * A bad entry raises TypeError or ValueError with its position, before anything is written. A dict
-     * {@code timestamp} field is ignored.
+     * {@code timestamp} field is ignored. Keys and values get the same {@code convert} step as the store's put.
      */
-    public static List<KeyValue<Object, Object>> toKeyValueList(Object entries) {
-        return toEntries(entries, false).stream().map(e -> KeyValue.pair(e.key(), e.value())).toList();
+    public static List<KeyValue<Object, Object>> toKeyValueList(Object entries, UnaryOperator<Object> convert) {
+        return toEntries(entries, false, convert).stream().map(e -> KeyValue.pair(e.key(), e.value())).toList();
     }
 
     /** Like {@link #toKeyValueList}, but uses a dict {@code timestamp} field; other entries get the record timestamp. */
-    public static List<KeyValue<Object, ValueAndTimestamp<Object>>> toTimestampedKeyValueList(Object entries, LongSupplier recordTimestamp) {
+    public static List<KeyValue<Object, ValueAndTimestamp<Object>>> toTimestampedKeyValueList(Object entries, LongSupplier recordTimestamp, UnaryOperator<Object> convert) {
         final var result = new ArrayList<KeyValue<Object, ValueAndTimestamp<Object>>>();
-        for (final var e : toEntries(entries, true)) {
+        for (final var e : toEntries(entries, true, convert)) {
             final long timestamp = e.timestamp() != null ? e.timestamp() : recordTimestamp.getAsLong();
             result.add(KeyValue.pair(e.key(), ValueAndTimestamp.make(e.value(), timestamp)));
         }
@@ -157,7 +158,7 @@ public class ProxyUtil {
     private record Entry(Object key, Object value, Long timestamp) {
     }
 
-    private static List<Entry> toEntries(Object entries, boolean readTimestamp) {
+    private static List<Entry> toEntries(Object entries, boolean readTimestamp, UnaryOperator<Object> convert) {
         final var value = Value.asValue(entries);
         final Value iterator;
         if (value.hasHashEntries())
@@ -169,30 +170,32 @@ public class ProxyUtil {
         final var result = new ArrayList<Entry>();
         while (iterator.hasIteratorNextElement()) {
             final var entry = iterator.getIteratorNextElement();
-            result.add(toEntry(result.size(), entry, readTimestamp));
+            result.add(toEntry(result.size(), entry, readTimestamp, convert));
         }
         return result;
     }
 
-    private static Entry toEntry(int position, Value entry, boolean readTimestamp) {
+    private static Entry toEntry(int position, Value entry, boolean readTimestamp, UnaryOperator<Object> convert) {
         final var name = "putAll entry " + position;
         if (entry.hasArrayElements()) {
             if (entry.getArraySize() != 2)
                 throw PythonErrors.valueError(name + " must have 2 elements (key, value), got " + entry.getArraySize());
-            return new Entry(
-                    fromPython(entry.getArrayElement(0), name + " key"),
-                    fromPython(entry.getArrayElement(1), name + " value"),
-                    null);
+            return new Entry(toStoreObject(entry.getArrayElement(0), convert), toStoreObject(entry.getArrayElement(1), convert), null);
         }
         if (entry.hasHashEntries()) {
             if (!entry.hasHashEntry(KEY_FIELD) || !entry.hasHashEntry(VALUE_FIELD))
                 throw PythonErrors.valueError(name + " has no \"" + (entry.hasHashEntry(KEY_FIELD) ? VALUE_FIELD : KEY_FIELD) + "\"");
             return new Entry(
-                    fromPython(entry.getHashValue(KEY_FIELD), name + " key"),
-                    fromPython(entry.getHashValue(VALUE_FIELD), name + " value"),
+                    toStoreObject(entry.getHashValue(KEY_FIELD), convert),
+                    toStoreObject(entry.getHashValue(VALUE_FIELD), convert),
                     readTimestamp ? toTimestamp(entry, name) : null);
         }
         throw PythonErrors.typeError(name + " must be a (key, value) pair or a dict with \"key\" and \"value\", got " + PythonErrors.typeName(entry));
+    }
+
+    /** {@code as(Object.class)} gives the same Java object that GraalVM passes to an {@code Object} parameter of put. */
+    private static Object toStoreObject(Value value, UnaryOperator<Object> convert) {
+        return convert.apply(value.as(Object.class));
     }
 
     /** Reads the optional timestamp field of a dict entry. A missing field or {@code None} means "no timestamp". */
@@ -223,7 +226,7 @@ public class ProxyUtil {
 
     /**
      * Converts a Python argument to a Java value; a failed conversion raises ValueError. GraalVM already converts
-     * {@code Object} parameters, so this only catches errors for polyglot {@code Value}s, such as putAll entries.
+     * {@code Object} parameters, so this only catches errors for polyglot {@code Value}s.
      */
     public static Object fromPython(Object object, String name) {
         try {
