@@ -47,47 +47,47 @@ public class SessionStoreProxy extends AbstractStateStoreProxy<SessionStore<Obje
 
     @HostAccess.Export
     public Object backwardFetch(final Object key) {
-        return ProxyUtil.toPython(delegate.backwardFetch(NATIVE_MAPPER.fromPython(key)));
+        return ProxyUtil.toPython(delegate.backwardFetch(NATIVE_MAPPER.fromPython(toKey(key))));
     }
 
     @HostAccess.Export
     public Object backwardFetch(final Object keyFrom, final Object keyTo) {
-        return ProxyUtil.toPython(delegate.backwardFetch(NATIVE_MAPPER.fromPython(keyFrom), NATIVE_MAPPER.fromPython(keyTo)));
+        return ProxyUtil.toPython(delegate.backwardFetch(NATIVE_MAPPER.fromPython(toKey(keyFrom)), NATIVE_MAPPER.fromPython(toKey(keyTo))));
     }
 
     @HostAccess.Export
     public Object backwardFindSessions(final Object key, final long earliestSessionEndTime, final long latestSessionStartTime) {
-        return ProxyUtil.toPython(delegate.backwardFindSessions(NATIVE_MAPPER.fromPython(key), earliestSessionEndTime, latestSessionStartTime));
+        return ProxyUtil.toPython(delegate.backwardFindSessions(NATIVE_MAPPER.fromPython(toKey(key)), earliestSessionEndTime, latestSessionStartTime));
     }
 
     @HostAccess.Export
     public Object backwardFindSessions(final Object keyFrom, final Object keyTo, final long earliestSessionEndTime, final long latestSessionStartTime) {
-        return ProxyUtil.toPython(delegate.backwardFindSessions(NATIVE_MAPPER.fromPython(keyFrom), NATIVE_MAPPER.fromPython(keyTo), earliestSessionEndTime, latestSessionStartTime));
+        return ProxyUtil.toPython(delegate.backwardFindSessions(NATIVE_MAPPER.fromPython(toKey(keyFrom)), NATIVE_MAPPER.fromPython(toKey(keyTo)), earliestSessionEndTime, latestSessionStartTime));
     }
 
     @HostAccess.Export
     public Object fetch(final Object key) {
-        return ProxyUtil.toPython(delegate.fetch(NATIVE_MAPPER.fromPython(key)));
+        return ProxyUtil.toPython(delegate.fetch(NATIVE_MAPPER.fromPython(toKey(key))));
     }
 
     @HostAccess.Export
     public Object fetch(final Object keyFrom, final Object keyTo) {
-        return ProxyUtil.toPython(delegate.fetch(NATIVE_MAPPER.fromPython(keyFrom), NATIVE_MAPPER.fromPython(keyTo)));
+        return ProxyUtil.toPython(delegate.fetch(NATIVE_MAPPER.fromPython(toKey(keyFrom)), NATIVE_MAPPER.fromPython(toKey(keyTo))));
     }
 
     @HostAccess.Export
     public Object fetchSession(final Object key, final long sessionStartTime, final long sessionEndTime) {
-        return ProxyUtil.toPython(delegate.fetchSession(NATIVE_MAPPER.fromPython(key), sessionStartTime, sessionEndTime));
+        return ProxyUtil.toPython(delegate.fetchSession(NATIVE_MAPPER.fromPython(toKey(key)), sessionStartTime, sessionEndTime));
     }
 
     @HostAccess.Export
     public Object findSessions(Object key, long earliestSessionEndTime, long latestSessionStartTime) {
-        return ProxyUtil.toPython(delegate.findSessions(NATIVE_MAPPER.fromPython(key), earliestSessionEndTime, latestSessionStartTime));
+        return ProxyUtil.toPython(delegate.findSessions(NATIVE_MAPPER.fromPython(toKey(key)), earliestSessionEndTime, latestSessionStartTime));
     }
 
     @HostAccess.Export
     public Object findSessions(Object keyFrom, Object keyTo, long earliestSessionEndTime, long latestSessionStartTime) {
-        return ProxyUtil.toPython(delegate.findSessions(NATIVE_MAPPER.fromPython(keyFrom), NATIVE_MAPPER.fromPython(keyTo), earliestSessionEndTime, latestSessionStartTime));
+        return ProxyUtil.toPython(delegate.findSessions(NATIVE_MAPPER.fromPython(toKey(keyFrom)), NATIVE_MAPPER.fromPython(toKey(keyTo)), earliestSessionEndTime, latestSessionStartTime));
     }
 
     // ==================== SessionStore methods ====================
@@ -97,7 +97,7 @@ public class SessionStoreProxy extends AbstractStateStoreProxy<SessionStore<Obje
         final var key = FLATTENER.toDataObject(NATIVE_MAPPER.fromPython(sessionKey));
         final var windowedKey = FLATTENER.unflatten(new WindowedType(DataType.UNKNOWN), key);
         if (windowedKey instanceof Windowed<?> windowed) {
-            delegate.put((Windowed<Object>) windowed, NATIVE_MAPPER.fromPython(aggregate));
+            delegate.put(new Windowed<>(toKey(windowed.key()), windowed.window()), NATIVE_MAPPER.fromPython(toValue(aggregate)));
         }
     }
 
@@ -106,7 +106,7 @@ public class SessionStoreProxy extends AbstractStateStoreProxy<SessionStore<Obje
         final var key = FLATTENER.toDataObject(NATIVE_MAPPER.fromPython(sessionKey));
         final var windowedKey = FLATTENER.unflatten(new WindowedType(DataType.UNKNOWN), key);
         if (windowedKey instanceof Windowed<?> windowed) {
-            delegate.remove((Windowed<Object>) windowed);
+            delegate.remove(new Windowed<>(toKey(windowed.key()), windowed.window()));
         }
     }
 }

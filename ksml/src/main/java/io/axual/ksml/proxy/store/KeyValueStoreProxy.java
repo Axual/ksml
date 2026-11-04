@@ -53,12 +53,12 @@ public class KeyValueStoreProxy extends AbstractStateStoreProxy<KeyValueStore<Ob
 
     @HostAccess.Export
     public Object range(Object from, Object to) {
-        return ProxyUtil.toPython(delegate.range(ProxyUtil.fromPython(from, "range from"), ProxyUtil.fromPython(to, "range to")));
+        return ProxyUtil.toPython(delegate.range(ProxyUtil.fromPython(toKey(from), "range from"), ProxyUtil.fromPython(toKey(to), "range to")));
     }
 
     @HostAccess.Export
     public Object reverseRange(Object from, Object to) {
-        return ProxyUtil.toPython(delegate.reverseRange(ProxyUtil.fromPython(from, "reverseRange from"), ProxyUtil.fromPython(to, "reverseRange to")));
+        return ProxyUtil.toPython(delegate.reverseRange(ProxyUtil.fromPython(toKey(from), "reverseRange from"), ProxyUtil.fromPython(toKey(to), "reverseRange to")));
     }
 
     /** Entries whose key starts with the string prefix, serialized as UTF-8. A non-string prefix raises TypeError. */
@@ -74,29 +74,29 @@ public class KeyValueStoreProxy extends AbstractStateStoreProxy<KeyValueStore<Ob
 
     @HostAccess.Export
     public Object get(Object key) {
-        return ProxyUtil.toPython(delegate.get(NATIVE_MAPPER.fromPython(key)));
+        return ProxyUtil.toPython(delegate.get(NATIVE_MAPPER.fromPython(toKey(key))));
     }
 
     // ==================== KeyValueStore methods ====================
 
     @HostAccess.Export
     public Object delete(Object key) {
-        return ProxyUtil.toPython(delegate.delete(NATIVE_MAPPER.fromPython(key)));
+        return ProxyUtil.toPython(delegate.delete(NATIVE_MAPPER.fromPython(toKey(key))));
     }
 
     @HostAccess.Export
     public void put(Object key, Object value) {
-        delegate.put(NATIVE_MAPPER.fromPython(key), NATIVE_MAPPER.fromPython(value));
+        delegate.put(NATIVE_MAPPER.fromPython(toKey(key)), NATIVE_MAPPER.fromPython(toValue(value)));
     }
 
     /** Writes all entries in one call; see {@link ProxyUtil#toKeyValueList}. */
     @HostAccess.Export
     public void putAll(Object entries) {
-        delegate.putAll(ProxyUtil.toKeyValueList(entries, NATIVE_MAPPER::fromPython));
+        delegate.putAll(ProxyUtil.toKeyValueList(entries, key -> NATIVE_MAPPER.fromPython(toKey(key)), value -> NATIVE_MAPPER.fromPython(toValue(value))));
     }
 
     @HostAccess.Export
     public Object putIfAbsent(Object key, Object value) {
-        return ProxyUtil.toPython(delegate.putIfAbsent(NATIVE_MAPPER.fromPython(key), NATIVE_MAPPER.fromPython(value)));
+        return ProxyUtil.toPython(delegate.putIfAbsent(NATIVE_MAPPER.fromPython(toKey(key)), NATIVE_MAPPER.fromPython(toValue(value))));
     }
 }

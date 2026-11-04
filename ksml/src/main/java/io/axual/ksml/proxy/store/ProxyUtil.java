@@ -142,16 +142,16 @@ public class ProxyUtil {
     /**
      * Converts the {@code putAll} argument: a list or an iterator of (key, value) pairs or dicts with key and value.
      * A bad entry raises TypeError or ValueError with its position, before anything is written. A dict
-     * {@code timestamp} field is ignored. Keys and values get the same {@code convert} step as the store's put.
+     * {@code timestamp} field is ignored. Keys and values get the same conversion as in the store's put.
      */
-    public static List<KeyValue<Object, Object>> toKeyValueList(Object entries, UnaryOperator<Object> convert) {
-        return toEntries(entries, false, convert).stream().map(e -> KeyValue.pair(e.key(), e.value())).toList();
+    public static List<KeyValue<Object, Object>> toKeyValueList(Object entries, UnaryOperator<Object> convertKey, UnaryOperator<Object> convertValue) {
+        return toEntries(entries, false, convertKey, convertValue).stream().map(e -> KeyValue.pair(e.key(), e.value())).toList();
     }
 
     /** Like {@link #toKeyValueList}, but uses a dict {@code timestamp} field; other entries get the record timestamp. */
-    public static List<KeyValue<Object, ValueAndTimestamp<Object>>> toTimestampedKeyValueList(Object entries, LongSupplier recordTimestamp, UnaryOperator<Object> convert) {
+    public static List<KeyValue<Object, ValueAndTimestamp<Object>>> toTimestampedKeyValueList(Object entries, LongSupplier recordTimestamp, UnaryOperator<Object> convertKey, UnaryOperator<Object> convertValue) {
         final var result = new ArrayList<KeyValue<Object, ValueAndTimestamp<Object>>>();
-        for (final var e : toEntries(entries, true, convert)) {
+        for (final var e : toEntries(entries, true, convertKey, convertValue)) {
             final long timestamp = e.timestamp() != null ? e.timestamp() : recordTimestamp.getAsLong();
             result.add(KeyValue.pair(e.key(), ValueAndTimestamp.make(e.value(), timestamp)));
         }
@@ -161,7 +161,7 @@ public class ProxyUtil {
     private record Entry(Object key, Object value, Long timestamp) {
     }
 
-    private static List<Entry> toEntries(Object entries, boolean readTimestamp, UnaryOperator<Object> convert) {
+    private static List<Entry> toEntries(Object entries, boolean readTimestamp, UnaryOperator<Object> convertKey, UnaryOperator<Object> convertValue) {
         final var value = Value.asValue(entries);
         final Value iterator;
         if (value.hasIterator()) iterator = value.getIterator();
@@ -171,24 +171,24 @@ public class ProxyUtil {
         final var result = new ArrayList<Entry>();
         while (iterator.hasIteratorNextElement()) {
             final var entry = iterator.getIteratorNextElement();
-            result.add(toEntry(result.size(), entry, readTimestamp, convert));
+            result.add(toEntry(result.size(), entry, readTimestamp, convertKey, convertValue));
         }
         return result;
     }
 
-    private static Entry toEntry(int position, Value entry, boolean readTimestamp, UnaryOperator<Object> convert) {
+    private static Entry toEntry(int position, Value entry, boolean readTimestamp, UnaryOperator<Object> convertKey, UnaryOperator<Object> convertValue) {
         final var name = "putAll entry " + position;
         if (entry.hasArrayElements()) {
             if (entry.getArraySize() != 2)
                 throw PythonErrors.valueError(name + " must have 2 elements (key, value), got " + entry.getArraySize());
-            return new Entry(toStoreObject(entry.getArrayElement(0), convert), toStoreObject(entry.getArrayElement(1), convert), null);
+            return new Entry(toStoreObject(entry.getArrayElement(0), convertKey), toStoreObject(entry.getArrayElement(1), convertValue), null);
         }
         if (entry.hasHashEntries()) {
             if (!entry.hasHashEntry(KEY_FIELD) || !entry.hasHashEntry(VALUE_FIELD))
                 throw PythonErrors.valueError(name + " must have \"key\" and \"value\", got " + PythonErrors.typeName(entry));
             return new Entry(
-                    toStoreObject(entry.getHashValue(KEY_FIELD), convert),
-                    toStoreObject(entry.getHashValue(VALUE_FIELD), convert),
+                    toStoreObject(entry.getHashValue(KEY_FIELD), convertKey),
+                    toStoreObject(entry.getHashValue(VALUE_FIELD), convertValue),
                     readTimestamp ? toTimestamp(entry, name) : null);
         }
         throw PythonErrors.typeError(name + " must be a (key, value) pair or a dict with \"key\" and \"value\", got " + PythonErrors.typeName(entry));

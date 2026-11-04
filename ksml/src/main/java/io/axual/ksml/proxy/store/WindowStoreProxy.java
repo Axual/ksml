@@ -53,12 +53,12 @@ public class WindowStoreProxy extends AbstractStateStoreProxy<WindowStore<Object
 
     @HostAccess.Export
     public Object backwardFetch(Object key, long timeFrom, long timeTo) {
-        return ProxyUtil.toPython(delegate.backwardFetch(NATIVE_MAPPER.fromPython(key), timeFrom, timeTo));
+        return ProxyUtil.toPython(delegate.backwardFetch(NATIVE_MAPPER.fromPython(toKey(key)), timeFrom, timeTo));
     }
 
     @HostAccess.Export
     public Object backwardFetch(Object keyFrom, Object keyTo, long timeFrom, long timeTo) {
-        return ProxyUtil.toPython(delegate.backwardFetch(NATIVE_MAPPER.fromPython(keyFrom), NATIVE_MAPPER.fromPython(keyTo), timeFrom, timeTo));
+        return ProxyUtil.toPython(delegate.backwardFetch(NATIVE_MAPPER.fromPython(toKey(keyFrom)), NATIVE_MAPPER.fromPython(toKey(keyTo)), timeFrom, timeTo));
     }
 
     @HostAccess.Export
@@ -68,17 +68,17 @@ public class WindowStoreProxy extends AbstractStateStoreProxy<WindowStore<Object
 
     @HostAccess.Export
     public Object fetch(Object key, long time) {
-        return ProxyUtil.toPython(delegate.fetch(NATIVE_MAPPER.fromPython(key), time));
+        return ProxyUtil.toPython(delegate.fetch(NATIVE_MAPPER.fromPython(toKey(key)), time));
     }
 
     @HostAccess.Export
     public Object fetch(Object key, long timeFrom, long timeTo) {
-        return ProxyUtil.toPython(delegate.fetch(NATIVE_MAPPER.fromPython(key), timeFrom, timeTo));
+        return ProxyUtil.toPython(delegate.fetch(NATIVE_MAPPER.fromPython(toKey(key)), timeFrom, timeTo));
     }
 
     @HostAccess.Export
     public Object fetch(Object keyFrom, Object keyTo, long timeFrom, long timeTo) {
-        return ProxyUtil.toPython(delegate.fetch(NATIVE_MAPPER.fromPython(keyFrom), NATIVE_MAPPER.fromPython(keyTo), timeFrom, timeTo));
+        return ProxyUtil.toPython(delegate.fetch(NATIVE_MAPPER.fromPython(toKey(keyFrom)), NATIVE_MAPPER.fromPython(toKey(keyTo)), timeFrom, timeTo));
     }
 
     @HostAccess.Export
@@ -90,6 +90,6 @@ public class WindowStoreProxy extends AbstractStateStoreProxy<WindowStore<Object
 
     @HostAccess.Export
     public void put(Object key, Object value, long windowStartTimestamp) {
-        delegate.put(NATIVE_MAPPER.fromPython(key), NATIVE_MAPPER.fromPython(value), windowStartTimestamp);
+        delegate.put(NATIVE_MAPPER.fromPython(toKey(key)), NATIVE_MAPPER.fromPython(toValue(value)), windowStartTimestamp);
     }
 }
