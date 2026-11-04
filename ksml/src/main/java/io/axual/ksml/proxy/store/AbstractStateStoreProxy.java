@@ -20,6 +20,7 @@ package io.axual.ksml.proxy.store;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.proxy.base.AbstractProxy;
 import io.axual.ksml.python.PythonDataObjectMapper;
 import io.axual.ksml.python.PythonNativeMapper;
@@ -36,9 +37,19 @@ public abstract class AbstractStateStoreProxy<T extends StateStore> implements S
     protected static final PythonNativeMapper NATIVE_MAPPER = new PythonNativeMapper();
     protected static final PythonDataObjectMapper DATA_OBJECT_MAPPER = new PythonDataObjectMapper(true);
     protected final T delegate;
+    /** The store's declared key type, or {@code null} when unknown. */
+    protected final DataType keyType;
+    /** The store's declared value type, or {@code null} when unknown. */
+    protected final DataType valueType;
 
     protected AbstractStateStoreProxy(T delegate) {
+        this(delegate, null, null);
+    }
+
+    protected AbstractStateStoreProxy(T delegate, DataType keyType, DataType valueType) {
         this.delegate = delegate;
+        this.keyType = keyType;
+        this.valueType = valueType;
     }
 
     @HostAccess.Export

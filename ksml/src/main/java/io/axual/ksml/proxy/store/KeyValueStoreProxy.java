@@ -20,6 +20,7 @@ package io.axual.ksml.proxy.store;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.type.DataType;
 import org.apache.kafka.streams.state.KeyValueStore;
 import org.graalvm.polyglot.HostAccess;
 
@@ -30,7 +31,12 @@ import org.graalvm.polyglot.HostAccess;
 public class KeyValueStoreProxy extends AbstractStateStoreProxy<KeyValueStore<Object, Object>> {
 
     public KeyValueStoreProxy(KeyValueStore<Object, Object> delegate) {
-        super(delegate);
+        this(delegate, null, null);
+    }
+
+    /** Creates a proxy for a store with these declared key and value types; {@code null} means unknown. */
+    public KeyValueStoreProxy(KeyValueStore<Object, Object> delegate, DataType keyType, DataType valueType) {
+        super(delegate, keyType, valueType);
     }
 
     // ==================== ReadOnlyKeyValueStore methods ====================

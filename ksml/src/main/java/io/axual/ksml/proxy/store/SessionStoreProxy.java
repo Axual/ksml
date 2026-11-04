@@ -35,7 +35,12 @@ public class SessionStoreProxy extends AbstractStateStoreProxy<SessionStore<Obje
     private static final DataObjectFlattener FLATTENER = new DataObjectFlattener();
 
     public SessionStoreProxy(SessionStore<Object, Object> delegate) {
-        super(delegate);
+        this(delegate, null, null);
+    }
+
+    /** Creates a proxy for a store with these declared key and value types; {@code null} means unknown. */
+    public SessionStoreProxy(SessionStore<Object, Object> delegate, DataType keyType, DataType valueType) {
+        super(delegate, keyType, valueType);
     }
 
     // ==================== ReadOnlySessionStore methods ====================
