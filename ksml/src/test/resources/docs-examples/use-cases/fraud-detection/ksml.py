@@ -162,3 +162,4 @@ else:
     TimestampedKeyValueStore = java.type('io.axual.ksml.proxy.store.TimestampedKeyValueStoreProxy')
     TimestampedWindowStore = java.type('io.axual.ksml.proxy.store.TimestampedWindowStoreProxy')
     VersionedKeyValueStore = java.type('io.axual.ksml.proxy.store.VersionedKeyValueStoreProxy')
+    StoreIterator = java.type('io.axual.ksml.proxy.store.StoreIteratorProxy')
