@@ -57,6 +57,12 @@ functions:
         line += " reverseRange=" + keys(store.reverseRange("a", "b"))
         line += " reverseAll=" + keys(store.reverseAll())
         line += " prefixScan=" + keys(store.prefixScan("a"))
+        # None means no bound
+        line += " rangeFromNone=" + keys(store.range(None, "ab"))
+        line += " rangeToNone=" + keys(store.range("b", None))
+        line += " rangeAll=" + keys(store.range(None, None))
+        line += " reverseRangeFromNone=" + keys(store.reverseRange(None, "ab"))
+        line += " reverseRangeToNone=" + keys(store.reverseRange("b", None))
         # A None value deletes the key; an iterator is accepted as input
         store.putAll(iter([("c", None)]))
         line += " afterDelete=" + keys(store.all())
