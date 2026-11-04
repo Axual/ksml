@@ -171,11 +171,17 @@ This example demonstrates:
 
 ### Reading Many Entries with Iterators
 
-Store methods that return many entries return an iterator: `all()` on key-value and window stores, `fetch()`,
-`fetchAll()` and their `backward` variants on window stores, and `fetch()` and `findSessions()` on session stores.
-Each entry is a dict with `key` and `value`. For window and session stores, the key of an `all()`, `fetchAll()` or
-session entry is a dict with the window (`start`, `end`, `startTime`, `endTime`) and the original `key`. For
-`fetch(key, timeFrom, timeTo)` on a window store, the key is the window start time.
+Store methods that return many entries return an iterator. Each entry is a dict with `key` and `value`.
+The `key` depends on the method:
+
+| Method | `key` of each entry |
+|---|---|
+| Key-value store: `all()` | the key |
+| Window store: `fetch(key, timeFrom, timeTo)`, `backwardFetch(key, timeFrom, timeTo)` | the window start time |
+| Window store: `all()`, `fetchAll()`, `fetch(keyFrom, keyTo, timeFrom, timeTo)` and their `backward` variants | a dict with `key`, `start`, `end`, `startTime` and `endTime` |
+| Session store: `fetch()`, `findSessions()` and their `backward` variants | a dict with `key`, `start`, `end`, `startTime` and `endTime` |
+
+`fetch(key, time)` on a window store returns one value, not an iterator.
 
 Use the iterator like any Python iterator:
 
