@@ -58,7 +58,7 @@ public class TimestampedKeyValueStoreProxy extends AbstractStateStoreProxy<Times
     /** Returns {@code {value, timestamp}} for the key, or {@code None} when the key has no value. */
     @HostAccess.Export
     public Object getWithTimestamp(Object key) {
-        return ProxyUtil.toPython(delegate.get(ProxyUtil.fromPython(toKey(key), "getWithTimestamp key")));
+        return ProxyUtil.toPython(delegate.get(NATIVE_MAPPER.fromPython(toKey(key))));
     }
 
     @HostAccess.Export
@@ -83,22 +83,22 @@ public class TimestampedKeyValueStoreProxy extends AbstractStateStoreProxy<Times
 
     @HostAccess.Export
     public Object range(Object from, Object to) {
-        return ProxyUtil.toPythonTimestamped(delegate.range(ProxyUtil.fromPython(toKey(from), "range from"), ProxyUtil.fromPython(toKey(to), "range to")), false);
+        return ProxyUtil.toPythonTimestamped(delegate.range(NATIVE_MAPPER.fromPython(toKey(from)), NATIVE_MAPPER.fromPython(toKey(to))), false);
     }
 
     @HostAccess.Export
     public Object rangeWithTimestamp(Object from, Object to) {
-        return ProxyUtil.toPythonTimestamped(delegate.range(ProxyUtil.fromPython(toKey(from), "rangeWithTimestamp from"), ProxyUtil.fromPython(toKey(to), "rangeWithTimestamp to")), true);
+        return ProxyUtil.toPythonTimestamped(delegate.range(NATIVE_MAPPER.fromPython(toKey(from)), NATIVE_MAPPER.fromPython(toKey(to))), true);
     }
 
     @HostAccess.Export
     public Object reverseRange(Object from, Object to) {
-        return ProxyUtil.toPythonTimestamped(delegate.reverseRange(ProxyUtil.fromPython(toKey(from), "reverseRange from"), ProxyUtil.fromPython(toKey(to), "reverseRange to")), false);
+        return ProxyUtil.toPythonTimestamped(delegate.reverseRange(NATIVE_MAPPER.fromPython(toKey(from)), NATIVE_MAPPER.fromPython(toKey(to))), false);
     }
 
     @HostAccess.Export
     public Object reverseRangeWithTimestamp(Object from, Object to) {
-        return ProxyUtil.toPythonTimestamped(delegate.reverseRange(ProxyUtil.fromPython(toKey(from), "reverseRangeWithTimestamp from"), ProxyUtil.fromPython(toKey(to), "reverseRangeWithTimestamp to")), true);
+        return ProxyUtil.toPythonTimestamped(delegate.reverseRange(NATIVE_MAPPER.fromPython(toKey(from)), NATIVE_MAPPER.fromPython(toKey(to))), true);
     }
 
     /** Entries whose key starts with the string prefix, serialized as UTF-8. A non-string prefix raises TypeError. */

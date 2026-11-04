@@ -53,12 +53,12 @@ public class KeyValueStoreProxy extends AbstractStateStoreProxy<KeyValueStore<Ob
 
     @HostAccess.Export
     public Object range(Object from, Object to) {
-        return ProxyUtil.toPython(delegate.range(ProxyUtil.fromPython(toKey(from), "range from"), ProxyUtil.fromPython(toKey(to), "range to")));
+        return ProxyUtil.toPython(delegate.range(NATIVE_MAPPER.fromPython(toKey(from)), NATIVE_MAPPER.fromPython(toKey(to))));
     }
 
     @HostAccess.Export
     public Object reverseRange(Object from, Object to) {
-        return ProxyUtil.toPython(delegate.reverseRange(ProxyUtil.fromPython(toKey(from), "reverseRange from"), ProxyUtil.fromPython(toKey(to), "reverseRange to")));
+        return ProxyUtil.toPython(delegate.reverseRange(NATIVE_MAPPER.fromPython(toKey(from)), NATIVE_MAPPER.fromPython(toKey(to))));
     }
 
     /** Entries whose key starts with the string prefix, serialized as UTF-8. A non-string prefix raises TypeError. */
