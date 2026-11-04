@@ -79,8 +79,10 @@ functions:
         # delete and putIfAbsent return only the value
         line += " putIfAbsent=" + str(store.putIfAbsent("a", "9", 900))
         line += " delete=" + str(store.delete("c"))
-        # A None value in putAll deletes the key
+        # A None value in putAll deletes the key, as with put
         store.putAll([("d", None)])
+        store.put("e", "6")
+        store.put("e", None)
         line += " afterDelete=" + keys(store.all())
         # A bad entry and a tuple of three raise a Python error and write nothing
         try:
