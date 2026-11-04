@@ -63,7 +63,8 @@ public class TransformValueOperation extends StoreOperation {
                 name,
                 TransformValueProcessor::new,
                 (stores, rec) -> userMap.apply(stores, flattenValue(rec.key()), flattenValue(rec.value())),
-                storeNames);
+                storeNames,
+                context::stateStore);
         final var named = namedOf();
         final KStream<Object, Object> output = named != null
                 ? input.stream.processValues(supplier, named, storeNames)

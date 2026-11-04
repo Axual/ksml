@@ -20,6 +20,8 @@ package io.axual.ksml.proxy.store;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.type.DataType;
+import io.axual.ksml.definition.StateStoreDefinition;
 import io.axual.ksml.data.exception.DataException;
 import io.axual.ksml.data.mapper.DataObjectFlattener;
 import io.axual.ksml.data.object.DataObject;
@@ -27,6 +29,7 @@ import io.axual.ksml.data.value.Struct;
 import io.axual.ksml.python.PythonDataObjectMapper;
 import io.axual.ksml.python.PythonErrors;
 import io.axual.ksml.python.PythonNativeMapper;
+import io.axual.ksml.type.UserType;
 import org.apache.kafka.common.serialization.Serializer;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.apache.kafka.streams.KeyValue;
@@ -249,32 +252,44 @@ public class ProxyUtil {
         throw PythonErrors.valueError("No record is being processed, so a write to a timestamped store needs a timestamp");
     }
 
+    /** Wraps a state store whose declared types are unknown; see {@link #wrapStateStore(StateStore, StateStoreDefinition, LongSupplier)}. */
+    public static StateStore wrapStateStore(StateStore store, LongSupplier recordTimestamp) {
+        return wrapStateStore(store, null, recordTimestamp);
+    }
+
     /**
      * Static method for creating proxy wrappers around Kafka Streams state stores.
      * The proxies delegate all operations to the underlying store while providing
      * a controlled interface that can be safely exposed to user code (e.g., Python functions).
      *
      * @param store           the state store to wrap
+     * @param definition      the store's definition, which declares its key and value types, or {@code null}
      * @param recordTimestamp the timestamp of the record that is being processed, used by timestamped stores when
      *                        Python writes without a timestamp
      * @return a proxy wrapper around the store, or the original store if no proxy is available
      */
     @SuppressWarnings("unchecked")
-    public static StateStore wrapStateStore(StateStore store, LongSupplier recordTimestamp) {
+    public static StateStore wrapStateStore(StateStore store, StateStoreDefinition definition, LongSupplier recordTimestamp) {
+        final var keyType = definition != null ? dataTypeOf(definition.keyType()) : null;
+        final var valueType = definition != null ? dataTypeOf(definition.valueType()) : null;
         if (store instanceof VersionedKeyValueStore<?, ?> versionedStore) {
-            return new VersionedKeyValueStoreProxy((VersionedKeyValueStore<Object, Object>) versionedStore);
+            return new VersionedKeyValueStoreProxy((VersionedKeyValueStore<Object, Object>) versionedStore, keyType, valueType);
         } else if (store instanceof TimestampedKeyValueStore<?, ?> timestampedKeyValueStore) {
-            return new TimestampedKeyValueStoreProxy((TimestampedKeyValueStore<Object, Object>) timestampedKeyValueStore, recordTimestamp);
+            return new TimestampedKeyValueStoreProxy((TimestampedKeyValueStore<Object, Object>) timestampedKeyValueStore, keyType, valueType, recordTimestamp);
         } else if (store instanceof KeyValueStore<?, ?> kvStore) {
-            return new KeyValueStoreProxy((KeyValueStore<Object, Object>) kvStore);
+            return new KeyValueStoreProxy((KeyValueStore<Object, Object>) kvStore, keyType, valueType);
         } else if (store instanceof SessionStore<?, ?> sessionStore) {
-            return new SessionStoreProxy((SessionStore<Object, Object>) sessionStore);
+            return new SessionStoreProxy((SessionStore<Object, Object>) sessionStore, keyType, valueType);
         } else if (store instanceof TimestampedWindowStore<?, ?> timestampedWindowStore) {
-            return new TimestampedWindowStoreProxy((TimestampedWindowStore<Object, Object>) timestampedWindowStore, recordTimestamp);
+            return new TimestampedWindowStoreProxy((TimestampedWindowStore<Object, Object>) timestampedWindowStore, keyType, valueType, recordTimestamp);
         } else if (store instanceof WindowStore<?, ?> windowStore) {
-            return new WindowStoreProxy((WindowStore<Object, Object>) windowStore);
+            return new WindowStoreProxy((WindowStore<Object, Object>) windowStore, keyType, valueType);
         }
         // Return unwrapped for unknown store types
         return store;
+    }
+
+    private static DataType dataTypeOf(UserType type) {
+        return type != null ? type.dataType() : null;
     }
 }
