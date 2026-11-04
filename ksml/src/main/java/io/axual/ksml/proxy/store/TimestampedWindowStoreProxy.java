@@ -145,6 +145,6 @@ public class TimestampedWindowStoreProxy extends AbstractStateStoreProxy<Timesta
 
     @HostAccess.Export
     public void put(Object key, Object value, long windowStartTimestamp, long timestamp) {
-        delegate.put(key, ValueAndTimestamp.make(value, timestamp), windowStartTimestamp);
+        delegate.put(NATIVE_MAPPER.fromPython(key), ValueAndTimestamp.make(NATIVE_MAPPER.fromPython(value), timestamp), windowStartTimestamp);
     }
 }

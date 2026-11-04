@@ -22,6 +22,7 @@ package io.axual.ksml.operation;
 import io.axual.ksml.testutil.KSMLTest;
 import io.axual.ksml.testutil.KSMLTestExtension;
 import io.axual.ksml.testutil.KSMLTopic;
+import org.apache.avro.generic.GenericRecord;
 import org.apache.kafka.streams.TestInputTopic;
 import org.apache.kafka.streams.TestOutputTopic;
 import org.junit.jupiter.api.DisplayName;
@@ -44,6 +45,12 @@ public class KSMLTimestampedWindowStoreMethodsTest {
     @KSMLTopic(topic = "timestamped_window_output")
     TestOutputTopic<String, String> output;
 
+    @KSMLTopic(topic = "timestamped_window_avro_input", valueSerde = KSMLTopic.SerdeType.AVRO)
+    TestInputTopic<String, GenericRecord> avroInput;
+
+    @KSMLTopic(topic = "timestamped_window_avro_output")
+    TestOutputTopic<String, String> avroOutput;
+
     @KSMLTest(topology = "pipelines/test-timestamped-window-store-methods-python.yaml", modulesDirectory = "pipelines")
     @DisplayName("Timestamped window stores have the window store API plus *WithTimestamp methods, on in-memory and RocksDB stores")
     void testTimestampedWindowStoreMethods() {
@@ -63,5 +70,19 @@ public class KSMLTimestampedWindowStoreMethodsTest {
                 + " fetchAllWithTimestamp=a:2@3000,b:1@2000 backwardFetchAllWithTimestamp=b:1@2000,a:2@3000"
                 + " put=c:9@3000,d:7@777";
         assertThat(lines).containsExactlyInAnyOrder("memory" + expected, "rocksdb" + expected);
+    }
+
+    @KSMLTest(topology = "pipelines/test-timestamped-window-store-avro-put-python.yaml", schemaDirectory = "schemas")
+    @DisplayName("put() writes an Avro value from Python to a timestamped window store")
+    void testPutAvroValue() {
+        avroInput.pipeInput("sensor1", SensorData.builder()
+                .city("Amsterdam")
+                .type(SensorData.SensorType.HUMIDITY)
+                .unit("%")
+                .value("80")
+                .build().toRecord(), 3000L);
+
+        // put without a timestamp uses the record timestamp (3000)
+        assertThat(avroOutput.readValuesToList()).containsExactly("Amsterdam@3000 Amsterdam@777");
     }
 }
