@@ -2,7 +2,8 @@
 
 # Regression test for session stores (AXPD-11068): a Python function puts each record in an in-memory and a RocksDB
 # session store, and on the record with value "3" calls every session store method. Each iterator is read with a for
-# loop and with a hasNext() loop without close(). The result of each store is returned as one line of text.
+# loop and with a hasNext() loop without close(). The result of each store is returned as one line of text, followed
+# by a line per store that writes and removes session keys with small times, start == end and malformed fields.
 streams:
   session_methods_input:
     topic: session_methods_input
@@ -23,6 +24,24 @@ stores:
     caching: false
     logging: false
   session_rocksdb:
+    type: session
+    keyType: string
+    valueType: string
+    retention: 1h
+    persistent: true
+    caching: false
+    logging: false
+  # Separate stores for the session key checks: the stores above have a stream time far beyond these small times,
+  # so Kafka would drop the sessions as expired
+  session_keys_memory:
+    type: session
+    keyType: string
+    valueType: string
+    retention: 1h
+    persistent: false
+    caching: false
+    logging: false
+  session_keys_rocksdb:
     type: session
     keyType: string
     valueType: string
@@ -67,16 +86,49 @@ functions:
         store.remove(session("a", 10))
         line += " afterRemove=" + read(lambda: store.fetch("a"), describe)
         return line
+
+      def attempt(f):
+        # "ok", or the type of the Python error
+        try:
+          f()
+          return "ok"
+        except Exception as e:
+          return type(e).__name__
+
+      def check_session_keys(name, store):
+        line = name + " keys"
+        # Session times in the int range, and a single-record session where start == end
+        line += " small=" + attempt(lambda: store.put({"key": "z", "start": 10, "end": 20}, "s1"))
+        line += "/" + str(store.fetchSession("z", 10, 20))
+        line += " single=" + attempt(lambda: store.put({"key": "z", "start": 30, "end": 30}, "s2"))
+        line += "/" + str(store.fetchSession("z", 30, 30))
+        # A session key read from the store can be passed back to remove
+        entries = list(store.fetch("z"))
+        line += " roundTrip=" + ",".join(attempt(lambda: store.remove(e["key"])) for e in entries)
+        line += "/" + str(len(list(store.fetch("z"))))
+        # A malformed session key raises a Python error and writes nothing
+        line += " notDict=" + attempt(lambda: store.put("z", "x"))
+        line += " missing=" + attempt(lambda: store.put({"key": "z", "start": 10}, "x"))
+        line += " strStart=" + attempt(lambda: store.put({"key": "z", "start": "10", "end": 20}, "x"))
+        line += " floatStart=" + attempt(lambda: store.put({"key": "z", "start": 10.0, "end": 20}, "x"))
+        line += " huge=" + attempt(lambda: store.put({"key": "z", "start": 10, "end": 10 ** 30}, "x"))
+        line += " reversed=" + attempt(lambda: store.put({"key": "z", "start": 20, "end": 10}, "x"))
+        line += " removeNotDict=" + attempt(lambda: store.remove("z"))
+        line += " written=" + str(len(list(store.fetch("z"))))
+        return line
     code: |
       # Value "1" is the session at 10, value "2" at 20 and value "3" at 30. Key c is outside the key ranges above.
       session_memory.put(session(key, int(value) * 10), value)
       session_rocksdb.put(session(key, int(value) * 10), value)
-      result = check("memory", session_memory) + "\n" + check("rocksdb", session_rocksdb) if value == "3" else ""
+      result = "\n".join([check("memory", session_memory), check("rocksdb", session_rocksdb),
+                          check_session_keys("memory", session_keys_memory), check_session_keys("rocksdb", session_keys_rocksdb)]) if value == "3" else ""
     expression: result
     resultType: string
     stores:
       - session_memory
       - session_rocksdb
+      - session_keys_memory
+      - session_keys_rocksdb
 
 pipelines:
   session_methods_pipeline:
