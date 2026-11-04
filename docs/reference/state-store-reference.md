@@ -266,6 +266,37 @@ retention = 2 × timeDifference + gracePeriod
 
 Python functions can call these methods on the stores listed in their `stores`.
 
+### Keys and Values
+
+Keys and values are converted to the `keyType` and `valueType` of the store. This matters for numbers: Python has one
+`int` type, while a store with `valueType: long` needs a long and a store with `valueType: int` an int. So
+`store.put(key, count + 1)` works on both. The keys of all methods are converted too, so `store.get(5)` finds the value
+that `store.put(5, ...)` wrote.
+
+A value is only converted to a type of the same kind:
+
+| Store type                     | Accepted Python values              |
+|--------------------------------|-------------------------------------|
+| `byte`, `short`, `int`, `long` | `int`, within the range of the type |
+| `float`, `double`              | `int` or `float`                    |
+| `string`                       | `str`                               |
+| `boolean`                      | `bool`                              |
+| `bytes`                        | `bytes`                             |
+
+Other values raise a Python error that you can catch with `except Exception`, and nothing is written:
+
+- `TypeError` - a value of another kind, for example a `float` on a `long` store (also a whole number like `2.0`), a
+  `str` on a `long` store, or an `int` on a `string` store. Convert the value first, for example with `int(...)` or
+  `str(...)`
+- `ValueError` - an `int` out of range, for example `2 ** 40` on an `int` store
+
+The message names the store and the types, not the value, for example
+`TypeError: Store counts: value must be long, got float`.
+
+`None` is not converted, so `store.put(key, None)` still deletes the key. Stores with other types (`json`, `avro:...`
+and other schema types, unions, enums, or no `keyType` / `valueType`) get keys and values as they are. Stores in the
+`assert` blocks of the [KSML test runner](../getting-started/testing-your-pipeline.md) convert the same way.
+
 ### Key-Value Store Methods
 
 - `store.get(key)` - The value of the key, or `None`
@@ -280,7 +311,8 @@ Python functions can call these methods on the stores listed in their `stores`.
 
 Keys are ordered by their serialized bytes. For string keys this is alphabetical order (`"a"`, `"ab"`, `"b"`).
 
-`putAll` and `prefixScan` check their arguments and raise a Python error that you can catch with `except Exception`:
+Besides the [conversion of keys and values](#keys-and-values), `putAll` and `prefixScan` check the form of their
+arguments and raise a Python error that you can catch with `except Exception`:
 
 - `TypeError` - the argument has the wrong kind: `putAll` gets something that is not a list or an iterator, or an entry that is not a pair or a dict; `prefixScan` gets a prefix that is not a string
 - `ValueError` - the argument has the right kind, but wrong content: a pair that does not have 2 elements, or a dict without `key` or `value`
@@ -302,7 +334,13 @@ Times are in milliseconds. `time_from` and `time_to` select windows by their sta
 
 ### Session Store Methods
 
-A session is identified by a dict with `key`, `start` and `end` (times in milliseconds).
+A session is identified by a dict with `key`, `start` and `end` (times in milliseconds, as `int`). A session with one
+record has `start` equal to `end`. The session keys that `fetch` and `findSessions` return can be passed back to `put`
+and `remove`; their `startTime` and `endTime` fields are ignored. For a session key that is not valid, `put` and
+`remove` raise a Python error and write nothing:
+
+- `TypeError` - the session key is not a dict, or `start` or `end` is not an `int`
+- `ValueError` - `key`, `start` or `end` is missing, a time is out of the range of a long, or `start` is after `end`
 
 - `store.put(session, value)` - Store the value of a session
 - `store.remove(session)` - Remove a session
