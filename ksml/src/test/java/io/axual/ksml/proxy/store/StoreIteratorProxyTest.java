@@ -40,7 +40,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * Checks that the store iterators that {@link ProxyUtil#toPython(Object)} returns work with Python iteration
  * ({@code for}, {@code next()}, {@code list()}, {@code contextlib.closing}) and with the Java style
- * ({@code hasNext()}, {@code next()}, {@code close()}), and that the Kafka iterator is closed (AXPD-11068).
+ * ({@code hasNext()}, {@code next()}, {@code close()}), and that the Kafka iterator is closed.
  */
 class StoreIteratorProxyTest {
 
