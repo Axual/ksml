@@ -58,47 +58,47 @@ public class TimestampedWindowStoreProxy extends AbstractStateStoreProxy<Timesta
     /** Returns {@code {value, timestamp}} for the key in the window that starts at the given time, or {@code None}. */
     @HostAccess.Export
     public Object fetchWithTimestamp(Object key, long time) {
-        return ProxyUtil.toPython(delegate.fetch(ProxyUtil.fromPython(toKey(key), "fetchWithTimestamp key"), time));
+        return ProxyUtil.toPython(delegate.fetch(NATIVE_MAPPER.fromPython(toKey(key)), time));
     }
 
     @HostAccess.Export
     public Object fetch(Object key, long timeFrom, long timeTo) {
-        return ProxyUtil.toPythonTimestamped(delegate.fetch(ProxyUtil.fromPython(toKey(key), "fetch key"), timeFrom, timeTo), false);
+        return ProxyUtil.toPythonTimestamped(delegate.fetch(NATIVE_MAPPER.fromPython(toKey(key)), timeFrom, timeTo), false);
     }
 
     @HostAccess.Export
     public Object fetchWithTimestamp(Object key, long timeFrom, long timeTo) {
-        return ProxyUtil.toPythonTimestamped(delegate.fetch(ProxyUtil.fromPython(toKey(key), "fetchWithTimestamp key"), timeFrom, timeTo), true);
+        return ProxyUtil.toPythonTimestamped(delegate.fetch(NATIVE_MAPPER.fromPython(toKey(key)), timeFrom, timeTo), true);
     }
 
     @HostAccess.Export
     public Object fetch(Object keyFrom, Object keyTo, long timeFrom, long timeTo) {
-        return ProxyUtil.toPythonTimestamped(delegate.fetch(ProxyUtil.fromPython(toKey(keyFrom), "fetch keyFrom"), ProxyUtil.fromPython(toKey(keyTo), "fetch keyTo"), timeFrom, timeTo), false);
+        return ProxyUtil.toPythonTimestamped(delegate.fetch(NATIVE_MAPPER.fromPython(toKey(keyFrom)), NATIVE_MAPPER.fromPython(toKey(keyTo)), timeFrom, timeTo), false);
     }
 
     @HostAccess.Export
     public Object fetchWithTimestamp(Object keyFrom, Object keyTo, long timeFrom, long timeTo) {
-        return ProxyUtil.toPythonTimestamped(delegate.fetch(ProxyUtil.fromPython(toKey(keyFrom), "fetchWithTimestamp keyFrom"), ProxyUtil.fromPython(toKey(keyTo), "fetchWithTimestamp keyTo"), timeFrom, timeTo), true);
+        return ProxyUtil.toPythonTimestamped(delegate.fetch(NATIVE_MAPPER.fromPython(toKey(keyFrom)), NATIVE_MAPPER.fromPython(toKey(keyTo)), timeFrom, timeTo), true);
     }
 
     @HostAccess.Export
     public Object backwardFetch(Object key, long timeFrom, long timeTo) {
-        return ProxyUtil.toPythonTimestamped(delegate.backwardFetch(ProxyUtil.fromPython(toKey(key), "backwardFetch key"), timeFrom, timeTo), false);
+        return ProxyUtil.toPythonTimestamped(delegate.backwardFetch(NATIVE_MAPPER.fromPython(toKey(key)), timeFrom, timeTo), false);
     }
 
     @HostAccess.Export
     public Object backwardFetchWithTimestamp(Object key, long timeFrom, long timeTo) {
-        return ProxyUtil.toPythonTimestamped(delegate.backwardFetch(ProxyUtil.fromPython(toKey(key), "backwardFetchWithTimestamp key"), timeFrom, timeTo), true);
+        return ProxyUtil.toPythonTimestamped(delegate.backwardFetch(NATIVE_MAPPER.fromPython(toKey(key)), timeFrom, timeTo), true);
     }
 
     @HostAccess.Export
     public Object backwardFetch(Object keyFrom, Object keyTo, long timeFrom, long timeTo) {
-        return ProxyUtil.toPythonTimestamped(delegate.backwardFetch(ProxyUtil.fromPython(toKey(keyFrom), "backwardFetch keyFrom"), ProxyUtil.fromPython(toKey(keyTo), "backwardFetch keyTo"), timeFrom, timeTo), false);
+        return ProxyUtil.toPythonTimestamped(delegate.backwardFetch(NATIVE_MAPPER.fromPython(toKey(keyFrom)), NATIVE_MAPPER.fromPython(toKey(keyTo)), timeFrom, timeTo), false);
     }
 
     @HostAccess.Export
     public Object backwardFetchWithTimestamp(Object keyFrom, Object keyTo, long timeFrom, long timeTo) {
-        return ProxyUtil.toPythonTimestamped(delegate.backwardFetch(ProxyUtil.fromPython(toKey(keyFrom), "backwardFetchWithTimestamp keyFrom"), ProxyUtil.fromPython(toKey(keyTo), "backwardFetchWithTimestamp keyTo"), timeFrom, timeTo), true);
+        return ProxyUtil.toPythonTimestamped(delegate.backwardFetch(NATIVE_MAPPER.fromPython(toKey(keyFrom)), NATIVE_MAPPER.fromPython(toKey(keyTo)), timeFrom, timeTo), true);
     }
 
     @HostAccess.Export

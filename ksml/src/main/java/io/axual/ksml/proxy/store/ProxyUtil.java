@@ -22,7 +22,6 @@ package io.axual.ksml.proxy.store;
 
 import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.definition.StateStoreDefinition;
-import io.axual.ksml.data.exception.DataException;
 import io.axual.ksml.data.mapper.DataObjectFlattener;
 import io.axual.ksml.data.object.DataObject;
 import io.axual.ksml.data.value.Struct;
@@ -228,20 +227,8 @@ public class ProxyUtil {
 
     /** Converts the Python argument of {@code prefixScan} to a string prefix. */
     public static String toStringPrefix(Object prefix) {
-        if (fromPython(prefix, "prefixScan prefix") instanceof String result) return result;
+        if (NATIVE_MAPPER.fromPython(prefix) instanceof String result) return result;
         throw PythonErrors.typeError("prefixScan needs a string prefix, got " + PythonErrors.typeName(prefix));
-    }
-
-    /**
-     * Converts a Python argument to a Java value; a failed conversion raises ValueError. GraalVM already converts
-     * {@code Object} parameters, so this only catches errors for polyglot {@code Value}s.
-     */
-    public static Object fromPython(Object object, String name) {
-        try {
-            return NATIVE_MAPPER.fromPython(object);
-        } catch (DataException e) {
-            throw PythonErrors.valueError(name + ": " + e.getMessage(), e);
-        }
     }
 
     /**
