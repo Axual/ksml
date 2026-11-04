@@ -33,7 +33,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * Calls the key-value store methods range, reverseRange, reverseAll, prefixScan and putAll from Python, on an
- * in-memory and a RocksDB store (AXPD-11068).
+ * in-memory and a RocksDB store.
  */
 @ExtendWith(KSMLTestExtension.class)
 @SuppressWarnings("java:S2187")

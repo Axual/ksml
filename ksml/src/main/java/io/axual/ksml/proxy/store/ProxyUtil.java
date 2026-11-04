@@ -116,6 +116,8 @@ public class ProxyUtil {
     public static List<KeyValue<Object, Object>> toKeyValueList(Object entries) {
         final var value = Value.asValue(entries);
         final Value iterator;
+        if (value.hasHashEntries())
+            throw PythonErrors.typeError("putAll needs a list or an iterator of entries; for a dict use putAll(d.items())");
         if (value.hasIterator()) iterator = value.getIterator();
         else if (value.isIterator()) iterator = value;
         else throw PythonErrors.typeError("putAll needs a list or an iterator of entries, got: " + value);

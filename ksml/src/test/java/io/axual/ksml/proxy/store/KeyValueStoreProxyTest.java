@@ -178,7 +178,7 @@ class KeyValueStoreProxyTest {
         }
     }
 
-    // ==================== Methods called from Python (AXPD-11068) ====================
+    // ==================== Methods called from Python ====================
 
     private static FakeKeyValueIterator<Object> entries(String... keys) {
         final var result = new ArrayList<KeyValue<Object, Object>>();
@@ -385,6 +385,16 @@ class KeyValueStoreProxyTest {
         assertThat(error.isGuestException()).isTrue();
         assertThat(error.isHostException()).isFalse();
         assertThat(error.getMessage()).startsWith("TypeError: ").contains("putAll entry 0");
+    }
+
+    @Test
+    @DisplayName("putAll with a dict raises a TypeError that points to d.items()")
+    void putAllWithDictRaisesTypeError() {
+        final var error = runPythonExpectingError("""
+                store.putAll({"a": "1"})
+                """);
+        assertThat(error.getMessage()).startsWith("TypeError: ").contains("putAll(d.items())");
+        verify(delegate, never()).putAll(any());
     }
 
     @Test

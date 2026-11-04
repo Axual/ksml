@@ -96,12 +96,7 @@ if TYPE_CHECKING:
             """
             ...
         def putAll(self, entries: Union[Iterable[Tuple[Any, Any]], Iterable[Dict[str, Any]]]) -> None:
-            """Writes all entries in one call: (key, value) pairs or dicts with "key" and "value".
-
-            A value None deletes the key. Raises TypeError for an entry that is not a pair or a dict, and
-            ValueError for a pair of the wrong size or a dict without "key" or "value". The message names the
-            position of the entry. A bad entry writes nothing.
-            """
+            """Writes (key, value) pairs or {"key", "value"} dicts. None deletes. A bad entry raises and writes nothing."""
             ...
         def approximateNumEntries(self) -> int: ...
 
