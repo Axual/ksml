@@ -195,7 +195,7 @@ The `key` depends on the method:
 
 | Method | `key` of each entry |
 |---|---|
-| Key-value store: `all()` | the key |
+| Key-value store: `all()`, `reverseAll()`, `range()`, `reverseRange()`, `prefixScan()` | the key |
 | Window store: `fetch(key, timeFrom, timeTo)`, `backwardFetch(key, timeFrom, timeTo)` | the window start time |
 | Window store: `all()`, `fetchAll()`, `fetch(keyFrom, keyTo, timeFrom, timeTo)` and their `backward` variants | a dict with `key`, `start`, `end`, `startTime` and `endTime` |
 | Session store: `fetch()`, `findSessions()` and their `backward` variants | a dict with `key`, `start`, `end`, `startTime` and `endTime` |
