@@ -21,6 +21,7 @@ package io.axual.ksml.proxy.store;
  */
 
 import io.axual.ksml.proxy.base.AbstractProxy;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.streams.state.KeyValueIterator;
 import org.graalvm.polyglot.Value;
 import org.graalvm.polyglot.proxy.ProxyArray;
@@ -28,21 +29,26 @@ import org.graalvm.polyglot.proxy.ProxyExecutable;
 import org.graalvm.polyglot.proxy.ProxyIterator;
 import org.graalvm.polyglot.proxy.ProxyObject;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 
 /**
- * Wraps a Kafka Streams store iterator ({@link KeyValueIterator}, which includes
- * {@link org.apache.kafka.streams.state.WindowStoreIterator}) for Python.
- * <p>
- * As a {@link ProxyIterator}, it works with Python {@code for}, {@code next()} and {@code list()}. As a
- * {@link ProxyObject}, it keeps the Java style methods {@code hasNext()}, {@code next()}, {@code peekNextKey()}
- * and {@code close()}. Both work with {@code HostAccess.EXPLICIT}, because polyglot proxies are not host objects.
- * <p>
- * The Kafka iterator is closed once it is used up, and by {@code close()}, so a Python loop that reads all entries
- * does not leak it. For an early exit, Python code uses {@code contextlib.closing(...)}.
+ * Python view of a Kafka store iterator. Works with Python {@code for}/{@code next()}/{@code list()}
+ * and with {@code hasNext()}, {@code next()}, {@code peekNextKey()}, {@code close()}.
+ * Closes the Kafka iterator when all entries are read, or when the Python function that created it returns.
  */
+@Slf4j
 public class StoreIteratorProxy implements AbstractProxy, ProxyIterator, ProxyObject {
+    /** Iterators created by the Python function calls running on this thread. */
+    private static final ThreadLocal<CallScope> SCOPE = ThreadLocal.withInitial(CallScope::new);
+
+    private static final class CallScope {
+        private final List<StoreIteratorProxy> created = new ArrayList<>();
+        private int depth = 0;
+    }
+
     private final KeyValueIterator<?, ?> iterator;
     private final Map<String, ProxyExecutable> members = Map.of(
             "hasNext", args -> hasNext(),
@@ -56,6 +62,33 @@ public class StoreIteratorProxy implements AbstractProxy, ProxyIterator, ProxyOb
 
     public StoreIteratorProxy(KeyValueIterator<?, ?> iterator) {
         this.iterator = iterator;
+        final var scope = SCOPE.get();
+        if (scope.depth > 0) scope.created.add(this);
+    }
+
+    /** Starts a Python function call. Returns the mark to pass to {@link #endCall(int)}. */
+    public static int beginCall() {
+        final var scope = SCOPE.get();
+        scope.depth++;
+        return scope.created.size();
+    }
+
+    /** Ends a Python function call: closes the iterators created since the mark. Returns how many were open. */
+    public static int endCall(int mark) {
+        final var scope = SCOPE.get();
+        int closedNow = 0;
+        while (scope.created.size() > mark) {
+            final var proxy = scope.created.remove(scope.created.size() - 1);
+            if (proxy.closed) continue;
+            closedNow++;
+            try {
+                proxy.close();
+            } catch (RuntimeException e) {
+                log.warn("Could not close a store iterator", e);
+            }
+        }
+        scope.depth--;
+        return closedNow;
     }
 
     /** Returns whether there is a next entry, and closes the Kafka iterator when there is none. */

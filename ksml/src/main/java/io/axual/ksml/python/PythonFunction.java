@@ -30,6 +30,7 @@ import io.axual.ksml.definition.ParameterDefinition;
 import io.axual.ksml.exception.ExecutionException;
 import io.axual.ksml.exception.TopologyException;
 import io.axual.ksml.execution.FatalError;
+import io.axual.ksml.proxy.store.StoreIteratorProxy;
 import io.axual.ksml.store.StateStores;
 import io.axual.ksml.user.UserFunction;
 import lombok.extern.slf4j.Slf4j;
@@ -114,6 +115,7 @@ public class PythonFunction extends UserFunction {
         globalVars.put("stores", stores != null ? stores : EMPTY_STORES);
         var arguments = convertParameters(globalVars, parameters);
 
+        final int iteratorMark = StoreIteratorProxy.beginCall();
         try {
             // Call the prepared function
             log.debug("Calling Python function: namespace={}, name={}, arguments={}", namespace, name, arguments);
@@ -138,6 +140,10 @@ public class PythonFunction extends UserFunction {
         } catch (Exception e) {
             logCall(parameters, null);
             throw FatalError.report(new TopologyException("Error while executing function %s.%s : %s".formatted(namespace, name, e.getMessage()), e));
+        } finally {
+            // Closes store iterators that the function left open, for example after break or return in a loop
+            final int closed = StoreIteratorProxy.endCall(iteratorMark);
+            if (closed > 0) log.debug("Closed {} store iterator(s) left open by {}.{}", closed, namespace, name);
         }
     }
 

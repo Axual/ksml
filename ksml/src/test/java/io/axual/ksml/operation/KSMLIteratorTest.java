@@ -20,17 +20,20 @@ package io.axual.ksml.operation;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.testutil.KSMLDriver;
 import io.axual.ksml.testutil.KSMLTest;
 import io.axual.ksml.testutil.KSMLTestExtension;
 import io.axual.ksml.testutil.KSMLTopic;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.streams.TestInputTopic;
 import org.apache.kafka.streams.TestOutputTopic;
+import org.apache.kafka.streams.TopologyTestDriver;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.util.List;
 
+import static io.axual.ksml.testutil.StoreMetrics.openIterators;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @Slf4j
@@ -43,6 +46,15 @@ public class KSMLIteratorTest {
 
     @KSMLTopic(topic = "store_iterator_output")
     TestOutputTopic<String, String> iteratorOutput;
+
+    @KSMLTopic(topic = "store_iterator_early_exit_input")
+    TestInputTopic<String, String> earlyExitInput;
+
+    @KSMLTopic(topic = "store_iterator_early_exit_output")
+    TestOutputTopic<String, String> earlyExitOutput;
+
+    @KSMLDriver
+    TopologyTestDriver driver;
 
     /**
      * Python iterates over key-value, window and session stores (in-memory and RocksDB) with for, list(),
@@ -66,5 +78,20 @@ public class KSMLIteratorTest {
                 "window_rocksdb.fetch for=0:2 list=0:2 next=0:2 closing=0:2",
                 "session_memory.fetch for=b@3000000000:2 list=b@3000000000:2 next=b@3000000000:2 closing=b@3000000000:2",
                 "session_rocksdb.fetch for=b@3000000000:2 list=b@3000000000:2 next=b@3000000000:2 closing=b@3000000000:2");
+    }
+
+    @KSMLTest(topology = "pipelines/test-store-iterator-early-exit-python.yaml")
+    @DisplayName("store iterators left open by return, break, an exception or next() are closed when the function returns")
+    void testEarlyExitClosesIterators() {
+        earlyExitInput.pipeInput("a", "1");
+        earlyExitInput.pipeInput("b", "2");
+
+        final var values = earlyExitOutput.readValuesToList();
+        assertThat(values).hasSize(2);
+        assertThat(List.of(values.get(1).split("\n"))).containsExactly(
+                "memory return=a break=a exception=a next=a",
+                "rocksdb return=a break=a exception=a next=a");
+        assertThat(openIterators(driver, "early_exit_memory")).isZero();
+        assertThat(openIterators(driver, "early_exit_rocksdb")).isZero();
     }
 }
