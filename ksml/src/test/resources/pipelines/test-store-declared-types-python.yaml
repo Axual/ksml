@@ -99,7 +99,7 @@ functions:
   check_declared_types:
     type: valueTransformer
     globalCode: |
-      # Session times above the int range and start < end: SessionStoreProxy.put ignores other session keys
+      # Session times above the int range, so they reach the proxy as a Java Long
       BASE = 3000000000
 
       def write(f):
