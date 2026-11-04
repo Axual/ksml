@@ -1,0 +1,90 @@
+# $schema: https://raw.githubusercontent.com/Axual/ksml/refs/heads/main/docs/ksml-language-spec.json
+
+# Python reads the store of an aggregate without timestamped: true. Kafka Streams makes this store timestamped,
+# so get() returns only the value. The stored value has its own "value" field.
+streams:
+  aggregate_store_input:
+    topic: aggregate_store_input
+    keyType: string
+    valueType: string
+  aggregate_store_output:
+    topic: aggregate_store_output
+    keyType: string
+    valueType: string
+
+stores:
+  total_memory:
+    type: keyValue
+    keyType: string
+    valueType: json
+    persistent: false
+    caching: false
+    logging: false
+  total_rocksdb:
+    type: keyValue
+    keyType: string
+    valueType: json
+    persistent: true
+    caching: false
+    logging: false
+
+functions:
+  init_total:
+    type: initializer
+    expression: '{"sensor": "", "value": 0}'
+    resultType: json
+  add_total:
+    type: aggregator
+    expression: '{"sensor": key, "value": aggregatedValue["value"] + int(value)}'
+    resultType: json
+
+  check_memory:
+    type: valueTransformer
+    code: |
+      current = total_memory.get(key)
+      with_ts = total_memory.getWithTimestamp(key)
+      result = ("memory get=" + current["sensor"] + ":" + str(current["value"])
+                + " getWithTimestamp=" + str(with_ts["value"]["value"]) + "@" + str(with_ts["timestamp"]))
+    expression: result
+    resultType: string
+    stores:
+      - total_memory
+
+  check_rocksdb:
+    type: valueTransformer
+    code: |
+      current = total_rocksdb.get(key)
+      with_ts = total_rocksdb.getWithTimestamp(key)
+      result = ("rocksdb get=" + current["sensor"] + ":" + str(current["value"])
+                + " getWithTimestamp=" + str(with_ts["value"]["value"]) + "@" + str(with_ts["timestamp"]))
+    expression: result
+    resultType: string
+    stores:
+      - total_rocksdb
+
+pipelines:
+  memory_pipeline:
+    from: aggregate_store_input
+    via:
+      - type: groupByKey
+      - type: aggregate
+        store: total_memory
+        initializer: init_total
+        aggregator: add_total
+      - type: toStream
+      - type: transformValue
+        mapper: check_memory
+    to: aggregate_store_output
+
+  rocksdb_pipeline:
+    from: aggregate_store_input
+    via:
+      - type: groupByKey
+      - type: aggregate
+        store: total_rocksdb
+        initializer: init_total
+        aggregator: add_total
+      - type: toStream
+      - type: transformValue
+        mapper: check_rocksdb
+    to: aggregate_store_output
