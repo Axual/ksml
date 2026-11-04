@@ -278,4 +278,47 @@ class StoreIteratorProxyTest {
         assertThat(proxy.hasNext()).isFalse();
         assertThat(proxy.next()).isNull();
     }
+
+    @Test
+    @DisplayName("the end of a function call closes the iterators it left open")
+    void endCallClosesOpenIterators() {
+        final int mark = StoreIteratorProxy.beginCall();
+        assertThat(new StoreIteratorProxy(kafkaIterator).hasNext()).isTrue();
+        assertThat(StoreIteratorProxy.endCall(mark)).isEqualTo(1);
+        assertThat(kafkaIterator.closed).isTrue();
+    }
+
+    @Test
+    @DisplayName("the end of a function call does not close an iterator again that was already used up")
+    void endCallSkipsClosedIterators() {
+        kafkaIterator = new FakeKeyValueIterator<>(List.of());
+        final int mark = StoreIteratorProxy.beginCall();
+        assertThat(new StoreIteratorProxy(kafkaIterator).hasNext()).isFalse();
+        assertThat(StoreIteratorProxy.endCall(mark)).isZero();
+        assertThat(kafkaIterator.closeCount).isEqualTo(1);
+    }
+
+    @Test
+    @DisplayName("the end of a nested function call only closes its own iterators")
+    void nestedCallClosesOnlyItsOwnIterators() {
+        final var inner = new FakeKeyValueIterator<>(List.of(KeyValue.pair("x", "1")));
+        final int outerMark = StoreIteratorProxy.beginCall();
+        new StoreIteratorProxy(kafkaIterator);
+        final int innerMark = StoreIteratorProxy.beginCall();
+        new StoreIteratorProxy(inner);
+        StoreIteratorProxy.endCall(innerMark);
+        assertThat(inner.closed).isTrue();
+        assertThat(kafkaIterator.closed).isFalse();
+        StoreIteratorProxy.endCall(outerMark);
+        assertThat(kafkaIterator.closed).isTrue();
+    }
+
+    @Test
+    @DisplayName("an iterator created outside a function call is not closed by a later call")
+    void iteratorOutsideCallIsNotTracked() {
+        new StoreIteratorProxy(kafkaIterator);
+        final int mark = StoreIteratorProxy.beginCall();
+        assertThat(StoreIteratorProxy.endCall(mark)).isZero();
+        assertThat(kafkaIterator.closed).isFalse();
+    }
 }

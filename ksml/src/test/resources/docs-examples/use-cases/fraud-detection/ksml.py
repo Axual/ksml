@@ -64,8 +64,7 @@ if TYPE_CHECKING:
     class StoreIterator(Iterator[Dict[str, Any]], Protocol):
         """Iterator over state store entries, each a dict with "key" and "value".
 
-        Works with for, next(), list() and contextlib.closing(). The store iterator is closed once all entries
-        are read; use contextlib.closing() when a loop can end early (break, return or an exception).
+        Works with for, next() and list(). Closed when all entries are read, or when the function returns.
         """
 
         def hasNext(self) -> bool: ...
