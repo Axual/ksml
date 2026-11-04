@@ -69,6 +69,16 @@ public class KSMLIteratorTest {
 
         final var values = iteratorOutput.readValuesToList();
         assertThat(values).hasSize(2);
+        // The first record: each store has one entry
+        assertThat(List.of(values.get(0).split("\n"))).containsExactly(
+                "kv_memory.all for=a:1 list=a:1 next=a:1 closing=a:1",
+                "kv_rocksdb.all for=a:1 list=a:1 next=a:1 closing=a:1",
+                "window_memory.all for=a@0:1 list=a@0:1 next=a@0:1 closing=a@0:1",
+                "window_memory.fetch for=0:1 list=0:1 next=0:1 closing=0:1",
+                "window_rocksdb.all for=a@0:1 list=a@0:1 next=a@0:1 closing=a@0:1",
+                "window_rocksdb.fetch for=0:1 list=0:1 next=0:1 closing=0:1",
+                "session_memory.fetch for=a@3000000000:1 list=a@3000000000:1 next=a@3000000000:1 closing=a@3000000000:1",
+                "session_rocksdb.fetch for=a@3000000000:1 list=a@3000000000:1 next=a@3000000000:1 closing=a@3000000000:1");
         assertThat(List.of(values.get(1).split("\n"))).containsExactly(
                 "kv_memory.all for=a:1,b:2 list=a:1,b:2 next=a:1 closing=a:1,b:2",
                 "kv_rocksdb.all for=a:1,b:2 list=a:1,b:2 next=a:1 closing=a:1,b:2",
