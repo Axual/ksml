@@ -20,6 +20,7 @@ package io.axual.ksml.proxy.store;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.type.DataType;
 import org.apache.kafka.streams.state.TimestampedWindowStore;
 import org.apache.kafka.streams.state.ValueAndTimestamp;
 import org.graalvm.polyglot.HostAccess;
@@ -38,7 +39,12 @@ public class TimestampedWindowStoreProxy extends AbstractStateStoreProxy<Timesta
     private final LongSupplier recordTimestamp;
 
     public TimestampedWindowStoreProxy(TimestampedWindowStore<Object, Object> delegate, LongSupplier recordTimestamp) {
-        super(delegate);
+        this(delegate, null, null, recordTimestamp);
+    }
+
+    /** Creates a proxy for a store with these declared key and value types; {@code null} means unknown. */
+    public TimestampedWindowStoreProxy(TimestampedWindowStore<Object, Object> delegate, DataType keyType, DataType valueType, LongSupplier recordTimestamp) {
+        super(delegate, keyType, valueType);
         this.recordTimestamp = recordTimestamp;
     }
 

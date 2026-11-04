@@ -94,6 +94,11 @@ public class TopologyBuildContext {
         return streamWrappersByName.containsKey(name);
     }
 
+    /** The definition of a state store, or {@code null} when there is none with this name. */
+    public StateStoreDefinition stateStore(String name) {
+        return resources.stateStore(name);
+    }
+
     public boolean isTopicDefinition(String name) {
         return resources.topic(name) != null;
     }
