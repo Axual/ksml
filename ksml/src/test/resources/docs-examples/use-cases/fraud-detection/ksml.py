@@ -62,10 +62,7 @@ if TYPE_CHECKING:
         def timer(self, name: str, tags: Mapping[str, str]) -> TimerBridge: ...
 
     class StoreIterator(Iterator[Dict[str, Any]], Protocol):
-        """Iterator over state store entries, each a dict with "key" and "value".
-
-        Works with for, next() and list(). Closed when all entries are read, or when the function returns.
-        """
+        """Iterator of {"key", "value"} dicts. Closed when all entries are read or the function returns."""
 
         def hasNext(self) -> bool: ...
         def next(self) -> Optional[Dict[str, Any]]: ...

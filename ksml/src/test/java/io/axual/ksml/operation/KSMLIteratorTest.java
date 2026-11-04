@@ -24,7 +24,6 @@ import io.axual.ksml.testutil.KSMLDriver;
 import io.axual.ksml.testutil.KSMLTest;
 import io.axual.ksml.testutil.KSMLTestExtension;
 import io.axual.ksml.testutil.KSMLTopic;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.streams.TestInputTopic;
 import org.apache.kafka.streams.TestOutputTopic;
 import org.apache.kafka.streams.TopologyTestDriver;
@@ -36,7 +35,6 @@ import java.util.List;
 import static io.axual.ksml.testutil.StoreMetrics.openIterators;
 import static org.assertj.core.api.Assertions.assertThat;
 
-@Slf4j
 @ExtendWith(KSMLTestExtension.class)
 @SuppressWarnings("java:S2187")
 public class KSMLIteratorTest {
@@ -56,10 +54,7 @@ public class KSMLIteratorTest {
     @KSMLDriver
     TopologyTestDriver driver;
 
-    /**
-     * Python iterates over key-value, window and session stores (in-memory and RocksDB) with for, list(),
-     * next() and contextlib.closing. Each line of the output is the result of one store method.
-     */
+    /** Each output line is the result of one store method, read in all Python styles. */
     @KSMLTest(topology = "pipelines/test-store-iterator-python.yaml")
     @DisplayName("store iterators work with Python for, list(), next() and contextlib.closing")
     void testPythonIteration() {

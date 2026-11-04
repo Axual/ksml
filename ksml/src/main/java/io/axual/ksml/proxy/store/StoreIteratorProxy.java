@@ -109,8 +109,7 @@ public class StoreIteratorProxy implements AbstractProxy, ProxyIterator, ProxyOb
 
     /** Java style next: returns the next entry, or {@code null} when there is none. */
     public Object next() {
-        if (!hasNext()) return null;
-        return ProxyUtil.toPython(iterator.next());
+        return hasNext() ? getNext() : null;
     }
 
     /** Returns the key of the next entry without moving forward, or {@code null} when there is none. */

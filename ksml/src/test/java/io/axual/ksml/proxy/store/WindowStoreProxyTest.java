@@ -69,16 +69,16 @@ class WindowStoreProxyTest {
                 Arguments.of("backwardFetch", (Function<WindowStoreProxy, Object>) p -> p.backwardFetch("from", "to", 0L, 10L)));
     }
 
-    @ParameterizedTest(name = "{0} by key and time range returns window iterator proxy")
+    @ParameterizedTest(name = "{0} by key and time range returns iterator proxy")
     @DisplayName("single-key time-range fetches wrap the delegate result in a StoreIteratorProxy")
     @MethodSource("singleKeyTimeRangeFetches")
-    void singleKeyTimeRangeFetchReturnsWindowIteratorProxy(String name, Function<WindowStoreProxy, Object> operation) {
+    void singleKeyTimeRangeFetchReturnsStoreIteratorProxy(String name, Function<WindowStoreProxy, Object> operation) {
         lenient().when(delegate.fetch(any(), anyLong(), anyLong())).thenReturn(windowIterator);
         lenient().when(delegate.backwardFetch(any(), anyLong(), anyLong())).thenReturn(windowIterator);
         assertThat(operation.apply(proxy())).isInstanceOf(StoreIteratorProxy.class);
     }
 
-    @ParameterizedTest(name = "{0} by key range and time range returns key/value iterator proxy")
+    @ParameterizedTest(name = "{0} by key range and time range returns iterator proxy")
     @DisplayName("key-range time-range fetches wrap the delegate result in a StoreIteratorProxy")
     @MethodSource("keyRangeTimeRangeFetches")
     void keyRangeTimeRangeFetchReturnsStoreIteratorProxy(String name, Function<WindowStoreProxy, Object> operation) {
