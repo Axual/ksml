@@ -33,7 +33,8 @@ public abstract class OperationProcessor implements Processor<Object, Object, Ob
     private final String name;
     private final String[] storeNames;
     protected final StateStores stores = new StateStores();
-    private long recordTimestamp;
+    // The timestamp of the record that is being processed, null between records
+    private Long recordTimestamp;
 
     protected OperationProcessor(String name, String[] storeNames) {
         this.name = name;
@@ -50,15 +51,19 @@ public abstract class OperationProcessor implements Processor<Object, Object, Ob
                 throw new ExecutionException("Could not connect processor '" + name + "' to state store '" + storeName + "'");
             }
             // Wrap the store in a proxy for security
-            stores.put(storeName, ProxyUtil.wrapStateStore(store, () -> recordTimestamp));
+            stores.put(storeName, ProxyUtil.wrapStateStore(store, () -> recordTimestamp != null ? recordTimestamp : ProxyUtil.noRecordTimestamp()));
         }
     }
 
     /** Remembers the timestamp of the record, so Python writes to timestamped stores can use it, then processes it. */
     @Override
     public final void process(Record<Object, Object> rec) {
-        recordTimestamp = rec.timestamp();
-        processRecord(rec);
+        try {
+            recordTimestamp = rec.timestamp();
+            processRecord(rec);
+        } finally {
+            recordTimestamp = null;
+        }
     }
 
     protected abstract void processRecord(Record<Object, Object> rec);

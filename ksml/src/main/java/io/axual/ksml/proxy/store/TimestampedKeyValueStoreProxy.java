@@ -132,15 +132,10 @@ public class TimestampedKeyValueStoreProxy extends AbstractStateStoreProxy<Times
 
     @HostAccess.Export
     public void put(Object key, Object value, long timestamp) {
-        delegate.put(DATA_OBJECT_MAPPER.toDataObject(key), ValueAndTimestamp.make(DATA_OBJECT_MAPPER.toDataObject(value), timestamp));
+        delegate.put(DATA_OBJECT_MAPPER.toDataObject(key), ValueAndTimestamp.make(DATA_OBJECT_MAPPER.toDataObject(value), ProxyUtil.checkTimestamp(timestamp, "put")));
     }
 
-    /**
-     * Writes all entries with one call to the store. Entries are (key, value) pairs or dicts with key and value,
-     * in a list or an iterator. A dict with a {@code timestamp} field is written with that timestamp, all other
-     * entries with the timestamp of the record that is being processed. All entries are converted first, so a bad
-     * entry writes nothing and raises a Python {@code TypeError} or {@code ValueError}.
-     */
+    /** Like {@link KeyValueStoreProxy#putAll}; a dict entry may have a timestamp, others get the record timestamp. */
     @HostAccess.Export
     public void putAll(Object entries) {
         delegate.putAll(ProxyUtil.toTimestampedKeyValueList(entries, recordTimestamp));
@@ -155,6 +150,6 @@ public class TimestampedKeyValueStoreProxy extends AbstractStateStoreProxy<Times
     /** Stores the value with the given timestamp if the key has none, and returns the existing value. */
     @HostAccess.Export
     public Object putIfAbsent(Object key, Object value, long timestamp) {
-        return ProxyUtil.toPython(ProxyUtil.valueOf(delegate.putIfAbsent(DATA_OBJECT_MAPPER.toDataObject(key), ValueAndTimestamp.make(DATA_OBJECT_MAPPER.toDataObject(value), timestamp))));
+        return ProxyUtil.toPython(ProxyUtil.valueOf(delegate.putIfAbsent(DATA_OBJECT_MAPPER.toDataObject(key), ValueAndTimestamp.make(DATA_OBJECT_MAPPER.toDataObject(value), ProxyUtil.checkTimestamp(timestamp, "putIfAbsent")))));
     }
 }

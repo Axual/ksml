@@ -20,6 +20,7 @@ package io.axual.ksml.operation.processor;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.exception.DataException;
 import io.axual.ksml.exception.ExecutionException;
 import io.axual.ksml.proxy.store.TimestampedKeyValueStoreProxy;
 import org.apache.kafka.streams.processor.api.ProcessorContext;
@@ -124,5 +125,25 @@ class TransformKeyProcessorTest {
         final ArgumentCaptor<ValueAndTimestamp<Object>> captor = ArgumentCaptor.captor();
         verify(store).put(any(), captor.capture());
         assertThat(captor.getValue().timestamp()).isEqualTo(1234L);
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    @DisplayName("a write without a timestamp after the record was processed fails, and does not reuse the old timestamp")
+    void timestampedStoreWriteAfterProcessFails() {
+        final TimestampedKeyValueStore<Object, Object> store = mock(TimestampedKeyValueStore.class);
+        when(context.getStateStore("store")).thenReturn(store);
+        final var kept = new AtomicReference<TimestampedKeyValueStoreProxy>();
+        final var processor = new TransformKeyProcessor("mapKey", (stores, rec) -> {
+            kept.set((TimestampedKeyValueStoreProxy) stores.get("store"));
+            return rec.key();
+        }, new String[]{"store"});
+        processor.init(context);
+        processor.process(new Record<>("key", "value", 1234L));
+
+        assertThatThrownBy(() -> kept.get().put("k", "v"))
+                .isInstanceOf(DataException.class)
+                .hasMessageContaining("No record is being processed");
+        verify(store, never()).put(any(), any());
     }
 }

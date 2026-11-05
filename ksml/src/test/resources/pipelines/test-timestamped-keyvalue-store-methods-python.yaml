@@ -79,6 +79,10 @@ functions:
         # delete and putIfAbsent return only the value
         line += " putIfAbsent=" + str(store.putIfAbsent("a", "9", 900))
         line += " delete=" + str(store.delete("c"))
+        # On a missing key, putIfAbsent and delete return None
+        line += " putIfAbsentNew=" + str(store.putIfAbsent("e", "6"))
+        store.delete("e")
+        line += " deleteMissing=" + str(store.delete("e"))
         # A None value in putAll deletes the key
         store.putAll([("d", None)])
         line += " afterDelete=" + keys(store.all())
@@ -94,6 +98,13 @@ functions:
         except Exception as e:
           line += " threeTuple=" + type(e).__name__
         line += " x=" + str(store.get("x"))
+        # A negative timestamp raises ValueError and writes nothing
+        try:
+          store.put("n", "1", -1)
+          line += " negative=accepted"
+        except Exception as e:
+          line += " negative=" + type(e).__name__
+        line += " n=" + str(store.get("n"))
         # Copy a store with its timestamps
         copy.putAll(store.allWithTimestamp())
         line += " copy=" + stamped(copy.allWithTimestamp())
