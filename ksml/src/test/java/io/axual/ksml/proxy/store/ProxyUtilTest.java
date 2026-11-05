@@ -111,8 +111,8 @@ class ProxyUtilTest {
         final KeyValueIterator<Object, Object> iterator = mock();
         when(iterator.hasNext()).thenReturn(true);
         final var proxy = ProxyUtil.toPython(iterator);
-        assertThat(proxy).isInstanceOf(KeyValueIteratorProxy.class);
-        assertThat(((KeyValueIteratorProxy) proxy).hasNext()).isTrue();
+        assertThat(proxy).isInstanceOf(StoreIteratorProxy.class);
+        assertThat(((StoreIteratorProxy) proxy).hasNext()).isTrue();
         verify(iterator).hasNext();
     }
 
@@ -122,8 +122,8 @@ class ProxyUtilTest {
         final WindowStoreIterator<Object> iterator = mock();
         when(iterator.hasNext()).thenReturn(true);
         final var proxy = ProxyUtil.toPython(iterator);
-        assertThat(proxy).isInstanceOf(WindowStoreIteratorProxy.class);
-        assertThat(((WindowStoreIteratorProxy) proxy).hasNext()).isTrue();
+        assertThat(proxy).isInstanceOf(StoreIteratorProxy.class);
+        assertThat(((StoreIteratorProxy) proxy).hasNext()).isTrue();
         verify(iterator).hasNext();
     }
 

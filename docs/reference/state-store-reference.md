@@ -169,6 +169,47 @@ This example demonstrates:
 - `store.get(key)` - Retrieve value from state store (returns None if not found)
 - `store.put(key, value)` - Store key-value pair in state store
 
+### Reading Many Entries with Iterators
+
+Store methods that return many entries return an iterator. Each entry is a dict with `key` and `value`.
+The `key` depends on the method:
+
+| Method | `key` of each entry |
+|---|---|
+| Key-value store: `all()` | the key |
+| Window store: `fetch(key, timeFrom, timeTo)`, `backwardFetch(key, timeFrom, timeTo)` | the window start time |
+| Window store: `all()`, `fetchAll()`, `fetch(keyFrom, keyTo, timeFrom, timeTo)` and their `backward` variants | a dict with `key`, `start`, `end`, `startTime` and `endTime` |
+| Session store: `fetch()`, `findSessions()` and their `backward` variants | a dict with `key`, `start`, `end`, `startTime` and `endTime` |
+
+`fetch(key, time)` on a window store returns one value, not an iterator.
+
+Use the iterator like any Python iterator:
+
+```python
+for entry in store.all():
+  log.info("key={}, value={}", entry["key"], entry["value"])
+
+entries = list(store.all())
+```
+
+A store iterator holds resources (for RocksDB stores, native memory) until it is closed. KSML closes it when all
+entries are read, and when the function returns. So a loop can end early with `break`, `return` or an exception:
+
+```python
+found = None
+for entry in store.all():
+  if entry["value"] == value:
+    found = entry["key"]
+    break
+```
+
+Do not keep an iterator in a global variable for a later call: it is closed by then, and using it raises an error.
+To close an iterator before the function returns, use `contextlib.closing()`. A plain `with store.all() as entries:`
+does not work.
+
+Iterators also have the methods `hasNext()`, `next()` (returns `None` after the last entry), `peekNextKey()`
+(returns the next key without moving forward, or `None`) and `close()`.
+
 ### With Session Operations
 
 Session stores track user activity with inactivity gaps and automatic timeout:

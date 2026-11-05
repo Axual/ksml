@@ -77,25 +77,25 @@ class SessionStoreProxyTest {
     }
 
     @ParameterizedTest(name = "{0} by key returns iterator proxy")
-    @DisplayName("single-key session lookups wrap the delegate result in a KeyValueIteratorProxy")
+    @DisplayName("single-key session lookups wrap the delegate result in a StoreIteratorProxy")
     @MethodSource("singleKeyOperations")
     void singleKeyOperationsReturnIteratorProxy(String name, Function<SessionStoreProxy, Object> operation) {
         lenient().when(delegate.fetch(any())).thenReturn(iterator);
         lenient().when(delegate.backwardFetch(any())).thenReturn(iterator);
         lenient().when(delegate.findSessions(any(), anyLong(), anyLong())).thenReturn(iterator);
         lenient().when(delegate.backwardFindSessions(any(), anyLong(), anyLong())).thenReturn(iterator);
-        assertThat(operation.apply(proxy())).isInstanceOf(KeyValueIteratorProxy.class);
+        assertThat(operation.apply(proxy())).isInstanceOf(StoreIteratorProxy.class);
     }
 
     @ParameterizedTest(name = "{0} by key range returns iterator proxy")
-    @DisplayName("key-range session lookups wrap the delegate result in a KeyValueIteratorProxy")
+    @DisplayName("key-range session lookups wrap the delegate result in a StoreIteratorProxy")
     @MethodSource("keyRangeOperations")
     void keyRangeOperationsReturnIteratorProxy(String name, Function<SessionStoreProxy, Object> operation) {
         lenient().when(delegate.fetch(any(), any())).thenReturn(iterator);
         lenient().when(delegate.backwardFetch(any(), any())).thenReturn(iterator);
         lenient().when(delegate.findSessions(any(), any(), anyLong(), anyLong())).thenReturn(iterator);
         lenient().when(delegate.backwardFindSessions(any(), any(), anyLong(), anyLong())).thenReturn(iterator);
-        assertThat(operation.apply(proxy())).isInstanceOf(KeyValueIteratorProxy.class);
+        assertThat(operation.apply(proxy())).isInstanceOf(StoreIteratorProxy.class);
     }
 
     @Test

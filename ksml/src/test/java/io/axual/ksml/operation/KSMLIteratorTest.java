@@ -20,60 +20,88 @@ package io.axual.ksml.operation;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.testutil.KSMLDriver;
 import io.axual.ksml.testutil.KSMLTest;
 import io.axual.ksml.testutil.KSMLTestExtension;
 import io.axual.ksml.testutil.KSMLTopic;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.streams.TestInputTopic;
+import org.apache.kafka.streams.TestOutputTopic;
+import org.apache.kafka.streams.TopologyTestDriver;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.extension.ExtendWith;
 
-@Slf4j
+import java.util.List;
+
+import static io.axual.ksml.testutil.StoreMetrics.openIterators;
+import static org.assertj.core.api.Assertions.assertThat;
+
 @ExtendWith(KSMLTestExtension.class)
 @SuppressWarnings("java:S2187")
 public class KSMLIteratorTest {
 
-    @KSMLTopic(topic = "sensor_ownership_data")
-    TestInputTopic<String, String> inputTopic;
+    @KSMLTopic(topic = "store_iterator_input")
+    TestInputTopic<String, String> iteratorInput;
 
-    /**
-     * Test KeyValueIterator proxy with KeyValueStore.all() and related methods.
-     * Verifies that hasNext(), next(), and close() are accessible from Python by calling them in the pipeline.
-     * This test currently checks for exceptions, as the proxy does not support all methods yet.
-     */
-    @KSMLTest(topology = "pipelines/test-keyvalue-iterator.yaml")
-    void testKeyValueStoreIterator() {
-        // Send data to trigger the forEach function which tests the iterator
-        inputTopic.pipeInput("sensor1", "value1");
-        inputTopic.pipeInput("sensor2", "value2");
-        inputTopic.pipeInput("sensor3", "value3");
+    @KSMLTopic(topic = "store_iterator_output")
+    TestOutputTopic<String, String> iteratorOutput;
 
-        // No exception is thrown and all messages could be processed
+    @KSMLTopic(topic = "store_iterator_early_exit_input")
+    TestInputTopic<String, String> earlyExitInput;
+
+    @KSMLTopic(topic = "store_iterator_early_exit_output")
+    TestOutputTopic<String, String> earlyExitOutput;
+
+    @KSMLDriver
+    TopologyTestDriver driver;
+
+    /** Each output line is the result of one store method, read in all Python styles. */
+    @KSMLTest(topology = "pipelines/test-store-iterator-python.yaml")
+    @DisplayName("store iterators work with Python for, list(), next() and contextlib.closing")
+    void testPythonIteration() {
+        // Fixed record timestamps, so the window entries at time 0 are within the store retention
+        iteratorInput.pipeInput("a", "1", 1000L);
+        iteratorInput.pipeInput("b", "2", 1000L);
+
+        final var values = iteratorOutput.readValuesToList();
+        assertThat(values).hasSize(2);
+        // The first record: each store has one entry
+        assertThat(List.of(values.get(0).split("\n"))).containsExactly(
+                "kv_memory.all for=a:1 list=a:1 next=a:1 closing=a:1",
+                "kv_rocksdb.all for=a:1 list=a:1 next=a:1 closing=a:1",
+                "window_memory.all for=a@0:1 list=a@0:1 next=a@0:1 closing=a@0:1",
+                "window_memory.fetch for=0:1 list=0:1 next=0:1 closing=0:1",
+                "window_rocksdb.all for=a@0:1 list=a@0:1 next=a@0:1 closing=a@0:1",
+                "window_rocksdb.fetch for=0:1 list=0:1 next=0:1 closing=0:1",
+                "session_memory.fetch for=a@3000000000:1 list=a@3000000000:1 next=a@3000000000:1 closing=a@3000000000:1",
+                "session_rocksdb.fetch for=a@3000000000:1 list=a@3000000000:1 next=a@3000000000:1 closing=a@3000000000:1");
+        assertThat(List.of(values.get(1).split("\n"))).containsExactly(
+                "kv_memory.all for=a:1,b:2 list=a:1,b:2 next=a:1 closing=a:1,b:2",
+                "kv_rocksdb.all for=a:1,b:2 list=a:1,b:2 next=a:1 closing=a:1,b:2",
+                "window_memory.all for=a@0:1,b@0:2 list=a@0:1,b@0:2 next=a@0:1 closing=a@0:1,b@0:2",
+                "window_memory.fetch for=0:2 list=0:2 next=0:2 closing=0:2",
+                "window_rocksdb.all for=a@0:1,b@0:2 list=a@0:1,b@0:2 next=a@0:1 closing=a@0:1,b@0:2",
+                "window_rocksdb.fetch for=0:2 list=0:2 next=0:2 closing=0:2",
+                "session_memory.fetch for=b@3000000000:2 list=b@3000000000:2 next=b@3000000000:2 closing=b@3000000000:2",
+                "session_rocksdb.fetch for=b@3000000000:2 list=b@3000000000:2 next=b@3000000000:2 closing=b@3000000000:2");
     }
 
-    /**
-     * Test WindowStoreIterator proxy with WindowStore.fetch() and
-     * KeyValueIterator proxy with WindowStore.all().
-     * Verifies that hasNext(), next(), and close() are accessible from Python.
-     */
-    @KSMLTest(topology = "pipelines/test-window-iterator.yaml")
-    void testWindowStoreIterator() {
-        // Send data to trigger the forEach function which tests the iterator
-        inputTopic.pipeInput("sensor1", "value1");
-        inputTopic.pipeInput("sensor2", "value2");
+    @KSMLTest(topology = "pipelines/test-store-iterator-early-exit-python.yaml")
+    @DisplayName("store iterators left open are closed when the function returns, and close() closes only once")
+    void testEarlyExitClosesIterators() {
+        // Check after each record, so each function call must close its own iterators
+        earlyExitInput.pipeInput("a", "1");
+        assertThat(List.of(earlyExitOutput.readValue().split("\n"))).containsExactly(
+                "memory return=a break=a exception=a next=a close=a closeEarly=a",
+                "rocksdb return=a break=a exception=a next=a close=a closeEarly=a");
+        assertThat(openIterators(driver, "early_exit_memory")).isZero();
+        assertThat(openIterators(driver, "early_exit_rocksdb")).isZero();
 
-        // No exception is thrown and all messages could be processed
-    }
-
-    /**
-     * Test KeyValueIterator proxy with SessionStore.fetch() and findSessions().
-     * Verifies that hasNext(), next(), and close() are accessible from Python.
-     */
-    @KSMLTest(topology = "pipelines/test-session-iterator.yaml")
-    void testSessionStoreIterator() {
-        // Send data to trigger the forEach function which tests the iterator
-        inputTopic.pipeInput("sensor3", "value3");
-        inputTopic.pipeInput("sensor4", "value4");
-
-        // No exception is thrown and all messages could be processed
+        earlyExitInput.pipeInput("b", "2");
+        assertThat(List.of(earlyExitOutput.readValue().split("\n"))).containsExactly(
+                "memory return=a break=a exception=a next=a close=a,b closeEarly=a",
+                "rocksdb return=a break=a exception=a next=a close=a,b closeEarly=a");
+        assertThat(openIterators(driver, "early_exit_memory")).isZero();
+        assertThat(openIterators(driver, "early_exit_rocksdb")).isZero();
+        assertThat(earlyExitOutput.isEmpty()).isTrue();
     }
 }

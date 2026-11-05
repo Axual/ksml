@@ -69,40 +69,40 @@ class WindowStoreProxyTest {
                 Arguments.of("backwardFetch", (Function<WindowStoreProxy, Object>) p -> p.backwardFetch("from", "to", 0L, 10L)));
     }
 
-    @ParameterizedTest(name = "{0} by key and time range returns window iterator proxy")
-    @DisplayName("single-key time-range fetches wrap the delegate result in a WindowStoreIteratorProxy")
+    @ParameterizedTest(name = "{0} by key and time range returns iterator proxy")
+    @DisplayName("single-key time-range fetches wrap the delegate result in a StoreIteratorProxy")
     @MethodSource("singleKeyTimeRangeFetches")
-    void singleKeyTimeRangeFetchReturnsWindowIteratorProxy(String name, Function<WindowStoreProxy, Object> operation) {
+    void singleKeyTimeRangeFetchReturnsStoreIteratorProxy(String name, Function<WindowStoreProxy, Object> operation) {
         lenient().when(delegate.fetch(any(), anyLong(), anyLong())).thenReturn(windowIterator);
         lenient().when(delegate.backwardFetch(any(), anyLong(), anyLong())).thenReturn(windowIterator);
-        assertThat(operation.apply(proxy())).isInstanceOf(WindowStoreIteratorProxy.class);
+        assertThat(operation.apply(proxy())).isInstanceOf(StoreIteratorProxy.class);
     }
 
-    @ParameterizedTest(name = "{0} by key range and time range returns key/value iterator proxy")
-    @DisplayName("key-range time-range fetches wrap the delegate result in a KeyValueIteratorProxy")
+    @ParameterizedTest(name = "{0} by key range and time range returns iterator proxy")
+    @DisplayName("key-range time-range fetches wrap the delegate result in a StoreIteratorProxy")
     @MethodSource("keyRangeTimeRangeFetches")
-    void keyRangeTimeRangeFetchReturnsKeyValueIteratorProxy(String name, Function<WindowStoreProxy, Object> operation) {
+    void keyRangeTimeRangeFetchReturnsStoreIteratorProxy(String name, Function<WindowStoreProxy, Object> operation) {
         lenient().when(delegate.fetch(any(), any(), anyLong(), anyLong())).thenReturn(keyValueIterator);
         lenient().when(delegate.backwardFetch(any(), any(), anyLong(), anyLong())).thenReturn(keyValueIterator);
-        assertThat(operation.apply(proxy())).isInstanceOf(KeyValueIteratorProxy.class);
+        assertThat(operation.apply(proxy())).isInstanceOf(StoreIteratorProxy.class);
     }
 
     @Test
-    @DisplayName("all and backwardAll wrap the delegate result in a KeyValueIteratorProxy")
+    @DisplayName("all and backwardAll wrap the delegate result in a StoreIteratorProxy")
     void allAndBackwardAllReturnIteratorProxies() {
         lenient().when(delegate.all()).thenReturn(keyValueIterator);
         lenient().when(delegate.backwardAll()).thenReturn(keyValueIterator);
-        assertThat(proxy().all()).isInstanceOf(KeyValueIteratorProxy.class);
-        assertThat(proxy().backwardAll()).isInstanceOf(KeyValueIteratorProxy.class);
+        assertThat(proxy().all()).isInstanceOf(StoreIteratorProxy.class);
+        assertThat(proxy().backwardAll()).isInstanceOf(StoreIteratorProxy.class);
     }
 
     @Test
-    @DisplayName("fetchAll and backwardFetchAll wrap the delegate result in a KeyValueIteratorProxy")
+    @DisplayName("fetchAll and backwardFetchAll wrap the delegate result in a StoreIteratorProxy")
     void fetchAllAndBackwardFetchAllReturnIteratorProxies() {
         lenient().when(delegate.fetchAll(0L, 10L)).thenReturn(keyValueIterator);
         lenient().when(delegate.backwardFetchAll(0L, 10L)).thenReturn(keyValueIterator);
-        assertThat(proxy().fetchAll(0L, 10L)).isInstanceOf(KeyValueIteratorProxy.class);
-        assertThat(proxy().backwardFetchAll(0L, 10L)).isInstanceOf(KeyValueIteratorProxy.class);
+        assertThat(proxy().fetchAll(0L, 10L)).isInstanceOf(StoreIteratorProxy.class);
+        assertThat(proxy().backwardFetchAll(0L, 10L)).isInstanceOf(StoreIteratorProxy.class);
     }
 
     @Test
