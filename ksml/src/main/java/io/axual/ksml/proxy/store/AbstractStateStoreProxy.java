@@ -36,6 +36,7 @@ import org.graalvm.polyglot.HostAccess;
 import org.graalvm.polyglot.Value;
 
 import java.math.BigInteger;
+import java.util.Set;
 
 /**
  * Base class for state store proxy implementations.
@@ -46,6 +47,8 @@ public abstract class AbstractStateStoreProxy<T extends StateStore> implements S
     protected static final PythonNativeMapper NATIVE_MAPPER = new PythonNativeMapper();
     protected static final PythonDataObjectMapper DATA_OBJECT_MAPPER = new PythonDataObjectMapper(true);
     protected static final NativeDataObjectMapper JAVA_MAPPER = new NativeDataObjectMapper();
+    private static final Set<Class<?>> INTEGER_CONTAINERS = Set.of(Byte.class, Short.class, Integer.class, Long.class);
+    private static final Set<Class<?>> FLOAT_CONTAINERS = Set.of(Float.class, Double.class);
     protected final T delegate;
     /** The store's declared key type, or {@code null} when unknown. */
     protected final DataType keyType;
@@ -92,40 +95,50 @@ public abstract class AbstractStateStoreProxy<T extends StateStore> implements S
     private Object toStoreType(DataType type, Object object, String role) {
         if (!(type instanceof SimpleType simpleType) || type instanceof EnumType || object == null) return object;
         final var container = simpleType.containerClass();
-        // The expected type only helps to read Python bytes; for other types it could coerce a value of another kind.
-        // GraalVM passes Python bytes as a Java object, so it is read back as a polyglot value to get a byte[].
-        final Object value;
-        if (object instanceof DataObject dataObject) value = JAVA_MAPPER.fromDataObject(dataObject);
-        else if (container == byte[].class) value = NATIVE_MAPPER.fromPython(type, Value.asValue(object));
-        else value = NATIVE_MAPPER.fromPython(object);
+        final var value = readValue(type, container, object);
         if (value == null) return null;
-        final boolean isInteger = isInteger(value);
-        final boolean fits;
-        if (container == Byte.class || container == Short.class || container == Integer.class || container == Long.class) {
-            fits = isInteger;
-        } else if (container == Float.class || container == Double.class) {
-            fits = isInteger || value instanceof Float || value instanceof Double;
-        } else if (container == String.class) {
-            fits = value instanceof String;
-        } else if (container == Boolean.class) {
-            fits = value instanceof Boolean;
-        } else if (container == byte[].class) {
-            fits = value instanceof byte[];
-        } else {
-            return object;
-        }
-        if (!fits)
+        if (!isConvertible(container)) return object;
+        if (!fits(container, value))
             throw PythonErrors.typeError(storeError(role) + " must be " + type + ", got " + typeName(value));
         try {
-            if (value instanceof BigInteger bigInteger) {
-                if (container == Float.class || container == Double.class)
-                    return DATA_OBJECT_MAPPER.toDataObject(type, bigInteger.doubleValue());
-                return DATA_OBJECT_MAPPER.toDataObject(type, bigInteger.longValueExact());
-            }
-            return DATA_OBJECT_MAPPER.toDataObject(type, value);
+            return convert(type, container, value);
         } catch (ArithmeticException | DataException e) {
             throw PythonErrors.valueError(storeError(role) + " " + typeName(value) + " is out of range for " + type, e);
         }
+    }
+
+    /** Reads a Python key or value, or a DataObject, as a Java value. */
+    private static Object readValue(DataType type, Class<?> container, Object object) {
+        // The expected type only helps to read Python bytes; for other types it could coerce a value of another kind.
+        // GraalVM passes Python bytes as a Java object, so it is read back as a polyglot value to get a byte[].
+        if (object instanceof DataObject dataObject) return JAVA_MAPPER.fromDataObject(dataObject);
+        if (container == byte[].class) return NATIVE_MAPPER.fromPython(type, Value.asValue(object));
+        return NATIVE_MAPPER.fromPython(object);
+    }
+
+    /** Whether {@link #toStoreType} converts values to this container class. */
+    private static boolean isConvertible(Class<?> container) {
+        return INTEGER_CONTAINERS.contains(container) || FLOAT_CONTAINERS.contains(container)
+                || container == String.class || container == Boolean.class || container == byte[].class;
+    }
+
+    /** Whether a value is of the same kind as a convertible container class. */
+    private static boolean fits(Class<?> container, Object value) {
+        if (INTEGER_CONTAINERS.contains(container)) return isInteger(value);
+        if (FLOAT_CONTAINERS.contains(container)) return isInteger(value) || value instanceof Float || value instanceof Double;
+        if (container == String.class) return value instanceof String;
+        if (container == Boolean.class) return value instanceof Boolean;
+        return value instanceof byte[];
+    }
+
+    /** Converts a fitting value to the declared type; a too large int throws ArithmeticException or DataException. */
+    private static Object convert(DataType type, Class<?> container, Object value) {
+        if (value instanceof BigInteger bigInteger) {
+            if (FLOAT_CONTAINERS.contains(container))
+                return DATA_OBJECT_MAPPER.toDataObject(type, bigInteger.doubleValue());
+            return DATA_OBJECT_MAPPER.toDataObject(type, bigInteger.longValueExact());
+        }
+        return DATA_OBJECT_MAPPER.toDataObject(type, value);
     }
 
     /** Whether a value is a Python int: GraalVM passes it as Byte, Short, Integer, Long or BigInteger by its size. */
