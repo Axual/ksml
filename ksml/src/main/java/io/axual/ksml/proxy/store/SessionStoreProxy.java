@@ -126,7 +126,10 @@ public class SessionStoreProxy extends AbstractStateStoreProxy<SessionStore<Obje
         final var start = toSessionTime(fields.get(WINDOWED_SCHEMA_START_FIELD), WINDOWED_SCHEMA_START_FIELD);
         final var end = toSessionTime(fields.get(WINDOWED_SCHEMA_END_FIELD), WINDOWED_SCHEMA_END_FIELD);
         if (start > end) throw PythonErrors.valueError(storeError("session key start must not be after end"));
-        return new Windowed<>(toKey(fields.get(WINDOWED_SCHEMA_KEY_FIELD)), new SessionWindow(start, end));
+        // Kafka rejects a null key with a NullPointerException, which Python cannot catch
+        final var key = toKey(fields.get(WINDOWED_SCHEMA_KEY_FIELD));
+        if (key == null) throw PythonErrors.valueError(storeError("session key \"key\" must not be None"));
+        return new Windowed<>(key, new SessionWindow(start, end));
     }
 
     private long toSessionTime(Object time, String field) {

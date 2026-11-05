@@ -211,6 +211,10 @@ class SessionStoreProxyTest {
                 .isEqualTo("ValueError: Store sessions: session key end int is out of range for long");
         assertThat(run("store.put({'key': 'a', 'start': 20, 'end': 10}, 'v')"))
                 .isEqualTo("ValueError: Store sessions: session key start must not be after end");
+        assertThat(run("store.put({'key': None, 'start': 10, 'end': 20}, 'v')"))
+                .isEqualTo("ValueError: Store sessions: session key \"key\" must not be None");
+        assertThat(run("store.remove({'key': None, 'start': 10, 'end': 20})"))
+                .isEqualTo("ValueError: Store sessions: session key \"key\" must not be None");
         verify(delegate, never()).put(any(), any());
         verify(delegate, never()).remove(any());
     }

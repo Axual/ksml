@@ -69,8 +69,8 @@ public class KSMLSessionStoreMethodsTest {
         // Session times in the int range and start == end work, a session key read back can be removed, and a
         // malformed session key raises a Python error instead of being ignored
         final var sessionKeys = " keys small=ok/s1 single=ok/s2 roundTrip=ok,ok/0 notDict=TypeError missing=ValueError"
-                + " strStart=TypeError floatStart=TypeError huge=ValueError reversed=ValueError removeNotDict=TypeError"
-                + " written=0";
+                + " strStart=TypeError floatStart=TypeError huge=ValueError reversed=ValueError none=ValueError"
+                + " removeNotDict=TypeError written=0";
         // The in-memory store orders by session end, then key. RocksDB orders by time segment, then key, then session
         // end; all sessions here are in one segment
         assertThat(lines).containsExactly(

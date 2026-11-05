@@ -126,7 +126,7 @@ if TYPE_CHECKING:
 
         A session key is a dict with "key", "start" and "end" (int times in milliseconds); start may equal end.
         put and remove raise TypeError for a session key that is not a dict or a time that is not an int, and
-        ValueError for a missing field, a time out of the long range, or a start after the end.
+        ValueError for a missing field, a None key, a time out of the long range, or a start after the end.
         """
 
         def put(self, sessionKey: Dict[str, Any], value: Any) -> None: ...
