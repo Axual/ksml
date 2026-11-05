@@ -1054,7 +1054,14 @@ Monitor state store sizes:
 ### Null Value Handling
 **Problem:** A tombstone (a record with a `null` value) is a delete, not a value
 
-**Solution:** `aggregate`, `reduce` and `count` skip tombstones, so the `aggregator` never gets `None` as the value.
+**Solution:** `aggregate`, `reduce` and `count` skip tombstones, so the `aggregator` is not called for them. An empty
+value (zero bytes) is not a tombstone: it still reaches the `aggregator` as `None`, so keep a check for it:
+```yaml
+code: |
+  if value is None:
+    return aggregatedValue
+  # ... rest of logic
+```
 To act on a delete, handle it before the grouping, for example with a `mapValues`. See
 [Tombstones and `None`](../../reference/function-reference.md#tombstones-and-none).
 

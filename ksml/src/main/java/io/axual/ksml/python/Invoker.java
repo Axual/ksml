@@ -103,14 +103,12 @@ public abstract class Invoker {
     }
 
     // Kafka Streams needs a real null for a tombstone, so map None (DataNull or a typed null) to null
-    protected static DataObject nullIfNone(DataObject value) {
+    protected static <T> T nullIfNone(T value) {
         return DataObject.isNone(value) ? null : value;
     }
 
     protected static KeyValue<Object, Object> nullIfNone(KeyValue<Object, Object> keyValue) {
-        return new KeyValue<>(
-                DataObject.isNone(keyValue.key) ? null : keyValue.key,
-                DataObject.isNone(keyValue.value) ? null : keyValue.value);
+        return new KeyValue<>(nullIfNone(keyValue.key), nullIfNone(keyValue.value));
     }
 
     protected void verifyNoResult() {
