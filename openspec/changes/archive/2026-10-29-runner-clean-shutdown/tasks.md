@@ -17,7 +17,7 @@
 
 ## 3. Fix
 
-- [x] 3.1 Add a fixed 30 s close timeout: `KafkaStreamsRunner.CLOSE_TIMEOUT`, with the shutdown hook waiting 5 s longer (see design D2; started together with 1.2, which needs the timeout parameter)
+- [x] 3.1 Add a fixed close timeout (20 s after PR review, first 30 s): `KafkaStreamsRunner.CLOSE_TIMEOUT`, with the shutdown hook waiting 5 s longer (see design D2; started together with 1.2, which needs the timeout parameter)
 - [x] 3.2 `KafkaStreamsRunner.run()`: always close Kafka Streams in `finally` with a bounded close (verify the Kafka 4.4 `CloseOptions` API), keep the existing log lines, keep throwing `RunnerException` for a failed state after the close
 - [x] 3.3 `KSMLRunner.runRunners`: give the shutdown hook a `runnersDone` future that completes when both runner futures complete (the hook stays registered before the runners start, see design D1); move `closeExecutorService` into a `finally`; guard `removeShutdownHook` against `IllegalStateException`
 - [x] 3.4 `shutdownRunners`: after stopping the runners, wait on the future with the timeout; log on timeout, interruption or failure
@@ -26,7 +26,7 @@
 
 ## 4. Docs and verification
 
-- [x] 4.1 `docs/reference/configuration-reference.md` "Error Handling Configuration": with `stopOnFail` the runner exits with a non-zero code so Docker/Kubernetes can restart it; on SIGTERM it commits and closes Kafka Streams (up to 30 s), so give the pod enough grace time
+- [x] 4.1 `docs/reference/configuration-reference.md` "Error Handling Configuration": with `stopOnFail` the runner exits with a non-zero code so Docker/Kubernetes can restart it; on SIGTERM it commits and closes Kafka Streams (up to 25 s), so give the container enough grace time
 - [x] 4.2 `docs/release-notes.md`: add an entry for the new exit-code and shutdown behavior
 - [x] 4.3 Run all ITs with `mvn verify -pl ksml-integration-tests -Pintegration-tests` (after `mvn install` of `ksml-runner`) (a `RepartitionIT` timeout under a full verify is a known flake, not a regression)
 - [x] 4.4 (Done: the manual test was run and shows both problems are fixed) Optionally reproduce both problems manually with Docker (an image from `./build-local-docker.sh`, the compose setup in `docs/local-docker-compose-setup-with-sr/`): a `mapValues` dividing by zero must make the container exit non-zero; `docker compose stop ksml` right after a `count` must log `Stopping Kafka Streams` and commit offsets, with no recount after a restart

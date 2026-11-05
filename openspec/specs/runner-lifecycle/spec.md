@@ -39,7 +39,7 @@ When the JVM receives a termination signal (SIGTERM), the runner SHALL stop the 
 - **THEN** the producer runner SHALL stop scheduling new messages and close its Kafka producer before the JVM exits
 
 ### Requirement: Shutdown is bounded in time
-The wait for the runners during shutdown SHALL be bounded by a fixed shutdown timeout of 30 seconds (plus a small margin for the hook), so that a stuck runner cannot prevent the process from exiting.
+The wait for the runners during shutdown SHALL be bounded by a fixed close timeout of 20 seconds plus a 5 second margin for the hook, 25 seconds in total, so that it fits the default Kubernetes termination grace period of 30 seconds, and so that a stuck runner cannot prevent the process from exiting.
 
 #### Scenario: Runner does not finish in time
 - **WHEN** a runner has not finished within the shutdown timeout after SIGTERM

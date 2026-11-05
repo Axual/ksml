@@ -74,10 +74,10 @@ import java.util.function.BiFunction;
 @Slf4j
 public class KafkaStreamsRunner implements Runner {
     /**
-     * Maximum time to close Kafka Streams, including the final commit. Matches the default Kubernetes
-     * termination grace period.
+     * Maximum time to close Kafka Streams, including the final commit. With the 5 s shutdown hook
+     * margin the total is 25 s, which fits the default Kubernetes termination grace period of 30 s.
      */
-    public static final Duration CLOSE_TIMEOUT = Duration.ofSeconds(30);
+    public static final Duration CLOSE_TIMEOUT = Duration.ofSeconds(20);
 
     @Getter
     private final KafkaStreams kafkaStreams;

@@ -34,8 +34,8 @@ The hook calls `stopRunnersQuietly(producer, streams)` and then waits on `allOf(
 *Alternative:* the hook calls `kafkaStreams.close()` directly (pre-PR #86 behavior). Rejected: it duplicates ownership and races with the runner's own `finally`.
 Consequence: the hook needs something to wait on before the runners are submitted, because it is registered first (as before, so a signal during start-up is still handled). `runRunners` therefore gives the hook a `runnersDone` future that is completed when both runner futures complete, and also in `runRunners`' `finally`, so a waiting hook is released when the runners never started.
 
-**D2 — A fixed close timeout of 30 s.**
-`KafkaStreamsRunner.CLOSE_TIMEOUT` is used as the Kafka Streams close timeout; the hook waits that plus 5 s so a full close can finish. The constant lives in `KafkaStreamsRunner` rather than `KSMLRunner`, because the `backend` package does not depend on `KSMLRunner` and should not start to. 30 s matches the Kubernetes default `terminationGracePeriodSeconds`. Decided with the user to keep it a constant rather than a new configuration option, to avoid growing the config surface and schema.
+**D2 — A fixed close timeout of 20 s.**
+`KafkaStreamsRunner.CLOSE_TIMEOUT` is used as the Kafka Streams close timeout; the hook waits that plus 5 s so a full close can finish. The constant lives in `KafkaStreamsRunner` rather than `KSMLRunner`, because the `backend` package does not depend on `KSMLRunner` and should not start to. With the 5 s margin the total is 25 s, which fits inside the Kubernetes default `terminationGracePeriodSeconds` of 30 s, so users need no Kubernetes changes and the Helm chart needs no new setting. (First 30 s was chosen; changed to 20 s after PR review, because 35 s in total was longer than the Kubernetes default.) Decided with the user to keep it a constant rather than a new configuration option, to avoid growing the config surface and schema.
 
 **D3 — Always close Kafka Streams, with a bounded close.**
 `KafkaStreamsRunner.run()` closes the client in `finally` regardless of state, using the bounded close of the Kafka 4.4 API (`CloseOptions` with a timeout). It logs `Stopping Kafka Streams` when it was running (the manual reproduction looks for it), `Kafka Streams failed, closing it` in a failed state, and `Kafka Streams has stopped` otherwise. The failed state is read before the close, so the result does not depend on the state Kafka Streams leaves after `close()`. The `RunnerException` for a failed state is still thrown, after the close.
@@ -58,7 +58,7 @@ Phase 1 first extracts `run(...)` and the hook body `shutdownRunners(...)` **wit
 
 ## Risks / Trade-offs
 
-- [Shutdown can now take up to 35 s] → Documented; orchestrators need a grace period of at least that. Kubernetes' default is exactly 30 s, so a close that needs the full budget may be killed at the edge — acceptable since a normal close takes far less, and the docs advise raising the grace period.
+- [Shutdown can now take up to 25 s] → Fits the Kubernetes default of 30 s. Docker's default of 10 s is shorter, so the docs and compose files set 30 s. A close that needs more than 20 s is cut off — acceptable since a normal close takes far less.
 - [`System.exit` called from `main` while shutdown hooks are running blocks that thread] → Harmless: the JVM exits once the hooks finish; the exit code is the one from the signal (143), as before.
 - [Producer close timing] → `KafkaProducerRunner` closes its producer via try-with-resources when its loop ends; the hook's wait covers that too. A producer blocked in a long send is bounded by the same timeout.
 - [Executor `shutdownNow` interrupting a runner] → Only after the runners' futures have completed or the 2 s grace in `closeExecutorService` elapsed; same as today on the success path.
