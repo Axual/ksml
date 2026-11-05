@@ -40,6 +40,7 @@ import org.junit.jupiter.api.condition.EnabledIf;
 import java.util.List;
 import java.util.Map;
 
+import static io.axual.ksml.testutil.StoreMetrics.openIterators;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
@@ -260,17 +261,7 @@ class AssertionRunnerTest {
         var result = runner.runAssertions(List.of(block), SUITE, "iterator-early-exit");
 
         assertEquals(TestResult.Status.PASS, result.status(), result.message());
-        assertEquals(0L, openIterators(STORE_NAME));
-    }
-
-    /** Returns the Kafka Streams metric for the iterators on a store that are not closed yet. */
-    private long openIterators(String storeName) {
-        return driver.metrics().entrySet().stream()
-                .filter(e -> e.getKey().name().equals("num-open-iterators"))
-                .filter(e -> e.getKey().tags().containsValue(storeName))
-                .map(e -> ((Number) e.getValue().metricValue()).longValue())
-                .findFirst()
-                .orElseThrow(() -> new AssertionError("No num-open-iterators metric for store " + storeName));
+        assertEquals(0L, openIterators(driver, STORE_NAME));
     }
 
     @Test

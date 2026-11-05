@@ -85,9 +85,9 @@ public class StoreIteratorProxy implements AbstractProxy, ProxyIterator, ProxyOb
         try {
             while (scope.created.size() > mark) {
                 final var proxy = scope.created.remove(scope.created.size() - 1);
+                proxy.closedByCallEnd = true;
                 if (proxy.closed) continue;
                 closedNow++;
-                proxy.closedByCallEnd = true;
                 try {
                     proxy.close();
                 } catch (RuntimeException e) {
@@ -102,7 +102,7 @@ public class StoreIteratorProxy implements AbstractProxy, ProxyIterator, ProxyOb
 
     /**
      * Returns whether there is a next entry, and closes the Kafka iterator when there is none.
-     * Fails for an iterator that was closed when its function returned, for example one kept in a global.
+     * Fails when used after the function that created it returned, for example from a global.
      */
     @Override
     public boolean hasNext() {
