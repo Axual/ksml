@@ -28,7 +28,6 @@ Before you upgrade, check each item below:
 * If you extend `OperationProcessor` or `FixedKeyOperationProcessor`, implement `processRecord` instead of `process`.
 * If you create a `TimestampedKeyValueStoreProxy` or `TimestampedWindowStoreProxy` yourself, pass a `LongSupplier` that gives the timestamp of the record that is being processed.
 * If you call `TimestampedWindowStoreProxy.put(key, ValueAndTimestamp, windowStart)`, call `put(key, value, windowStart, timestamp)` instead. A `ValueAndTimestamp` still compiles as the value, but is then stored inside another `ValueAndTimestamp`.
-* `OperationProcessorSupplier.ProcessorFactory` and `FixedKeyOperationProcessorSupplier.ProcessorFactory` now return an `OperationProcessor` / `FixedKeyOperationProcessor` instead of a Kafka `Processor` / `FixedKeyProcessor`.
 
 ## Apicurio Registry 3
 
@@ -243,9 +242,9 @@ The same applies to the store of a windowed aggregation that a Python function u
 
 In KSML 1.x, session store `put` and `remove` silently ignored a session key that they could not read: a key that was not a dict, missed a field, or had `start` and `end` times in the int range. Nothing was written, and no error was raised. A session with one record (`start` equal to `end`) failed with a Java error that Python could not catch.
 
-In KSML 2.0.0, any `int` time works and `start` may equal `end`. A session key that is not valid raises `TypeError` or `ValueError`, which `except Exception` catches. See [Session Store Methods](reference/state-store-reference.md#session-store-methods).
+In KSML 2.0.0, any `int` time from 0 works and `start` may equal `end`. A session key that is not valid raises `TypeError` or `ValueError`, which `except Exception` catches. See [Session Store Methods](reference/state-store-reference.md#session-store-methods).
 
-What you need to do: if a Python function writes or removes sessions, check that each session key is a dict with `key`, `start` and `end`, with `int` times and `start` not after `end`. Code that passed other keys wrote nothing before, so fixing it can change what your application stores.
+What you need to do: if a Python function writes or removes sessions, check that each session key is a dict with `key`, `start` and `end`, with `int` times, `start` not negative and not after `end`. Code that passed other keys wrote nothing before, so fixing it can change what your application stores.
 
 Keys and values of stores are now also converted to the store's `keyType` and `valueType`. Code that worked before keeps working; see [Keys and Values](reference/state-store-reference.md#keys-and-values).
 

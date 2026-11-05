@@ -46,7 +46,7 @@ import java.util.Set;
 public abstract class AbstractStateStoreProxy<T extends StateStore> implements StateStore, AbstractProxy {
     protected static final PythonNativeMapper NATIVE_MAPPER = new PythonNativeMapper();
     protected static final PythonDataObjectMapper DATA_OBJECT_MAPPER = new PythonDataObjectMapper(true);
-    protected static final NativeDataObjectMapper JAVA_MAPPER = new NativeDataObjectMapper();
+    protected static final NativeDataObjectMapper DATA_OBJECT_TO_JAVA = new NativeDataObjectMapper();
     private static final Set<Class<?>> INTEGER_CONTAINERS = Set.of(Byte.class, Short.class, Integer.class, Long.class);
     private static final Set<Class<?>> FLOAT_CONTAINERS = Set.of(Float.class, Double.class);
     protected final T delegate;
@@ -54,10 +54,6 @@ public abstract class AbstractStateStoreProxy<T extends StateStore> implements S
     protected final DataType keyType;
     /** The store's declared value type, or {@code null} when unknown. */
     protected final DataType valueType;
-
-    protected AbstractStateStoreProxy(T delegate) {
-        this(delegate, null, null);
-    }
 
     protected AbstractStateStoreProxy(T delegate, DataType keyType, DataType valueType) {
         this.delegate = delegate;
@@ -95,15 +91,23 @@ public abstract class AbstractStateStoreProxy<T extends StateStore> implements S
     private Object toStoreType(DataType type, Object object, String role) {
         if (!(type instanceof SimpleType simpleType) || type instanceof EnumType || object == null) return object;
         final var container = simpleType.containerClass();
-        final var value = readValue(type, container, object);
+        final Object value;
+        try {
+            value = readValue(type, container, object);
+        } catch (DataException e) {
+            // Only a list or tuple for a bytes store is read element by element; this element is an int out of range
+            throw PythonErrors.valueError(storeError(role) + " has an int out of range for " + type + " (-128 to 255)", e);
+        } catch (ClassCastException e) {
+            throw PythonErrors.typeError(storeError(role) + " must be " + type + ", got " + typeName(object));
+        }
         if (value == null) return null;
         if (!isConvertible(container)) return object;
         if (!fits(container, value))
-            throw PythonErrors.typeError(storeError(role) + " must be " + type + ", got " + typeName(value));
+            throw PythonErrors.typeError(storeError(role) + " must be " + type + ", got " + typeName(object, value));
         try {
             return convert(type, container, value);
         } catch (ArithmeticException | DataException e) {
-            throw PythonErrors.valueError(storeError(role) + " " + typeName(value) + " is out of range for " + type, e);
+            throw PythonErrors.valueError(storeError(role) + " " + typeName(object, value) + " is out of range for " + type, e);
         }
     }
 
@@ -111,7 +115,7 @@ public abstract class AbstractStateStoreProxy<T extends StateStore> implements S
     private static Object readValue(DataType type, Class<?> container, Object object) {
         // The expected type only helps to read Python bytes; for other types it could coerce a value of another kind.
         // GraalVM passes Python bytes as a Java object, so it is read back as a polyglot value to get a byte[].
-        if (object instanceof DataObject dataObject) return JAVA_MAPPER.fromDataObject(dataObject);
+        if (object instanceof DataObject dataObject) return DATA_OBJECT_TO_JAVA.fromDataObject(dataObject);
         if (container == byte[].class) return NATIVE_MAPPER.fromPython(type, Value.asValue(object));
         return NATIVE_MAPPER.fromPython(object);
     }
@@ -131,11 +135,17 @@ public abstract class AbstractStateStoreProxy<T extends StateStore> implements S
         return value instanceof byte[];
     }
 
-    /** Converts a fitting value to the declared type; a too large int throws ArithmeticException or DataException. */
+    /**
+     * Converts a fitting value to the declared type; a too large int throws ArithmeticException or DataException, also
+     * for a float type, as Python's own {@code float(10**400)} fails.
+     */
     private static Object convert(DataType type, Class<?> container, Object value) {
         if (value instanceof BigInteger bigInteger) {
-            if (FLOAT_CONTAINERS.contains(container))
-                return DATA_OBJECT_MAPPER.toDataObject(type, bigInteger.doubleValue());
+            if (FLOAT_CONTAINERS.contains(container)) {
+                final var asDouble = bigInteger.doubleValue();
+                if (Double.isInfinite(asDouble)) throw new ArithmeticException("int too large for a float");
+                return DATA_OBJECT_MAPPER.toDataObject(type, asDouble);
+            }
             return DATA_OBJECT_MAPPER.toDataObject(type, bigInteger.longValueExact());
         }
         return DATA_OBJECT_MAPPER.toDataObject(type, value);
@@ -150,6 +160,14 @@ public abstract class AbstractStateStoreProxy<T extends StateStore> implements S
     /** The Python type name; a large int arrives as a BigInteger, which Python would call ForeignNumber. */
     protected static String typeName(Object value) {
         return isInteger(value) ? "int" : PythonErrors.typeName(value);
+    }
+
+    /**
+     * The Python type name of a key or value as Python passed it. A {@code DataObject} (from a test runner assert
+     * block) is named by its Java value; for Python bytes stores the read value is a polyglot wrapper.
+     */
+    private static String typeName(Object object, Object value) {
+        return typeName(object instanceof DataObject ? value : object);
     }
 
     /** The start of an error message about this store, followed by what is wrong. */

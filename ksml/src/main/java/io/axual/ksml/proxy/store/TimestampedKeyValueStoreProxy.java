@@ -104,7 +104,7 @@ public class TimestampedKeyValueStoreProxy extends AbstractStateStoreProxy<Times
 
     /**
      * Entries whose key starts with the string prefix, serialized as UTF-8; an empty prefix gives all entries.
-     * A prefix that is not a string raises TypeError.
+     * Raises TypeError for a non-string prefix or key type.
      */
     @HostAccess.Export
     public Object prefixScan(Object prefix) {
@@ -117,7 +117,7 @@ public class TimestampedKeyValueStoreProxy extends AbstractStateStoreProxy<Times
     }
 
     private KeyValueIterator<Object, ValueAndTimestamp<Object>> prefixIterator(Object prefix) {
-        final var stringPrefix = ProxyUtil.toStringPrefix(prefix);
+        final var stringPrefix = ProxyUtil.toStringPrefix(prefix, keyType);
         // Kafka's in-memory and caching stores fail on an empty prefix; every key starts with ""
         if (stringPrefix.isEmpty()) return delegate.all();
         return delegate.prefixScan(stringPrefix, ProxyUtil.PREFIX_SERIALIZER);

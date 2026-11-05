@@ -146,16 +146,7 @@ class SessionStoreProxyTest {
 
     /** Runs Python code with {@code store} bound to the proxy; returns "ok", or "ErrorType: message". */
     private String run(String call) {
-        pythonContext.context().getBindings("python").putMember("store", proxy());
-        return pythonContext.context().eval("python", """
-                def run():
-                    try:
-                        %s
-                        return "ok"
-                    except Exception as e:
-                        return type(e).__name__ + ": " + str(e)
-                run()
-                """.formatted(call)).asString();
+        return StoreProxyTestUtil.pythonErrorOf(pythonContext.context(), proxy(), call);
     }
 
     private Windowed<Object> storedSessionKey() {
@@ -209,6 +200,8 @@ class SessionStoreProxyTest {
                 .isEqualTo("TypeError: Store sessions: session key end must be int, got float");
         assertThat(run("store.put({'key': 'a', 'start': 10, 'end': 10 ** 30}, 'v')"))
                 .isEqualTo("ValueError: Store sessions: session key end int is out of range for long");
+        assertThat(run("store.put({'key': 'a', 'start': -5, 'end': 10}, 'v')"))
+                .isEqualTo("ValueError: Store sessions: session key start must not be negative");
         assertThat(run("store.put({'key': 'a', 'start': 20, 'end': 10}, 'v')"))
                 .isEqualTo("ValueError: Store sessions: session key start must not be after end");
         assertThat(run("store.put({'key': None, 'start': 10, 'end': 20}, 'v')"))

@@ -20,6 +20,7 @@ package io.axual.ksml.proxy.store;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.object.DataBytes;
 import io.axual.ksml.data.object.DataDouble;
 import io.axual.ksml.data.object.DataInteger;
 import io.axual.ksml.data.object.DataLong;
@@ -29,6 +30,7 @@ import io.axual.ksml.python.PythonContext;
 import io.axual.ksml.python.PythonContextConfig;
 import org.apache.kafka.streams.KeyValue;
 import org.apache.kafka.streams.kstream.Windowed;
+import org.apache.kafka.streams.state.KeyValueIterator;
 import org.apache.kafka.streams.state.KeyValueStore;
 import org.apache.kafka.streams.state.SessionStore;
 import org.apache.kafka.streams.state.TimestampedKeyValueStore;
@@ -77,17 +79,7 @@ class StoreProxyDeclaredTypesTest {
 
     /** Runs Python code with {@code store} bound to the proxy; returns "ok", or "ErrorType: message". */
     private static String run(Object proxy, String call) {
-        pythonContext.context().getBindings("python").putMember("store", proxy);
-        return pythonContext.context().eval("python", """
-                def run():
-                    try:
-                        x = 5
-                        %s
-                        return "ok"
-                    except Exception as e:
-                        return type(e).__name__ + ": " + str(e)
-                run()
-                """.formatted(call)).asString();
+        return StoreProxyTestUtil.pythonErrorOf(pythonContext.context(), proxy, call);
     }
 
     private static void assertLong(Object object, long expected) {
@@ -100,7 +92,7 @@ class StoreProxyDeclaredTypesTest {
         final KeyValueStore<Object, Object> delegate = mock(KeyValueStore.class);
         final var proxy = new KeyValueStoreProxy(delegate, LONG, LONG);
 
-        assertThat(run(proxy, "store.put(1, x)")).isEqualTo("ok");
+        assertThat(run(proxy, "store.put(1, 5)")).isEqualTo("ok");
         final var key = ArgumentCaptor.forClass(Object.class);
         final var value = ArgumentCaptor.forClass(Object.class);
         verify(delegate).put(key.capture(), value.capture());
@@ -111,7 +103,7 @@ class StoreProxyDeclaredTypesTest {
         verify(delegate).putIfAbsent(key.capture(), value.capture());
         assertLong(value.getValue(), 1L << 40);
 
-        assertThat(run(proxy, "store.putAll([(3, x), {'key': 4, 'value': 6}])")).isEqualTo("ok");
+        assertThat(run(proxy, "store.putAll([(3, 5), {'key': 4, 'value': 6}])")).isEqualTo("ok");
         final ArgumentCaptor<List<KeyValue<Object, Object>>> entries = ArgumentCaptor.captor();
         verify(delegate).putAll(entries.capture());
         assertLong(entries.getValue().get(0).key, 3);
@@ -166,7 +158,10 @@ class StoreProxyDeclaredTypesTest {
                 .isEqualTo("ValueError: Store counts: key int is out of range for long");
         assertThat(run(new KeyValueStoreProxy(delegate, DataInteger.DATATYPE, DataInteger.DATATYPE), "store.put(1, 2 ** 40)"))
                 .isEqualTo("ValueError: Store counts: value int is out of range for integer");
-        // putAll used to put the value of a too large int in its message (PR #752 review, item 4)
+        // Python's own float(10 ** 400) fails too; the store must not get Infinity
+        assertThat(run(new KeyValueStoreProxy(delegate, LONG, DataDouble.DATATYPE), "store.put(1, 10 ** 400)"))
+                .isEqualTo("ValueError: Store counts: value int is out of range for double");
+        // The message must not contain the value, which may be user data
         assertThat(run(new KeyValueStoreProxy(delegate, LONG, LONG), "store.putAll([(10 ** 30, 1)])"))
                 .isEqualTo("ValueError: Store counts: putAll entry 0 key int is out of range for long");
         assertThat(run(new KeyValueStoreProxy(delegate, LONG, LONG), "store.putAll([{'key': 1, 'value': 10 ** 30}])"))
@@ -182,22 +177,65 @@ class StoreProxyDeclaredTypesTest {
         final KeyValueStore<Object, Object> delegate = mock(KeyValueStore.class);
         when(delegate.name()).thenReturn("names");
 
-        assertThat(run(new KeyValueStoreProxy(delegate, LONG, DataDouble.DATATYPE), "store.put(1, x)")).isEqualTo("ok");
+        assertThat(run(new KeyValueStoreProxy(delegate, LONG, DataDouble.DATATYPE), "store.put(1, 5)")).isEqualTo("ok");
         final var value = ArgumentCaptor.forClass(Object.class);
         verify(delegate).put(any(), value.capture());
         assertThat(value.getValue()).isInstanceOfSatisfying(DataDouble.class, d -> assertThat(d.value()).isEqualTo(5.0));
 
         final var stringProxy = new KeyValueStoreProxy(delegate, DataString.DATATYPE, DataString.DATATYPE);
-        assertThat(run(stringProxy, "store.put('a', x)")).isEqualTo("TypeError: Store names: value must be string, got int");
+        assertThat(run(stringProxy, "store.put('a', 5)")).isEqualTo("TypeError: Store names: value must be string, got int");
         assertThat(run(stringProxy, "store.put('a', {'b': 1})")).isEqualTo("TypeError: Store names: value must be string, got dict");
+    }
+
+    @Test
+    @DisplayName("Bytes store: bytes, and lists or tuples of ints from -128 to 255, work; other values raise a Python error")
+    void bytesStoreValues() {
+        final KeyValueStore<Object, Object> delegate = mock(KeyValueStore.class);
+        when(delegate.name()).thenReturn("blobs");
+        final var proxy = new KeyValueStoreProxy(delegate, LONG, DataBytes.DATATYPE);
+
+        assertThat(run(proxy, "store.put(1, b'ab')")).isEqualTo("ok");
+        assertThat(run(proxy, "store.put(1, [-128, 255])")).isEqualTo("ok");
+        assertThat(run(proxy, "store.put(1, (1, 2))")).isEqualTo("ok");
+        verify(delegate, times(3)).put(any(), any());
+
+        final var outOfRange = "ValueError: Store blobs: value has an int out of range for bytes (-128 to 255)";
+        assertThat(run(proxy, "store.put(1, [300])")).isEqualTo(outOfRange);
+        assertThat(run(proxy, "store.put(1, [-129])")).isEqualTo(outOfRange);
+        assertThat(run(proxy, "store.put(1, [2 ** 40])")).isEqualTo(outOfRange);
+        assertThat(run(proxy, "store.put(1, ['a'])")).isEqualTo("TypeError: Store blobs: value must be bytes, got list");
+        assertThat(run(proxy, "store.put(1, {'a': 1})")).isEqualTo("TypeError: Store blobs: value must be bytes, got dict");
+        assertThat(run(proxy, "store.putAll([(1, [300])])"))
+                .isEqualTo("ValueError: Store blobs: putAll entry 0 value has an int out of range for bytes (-128 to 255)");
+        verify(delegate, times(3)).put(any(), any());
+        verify(delegate, never()).putAll(anyList());
+    }
+
+    @Test
+    @DisplayName("prefixScan raises TypeError on a store whose declared key type is not string")
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    void prefixScanNeedsStringKeys() {
+        final KeyValueStore<Object, Object> delegate = mock(KeyValueStore.class);
+        when(delegate.prefixScan(any(), any())).thenAnswer(invocation -> new FakeKeyValueIterator<>(List.of()));
+        final var expected = "TypeError: prefixScan needs a store with string keys, got keyType long";
+        assertThat(run(new KeyValueStoreProxy(delegate, LONG, LONG), "store.prefixScan('a')")).isEqualTo(expected);
+        assertThat(run(new KeyValueStoreProxy(delegate, DataString.DATATYPE, LONG), "store.prefixScan('a')")).isEqualTo("ok");
+        assertThat(run(new KeyValueStoreProxy(delegate, null, null), "store.prefixScan('a')")).isEqualTo("ok");
+
+        final TimestampedKeyValueStore<Object, Object> timestamped = mock(TimestampedKeyValueStore.class);
+        when(timestamped.prefixScan(any(), any())).thenAnswer(invocation -> (KeyValueIterator) new FakeKeyValueIterator<>(List.of()));
+        final var timestampedProxy = new TimestampedKeyValueStoreProxy(timestamped, LONG, LONG, () -> 0L);
+        assertThat(run(timestampedProxy, "store.prefixScan('a')")).isEqualTo(expected);
+        assertThat(run(timestampedProxy, "store.prefixScanWithTimestamp('a')")).isEqualTo(expected);
+        verify(timestamped, never()).prefixScan(any(), any());
     }
 
     @Test
     @DisplayName("Key-value store: without a declared type, or with a type that is not simple, values are not converted")
     void keyValueStoreWithoutSimpleTypeIsUnchanged() {
         final KeyValueStore<Object, Object> delegate = mock(KeyValueStore.class);
-        assertThat(run(new KeyValueStoreProxy(delegate, null, null), "store.put(1, x)")).isEqualTo("ok");
-        assertThat(run(new KeyValueStoreProxy(delegate, DataType.UNKNOWN, DataType.UNKNOWN), "store.put(1, x)")).isEqualTo("ok");
+        assertThat(run(new KeyValueStoreProxy(delegate, null, null), "store.put(1, 5)")).isEqualTo("ok");
+        assertThat(run(new KeyValueStoreProxy(delegate, DataType.UNKNOWN, DataType.UNKNOWN), "store.put(1, 5)")).isEqualTo("ok");
         final var value = ArgumentCaptor.forClass(Object.class);
         verify(delegate, times(2)).put(any(), value.capture());
         assertThat(value.getAllValues()).allSatisfy(v -> assertThat(v).isEqualTo(5));
@@ -210,14 +248,14 @@ class StoreProxyDeclaredTypesTest {
         when(delegate.name()).thenReturn("counts");
         final var proxy = new TimestampedKeyValueStoreProxy(delegate, LONG, LONG, () -> 1000L);
 
-        assertThat(run(proxy, "store.put(1, x)")).isEqualTo("ok");
+        assertThat(run(proxy, "store.put(1, 5)")).isEqualTo("ok");
         final var key = ArgumentCaptor.forClass(Object.class);
         final ArgumentCaptor<ValueAndTimestamp<Object>> value = ArgumentCaptor.captor();
         verify(delegate).put(key.capture(), value.capture());
         assertLong(key.getValue(), 1);
         assertLong(value.getValue().value(), 5);
 
-        assertThat(run(proxy, "store.putAll([(3, x)])")).isEqualTo("ok");
+        assertThat(run(proxy, "store.putAll([(3, 5)])")).isEqualTo("ok");
         final ArgumentCaptor<List<KeyValue<Object, ValueAndTimestamp<Object>>>> entries = ArgumentCaptor.captor();
         verify(delegate).putAll(entries.capture());
         assertLong(entries.getValue().get(0).key, 3);
@@ -240,7 +278,7 @@ class StoreProxyDeclaredTypesTest {
         when(delegate.name()).thenReturn("counts");
         final var proxy = new VersionedKeyValueStoreProxy(delegate, LONG, LONG);
 
-        assertThat(run(proxy, "store.put(1, x, 1000)")).isEqualTo("ok");
+        assertThat(run(proxy, "store.put(1, 5, 1000)")).isEqualTo("ok");
         final var key = ArgumentCaptor.forClass(Object.class);
         final var value = ArgumentCaptor.forClass(Object.class);
         verify(delegate).put(key.capture(), value.capture(), anyLong());
@@ -261,7 +299,7 @@ class StoreProxyDeclaredTypesTest {
         when(delegate.name()).thenReturn("counts");
         final var proxy = new WindowStoreProxy(delegate, LONG, LONG);
 
-        assertThat(run(proxy, "store.put(1, x, 0)")).isEqualTo("ok");
+        assertThat(run(proxy, "store.put(1, 5, 0)")).isEqualTo("ok");
         final var key = ArgumentCaptor.forClass(Object.class);
         final var value = ArgumentCaptor.forClass(Object.class);
         verify(delegate).put(key.capture(), value.capture(), anyLong());
@@ -282,7 +320,7 @@ class StoreProxyDeclaredTypesTest {
         when(delegate.name()).thenReturn("counts");
         final var proxy = new TimestampedWindowStoreProxy(delegate, LONG, LONG, () -> 1000L);
 
-        assertThat(run(proxy, "store.put(1, x, 0)")).isEqualTo("ok");
+        assertThat(run(proxy, "store.put(1, 5, 0)")).isEqualTo("ok");
         final var key = ArgumentCaptor.forClass(Object.class);
         final ArgumentCaptor<ValueAndTimestamp<Object>> value = ArgumentCaptor.captor();
         verify(delegate).put(key.capture(), value.capture(), anyLong());
@@ -303,7 +341,7 @@ class StoreProxyDeclaredTypesTest {
         when(delegate.name()).thenReturn("counts");
         final var proxy = new SessionStoreProxy(delegate, LONG, LONG);
 
-        assertThat(run(proxy, "store.put({'key': 1, 'start': 3000000000, 'end': 3000000001}, x)")).isEqualTo("ok");
+        assertThat(run(proxy, "store.put({'key': 1, 'start': 3000000000, 'end': 3000000001}, 5)")).isEqualTo("ok");
         final ArgumentCaptor<Windowed<Object>> sessionKey = ArgumentCaptor.captor();
         final var value = ArgumentCaptor.forClass(Object.class);
         verify(delegate).put(sessionKey.capture(), value.capture());
@@ -315,7 +353,7 @@ class StoreProxyDeclaredTypesTest {
         verify(delegate).fetch(key.capture());
         assertLong(key.getValue(), 7);
 
-        assertThat(run(proxy, "store.put({'key': 1.5, 'start': 3000000000, 'end': 3000000001}, x)"))
+        assertThat(run(proxy, "store.put({'key': 1.5, 'start': 3000000000, 'end': 3000000001}, 5)"))
                 .isEqualTo("TypeError: Store counts: key must be long, got float");
     }
 }
