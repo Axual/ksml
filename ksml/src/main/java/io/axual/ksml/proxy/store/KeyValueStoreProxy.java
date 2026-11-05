@@ -88,11 +88,7 @@ public class KeyValueStoreProxy extends AbstractStateStoreProxy<KeyValueStore<Ob
         delegate.put(NATIVE_MAPPER.fromPython(key), NATIVE_MAPPER.fromPython(value));
     }
 
-    /**
-     * Writes all entries with one call to the store. Entries are (key, value) pairs or dicts with key and value,
-     * in a list or an iterator. All entries are converted first, so a bad entry writes nothing and raises a Python
-     * {@code TypeError} or {@code ValueError}.
-     */
+    /** Writes all entries with one call to the store. See {@link ProxyUtil#toKeyValueList(Object)}. */
     @HostAccess.Export
     public void putAll(Object entries) {
         delegate.putAll(ProxyUtil.toKeyValueList(entries));

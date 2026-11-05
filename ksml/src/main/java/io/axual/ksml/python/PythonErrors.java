@@ -20,18 +20,13 @@ package io.axual.ksml.python;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.exception.DataException;
 import lombok.extern.slf4j.Slf4j;
 import org.graalvm.polyglot.Context;
 
 /**
- * Raises Python exceptions from Java code that Python calls, such as the state store proxies.
- * <p>
- * A Java exception reaches Python as a {@code ForeignException}, which {@code except Exception} does not catch.
- * Use these methods for caller errors (a bad argument), so Python code can handle them the normal way. System errors
- * (a closed store, a RocksDB failure) stay Java exceptions. Must be called while a Python context is entered, which
- * is always the case for a method that Python calls.
- * <p>
- * Use {@code throw PythonErrors.typeError(...)}: the methods never return normally.
+ * Raises Python TypeError/ValueError for bad arguments, so {@code except Exception} catches them. Use
+ * {@code throw PythonErrors.typeError(...)}: the methods never return normally.
  */
 @Slf4j
 public final class PythonErrors {
@@ -40,22 +35,29 @@ public final class PythonErrors {
 
     /** Raises a Python {@code TypeError}: the argument has the wrong kind, for example not a list. */
     public static RuntimeException typeError(String message) {
-        return raise("TypeError", message);
+        return raise("TypeError", message, null);
     }
 
     /** Raises a Python {@code ValueError}: the argument has the right kind, but wrong content. */
     public static RuntimeException valueError(String message) {
-        return raise("ValueError", message);
+        return raise("ValueError", message, null);
     }
 
     /** Raises a Python {@code ValueError} for a Java error, and logs the Java cause at debug level. */
     public static RuntimeException valueError(String message, Throwable cause) {
         log.debug("Raising ValueError in Python: {}", message, cause);
-        return raise("ValueError", message);
+        return raise("ValueError", message, cause);
     }
 
-    private static RuntimeException raise(String exceptionType, String message) {
-        final var type = Context.getCurrent().getBindings("python").getMember("__builtins__").getMember(exceptionType);
+    /** Without an entered Python context (a call from Java), throws a {@link DataException} instead. */
+    private static RuntimeException raise(String exceptionType, String message, Throwable cause) {
+        final Context context;
+        try {
+            context = Context.getCurrent();
+        } catch (IllegalStateException e) {
+            throw new DataException(message, cause != null ? cause : e);
+        }
+        final var type = context.getBindings("python").getMember("__builtins__").getMember(exceptionType);
         throw type.newInstance(message).throwException();
     }
 }

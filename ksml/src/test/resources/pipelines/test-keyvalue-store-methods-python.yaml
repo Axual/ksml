@@ -1,7 +1,7 @@
 # $schema: https://raw.githubusercontent.com/Axual/ksml/refs/heads/main/docs/ksml-language-spec.json
 
-# Calls range, reverseRange, reverseAll, prefixScan and putAll from Python on an in-memory and a RocksDB key-value
-# store. The result of each store is returned as one line of text.
+# Calls range, reverseRange, reverseAll, prefixScan and putAll from Python on an in-memory, a RocksDB and a cached
+# RocksDB key-value store. The result of each store is returned as one line of text.
 streams:
   keyvalue_methods_input:
     topic: keyvalue_methods_input
@@ -41,6 +41,21 @@ stores:
     persistent: true
     caching: false
     logging: false
+  # Kafka's caching store merges its cache with the store for range, prefixScan and putAll
+  kv_cached:
+    type: keyValue
+    keyType: string
+    valueType: string
+    persistent: true
+    caching: true
+    logging: false
+  kv_cached_copy:
+    type: keyValue
+    keyType: string
+    valueType: string
+    persistent: true
+    caching: true
+    logging: false
 
 functions:
   call_store_methods:
@@ -78,7 +93,10 @@ functions:
         line += " copy=" + keys(copy.all())
         return line
     code: |
-      result = check("memory", kv_memory, kv_memory_copy) + "\n" + check("rocksdb", kv_rocksdb, kv_rocksdb_copy)
+      result = "\n".join([
+        check("memory", kv_memory, kv_memory_copy),
+        check("rocksdb", kv_rocksdb, kv_rocksdb_copy),
+        check("cached", kv_cached, kv_cached_copy)])
     expression: result
     resultType: string
     stores:
@@ -86,6 +104,8 @@ functions:
       - kv_memory_copy
       - kv_rocksdb
       - kv_rocksdb_copy
+      - kv_cached
+      - kv_cached_copy
 
 pipelines:
   call_store_methods_pipeline:
