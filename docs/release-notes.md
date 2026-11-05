@@ -61,6 +61,7 @@ Major dependency upgrades. This release moves KSML to Jackson 3, Apicurio Regist
 * Fixed `aggregate` after `cogroup` and `windowBySession`, which always failed at startup with "Merger is expected to take at least 3 parameters".
 * Fixed: when Kafka Streams fails, for example after an error in a Python function, KSML now exits with code 1. Before, it kept running without processing, so Docker or Kubernetes did not restart it.
 * Fixed: on SIGTERM, KSML now commits and closes Kafka Streams before it exits, so records are not processed twice after a restart. See [Stopping KSML](reference/configuration-reference.md#stopping-ksml).
+* State store iterators work like Python iterators: `for entry in store.all():`, `list()`, `next()` and `contextlib.closing()`. KSML closes the store iterator once all entries are read, or when the function returns, so a loop can end early with `break` or `return`. Using an iterator after its function returned raises an error. `hasNext()`, `next()` and `close()` still work, and `peekNextKey()` is new. See [State Store Reference](reference/state-store-reference.md#reading-many-entries-with-iterators).
 
 ## 1.3.0 (2026-06-23)
 

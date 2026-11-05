@@ -203,8 +203,9 @@ for entry in store.all():
     break
 ```
 
-Do not keep an iterator in a global variable for a later call: it is closed by then. To close an iterator before
-the function returns, use `contextlib.closing()`. A plain `with store.all() as entries:` does not work.
+Do not keep an iterator in a global variable for a later call: it is closed by then, and using it raises an error.
+To close an iterator before the function returns, use `contextlib.closing()`. A plain `with store.all() as entries:`
+does not work.
 
 Iterators also have the methods `hasNext()`, `next()` (returns `None` after the last entry), `peekNextKey()`
 (returns the next key without moving forward, or `None`) and `close()`.

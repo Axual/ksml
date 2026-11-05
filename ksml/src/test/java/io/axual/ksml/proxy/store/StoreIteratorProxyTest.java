@@ -36,6 +36,7 @@ import java.util.List;
 import java.util.NoSuchElementException;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
  * Checks that the store iterators that {@link ProxyUtil#toPython(Object)} returns work with Python iteration
@@ -50,6 +51,8 @@ class StoreIteratorProxyTest {
         private int position = 0;
         private boolean closed = false;
         private int closeCount = 0;
+        private Runnable onClose = () -> {
+        };
 
         FakeKeyValueIterator(List<KeyValue<K, Object>> entries) {
             this.entries = entries;
@@ -76,6 +79,7 @@ class StoreIteratorProxyTest {
         public void close() {
             closed = true;
             closeCount++;
+            onClose.run();
         }
     }
 
@@ -230,6 +234,17 @@ class StoreIteratorProxyTest {
     }
 
     @Test
+    @DisplayName("peekNextKey() returns None after the last entry and closes the Kafka iterator")
+    void peekNextKeyReturnsNoneAtEnd() {
+        final var result = run("""
+                [it.next()["key"], it.next()["key"], it.next()["key"], it.peekNextKey()]
+                """);
+        assertThat(result.getArrayElement(2).asString()).isEqualTo("c");
+        assertThat(result.getArrayElement(3).isNull()).isTrue();
+        assertThat(kafkaIterator.closed).isTrue();
+    }
+
+    @Test
     @DisplayName("a window store iterator works in a for loop, with the window start time as key, and is closed")
     void windowStoreIteratorForLoop() {
         kafkaIterator = new FakeWindowStoreIterator(List.of(
@@ -279,12 +294,19 @@ class StoreIteratorProxyTest {
         assertThat(proxy.next()).isNull();
     }
 
+    // The scope tests end each call in a finally, so a failed assertion does not leave a call open on this thread
+
     @Test
     @DisplayName("the end of a function call closes the iterators it left open")
     void endCallClosesOpenIterators() {
+        final int closedNow;
         final int mark = StoreIteratorProxy.beginCall();
-        assertThat(new StoreIteratorProxy(kafkaIterator).hasNext()).isTrue();
-        assertThat(StoreIteratorProxy.endCall(mark)).isEqualTo(1);
+        try {
+            assertThat(new StoreIteratorProxy(kafkaIterator).hasNext()).isTrue();
+        } finally {
+            closedNow = StoreIteratorProxy.endCall(mark);
+        }
+        assertThat(closedNow).isEqualTo(1);
         assertThat(kafkaIterator.closed).isTrue();
     }
 
@@ -292,10 +314,35 @@ class StoreIteratorProxyTest {
     @DisplayName("the end of a function call does not close an iterator again that was already used up")
     void endCallSkipsClosedIterators() {
         kafkaIterator = new FakeKeyValueIterator<>(List.of());
+        final StoreIteratorProxy proxy;
+        final int closedNow;
         final int mark = StoreIteratorProxy.beginCall();
-        assertThat(new StoreIteratorProxy(kafkaIterator).hasNext()).isFalse();
-        assertThat(StoreIteratorProxy.endCall(mark)).isZero();
+        try {
+            proxy = new StoreIteratorProxy(kafkaIterator);
+            assertThat(proxy.hasNext()).isFalse();
+        } finally {
+            closedNow = StoreIteratorProxy.endCall(mark);
+        }
+        assertThat(closedNow).isZero();
         assertThat(kafkaIterator.closeCount).isEqualTo(1);
+        assertThat(proxy.hasNext()).isFalse();
+    }
+
+    @Test
+    @DisplayName("an iterator closed when its function returned fails when it is used later")
+    void iteratorClosedByCallEndFails() {
+        final StoreIteratorProxy proxy;
+        final int mark = StoreIteratorProxy.beginCall();
+        try {
+            proxy = new StoreIteratorProxy(kafkaIterator);
+        } finally {
+            StoreIteratorProxy.endCall(mark);
+        }
+        assertThatThrownBy(proxy::hasNext).isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("closed when the function that created it returned");
+        assertThatThrownBy(proxy::next).isInstanceOf(IllegalStateException.class);
+        assertThatThrownBy(proxy::peekNextKey).isInstanceOf(IllegalStateException.class);
+        assertThatThrownBy(proxy::getNext).isInstanceOf(IllegalStateException.class);
     }
 
     @Test
@@ -303,13 +350,19 @@ class StoreIteratorProxyTest {
     void nestedCallClosesOnlyItsOwnIterators() {
         final var inner = new FakeKeyValueIterator<>(List.of(KeyValue.pair("x", "1")));
         final int outerMark = StoreIteratorProxy.beginCall();
-        new StoreIteratorProxy(kafkaIterator);
-        final int innerMark = StoreIteratorProxy.beginCall();
-        new StoreIteratorProxy(inner);
-        StoreIteratorProxy.endCall(innerMark);
-        assertThat(inner.closed).isTrue();
-        assertThat(kafkaIterator.closed).isFalse();
-        StoreIteratorProxy.endCall(outerMark);
+        try {
+            new StoreIteratorProxy(kafkaIterator);
+            final int innerMark = StoreIteratorProxy.beginCall();
+            try {
+                new StoreIteratorProxy(inner);
+            } finally {
+                StoreIteratorProxy.endCall(innerMark);
+            }
+            assertThat(inner.closed).isTrue();
+            assertThat(kafkaIterator.closed).isFalse();
+        } finally {
+            StoreIteratorProxy.endCall(outerMark);
+        }
         assertThat(kafkaIterator.closed).isTrue();
     }
 
@@ -319,6 +372,45 @@ class StoreIteratorProxyTest {
         new StoreIteratorProxy(kafkaIterator);
         final int mark = StoreIteratorProxy.beginCall();
         assertThat(StoreIteratorProxy.endCall(mark)).isZero();
+        assertThat(kafkaIterator.closed).isFalse();
+    }
+
+    @Test
+    @DisplayName("the end of a function call still closes the other iterators when one close() throws")
+    void endCallContinuesWhenCloseThrows() {
+        final var failing = new FakeKeyValueIterator<>(List.of(KeyValue.pair("x", "1")));
+        failing.onClose = () -> {
+            throw new IllegalStateException("close failed");
+        };
+        final int closedNow;
+        final int mark = StoreIteratorProxy.beginCall();
+        try {
+            new StoreIteratorProxy(kafkaIterator);
+            // Created last, so closed first
+            new StoreIteratorProxy(failing);
+        } finally {
+            closedNow = StoreIteratorProxy.endCall(mark);
+        }
+        assertThat(closedNow).isEqualTo(2);
+        assertThat(failing.closed).isTrue();
+        assertThat(kafkaIterator.closed).isTrue();
+    }
+
+    @Test
+    @DisplayName("the end of a function call ends the call also when close() throws an Error")
+    void endCallEndsCallWhenCloseThrowsError() {
+        final var failing = new FakeKeyValueIterator<>(List.of(KeyValue.pair("x", "1")));
+        failing.onClose = () -> {
+            throw new AssertionError("close failed");
+        };
+        final int mark = StoreIteratorProxy.beginCall();
+        new StoreIteratorProxy(failing);
+        assertThatThrownBy(() -> StoreIteratorProxy.endCall(mark)).isInstanceOf(AssertionError.class);
+
+        // No call is open anymore, so this iterator is not tracked and a later call does not close it
+        new StoreIteratorProxy(kafkaIterator);
+        final int laterMark = StoreIteratorProxy.beginCall();
+        assertThat(StoreIteratorProxy.endCall(laterMark)).isZero();
         assertThat(kafkaIterator.closed).isFalse();
     }
 }

@@ -28,6 +28,7 @@ import io.axual.ksml.python.PythonContext;
 import io.axual.ksml.python.PythonContextConfig;
 import io.axual.ksml.python.PythonNativeMapper;
 import io.axual.ksml.proxy.store.ProxyUtil;
+import io.axual.ksml.proxy.store.StoreIteratorProxy;
 import io.axual.ksml.util.Pair;
 import lombok.extern.slf4j.Slf4j;
 
@@ -131,6 +132,8 @@ public class AssertionRunner {
 
     private TestResult executeAssertionCode(PythonContext pythonContext, AssertBlock block,
                                              String suiteName, String testName) {
+        // Run as a function call, so KSML closes the store iterators the assertion code leaves open
+        final int iteratorMark = StoreIteratorProxy.beginCall();
         try {
             pythonContext.registerFunction(
                     "def _run_assertions():\n" +
@@ -147,6 +150,8 @@ public class AssertionRunner {
                 return TestResult.fail(suiteName, testName, msg);
             }
             return TestResult.error(suiteName, testName, e.getMessage());
+        } finally {
+            StoreIteratorProxy.endCall(iteratorMark);
         }
         return TestResult.pass(suiteName, testName);
     }
