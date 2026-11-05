@@ -104,7 +104,6 @@ class StreamJoinParityTest {
                 .pipe("s_in", "k1", "{\"v\":3}", 5000)
                 .pipe("s_in", "k2", null, 6000)
                 .pipe("s_in", null, "{\"v\":7}", 7000)
-                .knownDifference("F01", "a stream record with a null value is joined instead of dropped", 6)
                 .check();
     }
 
@@ -135,7 +134,6 @@ class StreamJoinParityTest {
                 .pipe("s_in", "o2", "{\"customer\":\"c2\",\"amount\":5}", 3000)
                 .pipe("s_in", "o3", "{\"amount\":7}", 4000)
                 .pipe("s_in", "o4", null, 5000)
-                .knownDifference("F07", "a key mapper that returns None makes the global table join throw a NullPointerException", 6)
                 .check();
     }
 
