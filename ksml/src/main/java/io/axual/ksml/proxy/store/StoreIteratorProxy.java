@@ -41,8 +41,8 @@ import java.util.NoSuchElementException;
  */
 @Slf4j
 public class StoreIteratorProxy implements AbstractProxy, ProxyIterator, ProxyObject {
-    /** Iterators created by the Python function calls running on this thread. */
-    private static final ThreadLocal<CallScope> SCOPE = ThreadLocal.withInitial(CallScope::new);
+    /** Iterators created by the Python function calls running on this thread; not set outside a call. */
+    private static final ThreadLocal<CallScope> SCOPE = new ThreadLocal<>();
 
     private static final class CallScope {
         private final List<StoreIteratorProxy> created = new ArrayList<>();
@@ -59,16 +59,21 @@ public class StoreIteratorProxy implements AbstractProxy, ProxyIterator, ProxyOb
                 return null;
             });
     private boolean closed = false;
+    private boolean closedByCallEnd = false;
 
     public StoreIteratorProxy(KeyValueIterator<?, ?> iterator) {
         this.iterator = iterator;
         final var scope = SCOPE.get();
-        if (scope.depth > 0) scope.created.add(this);
+        if (scope != null) scope.created.add(this);
     }
 
     /** Starts a Python function call. Returns the mark to pass to {@link #endCall(int)}. */
     public static int beginCall() {
-        final var scope = SCOPE.get();
+        var scope = SCOPE.get();
+        if (scope == null) {
+            scope = new CallScope();
+            SCOPE.set(scope);
+        }
         scope.depth++;
         return scope.created.size();
     }
@@ -77,24 +82,32 @@ public class StoreIteratorProxy implements AbstractProxy, ProxyIterator, ProxyOb
     public static int endCall(int mark) {
         final var scope = SCOPE.get();
         int closedNow = 0;
-        while (scope.created.size() > mark) {
-            final var proxy = scope.created.remove(scope.created.size() - 1);
-            if (proxy.closed) continue;
-            closedNow++;
-            try {
-                proxy.close();
-            } catch (RuntimeException e) {
-                log.warn("Could not close a store iterator", e);
+        try {
+            while (scope.created.size() > mark) {
+                final var proxy = scope.created.remove(scope.created.size() - 1);
+                if (proxy.closed) continue;
+                closedNow++;
+                proxy.closedByCallEnd = true;
+                try {
+                    proxy.close();
+                } catch (RuntimeException e) {
+                    log.warn("Could not close a store iterator", e);
+                }
             }
+        } finally {
+            if (--scope.depth == 0) SCOPE.remove();
         }
-        scope.depth--;
-        if (scope.depth == 0) SCOPE.remove();
         return closedNow;
     }
 
-    /** Returns whether there is a next entry, and closes the Kafka iterator when there is none. */
+    /**
+     * Returns whether there is a next entry, and closes the Kafka iterator when there is none.
+     * Fails for an iterator that was closed when its function returned, for example one kept in a global.
+     */
     @Override
     public boolean hasNext() {
+        if (closedByCallEnd)
+            throw new IllegalStateException("Store iterator was closed when the function that created it returned");
         if (closed) return false;
         if (iterator.hasNext()) return true;
         close();
