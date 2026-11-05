@@ -107,6 +107,16 @@ public class ParseNode {
         return result;
     }
 
+    /**
+     * The field names of this node when it is an object.
+     *
+     * @return the field names, or an empty list when this node is not an object
+     */
+    public List<String> fieldNames() {
+        if (!node.isObject()) return List.of();
+        return node.properties().stream().map(Map.Entry::getKey).toList();
+    }
+
     public boolean isNull() {
         return node.isNull();
     }

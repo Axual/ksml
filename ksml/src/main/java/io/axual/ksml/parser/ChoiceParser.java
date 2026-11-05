@@ -28,8 +28,10 @@ import lombok.Getter;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
 
@@ -86,19 +88,40 @@ public class ChoiceParser<T> extends BaseParser<T> implements StructsParser<T>, 
     public T parse(ParseNode node) {
         if (node == null) return null;
         final var child = node.get(childName);
-        String childValue = defaultValue;
-        if (child != null) {
-            // Jackson 3 throws when asked to render an object or array as a string, so check the kind
-            // first and report a parse error that names the file and the accepted values.
-            if (child.isObject() || child.isArray())
-                throw new ParseException(child, "Expected a string for \"" + childName + "\", but found " + child.nodeTypeName() + ", choose one of " + choices());
-            childValue = child.asString();
-            childValue = childValue != null ? childValue : defaultValue;
-        }
+        // Jackson 3 throws when asked to render an object or array as a string, so check the kind
+        // first and report a parse error that names the file and the accepted values.
+        if (child != null && (child.isObject() || child.isArray()))
+            throw new ParseException(child, "Expected a string for \"" + childName + "\", but found " + child.nodeTypeName() + ", choose one of " + choices());
+        final var childValue = chosenValue(node);
         if (!parsers.containsKey(childValue)) {
             throw new ParseException(child, "Unknown " + parsedType + " \"" + childName + "\", choose one of " + choices());
         }
         return parsers.get(childValue).parse(node);
+    }
+
+    /**
+     * The known fields are the {@code type} field plus the known fields of the chosen variant only, so a
+     * field of another variant is not accepted.
+     */
+    @Override
+    public Set<String> knownFields(ParseNode node) {
+        final var variant = parsers.get(chosenValue(node));
+        // An invalid type is reported by parse(), not as an unknown field
+        if (variant == null) return null;
+        final var variantFields = variant.knownFields(node);
+        if (variantFields == null) return null;
+        final var result = new HashSet<>(variantFields);
+        result.add(childName);
+        return result;
+    }
+
+    // The value of the type field, the default when it is missing, or null when it is not a string
+    private String chosenValue(ParseNode node) {
+        final var child = node.get(childName);
+        if (child == null) return defaultValue;
+        if (child.isObject() || child.isArray()) return null;
+        final var value = child.asString();
+        return value != null ? value : defaultValue;
     }
 
     private String choices() {
