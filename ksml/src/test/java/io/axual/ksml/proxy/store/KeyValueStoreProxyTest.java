@@ -35,6 +35,8 @@ import org.graalvm.polyglot.Value;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -262,43 +264,15 @@ class KeyValueStoreProxyTest {
         verify(delegate, never()).put(any(), any());
     }
 
-    @Test
-    @DisplayName("putAll with [key, value] lists writes all entries")
-    void putAllWithLists() {
-        runPython("""
-                store.putAll([["a", "1"], ["b", "2"]])
-                []
-                """);
-        verify(delegate).putAll(List.of(KeyValue.pair("a", "1"), KeyValue.pair("b", "2")));
-    }
-
-    @Test
-    @DisplayName("putAll with {key, value} dicts writes all entries")
-    void putAllWithDicts() {
-        runPython("""
-                store.putAll([{"key": "a", "value": "1"}, {"key": "b", "value": "2"}])
-                []
-                """);
-        verify(delegate).putAll(List.of(KeyValue.pair("a", "1"), KeyValue.pair("b", "2")));
-    }
-
-    @Test
-    @DisplayName("putAll accepts tuples and dicts mixed in one list")
-    void putAllWithMixedEntries() {
-        runPython("""
-                store.putAll([("a", "1"), {"key": "b", "value": "2"}])
-                []
-                """);
-        verify(delegate).putAll(List.of(KeyValue.pair("a", "1"), KeyValue.pair("b", "2")));
-    }
-
-    @Test
-    @DisplayName("putAll accepts a Python iterator, not only a list")
-    void putAllWithPythonIterator() {
-        runPython("""
-                store.putAll(iter([("a", "1"), ("b", "2")]))
-                []
-                """);
+    @ParameterizedTest(name = "putAll with {0} writes all entries")
+    @CsvSource(delimiter = '|', textBlock = """
+            [key, value] lists          | [["a", "1"], ["b", "2"]]
+            {key, value} dicts          | [{"key": "a", "value": "1"}, {"key": "b", "value": "2"}]
+            tuples and dicts mixed      | [("a", "1"), {"key": "b", "value": "2"}]
+            a Python iterator           | iter([("a", "1"), ("b", "2")])
+            """)
+    void putAllWithEntryShapes(String shape, String entries) {
+        runPython("store.putAll(" + entries + ")\n[]\n");
         verify(delegate).putAll(List.of(KeyValue.pair("a", "1"), KeyValue.pair("b", "2")));
     }
 
