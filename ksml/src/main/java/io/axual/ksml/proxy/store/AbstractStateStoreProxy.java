@@ -62,14 +62,24 @@ public abstract class AbstractStateStoreProxy<T extends StateStore> implements S
         this.valueType = valueType;
     }
 
-    /** Converts a key to the store's declared key type; see {@link #toStoreType}. */
+    /** Converts a Python key to the store's declared key type (see {@link #toStoreType}), as a Java value for Kafka. */
     protected Object toKey(Object key) {
-        return toStoreType(keyType, key, "key");
+        return toKey(key, "key");
     }
 
-    /** Converts a value to the store's declared value type; see {@link #toStoreType}. */
+    /** Like {@link #toKey(Object)}; {@code role} names the key in error messages, for example "putAll entry 3 key". */
+    protected Object toKey(Object key, String role) {
+        return NATIVE_MAPPER.fromPython(toStoreType(keyType, key, role));
+    }
+
+    /** Converts a Python value to the store's declared value type (see {@link #toStoreType}), as a Java value for Kafka. */
     protected Object toValue(Object value) {
-        return toStoreType(valueType, value, "value");
+        return toValue(value, "value");
+    }
+
+    /** Like {@link #toValue(Object)}; {@code role} names the value in error messages, for example "putAll entry 3 value". */
+    protected Object toValue(Object value, String role) {
+        return NATIVE_MAPPER.fromPython(toStoreType(valueType, value, role));
     }
 
     /**

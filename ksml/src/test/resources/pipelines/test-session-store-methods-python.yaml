@@ -56,7 +56,7 @@ functions:
     globalCode: |
       from test_store_iterator_checks import read
 
-      # Session times above the int range, so they reach the proxy as a Java Long
+      # Session times above the int range, like real epoch millis; check_session_keys tests small times
       BASE = 3000000000
 
       def session(key, offset):

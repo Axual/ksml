@@ -33,7 +33,6 @@ import org.apache.kafka.streams.processor.StateStoreContext;
 import org.apache.kafka.streams.state.KeyValueIterator;
 import org.apache.kafka.streams.state.KeyValueStore;
 import org.assertj.core.api.SoftAssertions;
-import org.graalvm.polyglot.Context;
 import org.graalvm.polyglot.PolyglotException;
 import org.graalvm.polyglot.Value;
 import org.junit.jupiter.api.DisplayName;
@@ -49,6 +48,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import static io.axual.ksml.proxy.store.StoreProxyTestUtil.PYTHON_VALUES;
+import static io.axual.ksml.proxy.store.StoreProxyTestUtil.describe;
+import static io.axual.ksml.proxy.store.StoreProxyTestUtil.outcome;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.catchThrowable;
@@ -358,24 +360,6 @@ class KeyValueStoreProxyTest {
             }
         }
         softly.assertAll();
-    }
-
-    /** Python values of every kind, written as Python literals. */
-    static final List<String> PYTHON_VALUES = List.of("'s'", "5", "10**30", "1.5", "True", "None", "{'a': 1}", "[1, 2]");
-
-    /** Runs Python code and returns "ok", or the type of the Python or Java error it raised. */
-    static String outcome(Context context, String code) {
-        try {
-            context.eval("python", code);
-            return "ok";
-        } catch (PolyglotException e) {
-            return e.isHostException() ? e.asHostException().getClass().getSimpleName() : e.getMessage().split(":")[0];
-        }
-    }
-
-    /** The class and the text of an object, so objects from two separate calls can be compared. */
-    static String describe(Object object) {
-        return object == null ? "null" : object.getClass().getSimpleName() + ":" + object;
     }
 
     /** Runs Python code inside try/except Exception, and returns "ErrorType: message", or "no error". */

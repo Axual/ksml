@@ -28,6 +28,7 @@ Before you upgrade, check each item below:
 * If you extend `OperationProcessor` or `FixedKeyOperationProcessor`, implement `processRecord` instead of `process`.
 * If you create a `TimestampedKeyValueStoreProxy` or `TimestampedWindowStoreProxy` yourself, pass a `LongSupplier` that gives the timestamp of the record that is being processed.
 * If you call `TimestampedWindowStoreProxy.put(key, ValueAndTimestamp, windowStart)`, call `put(key, value, windowStart, timestamp)` instead. A `ValueAndTimestamp` still compiles as the value, but is then stored inside another `ValueAndTimestamp`.
+* `OperationProcessorSupplier.ProcessorFactory` and `FixedKeyOperationProcessorSupplier.ProcessorFactory` now return an `OperationProcessor` / `FixedKeyOperationProcessor` instead of a Kafka `Processor` / `FixedKeyProcessor`.
 
 ## Apicurio Registry 3
 

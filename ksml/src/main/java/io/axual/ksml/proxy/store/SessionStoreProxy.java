@@ -40,7 +40,7 @@ import static io.axual.ksml.dsl.WindowedSchema.WINDOWED_SCHEMA_START_FIELD;
  * types and delegates all operations to the underlying store.
  */
 public class SessionStoreProxy extends AbstractStateStoreProxy<SessionStore<Object, Object>> {
-    private static final String SESSION_KEY_FIELDS_MESSAGE = "session key must %s \"key\", \"start\" and \"end\"";
+    private static final String SESSION_KEY_FIELDS = "\"key\", \"start\" and \"end\"";
 
     public SessionStoreProxy(SessionStore<Object, Object> delegate) {
         this(delegate, null, null);
@@ -55,54 +55,54 @@ public class SessionStoreProxy extends AbstractStateStoreProxy<SessionStore<Obje
 
     @HostAccess.Export
     public Object backwardFetch(final Object key) {
-        return ProxyUtil.toPython(delegate.backwardFetch(NATIVE_MAPPER.fromPython(toKey(key))));
+        return ProxyUtil.toPython(delegate.backwardFetch(toKey(key)));
     }
 
     @HostAccess.Export
     public Object backwardFetch(final Object keyFrom, final Object keyTo) {
-        return ProxyUtil.toPython(delegate.backwardFetch(NATIVE_MAPPER.fromPython(toKey(keyFrom)), NATIVE_MAPPER.fromPython(toKey(keyTo))));
+        return ProxyUtil.toPython(delegate.backwardFetch(toKey(keyFrom), toKey(keyTo)));
     }
 
     @HostAccess.Export
     public Object backwardFindSessions(final Object key, final long earliestSessionEndTime, final long latestSessionStartTime) {
-        return ProxyUtil.toPython(delegate.backwardFindSessions(NATIVE_MAPPER.fromPython(toKey(key)), earliestSessionEndTime, latestSessionStartTime));
+        return ProxyUtil.toPython(delegate.backwardFindSessions(toKey(key), earliestSessionEndTime, latestSessionStartTime));
     }
 
     @HostAccess.Export
     public Object backwardFindSessions(final Object keyFrom, final Object keyTo, final long earliestSessionEndTime, final long latestSessionStartTime) {
-        return ProxyUtil.toPython(delegate.backwardFindSessions(NATIVE_MAPPER.fromPython(toKey(keyFrom)), NATIVE_MAPPER.fromPython(toKey(keyTo)), earliestSessionEndTime, latestSessionStartTime));
+        return ProxyUtil.toPython(delegate.backwardFindSessions(toKey(keyFrom), toKey(keyTo), earliestSessionEndTime, latestSessionStartTime));
     }
 
     @HostAccess.Export
     public Object fetch(final Object key) {
-        return ProxyUtil.toPython(delegate.fetch(NATIVE_MAPPER.fromPython(toKey(key))));
+        return ProxyUtil.toPython(delegate.fetch(toKey(key)));
     }
 
     @HostAccess.Export
     public Object fetch(final Object keyFrom, final Object keyTo) {
-        return ProxyUtil.toPython(delegate.fetch(NATIVE_MAPPER.fromPython(toKey(keyFrom)), NATIVE_MAPPER.fromPython(toKey(keyTo))));
+        return ProxyUtil.toPython(delegate.fetch(toKey(keyFrom), toKey(keyTo)));
     }
 
     @HostAccess.Export
     public Object fetchSession(final Object key, final long sessionStartTime, final long sessionEndTime) {
-        return ProxyUtil.toPython(delegate.fetchSession(NATIVE_MAPPER.fromPython(toKey(key)), sessionStartTime, sessionEndTime));
+        return ProxyUtil.toPython(delegate.fetchSession(toKey(key), sessionStartTime, sessionEndTime));
     }
 
     @HostAccess.Export
     public Object findSessions(Object key, long earliestSessionEndTime, long latestSessionStartTime) {
-        return ProxyUtil.toPython(delegate.findSessions(NATIVE_MAPPER.fromPython(toKey(key)), earliestSessionEndTime, latestSessionStartTime));
+        return ProxyUtil.toPython(delegate.findSessions(toKey(key), earliestSessionEndTime, latestSessionStartTime));
     }
 
     @HostAccess.Export
     public Object findSessions(Object keyFrom, Object keyTo, long earliestSessionEndTime, long latestSessionStartTime) {
-        return ProxyUtil.toPython(delegate.findSessions(NATIVE_MAPPER.fromPython(toKey(keyFrom)), NATIVE_MAPPER.fromPython(toKey(keyTo)), earliestSessionEndTime, latestSessionStartTime));
+        return ProxyUtil.toPython(delegate.findSessions(toKey(keyFrom), toKey(keyTo), earliestSessionEndTime, latestSessionStartTime));
     }
 
     // ==================== SessionStore methods ====================
 
     @HostAccess.Export
     public void put(final Object sessionKey, final Object aggregate) {
-        delegate.put(toSessionKey(sessionKey), NATIVE_MAPPER.fromPython(toValue(aggregate)));
+        delegate.put(toSessionKey(sessionKey), toValue(aggregate));
     }
 
     @HostAccess.Export
@@ -120,9 +120,9 @@ public class SessionStoreProxy extends AbstractStateStoreProxy<SessionStore<Obje
                 ? JAVA_MAPPER.fromDataObject(dataObject)
                 : NATIVE_MAPPER.fromPython(sessionKey);
         if (!(value instanceof Map<?, ?> fields))
-            throw PythonErrors.typeError(storeError(SESSION_KEY_FIELDS_MESSAGE.formatted("be a dict with") + ", got " + typeName(value)));
+            throw PythonErrors.typeError(storeError("session key must be a dict with " + SESSION_KEY_FIELDS + ", got " + typeName(value)));
         if (!fields.containsKey(WINDOWED_SCHEMA_KEY_FIELD) || !fields.containsKey(WINDOWED_SCHEMA_START_FIELD) || !fields.containsKey(WINDOWED_SCHEMA_END_FIELD))
-            throw PythonErrors.valueError(storeError(SESSION_KEY_FIELDS_MESSAGE.formatted("have")));
+            throw PythonErrors.valueError(storeError("session key must have " + SESSION_KEY_FIELDS));
         final var start = toSessionTime(fields.get(WINDOWED_SCHEMA_START_FIELD), WINDOWED_SCHEMA_START_FIELD);
         final var end = toSessionTime(fields.get(WINDOWED_SCHEMA_END_FIELD), WINDOWED_SCHEMA_END_FIELD);
         if (start > end) throw PythonErrors.valueError(storeError("session key start must not be after end"));

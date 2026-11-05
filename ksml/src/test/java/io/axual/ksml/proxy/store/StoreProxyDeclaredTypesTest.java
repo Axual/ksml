@@ -147,7 +147,9 @@ class StoreProxyDeclaredTypesTest {
         assertThat(run(proxy, "store.put(1, '5')")).isEqualTo("TypeError: Store counts: value must be long, got str");
         assertThat(run(proxy, "store.put(1, True)")).isEqualTo("TypeError: Store counts: value must be long, got bool");
         assertThat(run(proxy, "store.put(1.0, 5)")).isEqualTo("TypeError: Store counts: key must be long, got float");
-        assertThat(run(proxy, "store.putAll([(1, 1.5)])")).isEqualTo("TypeError: Store counts: value must be long, got float");
+        // A putAll error names the position of the entry
+        assertThat(run(proxy, "store.putAll([(1, 2), (2, 1.5)])"))
+                .isEqualTo("TypeError: Store counts: putAll entry 1 value must be long, got float");
         verify(delegate, never()).put(any(), any());
         verify(delegate, never()).putAll(anyList());
     }
@@ -166,9 +168,9 @@ class StoreProxyDeclaredTypesTest {
                 .isEqualTo("ValueError: Store counts: value int is out of range for integer");
         // putAll used to put the value of a too large int in its message (PR #752 review, item 4)
         assertThat(run(new KeyValueStoreProxy(delegate, LONG, LONG), "store.putAll([(10 ** 30, 1)])"))
-                .isEqualTo("ValueError: Store counts: key int is out of range for long");
+                .isEqualTo("ValueError: Store counts: putAll entry 0 key int is out of range for long");
         assertThat(run(new KeyValueStoreProxy(delegate, LONG, LONG), "store.putAll([{'key': 1, 'value': 10 ** 30}])"))
-                .isEqualTo("ValueError: Store counts: value int is out of range for long");
+                .isEqualTo("ValueError: Store counts: putAll entry 0 value int is out of range for long");
         verify(delegate, never()).put(any(), any());
         verify(delegate, never()).putAll(anyList());
         verify(delegate, never()).get(any());
@@ -227,6 +229,8 @@ class StoreProxyDeclaredTypesTest {
 
         assertThat(run(proxy, "store.put(1, 10 ** 30)")).isEqualTo("ValueError: Store counts: value int is out of range for long");
         assertThat(run(proxy, "store.put(1, 1.5, 2000)")).isEqualTo("TypeError: Store counts: value must be long, got float");
+        assertThat(run(proxy, "store.putAll([(1, 2), {'key': 2.5, 'value': 3}])"))
+                .isEqualTo("TypeError: Store counts: putAll entry 1 key must be long, got float");
     }
 
     @Test

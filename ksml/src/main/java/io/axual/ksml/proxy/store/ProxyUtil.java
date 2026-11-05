@@ -48,7 +48,7 @@ import org.graalvm.polyglot.Value;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.LongSupplier;
-import java.util.function.UnaryOperator;
+import java.util.function.BiFunction;
 
 /**
  * Utility class for creating proxy objects and converted values returned to Python
@@ -143,12 +143,12 @@ public class ProxyUtil {
      * A bad entry raises TypeError or ValueError with its position, before anything is written. A dict
      * {@code timestamp} field is ignored. Keys and values get the same conversion as in the store's put.
      */
-    public static List<KeyValue<Object, Object>> toKeyValueList(Object entries, UnaryOperator<Object> convertKey, UnaryOperator<Object> convertValue) {
+    public static List<KeyValue<Object, Object>> toKeyValueList(Object entries, BiFunction<Object, String, Object> convertKey, BiFunction<Object, String, Object> convertValue) {
         return toEntries(entries, false, convertKey, convertValue).stream().map(e -> KeyValue.pair(e.key(), e.value())).toList();
     }
 
     /** Like {@link #toKeyValueList}, but uses a dict {@code timestamp} field; other entries get the record timestamp. */
-    public static List<KeyValue<Object, ValueAndTimestamp<Object>>> toTimestampedKeyValueList(Object entries, LongSupplier recordTimestamp, UnaryOperator<Object> convertKey, UnaryOperator<Object> convertValue) {
+    public static List<KeyValue<Object, ValueAndTimestamp<Object>>> toTimestampedKeyValueList(Object entries, LongSupplier recordTimestamp, BiFunction<Object, String, Object> convertKey, BiFunction<Object, String, Object> convertValue) {
         final var result = new ArrayList<KeyValue<Object, ValueAndTimestamp<Object>>>();
         for (final var e : toEntries(entries, true, convertKey, convertValue)) {
             // A value None deletes the key, which needs no timestamp, so it also works outside record processing
@@ -165,7 +165,7 @@ public class ProxyUtil {
     private record Entry(Object key, Object value, Long timestamp) {
     }
 
-    private static List<Entry> toEntries(Object entries, boolean readTimestamp, UnaryOperator<Object> convertKey, UnaryOperator<Object> convertValue) {
+    private static List<Entry> toEntries(Object entries, boolean readTimestamp, BiFunction<Object, String, Object> convertKey, BiFunction<Object, String, Object> convertValue) {
         final var value = Value.asValue(entries);
         final Value iterator;
         if (value.hasHashEntries())
@@ -182,27 +182,27 @@ public class ProxyUtil {
         return result;
     }
 
-    private static Entry toEntry(int position, Value entry, boolean readTimestamp, UnaryOperator<Object> convertKey, UnaryOperator<Object> convertValue) {
+    private static Entry toEntry(int position, Value entry, boolean readTimestamp, BiFunction<Object, String, Object> convertKey, BiFunction<Object, String, Object> convertValue) {
         final var name = "putAll entry " + position;
         if (entry.hasArrayElements()) {
             if (entry.getArraySize() != 2)
                 throw PythonErrors.valueError(name + " must have 2 elements (key, value), got " + entry.getArraySize());
-            return new Entry(toStoreObject(entry.getArrayElement(0), convertKey), toStoreObject(entry.getArrayElement(1), convertValue), null);
+            return new Entry(toStoreObject(entry.getArrayElement(0), convertKey, name + " key"), toStoreObject(entry.getArrayElement(1), convertValue, name + " value"), null);
         }
         if (entry.hasHashEntries()) {
             if (!entry.hasHashEntry(KEY_FIELD) || !entry.hasHashEntry(VALUE_FIELD))
                 throw PythonErrors.valueError(name + " has no \"" + (entry.hasHashEntry(KEY_FIELD) ? VALUE_FIELD : KEY_FIELD) + "\"");
             return new Entry(
-                    toStoreObject(entry.getHashValue(KEY_FIELD), convertKey),
-                    toStoreObject(entry.getHashValue(VALUE_FIELD), convertValue),
+                    toStoreObject(entry.getHashValue(KEY_FIELD), convertKey, name + " key"),
+                    toStoreObject(entry.getHashValue(VALUE_FIELD), convertValue, name + " value"),
                     readTimestamp ? toTimestamp(entry, name) : null);
         }
         throw PythonErrors.typeError(name + " must be a (key, value) pair or a dict with \"key\" and \"value\", got " + PythonErrors.typeName(entry));
     }
 
     /** {@code as(Object.class)} gives the same Java object that GraalVM passes to an {@code Object} parameter of put. */
-    private static Object toStoreObject(Value value, UnaryOperator<Object> convert) {
-        return convert.apply(value.as(Object.class));
+    private static Object toStoreObject(Value value, BiFunction<Object, String, Object> convert, String role) {
+        return convert.apply(value.as(Object.class), role);
     }
 
     /** Reads the optional timestamp field of a dict entry. A missing field or {@code None} means "no timestamp". */
@@ -247,11 +247,6 @@ public class ProxyUtil {
     /** Raises a Python {@code ValueError}: a write without a timestamp needs a record that is being processed. */
     public static long noRecordTimestamp() {
         throw PythonErrors.valueError("No record is being processed, so a write to a timestamped store needs a timestamp");
-    }
-
-    /** Wraps a state store whose declared types are unknown; see {@link #wrapStateStore(StateStore, StateStoreDefinition, LongSupplier)}. */
-    public static StateStore wrapStateStore(StateStore store, LongSupplier recordTimestamp) {
-        return wrapStateStore(store, null, recordTimestamp);
     }
 
     /**
