@@ -6,12 +6,12 @@
 
 ## 2. Fix
 
-- [ ] 2.1 Add `knownFields(ParseNode)` to `StructsParser`: default is the union of the field names of `schemas()`; return "any field allowed" when a schema allows additional fields
-- [ ] 2.2 Override `knownFields` in `ChoiceParser` (the `type` field plus the chosen variant's known fields), and pass it on in `DefinitionParser` and `StructsParser.lazy`
-- [ ] 2.3 Add the check helper `FieldParsers.checkKnownFields(ParseNode, StructsParser<?>)`: object nodes only; `ParseException` with the path, all unknown fields and the known fields, sorted
-- [ ] 2.4 Call the check at each handoff: `FieldParser.parse` (struct value parsers), `MapParser` and `ListParser` (each entry), `TopologyResourceParser` (inline definition), and the root in `TopologyDefinitionParser`
-- [ ] 2.5 Add `name`, `version` and `description` to the root schema in `TopologyDefinitionParser.parser()`
-- [ ] 2.6 Run the tests from section 1 and the full `ksml`, `ksml-runner`, `ksml-test-runner` and `ksml-docs-test` builds, including the coverage gate
+- [x] 2.1 Add `knownFields(ParseNode)` to `StructsParser`: default is the union of the field names of `schemas()`; return "any field allowed" when a schema allows additional fields
+- [x] 2.2 Override `knownFields` in `ChoiceParser` (the `type` field plus the chosen variant's known fields), and pass it on in `DefinitionParser` and `StructsParser.lazy`
+- [x] 2.3 Add the check helper `FieldParsers.checkKnownFields(ParseNode, StructsParser<?>)`: object nodes only; `ParseException` with the path, all unknown fields and the known fields, sorted
+- [x] 2.4 Call the check at each handoff: `FieldParser.parse` (struct value parsers), `MapParser` and `ListParser` (each entry), `TopologyResourceParser` (inline definition), and the root in `TopologyDefinitionParser`
+- [x] 2.5 Add `name`, `version` and `description` to the root schema in `TopologyDefinitionParser.parser()`
+- [x] 2.6 Run the tests from section 1 and the full `ksml`, `ksml-runner`, `ksml-test-runner` and `ksml-docs-test` builds, including the coverage gate
 
 ## 3. Fallout
 

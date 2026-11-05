@@ -37,6 +37,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeSet;
+import java.util.stream.Collectors;
 
 import static io.axual.ksml.data.schema.DataSchemaConstants.NO_TAG;
 
@@ -105,6 +107,25 @@ public final class FieldParsers {
         return new StructSchema(SCHEMA_NAMESPACE, name, doc, fields, false);
     }
 
+    /**
+     * Checks that an object has only fields that its parser knows, so a misspelled field is not
+     * silently ignored.
+     *
+     * @param node   the object, or {@code null}
+     * @param parser the parser for the object
+     * @throws ParseException that names all unknown fields and the known fields
+     */
+    public static void checkKnownFields(ParseNode node, StructsParser<?> parser) {
+        if (node == null || !node.isObject()) return;
+        final var known = parser.knownFields(node);
+        if (known == null) return;
+        final var unknown = node.fieldNames().stream().filter(name -> !known.contains(name)).sorted().toList();
+        if (unknown.isEmpty()) return;
+        final var unknownText = unknown.stream().map(name -> "\"" + name + "\"").collect(Collectors.joining(", "));
+        throw new ParseException(node, (unknown.size() == 1 ? "Unknown field " : "Unknown fields ") + unknownText
+                + ", known fields: " + String.join(", ", new TreeSet<>(known)));
+    }
+
     private static class FieldParser<V> implements StructsParser<V> {
         private final StructSchema.Field field;
         @Getter
@@ -130,7 +151,9 @@ public final class FieldParsers {
             try {
                 if (node == null) return null;
                 final var child = node.get(field.name());
-                return child != null ? valueParser.parse(child) : null;
+                if (child == null) return null;
+                if (valueParser instanceof StructsParser<?> structsParser) checkKnownFields(child, structsParser);
+                return valueParser.parse(child);
             } catch (Exception e) {
                 throw new ParseException(node, e.getMessage(), e);
             }

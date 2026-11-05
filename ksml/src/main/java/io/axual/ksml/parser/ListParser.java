@@ -49,6 +49,7 @@ public class ListParser<V> implements Parser<List<V>> {
                         nop.defaultShortName(childNode.name());
                         nop.defaultLongName(childNode.longName());
                     }
+                    if (valueParser instanceof StructsParser<?> structsParser) FieldParsers.checkKnownFields(childNode, structsParser);
                     result.add(valueParser.parse(childNode));
                 } catch (RuntimeException e) {
                     throw new ParseException(node, "Error in " + childTagValuePrefix + " entry " + index, e);

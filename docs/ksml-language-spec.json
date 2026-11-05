@@ -5406,6 +5406,10 @@
   "additionalProperties" : false,
   "description" : "KSML definition",
   "properties" : {
+    "description" : {
+      "description" : "*(optional)* The description of the topology",
+      "type" : "string"
+    },
     "functions" : {
       "additionalProperties" : {
         "anyOf" : [ {
@@ -5484,6 +5488,10 @@
       "description" : "*(optional)* GlobalTables that can be referenced in producers and pipelines",
       "type" : "object"
     },
+    "name" : {
+      "description" : "*(optional)* The name of the topology",
+      "type" : "string"
+    },
     "pipelines" : {
       "additionalProperties" : {
         "$ref" : "#/$defs/PipelineDefinition",
@@ -5531,6 +5539,10 @@
       },
       "description" : "*(optional)* Tables that can be referenced in producers and pipelines",
       "type" : "object"
+    },
+    "version" : {
+      "description" : "*(optional)* The version of the topology",
+      "type" : "string"
     }
   },
   "title" : "TopologyDefinition",
