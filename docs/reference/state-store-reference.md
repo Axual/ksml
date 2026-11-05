@@ -281,7 +281,9 @@ A value is only converted to a type of the same kind:
 | `float`, `double`              | `int` or `float`                    |
 | `string`                       | `str`                               |
 | `boolean`                      | `bool`                              |
-| `bytes`                        | `bytes`                             |
+| `bytes`                        | `bytes` or a list of ints           |
+
+Reads return the value of a `bytes` store as a list of ints.
 
 Other values raise a Python error that you can catch with `except Exception`, and nothing is written:
 

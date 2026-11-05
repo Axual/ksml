@@ -33,6 +33,7 @@ import io.axual.ksml.python.PythonNativeMapper;
 import org.apache.kafka.streams.processor.StateStore;
 import org.apache.kafka.streams.processor.StateStoreContext;
 import org.graalvm.polyglot.HostAccess;
+import org.graalvm.polyglot.Value;
 
 import java.math.BigInteger;
 
@@ -81,10 +82,12 @@ public abstract class AbstractStateStoreProxy<T extends StateStore> implements S
     private Object toStoreType(DataType type, Object object, String role) {
         if (!(type instanceof SimpleType simpleType) || type instanceof EnumType || object == null) return object;
         final var container = simpleType.containerClass();
-        // The expected type only helps to read Python bytes; for other types it could coerce a value of another kind
-        final var value = object instanceof DataObject dataObject
-                ? JAVA_MAPPER.fromDataObject(dataObject)
-                : NATIVE_MAPPER.fromPython(container == byte[].class ? type : null, object);
+        // The expected type only helps to read Python bytes; for other types it could coerce a value of another kind.
+        // GraalVM passes Python bytes as a Java object, so it is read back as a polyglot value to get a byte[].
+        final Object value;
+        if (object instanceof DataObject dataObject) value = JAVA_MAPPER.fromDataObject(dataObject);
+        else if (container == byte[].class) value = NATIVE_MAPPER.fromPython(type, Value.asValue(object));
+        else value = NATIVE_MAPPER.fromPython(object);
         if (value == null) return null;
         final boolean isInteger = isInteger(value);
         final boolean fits;

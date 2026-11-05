@@ -87,6 +87,20 @@ stores:
     persistent: false
     caching: false
     logging: false
+  kv_bytes:
+    type: keyValue
+    keyType: long
+    valueType: bytes
+    persistent: false
+    caching: false
+    logging: false
+  kv_byte:
+    type: keyValue
+    keyType: long
+    valueType: byte
+    persistent: false
+    caching: false
+    logging: false
   kv_string:
     type: keyValue
     keyType: string
@@ -175,6 +189,16 @@ functions:
         line += " putAllInt=" + write(lambda: kv_string.putAll([("a", 5)]))
         line += " after=" + read(lambda: kv_string.get("a"))
         return line
+
+      def check_bytes(kv_bytes, kv_byte):
+        line = "bytes"
+        line += " bytes=" + write(lambda: kv_bytes.put(1, b"ab")) + "/" + read(lambda: kv_bytes.get(1))
+        line += " list=" + write(lambda: kv_bytes.put(2, [97, 98])) + "/" + read(lambda: kv_bytes.get(2))
+        line += " str=" + write(lambda: kv_bytes.put(3, "ab"))
+        line += "\nbyte"
+        line += " put=" + write(lambda: kv_byte.put(1, 5)) + "/" + read(lambda: kv_byte.get(1))
+        line += " large=" + write(lambda: kv_byte.put(2, 200))
+        return line
     code: |
       lines = [
         check_kv("keyValue", kv_long),
@@ -185,6 +209,7 @@ functions:
         check("timestampedWindow", lambda k, v: window_timestamped_long.put(k, v, 0), lambda k: window_timestamped_long.fetch(k, 0)),
         check("session", lambda k, v: session_long.put(session(k), v), lambda k: session_long.fetchSession(k, BASE, BASE + 1)),
         check_others(kv_int, kv_double, kv_string),
+        check_bytes(kv_bytes, kv_byte),
       ]
       result = "\n".join(lines)
     expression: result
@@ -200,6 +225,8 @@ functions:
       - kv_int
       - kv_double
       - kv_string
+      - kv_bytes
+      - kv_byte
 
 pipelines:
   check_declared_types_pipeline:
