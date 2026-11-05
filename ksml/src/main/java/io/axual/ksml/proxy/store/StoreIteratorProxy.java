@@ -88,6 +88,7 @@ public class StoreIteratorProxy implements AbstractProxy, ProxyIterator, ProxyOb
             }
         }
         scope.depth--;
+        if (scope.depth == 0) SCOPE.remove();
         return closedNow;
     }
 
