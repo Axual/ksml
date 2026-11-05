@@ -20,6 +20,7 @@ package io.axual.ksml.operation.processor;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.exception.DataException;
 import io.axual.ksml.exception.ExecutionException;
 import io.axual.ksml.proxy.store.TimestampedKeyValueStoreProxy;
 import org.apache.kafka.streams.processor.api.FixedKeyProcessorContext;
@@ -43,6 +44,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -116,5 +118,23 @@ class PeekProcessorTest {
         final ArgumentCaptor<ValueAndTimestamp<Object>> captor = ArgumentCaptor.captor();
         verify(store).put(any(), captor.capture());
         assertThat(captor.getValue().timestamp()).isEqualTo(1234L);
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    @DisplayName("a write without a timestamp after the record was processed fails, and does not reuse the old timestamp")
+    void timestampedStoreWriteAfterProcessFails() {
+        final TimestampedKeyValueStore<Object, Object> store = mock(TimestampedKeyValueStore.class);
+        when(context.getStateStore("store")).thenReturn(store);
+        final var kept = new AtomicReference<TimestampedKeyValueStoreProxy>();
+        final var processor = new PeekProcessor("peek",
+                (stores, rec) -> kept.set((TimestampedKeyValueStoreProxy) stores.get("store")), new String[]{"store"});
+        processor.init(context);
+        processor.process(InternalFixedKeyRecordFactory.create(new Record<>("key", "value", 1234L)));
+
+        assertThatThrownBy(() -> kept.get().put("k", "v"))
+                .isInstanceOf(DataException.class)
+                .hasMessageContaining("No record is being processed");
+        verify(store, never()).put(any(), any());
     }
 }

@@ -45,10 +45,13 @@ import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class TimestampedKeyValueStoreProxyTest {
+    private static final long RECORD_TIMESTAMP = 1234L;
+
     private static PythonContext pythonContext;
 
     @Mock
@@ -63,8 +66,6 @@ class TimestampedKeyValueStoreProxyTest {
     static void tearDownContext() {
         pythonContext.close();
     }
-
-    private static final long RECORD_TIMESTAMP = 1234L;
 
     private TimestampedKeyValueStoreProxy proxy() {
         return new TimestampedKeyValueStoreProxy(delegate, () -> RECORD_TIMESTAMP);
@@ -352,5 +353,17 @@ class TimestampedKeyValueStoreProxyTest {
         assertThat(pythonErrorOf("store.putAll([(\"a\", \"1\", 700)])"))
                 .startsWith("ValueError: ").contains("putAll entry 0");
         verify(delegate, never()).putAll(anyList());
+    }
+
+    @Test
+    @DisplayName("a negative timestamp in put, putIfAbsent or putAll raises ValueError, and writes nothing")
+    void negativeTimestampIsAnError() {
+        assertThat(pythonErrorOf("store.put(\"a\", \"1\", -1)"))
+                .isEqualTo("ValueError: put timestamp must not be negative, got -1");
+        assertThat(pythonErrorOf("store.putIfAbsent(\"a\", \"1\", -1)"))
+                .isEqualTo("ValueError: putIfAbsent timestamp must not be negative, got -1");
+        assertThat(pythonErrorOf("store.putAll([{\"key\": \"a\", \"value\": \"1\", \"timestamp\": -1}])"))
+                .isEqualTo("ValueError: putAll entry 0 timestamp must not be negative, got -1");
+        verifyNoInteractions(delegate);
     }
 }

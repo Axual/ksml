@@ -24,7 +24,7 @@ functions:
     code: |
       # Returns what Python reads from the store; SensorData has its own "value" field
       last_value = last_sensor_data_store.get(key)
-      result = "none" if last_value is None else last_value["city"] + ":" + last_value["value"]
+      result = "none" if last_value is None else last_value.get("city") + ":" + last_value["value"]
       last_sensor_data_store.put(key, value)
     expression: result
     resultType: string

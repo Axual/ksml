@@ -204,7 +204,16 @@ public class ProxyUtil {
         final var type = PythonErrors.typeName(timestamp);
         if (!"int".equals(type)) throw PythonErrors.typeError(name + " timestamp must be an int, got " + type);
         if (!timestamp.fitsInLong()) throw PythonErrors.valueError(name + " timestamp is out of range for long");
-        return timestamp.asLong();
+        return checkTimestamp(timestamp.asLong(), name);
+    }
+
+    /**
+     * Raises a Python {@code ValueError} for a negative timestamp. Kafka cannot write it to a changelog topic, and the
+     * stream thread would stop.
+     */
+    public static long checkTimestamp(long timestamp, String name) {
+        if (timestamp < 0) throw PythonErrors.valueError(name + " timestamp must not be negative, got " + timestamp);
+        return timestamp;
     }
 
     /** Converts the Python argument of {@code prefixScan} to a string prefix. */
@@ -233,7 +242,8 @@ public class ProxyUtil {
         return wrapStateStore(store, ProxyUtil::noRecordTimestamp);
     }
 
-    private static long noRecordTimestamp() {
+    /** Raises a Python {@code ValueError}: a write without a timestamp needs a record that is being processed. */
+    public static long noRecordTimestamp() {
         throw PythonErrors.valueError("No record is being processed, so a write to a timestamped store needs a timestamp");
     }
 

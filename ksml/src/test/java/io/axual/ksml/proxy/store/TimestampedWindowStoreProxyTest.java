@@ -44,10 +44,13 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class TimestampedWindowStoreProxyTest {
+
+    private static final long RECORD_TIMESTAMP = 1234L;
 
     private static PythonContext pythonContext;
 
@@ -64,8 +67,6 @@ class TimestampedWindowStoreProxyTest {
         pythonContext.close();
     }
 
-    private static final long RECORD_TIMESTAMP = 1234L;
-
     private TimestampedWindowStoreProxy proxy() {
         return new TimestampedWindowStoreProxy(delegate, () -> RECORD_TIMESTAMP);
     }
@@ -77,6 +78,20 @@ class TimestampedWindowStoreProxyTest {
         final var strings = new ArrayList<String>();
         for (long i = 0; i < result.getArraySize(); i++) strings.add(result.getArrayElement(i).asString());
         return strings;
+    }
+
+    /** Runs a Python call on {@code store} inside try/except Exception, and returns "ErrorType: message", or "no error". */
+    private String pythonErrorOf(Object store, String call) {
+        pythonContext.context().getBindings("python").putMember("store", store);
+        return pythonContext.context().eval("python", """
+                def run():
+                    try:
+                        %s
+                        return "no error"
+                    except Exception as e:
+                        return type(e).__name__ + ": " + str(e)
+                run()
+                """.formatted(call)).asString();
     }
 
     /** A Kafka window store iterator: the key is the window start time 0 or 60000, the n-th entry has timestamp 100 + n. */
@@ -211,12 +226,28 @@ class TimestampedWindowStoreProxyTest {
     }
 
     @Test
-    @DisplayName("put wraps a raw value with the record timestamp before storing at the window time")
+    @DisplayName("put with a timestamp stores the value with that timestamp in the window")
     void putWrapsRawValueWithTimestamp() {
         proxy().put("key", "value", 100L, 5L);
         final ArgumentCaptor<ValueAndTimestamp<Object>> captor = ArgumentCaptor.captor();
         verify(delegate).put(eq("key"), captor.capture(), eq(100L));
         assertThat(captor.getValue().value()).isEqualTo("value");
         assertThat(captor.getValue().timestamp()).isEqualTo(5L);
+    }
+
+    @Test
+    @DisplayName("put with a negative timestamp raises ValueError, and writes nothing")
+    void putWithNegativeTimestampIsAnError() {
+        assertThat(pythonErrorOf(proxy(), "store.put(\"key\", \"value\", 60000, -1)"))
+                .isEqualTo("ValueError: put timestamp must not be negative, got -1");
+        verifyNoInteractions(delegate);
+    }
+
+    @Test
+    @DisplayName("put without a timestamp outside record processing raises ValueError, and writes nothing")
+    void putWithoutTimestampOrRecordIsAnError() {
+        assertThat(pythonErrorOf(ProxyUtil.wrapStateStore(delegate), "store.put(\"key\", \"value\", 60000)"))
+                .startsWith("ValueError: No record is being processed");
+        verifyNoInteractions(delegate);
     }
 }

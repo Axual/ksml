@@ -62,7 +62,10 @@ if TYPE_CHECKING:
         def timer(self, name: str, tags: Mapping[str, str]) -> TimerBridge: ...
 
     class StoreIterator(Iterator[Dict[str, Any]], Protocol):
-        """Iterator of {"key", "value"} dicts. Closed when all entries are read or the KSML function returns."""
+        """Iterator of {"key", "value"} dicts ({"key", "value", "timestamp"} for *WithTimestamp).
+
+        Closed when all entries are read or the KSML function returns.
+        """
 
         def hasNext(self) -> bool: ...
         def next(self) -> Optional[Dict[str, Any]]: ...

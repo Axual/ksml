@@ -191,7 +191,7 @@ The message names the position of the bad entry, for example `putAll entry 1 mus
 ### Timestamped Key-Value Stores
 
 A key-value store with `timestamped: true` keeps a timestamp with each value. The store of a `count`, `aggregate`,
-`reduce` or table is also a timestamped store in Python, with or without `timestamped: true`. In Python it has the
+`reduce` or table (not a versioned table) is also a timestamped store in Python, with or without `timestamped: true`. In Python it has the
 same methods as a plain key-value store, and they return the same results, so the same code works on both kinds of
 store:
 
@@ -216,6 +216,10 @@ The store of a `count`, `aggregate`, `reduce` or table keeps timestamps only wit
 In `putAll`, a dict entry can have a `timestamp` field. That entry is stored with this timestamp, so
 `store.putAll(other_store.allWithTimestamp())` copies a store with its timestamps. A `(key, value, timestamp)` tuple
 is not accepted. A plain key-value store ignores the `timestamp` field.
+
+A negative timestamp raises a `ValueError` and writes nothing, because Kafka cannot write it to a changelog topic.
+To copy a store that returns `-1` as the timestamp, use `store.putAll(other_store.all())`: the entries then get the
+timestamp of the current record.
 
 ```python
 last = store.getWithTimestamp(key)
@@ -245,6 +249,7 @@ To work with the timestamps, use these methods:
 
 The store of a windowed aggregation keeps timestamps only with `timestamped: true` or `persistent: false`.
 Otherwise, the `*WithTimestamp` methods return `-1` as the timestamp.
+A negative timestamp in `put` raises a `ValueError`, as on a timestamped key-value store.
 
 ### Reading Many Entries with Iterators
 

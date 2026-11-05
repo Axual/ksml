@@ -1,4 +1,6 @@
 # Copy of test-state-store.yaml with timestamped: true. Both must give the same results; keep them in sync.
+# "default" in the name: timestamped: true is planned to become the default, and then a store without options
+# becomes this store.
 
 streams:
   sensor_source_avro:
@@ -27,7 +29,7 @@ functions:
     code: |
       # Returns what Python reads from the store; SensorData has its own "value" field
       last_value = last_sensor_data_store.get(key)
-      result = "none" if last_value is None else last_value["city"] + ":" + last_value["value"]
+      result = "none" if last_value is None else last_value.get("city") + ":" + last_value["value"]
       last_sensor_data_store.put(key, value)
     expression: result
     resultType: string
