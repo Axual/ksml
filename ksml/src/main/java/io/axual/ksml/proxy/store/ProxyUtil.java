@@ -113,7 +113,7 @@ public class ProxyUtil {
      * Wraps an iterator of a timestamped key-value store for Python. Without timestamps, entries are
      * {@code {key, value}} like on a plain key-value store; with timestamps, they are {@code {key, value, timestamp}}.
      */
-    public static Object toPythonTimestamped(KeyValueIterator<?, ? extends ValueAndTimestamp<?>> iterator, boolean withTimestamp) {
+    public static <V> Object toPythonTimestamped(KeyValueIterator<?, ValueAndTimestamp<V>> iterator, boolean withTimestamp) {
         return new StoreIteratorProxy(iterator, entry -> timestampedEntry(entry, withTimestamp));
     }
 
