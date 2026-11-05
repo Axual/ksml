@@ -425,6 +425,22 @@ The store of a windowed aggregation keeps timestamps only with `timestamped: tru
 Otherwise, the `*WithTimestamp` methods return `-1` as the timestamp.
 A negative timestamp in `put` raises a `ValueError`, as on a timestamped key-value store.
 
+### Versioned Key-Value Stores
+
+A key-value store with `versioned: true` keeps the old values of a key for the `historyRetention` time. Unlike on the
+other stores, `get` returns a dict, not the value:
+
+- `store.get(key)` - The newest value, as a dict with `value` and `timestamp`, or `None`
+- `store.get(key, as_of_timestamp)` - The value that was valid at `as_of_timestamp`, as a dict with `value`,
+  `timestamp` and, if a newer value replaced it, `validTo`. `None` if there was no value
+- `store.put(key, value, timestamp)` - Store the value from `timestamp` on. Returns the time until which the value is
+  valid, `-1` if it is the newest value, or `-9223372036854775808` if it was not written
+- `store.delete(key, timestamp)` - Delete the key from `timestamp` on, and return the value that was valid at that
+  time as a dict, or `None`
+
+`put` and `delete` do nothing when `timestamp` is older than the newest time the store has seen minus the
+`historyRetention`.
+
 ### Reading Many Entries with Iterators
 
 Store methods that return many entries return an iterator. Each entry is a dict with `key` and `value`.
