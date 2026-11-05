@@ -190,7 +190,8 @@ A tombstone is a record with a key but no value. It means "delete this key". On 
 
 KSML 2.0.0 handles tombstones like Kafka Streams. This changes the result of some pipelines, without an error:
 
-* `count`, `reduce` and `aggregate` skip a tombstone. A `reducer` or `aggregator` is no longer called with `None` as the value, so code in it that handles `None` does not run for a tombstone any more.
+* `count`, `reduce` and `aggregate` skip a tombstone, so a `reducer` or `aggregator` is not called for it, and code in it that handles `None` does not run for a tombstone any more.
+* On a table, `filter` and `filterNot` do not call the `predicate` for a tombstone. The delete is passed on.
 * A function that returns `None` gives a tombstone. From a `reducer` or `aggregator`, it deletes the key from the store. As a value, a later `count`, `reduce` or `aggregate` skips it.
 * A key mapper that returns `None` gives a real `null` key.
 * `groupBy`, `groupByKey`, `count`, `reduce` and `aggregate` skip a record with a `null` key, like Kafka Streams. That is a `null` key read from a topic, of any key type, or from a `groupBy` mapper that returns `None`. Before, such a record could stop the application with a `NullPointerException`.
@@ -205,6 +206,7 @@ What you need to do:
 * If a `reducer` or `aggregator` handles `None` to process deletes, handle the delete before the grouping instead. For example, a `mapValues` that returns `{"deleted": True}` for `None` turns the tombstone into a value that the `aggregator` gets.
 * If a function returns `None` and a later step should still see the record, return a value instead.
 * If a pipeline writes a join between tables to a topic, check that the consumers of that topic accept tombstones.
+* State built by 1.x is not recomputed: counts that include tombstones and joined rows that were not deleted stay as they are. If they must be correct, reset the application and process the input again.
 
 ## Avro logical types
 

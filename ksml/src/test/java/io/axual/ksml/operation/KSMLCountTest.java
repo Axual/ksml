@@ -84,6 +84,20 @@ class KSMLCountTest {
                 new KeyValue<>("a", 3L));
     }
 
+    @KSMLTest(topology = "pipelines/test-count-tombstone.yaml")
+    void testCountCountsEmptyValues() {
+        // given an empty value (zero bytes) between two orders, on a json topic
+        inputTopic.pipeInput("a", "{\"amount\": 1}");
+        inputTopic.pipeInput("a", "");
+        inputTopic.pipeInput("a", "{\"amount\": 4}");
+
+        // an empty value is not a tombstone, so it is counted, and the app keeps processing
+        assertThat(outputTopic.readKeyValuesToList()).containsExactly(
+                new KeyValue<>("a", 1L),
+                new KeyValue<>("a", 2L),
+                new KeyValue<>("a", 3L));
+    }
+
     @KSMLTest(topology = "pipelines/test-count-tombstone-avro.yaml", schemaDirectory = "schemas")
     void testCountSkipsTombstonesOnAvroTopic() {
         // given a tombstone between two records, on an avro topic
