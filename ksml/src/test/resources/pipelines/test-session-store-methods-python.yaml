@@ -35,6 +35,8 @@ functions:
   check_session_stores:
     type: valueTransformer
     globalCode: |
+      from test_store_iterator_checks import read
+
       # Session times above the int range and start < end: SessionStoreProxy.put ignores other session keys
       BASE = 3000000000
 
@@ -44,31 +46,23 @@ functions:
       def describe(e):
         return e["key"]["key"] + "@" + str(e["key"]["start"] - BASE) + ":" + e["value"]
 
-      def read(make):
-        # Reads one iterator with a for loop, and a second one with hasNext()/next() without close()
-        for_loop = ",".join(describe(e) for e in make())
-        it = make()
-        java_style = []
-        while it.hasNext():
-          java_style.append(describe(it.next()))
-        java_style = ",".join(java_style)
-        return for_loop if for_loop == java_style else for_loop + "!hasNext=" + java_style
-
       def check(name, store):
         line = name
         line += " fetchSession=" + store.fetchSession("a", BASE + 10, BASE + 11)
         line += " missing=" + str(store.fetchSession("a", BASE + 20, BASE + 21))
-        line += " fetch=" + read(lambda: store.fetch("a"))
-        line += " backwardFetch=" + read(lambda: store.backwardFetch("a"))
-        line += " fetchKeys=" + read(lambda: store.fetch("a", "b"))
-        line += " backwardFetchKeys=" + read(lambda: store.backwardFetch("a", "b"))
-        line += " findSessions=" + read(lambda: store.findSessions("a", BASE, BASE + 40))
-        line += " backwardFindSessions=" + read(lambda: store.backwardFindSessions("a", BASE, BASE + 40))
-        # Sessions that end at or after 15 and start at or before 40: a@10 ends at 11, so it is left out
-        line += " findSessionsKeys=" + read(lambda: store.findSessions("a", "b", BASE + 15, BASE + 40))
-        line += " backwardFindSessionsKeys=" + read(lambda: store.backwardFindSessions("a", "b", BASE + 15, BASE + 40))
+        line += " fetch=" + read(lambda: store.fetch("a"), describe)
+        line += " backwardFetch=" + read(lambda: store.backwardFetch("a"), describe)
+        line += " fetchKeys=" + read(lambda: store.fetch("a", "b"), describe)
+        line += " backwardFetchKeys=" + read(lambda: store.backwardFetch("a", "b"), describe)
+        line += " findSessions=" + read(lambda: store.findSessions("a", BASE, BASE + 40), describe)
+        line += " backwardFindSessions=" + read(lambda: store.backwardFindSessions("a", BASE, BASE + 40), describe)
+        # Sessions that end at or after 11 and start at or before 20: a@10 ends at 11 and b@20 starts at 20, so both
+        # are on the edge and included; a@30 starts later
+        line += " findSessionsKeys=" + read(lambda: store.findSessions("a", "b", BASE + 11, BASE + 20), describe)
+        line += " backwardFindSessionsKeys=" + read(
+            lambda: store.backwardFindSessions("a", "b", BASE + 11, BASE + 20), describe)
         store.remove(session("a", 10))
-        line += " afterRemove=" + read(lambda: store.fetch("a"))
+        line += " afterRemove=" + read(lambda: store.fetch("a"), describe)
         return line
     code: |
       # Value "1" is the session at 10, value "2" at 20 and value "3" at 30

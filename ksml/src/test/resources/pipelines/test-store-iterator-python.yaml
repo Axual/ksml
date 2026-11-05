@@ -66,6 +66,7 @@ functions:
     type: valueTransformer
     globalCode: |
       import contextlib
+      from test_store_iterator_checks import read_has_next
 
       def styles(name, make, describe):
         # Each style gets a new iterator from make(); describe() turns one entry into text
@@ -75,13 +76,8 @@ functions:
           first = describe(next(it))
         with contextlib.closing(make()) as it:
           closing = ",".join(describe(e) for e in it)
-        it = make()
-        java_style = []
-        while it.hasNext():
-          java_style.append(describe(it.next()))
-        java_style = ",".join(java_style)
         return (name + " for=" + for_loop + " list=" + as_list + " next=" + first + " closing=" + closing
-                + " hasNext=" + java_style)
+                + " hasNext=" + read_has_next(make(), describe))
 
       def kv_entry(e):
         return e["key"] + ":" + e["value"]

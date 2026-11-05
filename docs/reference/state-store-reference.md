@@ -217,8 +217,8 @@ A session is identified by a dict with `key`, `start` and `end` (times in millis
   `store.backwardFindSessions(key_from, key_to, earliest_session_end, latest_session_start)` - The same for a range
   of keys
 
-The order of entries for a range of keys depends on the store: an in-memory store returns them by time first, a
-RocksDB store by key first.
+When the entries have more than one key (`all()`, `fetchAll()`, key ranges and their `backward` versions), the order
+depends on the store: an in-memory store sorts them by time first, a RocksDB store by key first.
 
 ### Timestamped Key-Value Stores
 

@@ -37,38 +37,34 @@ functions:
   check_window_stores:
     type: valueTransformer
     globalCode: |
+      from test_store_iterator_checks import read
+
+      # Window times above the int range, like real epoch millis. The text shows them minus BASE.
+      BASE = 3000000000
+
       def describe(e):
         # Single-key fetches have the window start as key, the other iterators a windowed key
         if type(e["key"]) is dict:
-          return e["key"]["key"] + "@" + str(e["key"]["start"]) + ":" + e["value"]
-        return str(e["key"]) + ":" + e["value"]
-
-      def read(make):
-        # Reads one iterator with a for loop, and a second one with hasNext()/next() without close()
-        for_loop = ",".join(describe(e) for e in make())
-        it = make()
-        java_style = []
-        while it.hasNext():
-          java_style.append(describe(it.next()))
-        java_style = ",".join(java_style)
-        return for_loop if for_loop == java_style else for_loop + "!hasNext=" + java_style
+          return e["key"]["key"] + "@" + str(e["key"]["start"] - BASE) + ":" + e["value"]
+        return str(e["key"] - BASE) + ":" + e["value"]
 
       def check(name, store):
         line = name
-        line += " fetch=" + store.fetch("a", 0)
-        line += " missing=" + str(store.fetch("x", 0))
-        line += " fetchRange=" + read(lambda: store.fetch("a", 0, 60000))
-        line += " backwardFetchRange=" + read(lambda: store.backwardFetch("a", 0, 60000))
-        line += " fetchKeys=" + read(lambda: store.fetch("a", "b", 0, 60000))
-        line += " backwardFetchKeys=" + read(lambda: store.backwardFetch("a", "b", 0, 60000))
-        line += " all=" + read(lambda: store.all())
-        line += " backwardAll=" + read(lambda: store.backwardAll())
-        line += " fetchAll=" + read(lambda: store.fetchAll(0, 60000))
-        line += " backwardFetchAll=" + read(lambda: store.backwardFetchAll(0, 60000))
+        line += " fetch=" + store.fetch("a", BASE)
+        # An unknown key, and a known key at a time without a window
+        line += " missing=" + str(store.fetch("x", BASE)) + "/" + str(store.fetch("a", BASE + 30000))
+        line += " fetchRange=" + read(lambda: store.fetch("a", BASE, BASE + 60000), describe)
+        line += " backwardFetchRange=" + read(lambda: store.backwardFetch("a", BASE, BASE + 60000), describe)
+        line += " fetchKeys=" + read(lambda: store.fetch("a", "b", BASE, BASE + 60000), describe)
+        line += " backwardFetchKeys=" + read(lambda: store.backwardFetch("a", "b", BASE, BASE + 60000), describe)
+        line += " all=" + read(lambda: store.all(), describe)
+        line += " backwardAll=" + read(lambda: store.backwardAll(), describe)
+        line += " fetchAll=" + read(lambda: store.fetchAll(BASE, BASE + 60000), describe)
+        line += " backwardFetchAll=" + read(lambda: store.backwardFetchAll(BASE, BASE + 60000), describe)
         return line
     code: |
-      # Values "1" and "2" go to the window that starts at 0, value "3" to the window that starts at 60000
-      window_start = (int(value) - 1) // 2 * 60000
+      # Values "1" and "2" go to the window that starts at BASE, value "3" to the window that starts at BASE + 60000
+      window_start = BASE + (int(value) - 1) // 2 * 60000
       window_memory.put(key, value, window_start)
       window_rocksdb.put(key, value, window_start)
       result = check("memory", window_memory) + "\n" + check("rocksdb", window_rocksdb) if value == "3" else ""

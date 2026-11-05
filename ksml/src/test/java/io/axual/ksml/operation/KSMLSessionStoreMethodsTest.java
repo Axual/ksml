@@ -49,7 +49,7 @@ public class KSMLSessionStoreMethodsTest {
     @KSMLDriver
     TopologyTestDriver driver;
 
-    @KSMLTest(topology = "pipelines/test-session-store-methods-python.yaml")
+    @KSMLTest(topology = "pipelines/test-session-store-methods-python.yaml", modulesDirectory = "pipelines")
     @DisplayName("Session store methods work from Python on in-memory and RocksDB stores, and close their iterators")
     void testSessionStoreMethods() {
         input.pipeInput("a", "1", 1000L);
@@ -58,24 +58,22 @@ public class KSMLSessionStoreMethodsTest {
 
         final var lines = output.readValuesToList().stream()
                 .filter(v -> !v.isEmpty())
-                .flatMap(v -> v.lines())
+                .flatMap(String::lines)
                 .toList();
         final var singleKey = " fetchSession=1 missing=None"
                 + " fetch=a@10:1,a@30:3 backwardFetch=a@30:3,a@10:1";
         final var findSingleKey = " findSessions=a@10:1,a@30:3 backwardFindSessions=a@30:3,a@10:1";
+        // Both stores order these by session end and by key alike
+        final var findKeys = " findSessionsKeys=a@10:1,b@20:2 backwardFindSessionsKeys=b@20:2,a@10:1";
         final var afterRemove = " afterRemove=a@30:3";
         // The in-memory store orders by session end, then key; RocksDB orders by key, then session end
         assertThat(lines).containsExactly(
                 "memory" + singleKey
                         + " fetchKeys=a@10:1,b@20:2,a@30:3 backwardFetchKeys=a@30:3,b@20:2,a@10:1"
-                        + findSingleKey
-                        + " findSessionsKeys=b@20:2,a@30:3 backwardFindSessionsKeys=a@30:3,b@20:2"
-                        + afterRemove,
+                        + findSingleKey + findKeys + afterRemove,
                 "rocksdb" + singleKey
                         + " fetchKeys=a@10:1,a@30:3,b@20:2 backwardFetchKeys=b@20:2,a@30:3,a@10:1"
-                        + findSingleKey
-                        + " findSessionsKeys=a@30:3,b@20:2 backwardFindSessionsKeys=b@20:2,a@30:3"
-                        + afterRemove);
+                        + findSingleKey + findKeys + afterRemove);
 
         assertThat(openIterators(driver, "session_memory")).isZero();
         assertThat(openIterators(driver, "session_rocksdb")).isZero();
