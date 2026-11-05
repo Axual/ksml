@@ -20,6 +20,7 @@ package io.axual.ksml.proxy.store;
  * =========================LICENSE_END==================================
  */
 
+import org.apache.kafka.common.serialization.StringSerializer;
 import org.apache.kafka.streams.state.KeyValueStore;
 import org.graalvm.polyglot.HostAccess;
 
@@ -38,6 +39,31 @@ public class KeyValueStoreProxy extends AbstractStateStoreProxy<KeyValueStore<Ob
     @HostAccess.Export
     public Object all() {
         return ProxyUtil.toPython(delegate.all());
+    }
+
+    @HostAccess.Export
+    public Object reverseAll() {
+        return ProxyUtil.toPython(delegate.reverseAll());
+    }
+
+    @HostAccess.Export
+    public Object range(Object from, Object to) {
+        return ProxyUtil.toPython(delegate.range(ProxyUtil.fromPython(from, "range from"), ProxyUtil.fromPython(to, "range to")));
+    }
+
+    @HostAccess.Export
+    public Object reverseRange(Object from, Object to) {
+        return ProxyUtil.toPython(delegate.reverseRange(ProxyUtil.fromPython(from, "reverseRange from"), ProxyUtil.fromPython(to, "reverseRange to")));
+    }
+
+    /**
+     * Returns the entries whose key starts with the given string. The prefix is serialized as UTF-8, so this only
+     * gives meaningful results for stores with string keys. A prefix that is not a string raises a Python
+     * {@code TypeError}.
+     */
+    @HostAccess.Export
+    public Object prefixScan(Object prefix) {
+        return ProxyUtil.toPython(delegate.prefixScan(ProxyUtil.toStringPrefix(prefix), new StringSerializer()));
     }
 
     @HostAccess.Export
@@ -60,6 +86,12 @@ public class KeyValueStoreProxy extends AbstractStateStoreProxy<KeyValueStore<Ob
     @HostAccess.Export
     public void put(Object key, Object value) {
         delegate.put(NATIVE_MAPPER.fromPython(key), NATIVE_MAPPER.fromPython(value));
+    }
+
+    /** Writes all entries with one call to the store. See {@link ProxyUtil#toKeyValueList(Object)}. */
+    @HostAccess.Export
+    public void putAll(Object entries) {
+        delegate.putAll(ProxyUtil.toKeyValueList(entries));
     }
 
     @HostAccess.Export

@@ -183,7 +183,7 @@ The `ksml.py` module provides type definitions for:
 #### State Stores
 Three store types are available:
 
-- **`KeyValueStore`** - Simple key-value operations: `get()`, `put()`, `delete()`, `range()`, `all()`
+- **`KeyValueStore`** - Simple key-value operations: `get()`, `put()`, `putAll()`, `putIfAbsent()`, `delete()`, `range()`, `reverseRange()`, `all()`, `reverseAll()`, `prefixScan()`, `approximateNumEntries()`
 - **`SessionStore`** - Session-windowed store: `fetch()`, `findSessions()`, `put()`, `remove()`
 - **`WindowStore`** - Time-windowed store: `fetch()`, `fetchAll()`, `put()`, `all()`
 

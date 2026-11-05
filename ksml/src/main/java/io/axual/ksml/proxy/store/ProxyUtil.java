@@ -20,10 +20,12 @@ package io.axual.ksml.proxy.store;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.exception.DataException;
 import io.axual.ksml.data.mapper.DataObjectFlattener;
 import io.axual.ksml.data.object.DataObject;
 import io.axual.ksml.data.value.Struct;
 import io.axual.ksml.python.PythonDataObjectMapper;
+import io.axual.ksml.python.PythonErrors;
 import io.axual.ksml.python.PythonNativeMapper;
 import org.apache.kafka.streams.KeyValue;
 import org.apache.kafka.streams.kstream.Windowed;
@@ -37,6 +39,10 @@ import org.apache.kafka.streams.state.ValueAndTimestamp;
 import org.apache.kafka.streams.state.VersionedKeyValueStore;
 import org.apache.kafka.streams.state.VersionedRecord;
 import org.apache.kafka.streams.state.WindowStore;
+import org.graalvm.polyglot.Value;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Utility class for creating proxy objects and converted values returned to Python
@@ -100,6 +106,65 @@ public class ProxyUtil {
         converted.put(KEY_FIELD, toPython(kv.key));
         converted.put(VALUE_FIELD, toPython(kv.value));
         return NATIVE_MAPPER.toRealPythonValue(converted);
+    }
+
+    /**
+     * Converts the Python argument of {@code putAll} to Kafka entries. The argument is a list or an iterator of
+     * (key, value) pairs or dicts with key and value. A bad entry raises a Python {@code TypeError} or
+     * {@code ValueError} that names its position, before anything is written.
+     */
+    public static List<KeyValue<Object, Object>> toKeyValueList(Object entries) {
+        final var value = Value.asValue(entries);
+        final Value iterator;
+        if (value.hasHashEntries())
+            throw PythonErrors.typeError("putAll needs a list or an iterator of entries; for a dict use putAll(d.items())");
+        if (value.hasIterator()) iterator = value.getIterator();
+        else if (value.isIterator()) iterator = value;
+        else throw PythonErrors.typeError("putAll needs a list or an iterator of entries, got: " + value);
+
+        final var result = new ArrayList<KeyValue<Object, Object>>();
+        while (iterator.hasIteratorNextElement()) {
+            final var entry = iterator.getIteratorNextElement();
+            result.add(toKeyValue(result.size(), entry));
+        }
+        return result;
+    }
+
+    private static KeyValue<Object, Object> toKeyValue(int position, Value entry) {
+        final var name = "putAll entry " + position;
+        if (entry.hasArrayElements()) {
+            if (entry.getArraySize() != 2)
+                throw PythonErrors.valueError(name + " must have 2 elements (key, value), got " + entry.getArraySize() + ": " + entry);
+            return KeyValue.pair(
+                    fromPython(entry.getArrayElement(0), name + " key"),
+                    fromPython(entry.getArrayElement(1), name + " value"));
+        }
+        if (entry.hasHashEntries()) {
+            if (!entry.hasHashEntry(KEY_FIELD) || !entry.hasHashEntry(VALUE_FIELD))
+                throw PythonErrors.valueError(name + " must have \"key\" and \"value\", got: " + entry);
+            return KeyValue.pair(
+                    fromPython(entry.getHashValue(KEY_FIELD), name + " key"),
+                    fromPython(entry.getHashValue(VALUE_FIELD), name + " value"));
+        }
+        throw PythonErrors.typeError(name + " must be a (key, value) pair or a dict with \"key\" and \"value\", got: " + entry);
+    }
+
+    /** Converts the Python argument of {@code prefixScan} to a string prefix. */
+    public static String toStringPrefix(Object prefix) {
+        if (fromPython(prefix, "prefixScan prefix") instanceof String result) return result;
+        throw PythonErrors.typeError("prefixScan needs a string prefix, got: " + prefix);
+    }
+
+    /**
+     * Converts a Python argument to a Java value. A value that cannot be converted raises a Python
+     * {@code ValueError}, because it is a caller error.
+     */
+    public static Object fromPython(Object object, String name) {
+        try {
+            return NATIVE_MAPPER.fromPython(object);
+        } catch (DataException e) {
+            throw PythonErrors.valueError(name + ": " + e.getMessage(), e);
+        }
     }
 
     /**
