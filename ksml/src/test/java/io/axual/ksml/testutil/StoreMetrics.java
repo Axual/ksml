@@ -41,7 +41,9 @@ public final class StoreMetrics {
     public static long openIterators(TopologyTestDriver driver, String storeName) {
         return driver.metrics().entrySet().stream()
                 .filter(e -> e.getKey().name().equals("num-open-iterators"))
-                .filter(e -> e.getKey().tags().containsValue(storeName))
+                // Kafka Streams puts the store name in the tag <store type>-state-id
+                .filter(e -> e.getKey().tags().entrySet().stream()
+                        .anyMatch(t -> t.getKey().endsWith("-state-id") && t.getValue().equals(storeName)))
                 .map(e -> ((Number) e.getValue().metricValue()).longValue())
                 .findFirst()
                 .orElseThrow(() -> new AssertionError("No num-open-iterators metric for store " + storeName));

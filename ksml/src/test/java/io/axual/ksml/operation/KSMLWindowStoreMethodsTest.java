@@ -49,19 +49,20 @@ public class KSMLWindowStoreMethodsTest {
     @KSMLDriver
     TopologyTestDriver driver;
 
-    @KSMLTest(topology = "pipelines/test-window-store-methods-python.yaml")
+    @KSMLTest(topology = "pipelines/test-window-store-methods-python.yaml", modulesDirectory = "pipelines")
     @DisplayName("Window store methods work from Python on in-memory and RocksDB stores, and close their iterators")
     void testWindowStoreMethods() {
-        // Fixed record timestamps, so the windows at 0 and 60000 are within the store retention
-        input.pipeInput("a", "1", 1000L);
-        input.pipeInput("b", "2", 2000L);
-        input.pipeInput("a", "3", 61000L);
+        // Record timestamps near the window times (BASE = 3000000000 in the pipeline), so the windows are within the
+        // store retention. The pipeline shows window times minus BASE.
+        input.pipeInput("a", "1", 3_000_001_000L);
+        input.pipeInput("b", "2", 3_000_002_000L);
+        input.pipeInput("a", "3", 3_000_061_000L);
 
         final var lines = output.readValuesToList().stream()
                 .filter(v -> !v.isEmpty())
-                .flatMap(v -> v.lines())
+                .flatMap(String::lines)
                 .toList();
-        final var single = " fetch=1 missing=None fetchRange=0:1,60000:3 backwardFetchRange=60000:3,0:1";
+        final var single = " fetch=1 missing=None/None fetchRange=0:1,60000:3 backwardFetchRange=60000:3,0:1";
         // The in-memory store orders by window start, then key; RocksDB orders by key, then window start
         final var memoryOrder = "a@0:1,b@0:2,a@60000:3";
         final var memoryBackward = "a@60000:3,b@0:2,a@0:1";

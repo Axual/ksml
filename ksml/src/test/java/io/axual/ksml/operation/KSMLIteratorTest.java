@@ -55,7 +55,7 @@ public class KSMLIteratorTest {
     TopologyTestDriver driver;
 
     /** Each output line is the result of one store method, read in all Python styles. Afterwards no store has an open iterator. */
-    @KSMLTest(topology = "pipelines/test-store-iterator-python.yaml")
+    @KSMLTest(topology = "pipelines/test-store-iterator-python.yaml", modulesDirectory = "pipelines")
     @DisplayName("store iterators work with Python for, list(), next(), contextlib.closing and hasNext(), and are closed")
     void testPythonIteration() {
         // Fixed record timestamps, so the window entries at time 0 are within the store retention
