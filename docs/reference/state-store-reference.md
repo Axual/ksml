@@ -340,7 +340,8 @@ and `remove`; their `startTime` and `endTime` fields are ignored. For a session 
 `remove` raise a Python error and write nothing:
 
 - `TypeError` - the session key is not a dict, or `start` or `end` is not an `int`
-- `ValueError` - `key`, `start` or `end` is missing, a time is out of the range of a long, or `start` is after `end`
+- `ValueError` - `key`, `start` or `end` is missing, `key` is `None`, a time is out of the range of a long, or `start`
+  is after `end`
 
 - `store.put(sessionKey, value)` - Store the value of a session
 - `store.remove(sessionKey)` - Remove a session
