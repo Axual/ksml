@@ -31,7 +31,7 @@ public final class StoreMetrics {
 
     /**
      * Returns the number of iterators on a store that were created but not closed yet, from the Kafka Streams metric
-     * {@code num-open-iterators}.
+     * {@code num-open-iterators}. When the store has this metric for more than one task, the counts are added up.
      *
      * @param driver    the test driver
      * @param storeName the name of the store
@@ -39,13 +39,14 @@ public final class StoreMetrics {
      * @throws AssertionError when the store has no such metric
      */
     public static long openIterators(TopologyTestDriver driver, String storeName) {
-        return driver.metrics().entrySet().stream()
+        final var counts = driver.metrics().entrySet().stream()
                 .filter(e -> e.getKey().name().equals("num-open-iterators"))
                 // Kafka Streams puts the store name in the tag <store type>-state-id
                 .filter(e -> e.getKey().tags().entrySet().stream()
                         .anyMatch(t -> t.getKey().endsWith("-state-id") && t.getValue().equals(storeName)))
                 .map(e -> ((Number) e.getValue().metricValue()).longValue())
-                .findFirst()
-                .orElseThrow(() -> new AssertionError("No num-open-iterators metric for store " + storeName));
+                .toList();
+        if (counts.isEmpty()) throw new AssertionError("No num-open-iterators metric for store " + storeName);
+        return counts.stream().mapToLong(Long::longValue).sum();
     }
 }

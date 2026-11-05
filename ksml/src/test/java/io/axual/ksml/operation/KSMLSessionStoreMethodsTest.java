@@ -66,7 +66,8 @@ public class KSMLSessionStoreMethodsTest {
         // Both stores order these by session end and by key alike
         final var findKeys = " findSessionsKeys=a@10:1,b@20:2 backwardFindSessionsKeys=b@20:2,a@10:1";
         final var afterRemove = " afterRemove=a@30:3";
-        // The in-memory store orders by session end, then key; RocksDB orders by key, then session end
+        // The in-memory store orders by session end, then key. RocksDB orders by time segment, then key, then session
+        // end; all sessions here are in one segment
         assertThat(lines).containsExactly(
                 "memory" + singleKey
                         + " fetchKeys=a@10:1,b@20:2,a@30:3 backwardFetchKeys=a@30:3,b@20:2,a@10:1"
