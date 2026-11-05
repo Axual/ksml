@@ -20,8 +20,8 @@ package io.axual.ksml.proxy.store;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.mapper.DataObjectFlattener;
 import io.axual.ksml.data.exception.DataException;
+import io.axual.ksml.data.mapper.DataObjectFlattener;
 import io.axual.ksml.data.object.DataObject;
 import io.axual.ksml.data.value.Struct;
 import io.axual.ksml.python.PythonDataObjectMapper;

@@ -20,10 +20,12 @@ package io.axual.ksml.proxy.store;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.exception.DataException;
 import io.axual.ksml.data.object.DataString;
 import io.axual.ksml.data.object.DataStruct;
 import io.axual.ksml.python.PythonContext;
 import io.axual.ksml.python.PythonContextConfig;
+import org.apache.kafka.common.serialization.StringSerializer;
 import org.apache.kafka.streams.KeyValue;
 import org.apache.kafka.streams.errors.InvalidStateStoreException;
 import org.apache.kafka.streams.processor.StateStore;
@@ -45,6 +47,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.catchThrowable;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
@@ -208,12 +211,14 @@ class KeyValueStoreProxyTest {
     }
 
     @Test
-    @DisplayName("range(from, to) returns the delegate range as {key, value} entries")
+    @DisplayName("range(from, to) returns {key, value} entries, and closes the Kafka iterator")
     void rangeFromPython() {
-        when(delegate.range("a", "c")).thenReturn(entries("a", "b", "c"));
+        final var kafkaIterator = entries("a", "b", "c");
+        when(delegate.range("a", "c")).thenReturn(kafkaIterator);
         assertThat(runPython("""
                 [e["key"] + "=" + e["value"] for e in store.range("a", "c")]
                 """)).containsExactly("a=value-a", "b=value-b", "c=value-c");
+        assertThat(kafkaIterator.closeCount).isEqualTo(1);
     }
 
     @Test
@@ -227,30 +232,36 @@ class KeyValueStoreProxyTest {
     }
 
     @Test
-    @DisplayName("reverseRange(from, to) returns the delegate reverse range")
+    @DisplayName("reverseRange(from, to) returns the reverse range, and closes the Kafka iterator")
     void reverseRangeFromPython() {
-        when(delegate.reverseRange("a", "c")).thenReturn(entries("c", "b", "a"));
+        final var kafkaIterator = entries("c", "b", "a");
+        when(delegate.reverseRange("a", "c")).thenReturn(kafkaIterator);
         assertThat(runPython("""
                 [e["key"] for e in store.reverseRange("a", "c")]
                 """)).containsExactly("c", "b", "a");
+        assertThat(kafkaIterator.closeCount).isEqualTo(1);
     }
 
     @Test
-    @DisplayName("reverseAll() returns all delegate entries in reverse order")
+    @DisplayName("reverseAll() returns all entries in reverse order, and closes the Kafka iterator")
     void reverseAllFromPython() {
-        when(delegate.reverseAll()).thenReturn(entries("c", "b", "a"));
+        final var kafkaIterator = entries("c", "b", "a");
+        when(delegate.reverseAll()).thenReturn(kafkaIterator);
         assertThat(runPython("""
                 [e["key"] for e in store.reverseAll()]
                 """)).containsExactly("c", "b", "a");
+        assertThat(kafkaIterator.closeCount).isEqualTo(1);
     }
 
     @Test
-    @DisplayName("prefixScan(prefix) passes the prefix to the delegate and returns its entries")
+    @DisplayName("prefixScan(prefix) passes the prefix and a StringSerializer, and closes the Kafka iterator")
     void prefixScanFromPython() {
-        when(delegate.prefixScan(eq("se"), any())).thenReturn(entries("sensor1", "sensor2"));
+        final var kafkaIterator = entries("sensor1", "sensor2");
+        when(delegate.prefixScan(eq("se"), any(StringSerializer.class))).thenReturn(kafkaIterator);
         assertThat(runPython("""
                 [e["key"] for e in store.prefixScan("se")]
                 """)).containsExactly("sensor1", "sensor2");
+        assertThat(kafkaIterator.closeCount).isEqualTo(1);
     }
 
     @Test
@@ -369,6 +380,15 @@ class KeyValueStoreProxyTest {
                 """);
         assertThat(error.getMessage()).startsWith("TypeError: ").contains("putAll(d.items())");
         verify(delegate, never()).putAll(any());
+    }
+
+    @Test
+    @DisplayName("a caller error from Java, without a Python context, throws a DataException with the message")
+    void callerErrorWithoutPythonContext() {
+        assertThatThrownBy(() -> proxy().prefixScan(42))
+                .isInstanceOf(DataException.class)
+                .hasMessageContaining("string prefix");
+        verify(delegate, never()).prefixScan(any(), any());
     }
 
     @Test

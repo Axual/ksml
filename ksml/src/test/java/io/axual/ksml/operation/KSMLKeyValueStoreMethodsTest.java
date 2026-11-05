@@ -19,6 +19,7 @@ package io.axual.ksml.operation;
  * limitations under the License.
  * =========================LICENSE_END==================================
  */
+
 import io.axual.ksml.testutil.KSMLTest;
 import io.axual.ksml.testutil.KSMLTestExtension;
 import io.axual.ksml.testutil.KSMLTopic;
@@ -33,7 +34,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * Calls the key-value store methods range, reverseRange, reverseAll, prefixScan and putAll from Python, on an
- * in-memory and a RocksDB store.
+ * in-memory, a RocksDB and a cached RocksDB store.
  */
 @ExtendWith(KSMLTestExtension.class)
 @SuppressWarnings("java:S2187")
@@ -46,7 +47,7 @@ public class KSMLKeyValueStoreMethodsTest {
     TestOutputTopic<String, String> output;
 
     @KSMLTest(topology = "pipelines/test-keyvalue-store-methods-python.yaml")
-    @DisplayName("range, reverseRange, reverseAll, prefixScan and putAll work from Python on in-memory and RocksDB stores")
+    @DisplayName("range, reverseRange, reverseAll, prefixScan and putAll work on in-memory, RocksDB and cached stores")
     void testKeyValueStoreMethods() {
         input.pipeInput("trigger", "go");
 
@@ -57,6 +58,7 @@ public class KSMLKeyValueStoreMethodsTest {
                 + " rangeFromNone=a:1,ab:4 rangeToNone=b:2,c:3 rangeAll=a:1,ab:4,b:2,c:3"
                 + " reverseRangeFromNone=ab:4,a:1 reverseRangeToNone=c:3,b:2"
                 + " afterDelete=a:1,ab:4,b:2 badEntry=TypeError x=None copy=a:1,ab:4,b:2";
-        assertThat(List.of(values.get(0).split("\\n"))).containsExactly("memory" + expected, "rocksdb" + expected);
+        assertThat(List.of(values.get(0).split("\\n")))
+                .containsExactly("memory" + expected, "rocksdb" + expected, "cached" + expected);
     }
 }
