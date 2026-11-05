@@ -1,0 +1,14 @@
+# Test definition for unknown-field validation, see UnknownFieldsTest
+name: copy-app
+version: 1.0.0
+description: Copies clicks
+
+streams:
+  clicks:
+    topic: clicks_in
+    keyType: string
+    valueType: string
+  counts:
+    topic: counts_out
+    keyType: string
+    valueType: long

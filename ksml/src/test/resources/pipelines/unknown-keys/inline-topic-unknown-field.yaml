@@ -1,0 +1,19 @@
+# Test definition for unknown-field validation, see UnknownFieldsTest
+streams:
+  clicks:
+    topic: clicks_in
+    keyType: string
+    valueType: string
+  counts:
+    topic: counts_out
+    keyType: string
+    valueType: long
+
+pipelines:
+  copy:
+    from: clicks
+    to:
+      topic: copy_out
+      keyType: string
+      valueType: string
+      valuetype: string     # should be "valueType"

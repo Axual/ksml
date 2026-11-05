@@ -46,7 +46,7 @@ import tools.jackson.databind.JsonNode;
 
 /**
  * JSON Schema validation test for all KSML definition YAML files (any *.yaml that is not
- * a ksml-runner.yaml) under:
+ * a ksml-runner.yaml, and not in an unknown-keys directory) under:
  * - ksml/src/test/resources
  * - ksml-integration-tests/src/test/resources/docs-examples
  *
@@ -96,7 +96,9 @@ class AllDefinitionsSchemaValidationTest {
                 .filter(Files::isRegularFile)
                 .filter(path -> path.toString().endsWith(".yaml"))
                 .filter(path -> !path.getFileName().toString().equals("ksml-runner.yaml"))
-                .filter(path -> !dir.relativize(path).startsWith(PARITY_USABILITY_PROBES));
+                .filter(path -> !dir.relativize(path).startsWith(PARITY_USABILITY_PROBES))
+                // These definitions contain unknown fields on purpose, see UnknownFieldsTest
+                .filter(path -> !path.getParent().endsWith("unknown-keys"));
     }
 
     @BeforeAll

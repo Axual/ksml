@@ -41,7 +41,7 @@ A `ValueStructParser` for a `type:` variant does not know the `type` field, so a
 
 **D2 — The parser decides its known fields: `StructsParser.knownFields(ParseNode)`.**
 - **Default:** the union of the field names of all its `schemas()`.
-- **`ChoiceParser`:** overrides this with the `type` field plus the known fields of the chosen variant. So `store:` on a `filter` step is rejected, even though another operation type accepts it.
+- **`ChoiceParser`:** overrides this with the `type` field plus the known fields of the chosen variant. So `duration:` on a `filter` step is rejected, even though the window operations accept it. The chosen variant can itself be a choice (`windowByTime` picks tumbling, hopping or sliding through `windowType`), so the call goes on to the variant's own `knownFields`.
 - **Delegating parsers** (`DefinitionParser`, `StructsParser.lazy`): pass the call on.
 - A schema that allows additional fields (`StructSchema.SCHEMALESS`, used by `IgnoreParser`) disables the check for that object.
 

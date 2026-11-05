@@ -31,8 +31,8 @@ When a KSML definition contains a field in an object that the parser for that ob
 For an object whose variant is chosen with a `type` field (operations, functions and stores), parsing SHALL accept only the `type` field and the fields of the chosen variant.
 
 #### Scenario: Field of another operation type
-- **WHEN** a pipeline step with `type: filter` contains `store:`, which is a field of other operation types but not of `filter`
-- **THEN** parsing fails with an error that names the unknown field `store`
+- **WHEN** a pipeline step with `type: filter` contains `duration:`, which is a field of the window operations but not of `filter`
+- **THEN** parsing fails with an error that names the unknown field `duration`
 
 ### Requirement: Valid definitions keep parsing
 Every field that the parser reads SHALL be part of the parser's schema, so that valid definitions are not rejected and the published language schema accepts the same fields as the parser.

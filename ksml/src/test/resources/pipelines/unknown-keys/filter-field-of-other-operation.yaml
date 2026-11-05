@@ -1,0 +1,20 @@
+# Test definition for unknown-field validation, see UnknownFieldsTest
+streams:
+  clicks:
+    topic: clicks_in
+    keyType: string
+    valueType: string
+  counts:
+    topic: counts_out
+    keyType: string
+    valueType: long
+
+pipelines:
+  filtered:
+    from: clicks
+    via:
+      - type: filter
+        if:
+          expression: key is not None
+        duration: 1m        # a window operation field, not a filter field
+    to: counts
