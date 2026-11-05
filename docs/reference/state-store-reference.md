@@ -174,7 +174,7 @@ This example demonstrates:
 - `store.delete(key)` - Remove a key, and return its old value
 - `store.putIfAbsent(key, value)` - Store the value only if the key has none, and return the existing value
 - `store.putAll(entries)` - Store many entries in one call. `entries` is a list or an iterator of `(key, value)` pairs or dicts with `key` and `value`, so `store.putAll(other_store.all())` copies a store. All entries are kept in memory first, so use this for small stores only. A value `None` deletes the key
-- `store.range(from_key, to_key)` and `store.reverseRange(from_key, to_key)` - Entries from `from_key` to `to_key`, both included, in key order or in reverse. `None` means no bound
+- `store.range(keyFrom, keyTo)` and `store.reverseRange(keyFrom, keyTo)` - Entries from `keyFrom` to `keyTo`, both included, in key order or in reverse. `None` means no bound
 - `store.all()` and `store.reverseAll()` - All entries, in key order or in reverse
 - `store.prefixScan(prefix)` - Entries whose key starts with `prefix`. The prefix is compared with the stored keys as UTF-8 bytes, so use it for stores with string keys. An empty prefix returns all entries
 - `store.approximateNumEntries()` - Estimated number of entries
@@ -190,35 +190,39 @@ The message names the position of the bad entry, for example `putAll entry 1 mus
 
 ### Window Store Methods
 
-Times are in milliseconds. `time_from` and `time_to` select windows by their start time, both included.
+Times are in milliseconds. `timeFrom` and `timeTo` select windows by their start time, both included.
 
-- `store.put(key, value, window_start)` - Store the value in the window that starts at `window_start`
+- `store.put(key, value, windowStartTimestamp)` - Store the value in the window that starts at `windowStartTimestamp`
 - `store.fetch(key, time)` - The value of the window that starts at `time`, or `None`
-- `store.fetch(key, time_from, time_to)` and `store.backwardFetch(key, time_from, time_to)` - The windows of one
-  key, oldest first or newest first. The key of each entry is the window start time
-- `store.fetch(key_from, key_to, time_from, time_to)` and `store.backwardFetch(key_from, key_to, time_from, time_to)` -
-  The windows of a range of keys
-- `store.fetchAll(time_from, time_to)` and `store.backwardFetchAll(time_from, time_to)` - The windows of all keys
+- `store.fetch(key, timeFrom, timeTo)` and `store.backwardFetch(key, timeFrom, timeTo)` - The windows of one key,
+  oldest first or newest first. The key of each entry is the window start time
+- `store.fetch(keyFrom, keyTo, timeFrom, timeTo)` and `store.backwardFetch(keyFrom, keyTo, timeFrom, timeTo)` - The
+  windows of a range of keys
+- `store.fetchAll(timeFrom, timeTo)` and `store.backwardFetchAll(timeFrom, timeTo)` - The windows of all keys
 - `store.all()` and `store.backwardAll()` - All windows in the store
 
 ### Session Store Methods
 
 A session is identified by a dict with `key`, `start` and `end` (times in milliseconds).
 
-- `store.put(session, value)` - Store the value of a session
-- `store.remove(session)` - Remove a session
-- `store.fetchSession(key, session_start, session_end)` - The value of one session, or `None`
+- `store.put(sessionKey, value)` - Store the value of a session
+- `store.remove(sessionKey)` - Remove a session
+- `store.fetchSession(key, sessionStartTime, sessionEndTime)` - The value of one session, or `None`
 - `store.fetch(key)` and `store.backwardFetch(key)` - All sessions of one key, oldest first or newest first
-- `store.fetch(key_from, key_to)` and `store.backwardFetch(key_from, key_to)` - All sessions of a range of keys
-- `store.findSessions(key, earliest_session_end, latest_session_start)` and
-  `store.backwardFindSessions(key, earliest_session_end, latest_session_start)` - The sessions of one key that end at
-  or after `earliest_session_end` and start at or before `latest_session_start`
-- `store.findSessions(key_from, key_to, earliest_session_end, latest_session_start)` and
-  `store.backwardFindSessions(key_from, key_to, earliest_session_end, latest_session_start)` - The same for a range
+- `store.fetch(keyFrom, keyTo)` and `store.backwardFetch(keyFrom, keyTo)` - All sessions of a range of keys
+- `store.findSessions(key, earliestSessionEndTime, latestSessionStartTime)` and
+  `store.backwardFindSessions(key, earliestSessionEndTime, latestSessionStartTime)` - The sessions of one key that end
+  at or after `earliestSessionEndTime` and start at or before `latestSessionStartTime`
+- `store.findSessions(keyFrom, keyTo, earliestSessionEndTime, latestSessionStartTime)` and
+  `store.backwardFindSessions(keyFrom, keyTo, earliestSessionEndTime, latestSessionStartTime)` - The same for a range
   of keys
 
-When the entries have more than one key (`all()`, `fetchAll()`, key ranges and their `backward` versions), the order
-depends on the store: an in-memory store sorts them by time first, a RocksDB store by key first.
+### Order of Window and Session Entries
+
+For window and session stores, when the entries have more than one key (`all()`, `fetchAll()`, key ranges and their
+`backward` versions), the order depends on the store. An in-memory store sorts them by time first, then by key. A
+RocksDB store keeps its data in time segments: it sorts the entries by segment first, then by key, then by time. The
+time is the window start for window stores and the session end for session stores.
 
 ### Timestamped Key-Value Stores
 
@@ -238,8 +242,8 @@ To work with the timestamps, use these methods. They only exist on timestamped s
 - `store.getWithTimestamp(key)` - A dict with `value` and `timestamp`, or `None` if the key is not found
 - `store.put(key, value, timestamp)` and `store.putIfAbsent(key, value, timestamp)` - Store the value with the given
   timestamp in milliseconds
-- `store.allWithTimestamp()`, `store.rangeWithTimestamp(from_key, to_key)`,
-  `store.reverseRangeWithTimestamp(from_key, to_key)`, `store.reverseAllWithTimestamp()` and
+- `store.allWithTimestamp()`, `store.rangeWithTimestamp(keyFrom, keyTo)`,
+  `store.reverseRangeWithTimestamp(keyFrom, keyTo)`, `store.reverseAllWithTimestamp()` and
   `store.prefixScanWithTimestamp(prefix)` - Entries with `key`, `value` and `timestamp`
 
 The store of a `count`, `aggregate`, `reduce` or table keeps timestamps only with `timestamped: true` or
@@ -271,12 +275,12 @@ Python function lists this store in its `stores`, it gets the same methods as a
 - `store.fetch(key, time)` returns only the value
 - `store.fetch(...)`, `store.backwardFetch(...)`, `store.fetchAll(...)`, `store.backwardFetchAll(...)`, `store.all()`
   and `store.backwardAll()` give entries with `key` and `value`
-- `store.put(key, value, window_start)` stores the value with the timestamp of the record that is being processed
+- `store.put(key, value, windowStartTimestamp)` stores the value with the timestamp of the record that is being processed
 
 To work with the timestamps, use these methods:
 
 - `store.fetchWithTimestamp(key, time)` - A dict with `value` and `timestamp`, or `None` if there is no value
-- `store.put(key, value, window_start, timestamp)` - Store the value with the given timestamp
+- `store.put(key, value, windowStartTimestamp, timestamp)` - Store the value with the given timestamp
 - `fetchWithTimestamp`, `backwardFetchWithTimestamp`, `fetchAllWithTimestamp`, `backwardFetchAllWithTimestamp`,
   `allWithTimestamp` and `backwardAllWithTimestamp` - The same arguments as the methods without `WithTimestamp`, and
   entries with `key`, `value` and `timestamp`

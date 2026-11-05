@@ -29,6 +29,8 @@ import org.apache.kafka.streams.TopologyTestDriver;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.extension.ExtendWith;
 
+import java.util.List;
+
 import static io.axual.ksml.testutil.StoreMetrics.openIterators;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -57,28 +59,35 @@ public class KSMLWindowStoreMethodsTest {
         input.pipeInput("a", "1", 3_000_001_000L);
         input.pipeInput("b", "2", 3_000_002_000L);
         input.pipeInput("a", "3", 3_000_061_000L);
+        input.pipeInput("a", "4", 3_001_801_000L);
 
         final var lines = output.readValuesToList().stream()
                 .filter(v -> !v.isEmpty())
                 .flatMap(String::lines)
                 .toList();
         final var single = " fetch=1 missing=None/None fetchRange=0:1,60000:3 backwardFetchRange=60000:3,0:1";
-        // The in-memory store orders by window start, then key; RocksDB orders by key, then window start
+        // The in-memory store orders by window start, then key. RocksDB orders by time segment, then key, then window
+        // start: the window at 1800000 is in the next segment, so it comes after key b. The time-range fetches leave it
+        // out.
         final var memoryOrder = "a@0:1,b@0:2,a@60000:3";
-        final var memoryBackward = "a@60000:3,b@0:2,a@0:1";
         final var rocksdbOrder = "a@0:1,a@60000:3,b@0:2";
-        final var rocksdbBackward = "b@0:2,a@60000:3,a@0:1";
+        final var memoryAll = memoryOrder + ",a@1800000:4";
+        final var rocksdbAll = rocksdbOrder + ",a@1800000:4";
         assertThat(lines).containsExactly(
-                "memory" + single + iterators(memoryOrder, memoryBackward),
-                "rocksdb" + single + iterators(rocksdbOrder, rocksdbBackward));
+                "memory" + single + iterators(memoryOrder, memoryAll),
+                "rocksdb" + single + iterators(rocksdbOrder, rocksdbAll));
 
         assertThat(openIterators(driver, "window_memory")).isZero();
         assertThat(openIterators(driver, "window_rocksdb")).isZero();
     }
 
-    private static String iterators(String forward, String backward) {
-        return " fetchKeys=" + forward + " backwardFetchKeys=" + backward
-                + " all=" + forward + " backwardAll=" + backward
-                + " fetchAll=" + forward + " backwardFetchAll=" + backward;
+    private static String iterators(String inRange, String all) {
+        return " fetchKeys=" + inRange + " backwardFetchKeys=" + reversed(inRange)
+                + " all=" + all + " backwardAll=" + reversed(all)
+                + " fetchAll=" + inRange + " backwardFetchAll=" + reversed(inRange);
+    }
+
+    private static String reversed(String entries) {
+        return String.join(",", List.of(entries.split(",")).reversed());
     }
 }

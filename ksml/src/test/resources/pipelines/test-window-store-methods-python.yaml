@@ -63,11 +63,13 @@ functions:
         line += " backwardFetchAll=" + read(lambda: store.backwardFetchAll(BASE, BASE + 60000), describe)
         return line
     code: |
-      # Values "1" and "2" go to the window that starts at BASE, value "3" to the window that starts at BASE + 60000
-      window_start = BASE + (int(value) - 1) // 2 * 60000
+      # Values "1" and "2" go to the window that starts at BASE, value "3" to the window that starts at BASE + 60000.
+      # Value "4" goes to a window outside the time ranges above, and in the next RocksDB segment: with 1h retention
+      # a segment covers 30 minutes.
+      window_start = BASE + {"1": 0, "2": 0, "3": 60000, "4": 1800000}[value]
       window_memory.put(key, value, window_start)
       window_rocksdb.put(key, value, window_start)
-      result = check("memory", window_memory) + "\n" + check("rocksdb", window_rocksdb) if value == "3" else ""
+      result = check("memory", window_memory) + "\n" + check("rocksdb", window_rocksdb) if value == "4" else ""
     expression: result
     resultType: string
     stores:
