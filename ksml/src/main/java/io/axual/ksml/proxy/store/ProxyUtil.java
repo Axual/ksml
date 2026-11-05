@@ -20,11 +20,12 @@ package io.axual.ksml.proxy.store;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.type.DataType;
-import io.axual.ksml.definition.StateStoreDefinition;
 import io.axual.ksml.data.mapper.DataObjectFlattener;
 import io.axual.ksml.data.object.DataObject;
+import io.axual.ksml.data.object.DataString;
+import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.data.value.Struct;
+import io.axual.ksml.definition.StateStoreDefinition;
 import io.axual.ksml.python.PythonDataObjectMapper;
 import io.axual.ksml.python.PythonErrors;
 import io.axual.ksml.python.PythonNativeMapper;
@@ -221,7 +222,10 @@ public class ProxyUtil {
     }
 
     /** Converts the Python argument of {@code prefixScan} to a string prefix. */
-    public static String toStringPrefix(Object prefix) {
+    public static String toStringPrefix(Object prefix, DataType keyType) {
+        // Kafka compares the UTF-8 prefix with the serialized keys, which only works for plain string keys
+        if (keyType != null && keyType != DataType.UNKNOWN && !DataString.DATATYPE.equals(keyType))
+            throw PythonErrors.typeError("prefixScan needs a store with string keys, got keyType " + keyType);
         if (NATIVE_MAPPER.fromPython(prefix) instanceof String result) return result;
         throw PythonErrors.typeError("prefixScan needs a string prefix, got " + PythonErrors.typeName(prefix));
     }

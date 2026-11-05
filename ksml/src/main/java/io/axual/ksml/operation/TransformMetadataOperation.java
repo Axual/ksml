@@ -60,7 +60,7 @@ public class TransformMetadataOperation extends BaseOperation {
                 TransformMetadataProcessor::new,
                 (stores, rec) -> userMap.apply(stores, flattenValue(rec.key()), flattenValue(rec.value()), new RecordMetadata(rec.timestamp(), rec.headers())),
                 storeNames,
-                context::stateStore);
+                storeDefinitions(context, storeNames));
         final var named = namedOf();
         final KStream<Object, Object> output = named != null
                 ? input.stream.processValues(supplier, named, storeNames)

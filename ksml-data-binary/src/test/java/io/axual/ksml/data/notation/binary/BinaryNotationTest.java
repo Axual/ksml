@@ -199,13 +199,13 @@ class BinaryNotationTest {
 
         try (var serde = notation.serde(byteType, true)) {
             softly.assertThat(serde.serializer().serialize("topic", (byte) 5))
-                    .as("Key serde should be created")
+                    .as("Key serde should serialize a Byte")
                     .containsExactly(5);
         }
 
         try (var serde = notation.serde(byteType, false)) {
             softly.assertThat(serde.serializer().serialize("topic", (byte) 5))
-                    .as("Value serde should be created")
+                    .as("Value serde should serialize a Byte")
                     .containsExactly(5);
         }
 

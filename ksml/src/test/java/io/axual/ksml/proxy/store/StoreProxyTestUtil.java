@@ -23,6 +23,7 @@ package io.axual.ksml.proxy.store;
 import org.graalvm.polyglot.Context;
 import org.graalvm.polyglot.PolyglotException;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /** Helpers for the store proxy tests that run Python code. */
@@ -41,6 +42,29 @@ final class StoreProxyTestUtil {
         } catch (PolyglotException e) {
             return e.isHostException() ? e.asHostException().getClass().getSimpleName() : e.getMessage().split(":")[0];
         }
+    }
+
+    /** Runs Python code with {@code store} bound to the proxy, and returns its result, a Python list, as strings. */
+    static List<String> runPython(Context context, Object store, String code) {
+        context.getBindings("python").putMember("store", store);
+        final var result = context.eval("python", code);
+        final var strings = new ArrayList<String>();
+        for (long i = 0; i < result.getArraySize(); i++) strings.add(result.getArrayElement(i).asString());
+        return strings;
+    }
+
+    /** Runs one Python statement on {@code store} inside try/except Exception; returns "ok", or "ErrorType: message". */
+    static String pythonErrorOf(Context context, Object store, String call) {
+        context.getBindings("python").putMember("store", store);
+        return context.eval("python", """
+                def run():
+                    try:
+                        %s
+                        return "ok"
+                    except Exception as e:
+                        return type(e).__name__ + ": " + str(e)
+                run()
+                """.formatted(call)).asString();
     }
 
     /** The class and the text of an object, so objects from two separate calls can be compared. */

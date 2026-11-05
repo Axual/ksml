@@ -52,7 +52,7 @@ public class PeekOperation extends BaseOperation {
                 PeekProcessor::new,
                 (stores, rec) -> userAction.apply(stores, flattenValue(rec.key()), flattenValue(rec.value())),
                 storeNames,
-                context::stateStore);
+                storeDefinitions(context, storeNames));
         final var output = name != null
                 ? input.stream.processValues(supplier, Named.as(name), storeNames)
                 : input.stream.processValues(supplier, storeNames);

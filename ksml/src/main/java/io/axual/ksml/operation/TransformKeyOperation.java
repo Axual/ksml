@@ -59,7 +59,7 @@ public class TransformKeyOperation extends BaseOperation {
                 TransformKeyProcessor::new,
                 (stores, rec) -> userMap.apply(stores, flattenValue(rec.key()), flattenValue(rec.value())),
                 storeNames,
-                context::stateStore);
+                storeDefinitions(context, storeNames));
         final var named = namedOf();
         final KStream<Object, Object> output = named != null
                 ? input.stream.process(supplier, named, storeNames)

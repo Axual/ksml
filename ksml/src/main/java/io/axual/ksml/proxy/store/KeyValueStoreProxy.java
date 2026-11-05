@@ -61,10 +61,10 @@ public class KeyValueStoreProxy extends AbstractStateStoreProxy<KeyValueStore<Ob
         return ProxyUtil.toPython(delegate.reverseRange(toKey(from), toKey(to)));
     }
 
-    /** Entries whose key starts with the string prefix, serialized as UTF-8. A non-string prefix raises TypeError. */
+    /** Entries whose key starts with the string prefix, serialized as UTF-8. Raises TypeError for a non-string prefix or key type. */
     @HostAccess.Export
     public Object prefixScan(Object prefix) {
-        return ProxyUtil.toPython(delegate.prefixScan(ProxyUtil.toStringPrefix(prefix), ProxyUtil.PREFIX_SERIALIZER));
+        return ProxyUtil.toPython(delegate.prefixScan(ProxyUtil.toStringPrefix(prefix, keyType), ProxyUtil.PREFIX_SERIALIZER));
     }
 
     @HostAccess.Export

@@ -275,13 +275,13 @@ that `store.put(5, ...)` wrote.
 
 A value is only converted to a type of the same kind:
 
-| Store type                     | Accepted Python values              |
-|--------------------------------|-------------------------------------|
-| `byte`, `short`, `int`, `long` | `int`, within the range of the type |
-| `float`, `double`              | `int` or `float`                    |
-| `string`                       | `str`                               |
-| `boolean`                      | `bool`                              |
-| `bytes`                        | `bytes` or a list of ints           |
+| Store type                     | Accepted Python values                               |
+|--------------------------------|------------------------------------------------------|
+| `byte`, `short`, `int`, `long` | `int`, within the range of the type                  |
+| `float`, `double`              | `int` or `float`                                     |
+| `string`                       | `str`                                                |
+| `boolean`                      | `bool`                                               |
+| `bytes`                        | `bytes`, or a list or tuple of ints from -128 to 255 |
 
 Reads return the value of a `bytes` store as a list of ints.
 
@@ -290,7 +290,8 @@ Other values raise a Python error that you can catch with `except Exception`, an
 - `TypeError` - a value of another kind, for example a `float` on a `long` store (also a whole number like `2.0`), a
   `str` on a `long` store, or an `int` on a `string` store. Convert the value first, for example with `int(...)` or
   `str(...)`
-- `ValueError` - an `int` out of range, for example `2 ** 40` on an `int` store
+- `ValueError` - an `int` out of range, for example `2 ** 40` on an `int` store, `10 ** 400` on a `double` store, or
+  `300` in a list for a `bytes` store
 
 The message names the store and the types, not the value, for example
 `TypeError: Store counts: value must be long, got float`.
@@ -308,7 +309,7 @@ and other schema types, unions, enums, or no `keyType` / `valueType`) get keys a
 - `store.putAll(entries)` - Store many entries in one call. `entries` is a list or an iterator of `(key, value)` pairs or dicts with `key` and `value`, so `store.putAll(other_store.all())` copies a store. All entries are kept in memory first, so use this for small stores only. A value `None` deletes the key
 - `store.range(keyFrom, keyTo)` and `store.reverseRange(keyFrom, keyTo)` - Entries from `keyFrom` to `keyTo`, both included, in key order or in reverse. `None` means no bound
 - `store.all()` and `store.reverseAll()` - All entries, in key order or in reverse
-- `store.prefixScan(prefix)` - Entries whose key starts with `prefix`. The prefix is compared with the stored keys as UTF-8 bytes, so use it for stores with string keys
+- `store.prefixScan(prefix)` - Entries whose key starts with `prefix`. The prefix is compared with the stored keys as UTF-8 bytes, so it only works for stores with `keyType: string`; on a store with another declared key type it raises `TypeError`
 - `store.approximateNumEntries()` - Estimated number of entries
 
 Keys are ordered by their serialized bytes. For string keys this is UTF-8 byte order: `"B"` comes before `"a"`, and `"a"` before `"ab"` before `"b"`.
@@ -316,7 +317,7 @@ Keys are ordered by their serialized bytes. For string keys this is UTF-8 byte o
 Besides the [conversion of keys and values](#keys-and-values), `putAll` and `prefixScan` check the form of their
 arguments and raise a Python error that you can catch with `except Exception`:
 
-- `TypeError` - the argument has the wrong kind: `putAll` gets something that is not a list or an iterator, or an entry that is not a pair or a dict; `prefixScan` gets a prefix that is not a string
+- `TypeError` - the argument has the wrong kind: `putAll` gets something that is not a list or an iterator, or an entry that is not a pair or a dict; `prefixScan` gets a prefix that is not a string, or runs on a store whose `keyType` is not `string`
 - `ValueError` - the argument has the right kind, but wrong content: a pair that does not have 2 elements, or a dict without `key` or `value`
 
 The message names the position of the bad entry, for example `putAll entry 1 must be a (key, value) pair ...`. A `putAll` call with a bad entry writes nothing.
@@ -342,8 +343,8 @@ and `remove`; their `startTime` and `endTime` fields are ignored. For a session 
 `remove` raise a Python error and write nothing:
 
 - `TypeError` - the session key is not a dict, or `start` or `end` is not an `int`
-- `ValueError` - `key`, `start` or `end` is missing, `key` is `None`, a time is out of the range of a long, or `start`
-  is after `end`
+- `ValueError` - `key`, `start` or `end` is missing, `key` is `None`, a time is out of the range of a long, `start` is
+  negative, or `start` is after `end`
 
 - `store.put(sessionKey, value)` - Store the value of a session
 - `store.remove(sessionKey)` - Remove a session

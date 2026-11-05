@@ -80,24 +80,12 @@ class TimestampedKeyValueStoreProxyTest {
 
     /** Runs Python code with {@code store} bound to the proxy, and returns the result as a list of strings. */
     private List<String> runPython(String code) {
-        pythonContext.context().getBindings("python").putMember("store", proxy());
-        final var result = pythonContext.context().eval("python", code);
-        final var strings = new ArrayList<String>();
-        for (long i = 0; i < result.getArraySize(); i++) strings.add(result.getArrayElement(i).asString());
-        return strings;
+        return StoreProxyTestUtil.runPython(pythonContext.context(), proxy(), code);
     }
 
-    /** Runs Python code inside try/except Exception, and returns "ErrorType: message", or "no error". */
+    /** Runs a Python call on {@code store} inside try/except Exception; returns "ok", or "ErrorType: message". */
     private String pythonErrorOf(String call) {
-        return runPython("""
-                def run():
-                    try:
-                        %s
-                        return "no error"
-                    except Exception as e:
-                        return type(e).__name__ + ": " + str(e)
-                [run()]
-                """.formatted(call)).get(0);
+        return StoreProxyTestUtil.pythonErrorOf(pythonContext.context(), proxy(), call);
     }
 
     /** A Kafka iterator over timestamped entries: key k has value "value-k", the n-th entry has timestamp 100 + n. */
@@ -341,6 +329,8 @@ class TimestampedKeyValueStoreProxyTest {
                 store.putAll([("a", None)])
                 []
                 """);
+        // The delete depends on the serde writing DataNull as null bytes; the cached_ts check in
+        // test-keyvalue-store-methods-python.yaml shows it deletes through Kafka's caching store
         assertThat(capturePutAll()).containsExactly(KeyValue.pair(new DataString("a"), ValueAndTimestamp.make(DataNull.INSTANCE, RECORD_TIMESTAMP)));
     }
 

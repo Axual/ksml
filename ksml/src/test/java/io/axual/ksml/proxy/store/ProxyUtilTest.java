@@ -149,16 +149,7 @@ class ProxyUtilTest {
     @DisplayName("a timestamped store wrapped outside record processing raises ValueError for a write without a timestamp")
     void timestampedStoreWithoutRecordNeedsATimestamp() {
         final TimestampedKeyValueStore<Object, Object> store = mock(TimestampedKeyValueStore.class);
-        pythonContext.context().getBindings("python").putMember("store", ProxyUtil.wrapStateStore(store));
-        final var result = pythonContext.context().eval("python", """
-                def run():
-                    try:
-                        store.put("k", "v")
-                        return "no error"
-                    except Exception as e:
-                        return type(e).__name__ + ": " + str(e)
-                run()
-                """);
-        assertThat(result.asString()).startsWith("ValueError: ").contains("needs a timestamp");
+        assertThat(StoreProxyTestUtil.pythonErrorOf(pythonContext.context(), ProxyUtil.wrapStateStore(store), "store.put(\"k\", \"v\")"))
+                .startsWith("ValueError: ").contains("needs a timestamp");
     }
 }

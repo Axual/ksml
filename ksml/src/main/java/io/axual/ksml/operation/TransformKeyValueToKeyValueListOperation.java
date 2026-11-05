@@ -70,7 +70,7 @@ public class TransformKeyValueToKeyValueListOperation extends BaseOperation {
                     TransformKeyValueToKeyValueListProcessor::new,
                     (stores, rec) -> userMap.apply(stores, rec.key(), rec.value()),
                     storeNames,
-                    context::stateStore);
+                    storeDefinitions(context, storeNames));
             final var named = namedOf();
             final var output = named != null
                     ? input.stream.process(supplier, named, storeNames)

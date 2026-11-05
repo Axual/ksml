@@ -148,13 +148,15 @@ public class PythonNativeMapper {
             // Raw byte arrays are conventionally written using either signed (-128..127) or
             // unsigned (0..255) representation in Python, so we accept both. Out-of-range values
             // (e.g. 300) would otherwise silently truncate to a wrong byte (300 → 44).
-            final var element = object.getArrayElement(index).asInt();
-            if (element < Byte.MIN_VALUE || element > NumericRangeChecker.UNSIGNED_BYTE_MAX_VALUE) {
-                throw new DataException("Python value " + element + " at index " + index
+            // An element that is not an int fails in asInt with ClassCastException
+            final var item = object.getArrayElement(index);
+            final var element = item.fitsInInt() || !item.fitsInBigInteger() ? item.asInt() : null;
+            if (element == null || element < Byte.MIN_VALUE || element > NumericRangeChecker.UNSIGNED_BYTE_MAX_VALUE) {
+                throw new DataException("Python value " + item + " at index " + index
                         + " does not fit in a byte (allowed range: " + (int) Byte.MIN_VALUE + ".."
                         + NumericRangeChecker.UNSIGNED_BYTE_MAX_VALUE + ")");
             }
-            bytes[index] = (byte) element;
+            bytes[index] = element.byteValue();
         }
         return bytes;
     }

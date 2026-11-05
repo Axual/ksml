@@ -28,7 +28,7 @@ import java.util.function.Function;
 
 public class FixedKeyOperationProcessorSupplier<T> implements FixedKeyProcessorSupplier<Object, Object, Object> {
     public interface ProcessorFactory<T> {
-        FixedKeyOperationProcessor create(String name, T action, String[] storeNames);
+        FixedKeyProcessor<Object, Object, Object> create(String name, T action, String[] storeNames);
     }
 
     protected final String name;
@@ -53,7 +53,8 @@ public class FixedKeyOperationProcessorSupplier<T> implements FixedKeyProcessorS
     @Override
     public FixedKeyProcessor<Object, Object, Object> get() {
         final var processor = factory.create(name, action, storeNames);
-        processor.storeDefinitions(storeDefinitions);
+        // Only KSML's own processors use state store proxies
+        if (processor instanceof FixedKeyOperationProcessor operationProcessor) operationProcessor.storeDefinitions(storeDefinitions);
         return processor;
     }
 }

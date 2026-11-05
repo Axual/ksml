@@ -28,7 +28,7 @@ import java.util.function.Function;
 
 public class OperationProcessorSupplier<T> implements ProcessorSupplier<Object, Object, Object, Object> {
     public interface ProcessorFactory<T> {
-        OperationProcessor create(String name, T action, String[] storeNames);
+        Processor<Object, Object, Object, Object> create(String name, T action, String[] storeNames);
     }
 
     protected final String name;
@@ -53,7 +53,8 @@ public class OperationProcessorSupplier<T> implements ProcessorSupplier<Object, 
     @Override
     public Processor<Object, Object, Object, Object> get() {
         final var processor = factory.create(name, action, storeNames);
-        processor.storeDefinitions(storeDefinitions);
+        // Only KSML's own processors use state store proxies
+        if (processor instanceof OperationProcessor operationProcessor) operationProcessor.storeDefinitions(storeDefinitions);
         return processor;
     }
 }

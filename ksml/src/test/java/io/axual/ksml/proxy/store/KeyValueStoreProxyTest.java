@@ -201,11 +201,7 @@ class KeyValueStoreProxyTest {
     /** Runs Python code with {@code store} bound to the proxy, and returns the result as a list of strings. */
     private List<String> runPython(String code) {
         try (var pythonContext = new PythonContext(PythonContextConfig.builder().build())) {
-            pythonContext.context().getBindings("python").putMember("store", proxy());
-            final var result = pythonContext.context().eval("python", code);
-            final var strings = new ArrayList<String>();
-            for (long i = 0; i < result.getArraySize(); i++) strings.add(result.getArrayElement(i).asString());
-            return strings;
+            return StoreProxyTestUtil.runPython(pythonContext.context(), proxy(), code);
         }
     }
 
@@ -350,17 +346,11 @@ class KeyValueStoreProxyTest {
         softly.assertAll();
     }
 
-    /** Runs Python code inside try/except Exception, and returns "ErrorType: message", or "no error". */
+    /** Runs a Python call on {@code store} inside try/except Exception; returns "ok", or "ErrorType: message". */
     private String pythonErrorOf(String call) {
-        return runPython("""
-                def run():
-                    try:
-                        %s
-                        return "no error"
-                    except Exception as e:
-                        return type(e).__name__ + ": " + str(e)
-                [run()]
-                """.formatted(call)).get(0);
+        try (var pythonContext = new PythonContext(PythonContextConfig.builder().build())) {
+            return StoreProxyTestUtil.pythonErrorOf(pythonContext.context(), proxy(), call);
+        }
     }
 
     @Test

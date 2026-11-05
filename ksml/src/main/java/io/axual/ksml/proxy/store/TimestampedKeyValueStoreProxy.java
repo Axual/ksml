@@ -101,15 +101,15 @@ public class TimestampedKeyValueStoreProxy extends AbstractStateStoreProxy<Times
         return ProxyUtil.toPythonTimestamped(delegate.reverseRange(toKey(from), toKey(to)), true);
     }
 
-    /** Entries whose key starts with the string prefix, serialized as UTF-8. A non-string prefix raises TypeError. */
+    /** Entries whose key starts with the string prefix, serialized as UTF-8. Raises TypeError for a non-string prefix or key type. */
     @HostAccess.Export
     public Object prefixScan(Object prefix) {
-        return ProxyUtil.toPythonTimestamped(delegate.prefixScan(ProxyUtil.toStringPrefix(prefix), ProxyUtil.PREFIX_SERIALIZER), false);
+        return ProxyUtil.toPythonTimestamped(delegate.prefixScan(ProxyUtil.toStringPrefix(prefix, keyType), ProxyUtil.PREFIX_SERIALIZER), false);
     }
 
     @HostAccess.Export
     public Object prefixScanWithTimestamp(Object prefix) {
-        return ProxyUtil.toPythonTimestamped(delegate.prefixScan(ProxyUtil.toStringPrefix(prefix), ProxyUtil.PREFIX_SERIALIZER), true);
+        return ProxyUtil.toPythonTimestamped(delegate.prefixScan(ProxyUtil.toStringPrefix(prefix, keyType), ProxyUtil.PREFIX_SERIALIZER), true);
     }
 
     @HostAccess.Export

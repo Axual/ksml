@@ -117,7 +117,7 @@ public class SessionStoreProxy extends AbstractStateStoreProxy<SessionStore<Obje
      */
     private Windowed<Object> toSessionKey(Object sessionKey) {
         final var value = sessionKey instanceof DataObject dataObject
-                ? JAVA_MAPPER.fromDataObject(dataObject)
+                ? DATA_OBJECT_TO_JAVA.fromDataObject(dataObject)
                 : NATIVE_MAPPER.fromPython(sessionKey);
         if (!(value instanceof Map<?, ?> fields))
             throw PythonErrors.typeError(storeError("session key must be a dict with " + SESSION_KEY_FIELDS + ", got " + typeName(value)));
@@ -125,6 +125,8 @@ public class SessionStoreProxy extends AbstractStateStoreProxy<SessionStore<Obje
             throw PythonErrors.valueError(storeError("session key must have " + SESSION_KEY_FIELDS));
         final var start = toSessionTime(fields.get(WINDOWED_SCHEMA_START_FIELD), WINDOWED_SCHEMA_START_FIELD);
         final var end = toSessionTime(fields.get(WINDOWED_SCHEMA_END_FIELD), WINDOWED_SCHEMA_END_FIELD);
+        // Kafka rejects a negative start with an IllegalArgumentException, which Python cannot catch
+        if (start < 0) throw PythonErrors.valueError(storeError("session key start must not be negative"));
         if (start > end) throw PythonErrors.valueError(storeError("session key start must not be after end"));
         // Kafka rejects a null key with a NullPointerException, which Python cannot catch
         final var key = toKey(fields.get(WINDOWED_SCHEMA_KEY_FIELD));
