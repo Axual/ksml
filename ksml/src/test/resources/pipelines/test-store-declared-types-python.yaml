@@ -87,6 +87,27 @@ stores:
     persistent: false
     caching: false
     logging: false
+  kv_float:
+    type: keyValue
+    keyType: long
+    valueType: float
+    persistent: false
+    caching: false
+    logging: false
+  kv_boolean:
+    type: keyValue
+    keyType: long
+    valueType: boolean
+    persistent: false
+    caching: false
+    logging: false
+  kv_short:
+    type: keyValue
+    keyType: long
+    valueType: short
+    persistent: false
+    caching: false
+    logging: false
   kv_bytes:
     type: keyValue
     keyType: long
@@ -113,7 +134,7 @@ functions:
   check_declared_types:
     type: valueTransformer
     globalCode: |
-      # Session times above the int range, so they reach the proxy as a Java Long
+      # Session times above the int range, like real epoch millis
       BASE = 3000000000
 
       def write(f):
@@ -190,6 +211,19 @@ functions:
         line += " after=" + read(lambda: kv_string.get("a"))
         return line
 
+      def check_float_boolean_short(kv_float, kv_boolean, kv_short):
+        line = "float"
+        line += " float=" + write(lambda: kv_float.put(1, 1.5)) + "/" + read(lambda: kv_float.get(1))
+        line += " int=" + write(lambda: kv_float.put(1, 5)) + "/" + read(lambda: kv_float.get(1))
+        line += " str=" + write(lambda: kv_float.put(1, "5"))
+        line += "\nboolean"
+        line += " bool=" + write(lambda: kv_boolean.put(1, True)) + "/" + read(lambda: kv_boolean.get(1))
+        line += " int=" + write(lambda: kv_boolean.put(1, 1))
+        line += "\nshort"
+        line += " put=" + write(lambda: kv_short.put(1, 5)) + "/" + read(lambda: kv_short.get(1))
+        line += " large=" + write(lambda: kv_short.put(2, 2 ** 20))
+        return line
+
       def check_bytes(kv_bytes, kv_byte):
         line = "bytes"
         line += " bytes=" + write(lambda: kv_bytes.put(1, b"ab")) + "/" + read(lambda: kv_bytes.get(1))
@@ -209,6 +243,7 @@ functions:
         check("timestampedWindow", lambda k, v: window_timestamped_long.put(k, v, 0), lambda k: window_timestamped_long.fetch(k, 0)),
         check("session", lambda k, v: session_long.put(session(k), v), lambda k: session_long.fetchSession(k, BASE, BASE + 1)),
         check_others(kv_int, kv_double, kv_string),
+        check_float_boolean_short(kv_float, kv_boolean, kv_short),
         check_bytes(kv_bytes, kv_byte),
       ]
       result = "\n".join(lines)
@@ -225,6 +260,9 @@ functions:
       - kv_int
       - kv_double
       - kv_string
+      - kv_float
+      - kv_boolean
+      - kv_short
       - kv_bytes
       - kv_byte
 

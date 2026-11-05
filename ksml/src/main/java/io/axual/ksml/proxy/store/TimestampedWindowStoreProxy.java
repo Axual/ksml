@@ -52,53 +52,53 @@ public class TimestampedWindowStoreProxy extends AbstractStateStoreProxy<Timesta
 
     @HostAccess.Export
     public Object fetch(Object key, long time) {
-        return ProxyUtil.toPython(ProxyUtil.valueOf(delegate.fetch(NATIVE_MAPPER.fromPython(toKey(key)), time)));
+        return ProxyUtil.toPython(ProxyUtil.valueOf(delegate.fetch(toKey(key), time)));
     }
 
     /** Returns {@code {value, timestamp}} for the key in the window that starts at the given time, or {@code None}. */
     @HostAccess.Export
     public Object fetchWithTimestamp(Object key, long time) {
-        return ProxyUtil.toPython(delegate.fetch(NATIVE_MAPPER.fromPython(toKey(key)), time));
+        return ProxyUtil.toPython(delegate.fetch(toKey(key), time));
     }
 
     @HostAccess.Export
     public Object fetch(Object key, long timeFrom, long timeTo) {
-        return ProxyUtil.toPythonTimestamped(delegate.fetch(NATIVE_MAPPER.fromPython(toKey(key)), timeFrom, timeTo), false);
+        return ProxyUtil.toPythonTimestamped(delegate.fetch(toKey(key), timeFrom, timeTo), false);
     }
 
     @HostAccess.Export
     public Object fetchWithTimestamp(Object key, long timeFrom, long timeTo) {
-        return ProxyUtil.toPythonTimestamped(delegate.fetch(NATIVE_MAPPER.fromPython(toKey(key)), timeFrom, timeTo), true);
+        return ProxyUtil.toPythonTimestamped(delegate.fetch(toKey(key), timeFrom, timeTo), true);
     }
 
     @HostAccess.Export
     public Object fetch(Object keyFrom, Object keyTo, long timeFrom, long timeTo) {
-        return ProxyUtil.toPythonTimestamped(delegate.fetch(NATIVE_MAPPER.fromPython(toKey(keyFrom)), NATIVE_MAPPER.fromPython(toKey(keyTo)), timeFrom, timeTo), false);
+        return ProxyUtil.toPythonTimestamped(delegate.fetch(toKey(keyFrom), toKey(keyTo), timeFrom, timeTo), false);
     }
 
     @HostAccess.Export
     public Object fetchWithTimestamp(Object keyFrom, Object keyTo, long timeFrom, long timeTo) {
-        return ProxyUtil.toPythonTimestamped(delegate.fetch(NATIVE_MAPPER.fromPython(toKey(keyFrom)), NATIVE_MAPPER.fromPython(toKey(keyTo)), timeFrom, timeTo), true);
+        return ProxyUtil.toPythonTimestamped(delegate.fetch(toKey(keyFrom), toKey(keyTo), timeFrom, timeTo), true);
     }
 
     @HostAccess.Export
     public Object backwardFetch(Object key, long timeFrom, long timeTo) {
-        return ProxyUtil.toPythonTimestamped(delegate.backwardFetch(NATIVE_MAPPER.fromPython(toKey(key)), timeFrom, timeTo), false);
+        return ProxyUtil.toPythonTimestamped(delegate.backwardFetch(toKey(key), timeFrom, timeTo), false);
     }
 
     @HostAccess.Export
     public Object backwardFetchWithTimestamp(Object key, long timeFrom, long timeTo) {
-        return ProxyUtil.toPythonTimestamped(delegate.backwardFetch(NATIVE_MAPPER.fromPython(toKey(key)), timeFrom, timeTo), true);
+        return ProxyUtil.toPythonTimestamped(delegate.backwardFetch(toKey(key), timeFrom, timeTo), true);
     }
 
     @HostAccess.Export
     public Object backwardFetch(Object keyFrom, Object keyTo, long timeFrom, long timeTo) {
-        return ProxyUtil.toPythonTimestamped(delegate.backwardFetch(NATIVE_MAPPER.fromPython(toKey(keyFrom)), NATIVE_MAPPER.fromPython(toKey(keyTo)), timeFrom, timeTo), false);
+        return ProxyUtil.toPythonTimestamped(delegate.backwardFetch(toKey(keyFrom), toKey(keyTo), timeFrom, timeTo), false);
     }
 
     @HostAccess.Export
     public Object backwardFetchWithTimestamp(Object keyFrom, Object keyTo, long timeFrom, long timeTo) {
-        return ProxyUtil.toPythonTimestamped(delegate.backwardFetch(NATIVE_MAPPER.fromPython(toKey(keyFrom)), NATIVE_MAPPER.fromPython(toKey(keyTo)), timeFrom, timeTo), true);
+        return ProxyUtil.toPythonTimestamped(delegate.backwardFetch(toKey(keyFrom), toKey(keyTo), timeFrom, timeTo), true);
     }
 
     @HostAccess.Export
@@ -151,6 +151,6 @@ public class TimestampedWindowStoreProxy extends AbstractStateStoreProxy<Timesta
 
     @HostAccess.Export
     public void put(Object key, Object value, long windowStartTimestamp, long timestamp) {
-        delegate.put(NATIVE_MAPPER.fromPython(toKey(key)), ValueAndTimestamp.make(NATIVE_MAPPER.fromPython(toValue(value)), ProxyUtil.checkTimestamp(timestamp, "put")), windowStartTimestamp);
+        delegate.put(toKey(key), ValueAndTimestamp.make(toValue(value), ProxyUtil.checkTimestamp(timestamp, "put")), windowStartTimestamp);
     }
 }

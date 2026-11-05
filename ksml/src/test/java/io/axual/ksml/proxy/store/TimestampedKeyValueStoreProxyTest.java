@@ -42,6 +42,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.util.ArrayList;
 import java.util.List;
 
+import static io.axual.ksml.proxy.store.StoreProxyTestUtil.PYTHON_VALUES;
+import static io.axual.ksml.proxy.store.StoreProxyTestUtil.outcome;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
@@ -275,10 +277,10 @@ class TimestampedKeyValueStoreProxyTest {
     void putAllConvertsLikePut() {
         final var softly = new SoftAssertions();
         pythonContext.context().getBindings("python").putMember("store", proxy());
-        for (final var value : KeyValueStoreProxyTest.PYTHON_VALUES) {
+        for (final var value : PYTHON_VALUES) {
             clearInvocations(delegate);
-            final var putOutcome = KeyValueStoreProxyTest.outcome(pythonContext.context(), "store.put(%1$s, %1$s)".formatted(value));
-            final var putAllOutcome = KeyValueStoreProxyTest.outcome(pythonContext.context(), "store.putAll([(%1$s, %1$s)])".formatted(value));
+            final var putOutcome = outcome(pythonContext.context(), "store.put(%1$s, %1$s)".formatted(value));
+            final var putAllOutcome = outcome(pythonContext.context(), "store.putAll([(%1$s, %1$s)])".formatted(value));
             final ArgumentCaptor<Object> key = ArgumentCaptor.captor();
             final ArgumentCaptor<ValueAndTimestamp<Object>> val = ArgumentCaptor.captor();
             verify(delegate, atMostOnce()).put(key.capture(), val.capture());
@@ -295,8 +297,8 @@ class TimestampedKeyValueStoreProxyTest {
 
     /** The class and the text of a stored value, so values from two separate calls can be compared. */
     private static String describe(Object object) {
-        if (object instanceof ValueAndTimestamp<?> vat) return KeyValueStoreProxyTest.describe(vat.value()) + "@" + vat.timestamp();
-        return KeyValueStoreProxyTest.describe(object);
+        if (object instanceof ValueAndTimestamp<?> vat) return StoreProxyTestUtil.describe(vat.value()) + "@" + vat.timestamp();
+        return StoreProxyTestUtil.describe(object);
     }
 
     @Test

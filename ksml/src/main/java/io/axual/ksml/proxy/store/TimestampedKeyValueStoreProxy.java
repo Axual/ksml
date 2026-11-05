@@ -52,13 +52,13 @@ public class TimestampedKeyValueStoreProxy extends AbstractStateStoreProxy<Times
 
     @HostAccess.Export
     public Object get(Object key) {
-        return ProxyUtil.toPython(ProxyUtil.valueOf(delegate.get(NATIVE_MAPPER.fromPython(toKey(key)))));
+        return ProxyUtil.toPython(ProxyUtil.valueOf(delegate.get(toKey(key))));
     }
 
     /** Returns {@code {value, timestamp}} for the key, or {@code None} when the key has no value. */
     @HostAccess.Export
     public Object getWithTimestamp(Object key) {
-        return ProxyUtil.toPython(delegate.get(NATIVE_MAPPER.fromPython(toKey(key))));
+        return ProxyUtil.toPython(delegate.get(toKey(key)));
     }
 
     @HostAccess.Export
@@ -83,22 +83,22 @@ public class TimestampedKeyValueStoreProxy extends AbstractStateStoreProxy<Times
 
     @HostAccess.Export
     public Object range(Object from, Object to) {
-        return ProxyUtil.toPythonTimestamped(delegate.range(NATIVE_MAPPER.fromPython(toKey(from)), NATIVE_MAPPER.fromPython(toKey(to))), false);
+        return ProxyUtil.toPythonTimestamped(delegate.range(toKey(from), toKey(to)), false);
     }
 
     @HostAccess.Export
     public Object rangeWithTimestamp(Object from, Object to) {
-        return ProxyUtil.toPythonTimestamped(delegate.range(NATIVE_MAPPER.fromPython(toKey(from)), NATIVE_MAPPER.fromPython(toKey(to))), true);
+        return ProxyUtil.toPythonTimestamped(delegate.range(toKey(from), toKey(to)), true);
     }
 
     @HostAccess.Export
     public Object reverseRange(Object from, Object to) {
-        return ProxyUtil.toPythonTimestamped(delegate.reverseRange(NATIVE_MAPPER.fromPython(toKey(from)), NATIVE_MAPPER.fromPython(toKey(to))), false);
+        return ProxyUtil.toPythonTimestamped(delegate.reverseRange(toKey(from), toKey(to)), false);
     }
 
     @HostAccess.Export
     public Object reverseRangeWithTimestamp(Object from, Object to) {
-        return ProxyUtil.toPythonTimestamped(delegate.reverseRange(NATIVE_MAPPER.fromPython(toKey(from)), NATIVE_MAPPER.fromPython(toKey(to))), true);
+        return ProxyUtil.toPythonTimestamped(delegate.reverseRange(toKey(from), toKey(to)), true);
     }
 
     /** Entries whose key starts with the string prefix, serialized as UTF-8. A non-string prefix raises TypeError. */
@@ -122,7 +122,7 @@ public class TimestampedKeyValueStoreProxy extends AbstractStateStoreProxy<Times
     /** Removes the key and returns its old value, without the timestamp. */
     @HostAccess.Export
     public Object delete(Object key) {
-        return ProxyUtil.toPython(ProxyUtil.valueOf(delegate.delete(NATIVE_MAPPER.fromPython(toKey(key)))));
+        return ProxyUtil.toPython(ProxyUtil.valueOf(delegate.delete(toKey(key))));
     }
 
     /** Stores the value with the timestamp of the record that is being processed. */
@@ -139,7 +139,7 @@ public class TimestampedKeyValueStoreProxy extends AbstractStateStoreProxy<Times
     /** Like {@link KeyValueStoreProxy#putAll}; a dict entry may have a timestamp, others get the record timestamp. */
     @HostAccess.Export
     public void putAll(Object entries) {
-        delegate.putAll(ProxyUtil.toTimestampedKeyValueList(entries, recordTimestamp, key -> DATA_OBJECT_MAPPER.toDataObject(toKey(key)), value -> DATA_OBJECT_MAPPER.toDataObject(toValue(value))));
+        delegate.putAll(ProxyUtil.toTimestampedKeyValueList(entries, recordTimestamp, (key, role) -> DATA_OBJECT_MAPPER.toDataObject(toKey(key, role)), (value, role) -> DATA_OBJECT_MAPPER.toDataObject(toValue(value, role))));
     }
 
     /** Stores the value with the record timestamp if the key has none, and returns the existing value. */

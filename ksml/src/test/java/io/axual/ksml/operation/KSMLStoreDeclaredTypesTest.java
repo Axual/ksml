@@ -70,6 +70,9 @@ public class KSMLStoreDeclaredTypesTest {
                 "int put=ok/5 large=ValueError largeKey=ValueError missing=None",
                 "double int=ok/5.0 float=ok/1.5 str=TypeError",
                 "string put=ok/b intValue=TypeError intKey=TypeError dictValue=TypeError putAllInt=TypeError after=b",
+                "float float=ok/1.5 int=ok/5.0 str=TypeError",
+                "boolean bool=ok/True int=TypeError",
+                "short put=ok/5 large=ValueError",
                 // A list of ints is also bytes; reads return bytes as a list of ints
                 "bytes bytes=ok/[97, 98] list=ok/[97, 98] str=TypeError",
                 "byte put=ok/5 large=ValueError");
