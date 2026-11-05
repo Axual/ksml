@@ -69,6 +69,9 @@ public class KSMLStoreDeclaredTypesTest {
                 "session" + longStore,
                 "int put=ok/5 large=ValueError largeKey=ValueError missing=None",
                 "double int=ok/5.0 float=ok/1.5 str=TypeError",
-                "string put=ok/b intValue=TypeError intKey=TypeError dictValue=TypeError putAllInt=TypeError after=b");
+                "string put=ok/b intValue=TypeError intKey=TypeError dictValue=TypeError putAllInt=TypeError after=b",
+                // A list of ints is also bytes; reads return bytes as a list of ints
+                "bytes bytes=ok/[97, 98] list=ok/[97, 98] str=TypeError",
+                "byte put=ok/5 large=ValueError");
     }
 }

@@ -22,7 +22,7 @@ package io.axual.ksml.data.notation.binary;
 
 import io.axual.ksml.data.exception.DataException;
 import io.axual.ksml.data.notation.base.BaseNotation;
-import io.axual.ksml.data.serde.ByteSerde;
+import io.axual.ksml.data.object.DataByte;
 import io.axual.ksml.data.serde.NullSerde;
 import io.axual.ksml.data.serde.SerdeSupplier;
 import io.axual.ksml.data.type.DataType;
@@ -77,12 +77,18 @@ class BinaryNotationTest {
         // When/Then: verify serde creation for supported simple types
         final var softly = new SoftAssertions();
 
-        // Byte type should use ByteSerde
+        // Byte type writes a Byte and a DataByte the same way, like the other simple types
         final var byteType = new SimpleType(Byte.class, "byte");
         try (var serde = notation.serde(byteType, false)) {
-            softly.assertThat(serde)
-                    .as("Byte type should have ByteSerde")
-                    .isInstanceOf(ByteSerde.class);
+            softly.assertThat(serde.serializer().serialize("topic", (byte) 5))
+                    .as("Byte type should serialize a Byte")
+                    .containsExactly(5);
+            softly.assertThat(serde.serializer().serialize("topic", new DataByte((byte) 5)))
+                    .as("Byte type should serialize a DataByte")
+                    .containsExactly(5);
+            softly.assertThat(serde.deserializer().deserialize("topic", new byte[]{5}))
+                    .as("Byte type should deserialize to a Byte")
+                    .isEqualTo((byte) 5);
         }
 
         // Null type should use NullSerde
@@ -192,15 +198,15 @@ class BinaryNotationTest {
         final var softly = new SoftAssertions();
 
         try (var serde = notation.serde(byteType, true)) {
-            softly.assertThat(serde)
+            softly.assertThat(serde.serializer().serialize("topic", (byte) 5))
                     .as("Key serde should be created")
-                    .isInstanceOf(ByteSerde.class);
+                    .containsExactly(5);
         }
 
         try (var serde = notation.serde(byteType, false)) {
-            softly.assertThat(serde)
+            softly.assertThat(serde.serializer().serialize("topic", (byte) 5))
                     .as("Value serde should be created")
-                    .isInstanceOf(ByteSerde.class);
+                    .containsExactly(5);
         }
 
         softly.assertAll();
