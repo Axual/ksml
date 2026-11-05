@@ -1,0 +1,40 @@
+tables:
+  input:
+    topic: t_in
+    keyType: string
+    valueType: json
+
+streams:
+  out_store:
+    topic: out_store
+    keyType: string
+    valueType: json
+  out_plain:
+    topic: out_plain
+    keyType: string
+    valueType: json
+
+stores:
+  filter_store:
+    type: keyValue
+    keyType: string
+    valueType: json
+
+pipelines:
+  with_store:
+    from: input
+    via:
+      - type: filter
+        if:
+          expression: value is not None and value["amount"] > 10
+        store: filter_store
+      - type: toStream
+    to: out_store
+  without_store:
+    from: input
+    via:
+      - type: filter
+        if:
+          expression: value is not None and value["amount"] > 10
+      - type: toStream
+    to: out_plain

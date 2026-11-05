@@ -1,0 +1,42 @@
+streams:
+  input:
+    topic: in
+    keyType: string
+    valueType: json
+  output:
+    topic: out
+    keyType: string
+    valueType: long
+
+stores:
+  session_store:
+    type: session
+    keyType: string
+    valueType: long
+    retention: 5s
+
+pipelines:
+  main:
+    from: input
+    via:
+      - type: groupByKey
+      - type: windowBySession
+        inactivityGap: 5s
+        grace: 0s
+      - type: aggregate
+        store: session_store
+        initializer:
+          resultType: long
+          expression: 0
+        aggregator:
+          resultType: long
+          expression: aggregatedValue + value["amount"]
+        merger:
+          resultType: long
+          expression: value1 + value2
+      - type: toStream
+      - type: mapKey
+        mapper:
+          resultType: string
+          expression: 'key["key"] + "@" + str(key["start"]) + "/" + str(key["end"])'
+    to: output

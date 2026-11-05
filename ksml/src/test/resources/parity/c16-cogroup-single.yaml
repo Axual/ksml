@@ -1,0 +1,32 @@
+streams:
+  input:
+    topic: in
+    keyType: string
+    valueType: json
+  output:
+    topic: out
+    keyType: string
+    valueType: json
+
+stores:
+  cogroup_store:
+    type: keyValue
+    keyType: string
+    valueType: json
+
+pipelines:
+  main:
+    from: input
+    via:
+      - type: groupByKey
+      - type: cogroup
+        aggregator:
+          resultType: json
+          expression: '{"count": aggregatedValue["count"] + 1, "sum": aggregatedValue["sum"] + value["amount"]}'
+      - type: aggregate
+        store: cogroup_store
+        initializer:
+          resultType: json
+          expression: '{"count": 0, "sum": 0}'
+      - type: toStream
+    to: output

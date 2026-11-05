@@ -1,0 +1,26 @@
+streams:
+  input:
+    topic: in
+    keyType: string
+    valueType: json
+  output:
+    topic: out
+    keyType: string
+    valueType: long
+
+pipelines:
+  main:
+    from: input
+    via:
+      - type: groupByKey
+      - type: windowByTime
+        windowType: tumbling
+        duration: 10s
+        grace: 5s
+      - type: count
+      - type: toStream
+      - type: mapKey
+        mapper:
+          resultType: string
+          expression: 'key["key"] + "@" + str(key["start"]) + "/" + str(key["end"])'
+    to: output

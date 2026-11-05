@@ -1,0 +1,19 @@
+streams:
+  input:
+    topic: in
+    keyType: string
+    valueType: json
+  output:
+    topic: out
+    keyType: string
+    valueType: json
+
+pipelines:
+  main:
+    from: input
+    via:
+      - type: mapValues
+        mapper:
+          resultType: json
+          expression: 'None if value is None else {"key": key, "double": value["amount"] * 2}'
+    to: output

@@ -1,0 +1,30 @@
+tables:
+  orders:
+    topic: t_orders
+    keyType: string
+    valueType: json
+  customers:
+    topic: t_customers
+    keyType: long
+    valueType: json
+
+streams:
+  out_fk:
+    topic: out_fk
+    keyType: string
+    valueType: json
+
+pipelines:
+  inner:
+    from: orders
+    via:
+      - type: join
+        table: customers
+        foreignKeyExtractor:
+          resultType: long
+          expression: value["customer"]
+        valueJoiner:
+          resultType: json
+          expression: '{"amount": value1["amount"], "name": value2["name"]}'
+      - type: toStream
+    to: out_fk

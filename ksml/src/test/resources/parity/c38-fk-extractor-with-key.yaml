@@ -1,0 +1,32 @@
+# Kafka Streams 4.x: KTable.join(other, BiFunction<K, V, KO> foreignKeyExtractor, joiner).
+# The order key looks like "<customer>-<order>", so the foreign key comes from the key, not the value.
+tables:
+  orders:
+    topic: t_orders
+    keyType: string
+    valueType: json
+  customers:
+    topic: t_customers
+    keyType: string
+    valueType: json
+
+streams:
+  out_fk:
+    topic: out_fk
+    keyType: string
+    valueType: json
+
+pipelines:
+  inner:
+    from: orders
+    via:
+      - type: join
+        table: customers
+        foreignKeyExtractor:
+          resultType: string
+          expression: key.split("-")[0]
+        valueJoiner:
+          resultType: json
+          expression: '{"amount": value1["amount"], "name": value2["name"]}'
+      - type: toStream
+    to: out_fk

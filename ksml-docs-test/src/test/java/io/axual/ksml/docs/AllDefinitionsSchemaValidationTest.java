@@ -50,6 +50,8 @@ import tools.jackson.databind.JsonNode;
  * - ksml/src/test/resources
  * - ksml-integration-tests/src/test/resources/docs-examples
  *
+ * The parity usability probes are skipped: they contain typical user mistakes on purpose.
+ *
  * The KSML JSON schema is generated dynamically using the same TopologyDefinitionParser
  * and JsonSchemaMapper that KSML uses when invoked with the --schema flag, so the test
  * always runs against the latest spec derived from current source.
@@ -60,6 +62,8 @@ class AllDefinitionsSchemaValidationTest {
     // networknt's validator is built on Jackson 2, so both the generated schema and the YAML content
     // (parsed by KSML's Jackson 3 mapper) are handled as Jackson 2 trees here.
     private static final ObjectMapper JSON_MAPPER = new ObjectMapper();
+
+    private static final String PARITY_USABILITY_PROBES = "parity/usability";
 
     private static JsonSchema ksmlSchema;
 
@@ -91,7 +95,8 @@ class AllDefinitionsSchemaValidationTest {
         return Files.walk(dir)
                 .filter(Files::isRegularFile)
                 .filter(path -> path.toString().endsWith(".yaml"))
-                .filter(path -> !path.getFileName().toString().equals("ksml-runner.yaml"));
+                .filter(path -> !path.getFileName().toString().equals("ksml-runner.yaml"))
+                .filter(path -> !dir.relativize(path).startsWith(PARITY_USABILITY_PROBES));
     }
 
     @BeforeAll

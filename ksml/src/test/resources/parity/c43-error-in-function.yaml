@@ -1,0 +1,19 @@
+streams:
+  input:
+    topic: in
+    keyType: string
+    valueType: json
+  output:
+    topic: out
+    keyType: string
+    valueType: json
+
+pipelines:
+  main:
+    from: input
+    via:
+      - type: mapValues
+        mapper:
+          resultType: json
+          expression: '{"ratio": value["amount"] // value["div"]}'
+    to: output

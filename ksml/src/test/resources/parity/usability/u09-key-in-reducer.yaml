@@ -1,0 +1,21 @@
+streams:
+  input:
+    topic: in
+    keyType: string
+    valueType: json
+  output:
+    topic: out
+    keyType: string
+    valueType: json
+
+pipelines:
+  main:
+    from: input
+    via:
+      - type: groupByKey
+      - type: reduce
+        reducer:
+          resultType: json
+          expression: '{"key": key, "amount": value1["amount"] + value2["amount"]}'
+      - type: toStream
+    to: output
