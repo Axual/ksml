@@ -325,7 +325,23 @@ class StoreIteratorProxyTest {
         }
         assertThat(closedNow).isZero();
         assertThat(kafkaIterator.closeCount).isEqualTo(1);
-        assertThat(proxy.hasNext()).isFalse();
+        assertThatThrownBy(proxy::hasNext).isInstanceOf(IllegalStateException.class);
+    }
+
+    @Test
+    @DisplayName("an iterator closed by Python fails when it is used after its function returned")
+    void iteratorClosedByPythonFailsAfterCallEnd() {
+        final StoreIteratorProxy proxy;
+        final int mark = StoreIteratorProxy.beginCall();
+        try {
+            proxy = new StoreIteratorProxy(kafkaIterator);
+            proxy.close();
+            assertThat(proxy.hasNext()).isFalse();
+        } finally {
+            StoreIteratorProxy.endCall(mark);
+        }
+        assertThat(kafkaIterator.closeCount).isEqualTo(1);
+        assertThatThrownBy(proxy::hasNext).isInstanceOf(IllegalStateException.class);
     }
 
     @Test

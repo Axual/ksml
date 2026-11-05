@@ -20,6 +20,7 @@ Before you upgrade, check each item below:
 * If Python code calls a `streamPartitioner` function by position, pass `headers` before `numPartitions`, or call it by name.
 * Rename any `as` name that is also a name under `streams`, `tables` or `globalTables`.
 * Add `toTable` before any `join` or `leftJoin` with `foreignKeyExtractor` that has a stream as input.
+* Do not keep a store iterator in a global variable for a later function call.
 * If you build your own code on top of the KSML libraries, update the Jackson package names.
 
 ## Apicurio Registry 3
@@ -177,6 +178,30 @@ The result of the join is then a table that is updated when an order or its cust
 After `toStream`, a record can have a `null` value when the customer is deleted or the order gets another customer. Make the next steps accept `None`, or add a `filter` that drops these records.
 
 The new steps add Kafka topics to your application: `toTable` adds a state store with a changelog topic, and the foreign-key join adds a subscription store with a changelog topic and two internal topics for subscription registrations and responses. If topics are created by hand or need ACLs in your cluster, set them up before the upgrade.
+
+## Store iterators are closed when the function returns
+
+KSML now closes a store iterator when all entries are read, or when the Python function that created it returns. An iterator that is kept, for example in a global variable, raises an error when a later call uses it:
+
+```
+Store iterator was closed when the function that created it returned
+```
+
+On the 1.x line, KSML never closed such an iterator, so a later call could still read from it, and the store kept its resources open.
+
+What you need to do: create a new iterator in each call.
+
+```python
+# Before (KSML 1.x): the iterator is kept in a global and read over several calls
+if it is None:
+  it = store.all()
+while it.hasNext():
+  ...
+
+# After (KSML 2.0.0)
+for entry in store.all():
+  ...
+```
 
 ## Avro logical types
 
