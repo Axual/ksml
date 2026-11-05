@@ -1,8 +1,8 @@
 ## 1. Tests first — prove the defect
 
-- [ ] 1.1 Add parser tests (in `ksml/src/test/java/io/axual/ksml/parser` or `.../definition/parser`, following `ParseTestSupport` and the existing parser tests): store with `loging: true`; `windowByTime` with `grase: 5s`; top-level `pipeline:`; `store:` on a `filter` step; unknown field in an inline `to:` and in an inline function; two unknown fields in one object (both named in the error)
-- [ ] 1.2 Add a test that top-level `name`, `version` and `description` parse, and that the generated schema accepts them
-- [ ] 1.3 Run the new tests against the current code and confirm each fails for the expected reason (no error raised, or schema rejects the top-level fields); report to the user before continuing
+- [x] 1.1 Add parser tests (`UnknownFieldsTest`, parameterized over definitions in `ksml/src/test/resources/pipelines/unknown-keys/`, which `AllDefinitionsSchemaValidationTest` skips): store with `loging: true`; `windowByTime` with `grase: 5s`; top-level `pipeline:`; `duration:` (a window operation field) on a `filter` step; unknown field in an inline `to:` and in an inline function; two unknown fields in one object (both named in the error)
+- [x] 1.2 Add a test that top-level `name`, `version` and `description` parse, and that the generated schema accepts them
+- [x] 1.3 Run the new tests against the current code and confirm each fails for the expected reason (no error raised, or schema rejects the top-level fields); report to the user before continuing
 
 ## 2. Fix
 
