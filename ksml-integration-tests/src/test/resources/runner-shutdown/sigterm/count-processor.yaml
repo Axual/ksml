@@ -1,0 +1,27 @@
+streams:
+  input:
+    topic: stop_in
+    keyType: string
+    valueType: json
+
+stores:
+  count_store:
+    type: keyValue
+    keyType: string
+    valueType: long
+    persistent: true
+    logging: true
+    timestamped: true
+
+pipelines:
+  count_records:
+    from: input
+    via:
+      - type: groupByKey
+      - type: count
+        store: count_store
+      - type: toStream
+    to:
+      topic: stop_count_out
+      keyType: string
+      valueType: long

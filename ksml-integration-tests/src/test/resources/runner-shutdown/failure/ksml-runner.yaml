@@ -1,0 +1,11 @@
+ksml:
+  definitions:
+    processor: ratio-processor.yaml
+  storageDirectory: /ksml/state
+  createStorageDirectory: true
+
+kafka:
+  bootstrap.servers: broker:9093
+  application.id: io.ksml.runner.shutdown.failure.test
+  security.protocol: PLAINTEXT
+  acks: all

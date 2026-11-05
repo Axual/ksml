@@ -39,7 +39,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Properties;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Utility class for running KSMLRunner directly in tests instead of using Docker containers.
@@ -143,6 +145,37 @@ public class KSMLRunnerTestUtil {
 
             isRunning = false;
             log.info("KSMLRunner process stopped");
+        }
+
+        /**
+         * Waits for the KSMLRunner process to exit by itself.
+         *
+         * @param timeout maximum time to wait
+         * @return the exit code, or empty when the process is still running after the timeout
+         */
+        public Optional<Integer> waitForExit(Duration timeout) throws InterruptedException {
+            if (ksmlProcess == null || !ksmlProcess.waitFor(timeout.toMillis(), TimeUnit.MILLISECONDS)) {
+                return Optional.empty();
+            }
+            isRunning = false;
+            return Optional.of(ksmlProcess.exitValue());
+        }
+
+        /**
+         * Sends SIGTERM to the KSMLRunner process, like {@code docker stop} or a Kubernetes pod stop,
+         * and waits for it to exit. Unlike {@link #stop()}, this does not force-kill the process
+         * after a short time, so the runner can use its full shutdown time.
+         *
+         * @param timeout maximum time to wait for the process to exit
+         * @return the exit code, or empty when the process did not exit within the timeout
+         */
+        public Optional<Integer> terminate(Duration timeout) throws InterruptedException {
+            if (ksmlProcess == null) {
+                return Optional.empty();
+            }
+            log.info("Sending SIGTERM to KSMLRunner process {}", ksmlProcess.pid());
+            ksmlProcess.destroy();
+            return waitForExit(timeout);
         }
 
         /**
