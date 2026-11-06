@@ -1,0 +1,69 @@
+# $schema: https://raw.githubusercontent.com/Axual/ksml/refs/heads/main/docs/ksml-language-spec.json
+
+# Python writes an Avro value with put() to the timestamped window store of a windowed aggregate, and reads it back.
+streams:
+  sensor_source_avro:
+    topic: timestamped_window_avro_input
+    keyType: string
+    valueType: avro:SensorData
+  put_result:
+    topic: timestamped_window_avro_output
+    keyType: string
+    valueType: string
+
+stores:
+  window_avro:
+    type: window
+    timestamped: true
+    keyType: string
+    valueType: avro:SensorData
+    windowSize: 1m
+    retention: 1h
+    persistent: true
+    caching: false
+    logging: false
+
+functions:
+  init_last:
+    type: initializer
+    expression: '{"name": "", "timestamp": 0, "value": "", "type": "HUMIDITY", "unit": "", "color": None, "city": None}'
+    resultType: avro:SensorData
+  keep_last:
+    type: aggregator
+    expression: value
+    resultType: avro:SensorData
+
+  put_avro:
+    type: valueTransformer
+    code: |
+      start = key["start"]
+      window_avro.put(key["key"] + "-3", value, start)
+      window_avro.put(key["key"] + "-4", value, start, 777)
+      first = window_avro.fetchWithTimestamp(key["key"] + "-3", start)
+      second = window_avro.fetchWithTimestamp(key["key"] + "-4", start)
+      result = (first["value"]["city"] + "@" + str(first["timestamp"])
+                + " " + second["value"]["city"] + "@" + str(second["timestamp"]))
+    expression: result
+    resultType: string
+    stores:
+      - window_avro
+
+pipelines:
+  put_avro_pipeline:
+    from: sensor_source_avro
+    via:
+      - type: groupByKey
+      - type: windowByTime
+        windowType: tumbling
+        duration: 1m
+        grace: 0s
+      - type: aggregate
+        store: window_avro
+        initializer: init_last
+        aggregator: keep_last
+      - type: toStream
+      - type: transformValue
+        mapper: put_avro
+      - type: convertKey
+        into: string
+    to: put_result

@@ -188,6 +188,69 @@ Keys are ordered by their serialized bytes. For string keys this is UTF-8 byte o
 
 The message names the position of the bad entry, for example `putAll entry 1 must be a (key, value) pair ...`. A `putAll` call with a bad entry writes nothing.
 
+### Timestamped Key-Value Stores
+
+A key-value store with `timestamped: true` keeps a timestamp with each value. The store of a `count`, `aggregate`,
+`reduce` or table (not a versioned table) is also a timestamped store in Python, with or without `timestamped: true`. In Python it has the
+same methods as a plain key-value store, and they return the same results, so the same code works on both kinds of
+store:
+
+- `store.get(key)`, `store.delete(key)` and `store.putIfAbsent(key, value)` return only the value
+- `store.all()`, `store.range(...)`, `store.reverseRange(...)`, `store.reverseAll()` and `store.prefixScan(prefix)`
+  give entries with `key` and `value`
+- `store.put(key, value)`, `store.putIfAbsent(key, value)` and `store.putAll(entries)` store the values with the
+  timestamp of the record that is being processed
+
+To work with the timestamps, use these methods. They only exist on timestamped stores:
+
+- `store.getWithTimestamp(key)` - A dict with `value` and `timestamp`, or `None` if the key is not found
+- `store.put(key, value, timestamp)` and `store.putIfAbsent(key, value, timestamp)` - Store the value with the given
+  timestamp in milliseconds
+- `store.allWithTimestamp()`, `store.rangeWithTimestamp(from_key, to_key)`,
+  `store.reverseRangeWithTimestamp(from_key, to_key)`, `store.reverseAllWithTimestamp()` and
+  `store.prefixScanWithTimestamp(prefix)` - Entries with `key`, `value` and `timestamp`
+
+The store of a `count`, `aggregate`, `reduce` or table keeps timestamps only with `timestamped: true` or
+`persistent: false`. Otherwise, the `*WithTimestamp` methods return `-1` as the timestamp.
+
+In `putAll`, a dict entry can have a `timestamp` field. That entry is stored with this timestamp, so
+`store.putAll(other_store.allWithTimestamp())` copies a store with its timestamps. A `(key, value, timestamp)` tuple
+is not accepted. A plain key-value store ignores the `timestamp` field.
+
+A negative timestamp raises a `ValueError` and writes nothing, because Kafka cannot write it to a changelog topic.
+To copy a store that returns `-1` as the timestamp, use `store.putAll(other_store.all())`: the entries then get the
+timestamp of the current record.
+
+```python
+last = store.getWithTimestamp(key)
+if last is not None and last["timestamp"] > timestamp_limit:
+  log.info("recent value: {}", last["value"])
+store.put(key, value)  # stored with the timestamp of the current record
+```
+
+### Timestamped Window Stores
+
+A windowed aggregation, such as `count` or `aggregate`, keeps its results in a timestamped window store. When a
+Python function lists this store in its `stores`, it gets the same methods as on a plain window store, with the same
+results:
+
+- `store.fetch(key, time)` returns only the value
+- `store.fetch(...)`, `store.backwardFetch(...)`, `store.fetchAll(...)`, `store.backwardFetchAll(...)`, `store.all()`
+  and `store.backwardAll()` give entries with `key` and `value`
+- `store.put(key, value, window_start)` stores the value with the timestamp of the record that is being processed
+
+To work with the timestamps, use these methods:
+
+- `store.fetchWithTimestamp(key, time)` - A dict with `value` and `timestamp`, or `None` if there is no value
+- `store.put(key, value, window_start, timestamp)` - Store the value with the given timestamp
+- `fetchWithTimestamp`, `backwardFetchWithTimestamp`, `fetchAllWithTimestamp`, `backwardFetchAllWithTimestamp`,
+  `allWithTimestamp` and `backwardAllWithTimestamp` - The same arguments as the methods without `WithTimestamp`, and
+  entries with `key`, `value` and `timestamp`
+
+The store of a windowed aggregation keeps timestamps only with `timestamped: true` or `persistent: false`.
+Otherwise, the `*WithTimestamp` methods return `-1` as the timestamp.
+A negative timestamp in `put` raises a `ValueError`, as on a timestamped key-value store.
+
 ### Reading Many Entries with Iterators
 
 Store methods that return many entries return an iterator. Each entry is a dict with `key` and `value`.

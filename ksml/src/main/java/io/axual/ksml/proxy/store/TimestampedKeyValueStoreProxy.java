@@ -20,43 +20,136 @@ package io.axual.ksml.proxy.store;
  * =========================LICENSE_END==================================
  */
 
+import org.apache.kafka.common.serialization.StringSerializer;
 import org.apache.kafka.streams.state.TimestampedKeyValueStore;
 import org.apache.kafka.streams.state.ValueAndTimestamp;
 import org.graalvm.polyglot.HostAccess;
 
+import java.util.function.LongSupplier;
+
 /**
  * A proxy for accessing Kafka Streams TimestampedKeyValueStore in Python code. This proxy mediates between Python and
  * Java data types and delegates all operations to the underlying store.
+ * <p>
+ * Methods without {@code WithTimestamp} in their name return the same results as on a plain key-value store, so
+ * Python code works the same on both. Writes without a timestamp use the timestamp of the record that is being
+ * processed. The {@code *WithTimestamp} methods also return the timestamp.
  */
 public class TimestampedKeyValueStoreProxy extends AbstractStateStoreProxy<TimestampedKeyValueStore<Object, Object>> {
+    private final LongSupplier recordTimestamp;
 
-    @HostAccess.Export
-    public TimestampedKeyValueStoreProxy(TimestampedKeyValueStore<Object, Object> delegate) {
+    public TimestampedKeyValueStoreProxy(TimestampedKeyValueStore<Object, Object> delegate, LongSupplier recordTimestamp) {
         super(delegate);
+        this.recordTimestamp = recordTimestamp;
     }
 
-    @HostAccess.Export
-    public Object delete(Object key) {
-        return ProxyUtil.toPython(delegate.delete(NATIVE_MAPPER.fromPython(key)));
-    }
+    // ==================== ReadOnlyKeyValueStore methods ====================
 
     @HostAccess.Export
     public Object get(Object key) {
-        return ProxyUtil.toPython(delegate.get(NATIVE_MAPPER.fromPython(key)));
+        return ProxyUtil.toPython(ProxyUtil.valueOf(delegate.get(NATIVE_MAPPER.fromPython(key))));
+    }
+
+    /** Returns {@code {value, timestamp}} for the key, or {@code None} when the key has no value. */
+    @HostAccess.Export
+    public Object getWithTimestamp(Object key) {
+        return ProxyUtil.toPython(delegate.get(ProxyUtil.fromPython(key, "getWithTimestamp key")));
     }
 
     @HostAccess.Export
-    public void put(Object key, Object value, long timestamp) {
-        delegate.put(DATA_OBJECT_MAPPER.toDataObject(key), ValueAndTimestamp.make(DATA_OBJECT_MAPPER.toDataObject(value), timestamp));
+    public Object all() {
+        return ProxyUtil.toPythonTimestamped(delegate.all(), false);
     }
 
     @HostAccess.Export
-    public Object putIfAbsent(Object key, Object value, long timestamp) {
-        return ProxyUtil.toPython(delegate.putIfAbsent(DATA_OBJECT_MAPPER.toDataObject(key), ValueAndTimestamp.make(DATA_OBJECT_MAPPER.toDataObject(value), timestamp)));
+    public Object allWithTimestamp() {
+        return ProxyUtil.toPythonTimestamped(delegate.all(), true);
+    }
+
+    @HostAccess.Export
+    public Object reverseAll() {
+        return ProxyUtil.toPythonTimestamped(delegate.reverseAll(), false);
+    }
+
+    @HostAccess.Export
+    public Object reverseAllWithTimestamp() {
+        return ProxyUtil.toPythonTimestamped(delegate.reverseAll(), true);
+    }
+
+    @HostAccess.Export
+    public Object range(Object from, Object to) {
+        return ProxyUtil.toPythonTimestamped(delegate.range(ProxyUtil.fromPython(from, "range from"), ProxyUtil.fromPython(to, "range to")), false);
+    }
+
+    @HostAccess.Export
+    public Object rangeWithTimestamp(Object from, Object to) {
+        return ProxyUtil.toPythonTimestamped(delegate.range(ProxyUtil.fromPython(from, "rangeWithTimestamp from"), ProxyUtil.fromPython(to, "rangeWithTimestamp to")), true);
+    }
+
+    @HostAccess.Export
+    public Object reverseRange(Object from, Object to) {
+        return ProxyUtil.toPythonTimestamped(delegate.reverseRange(ProxyUtil.fromPython(from, "reverseRange from"), ProxyUtil.fromPython(to, "reverseRange to")), false);
+    }
+
+    @HostAccess.Export
+    public Object reverseRangeWithTimestamp(Object from, Object to) {
+        return ProxyUtil.toPythonTimestamped(delegate.reverseRange(ProxyUtil.fromPython(from, "reverseRangeWithTimestamp from"), ProxyUtil.fromPython(to, "reverseRangeWithTimestamp to")), true);
+    }
+
+    /**
+     * Returns the entries whose key starts with the given string. The prefix is serialized as UTF-8, so this only
+     * gives meaningful results for stores with string keys. A prefix that is not a string raises a Python
+     * {@code TypeError}.
+     */
+    @HostAccess.Export
+    public Object prefixScan(Object prefix) {
+        return ProxyUtil.toPythonTimestamped(delegate.prefixScan(ProxyUtil.toStringPrefix(prefix), new StringSerializer()), false);
+    }
+
+    @HostAccess.Export
+    public Object prefixScanWithTimestamp(Object prefix) {
+        return ProxyUtil.toPythonTimestamped(delegate.prefixScan(ProxyUtil.toStringPrefix(prefix), new StringSerializer()), true);
     }
 
     @HostAccess.Export
     public Object approximateNumEntries() {
         return ProxyUtil.toPython(delegate.approximateNumEntries());
+    }
+
+    // ==================== KeyValueStore methods ====================
+
+    /** Removes the key and returns its old value, without the timestamp. */
+    @HostAccess.Export
+    public Object delete(Object key) {
+        return ProxyUtil.toPython(ProxyUtil.valueOf(delegate.delete(NATIVE_MAPPER.fromPython(key))));
+    }
+
+    /** Stores the value with the timestamp of the record that is being processed. */
+    @HostAccess.Export
+    public void put(Object key, Object value) {
+        put(key, value, recordTimestamp.getAsLong());
+    }
+
+    @HostAccess.Export
+    public void put(Object key, Object value, long timestamp) {
+        delegate.put(DATA_OBJECT_MAPPER.toDataObject(key), ValueAndTimestamp.make(DATA_OBJECT_MAPPER.toDataObject(value), ProxyUtil.checkTimestamp(timestamp, "put")));
+    }
+
+    /** Like {@link KeyValueStoreProxy#putAll}; a dict entry may have a timestamp, others get the record timestamp. */
+    @HostAccess.Export
+    public void putAll(Object entries) {
+        delegate.putAll(ProxyUtil.toTimestampedKeyValueList(entries, recordTimestamp));
+    }
+
+    /** Stores the value with the record timestamp if the key has none, and returns the existing value. */
+    @HostAccess.Export
+    public Object putIfAbsent(Object key, Object value) {
+        return putIfAbsent(key, value, recordTimestamp.getAsLong());
+    }
+
+    /** Stores the value with the given timestamp if the key has none, and returns the existing value. */
+    @HostAccess.Export
+    public Object putIfAbsent(Object key, Object value, long timestamp) {
+        return ProxyUtil.toPython(ProxyUtil.valueOf(delegate.putIfAbsent(DATA_OBJECT_MAPPER.toDataObject(key), ValueAndTimestamp.make(DATA_OBJECT_MAPPER.toDataObject(value), ProxyUtil.checkTimestamp(timestamp, "putIfAbsent")))));
     }
 }

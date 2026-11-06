@@ -32,6 +32,7 @@ import org.apache.kafka.streams.processor.StateStore;
 import org.apache.kafka.streams.processor.StateStoreContext;
 import org.apache.kafka.streams.state.KeyValueIterator;
 import org.apache.kafka.streams.state.KeyValueStore;
+import org.assertj.core.api.SoftAssertions;
 import org.graalvm.polyglot.PolyglotException;
 import org.graalvm.polyglot.Value;
 import org.junit.jupiter.api.DisplayName;
@@ -288,6 +289,16 @@ class KeyValueStoreProxyTest {
     }
 
     @Test
+    @DisplayName("putAll ignores a timestamp field in a dict, so entries from a timestamped store can be copied")
+    void putAllIgnoresTimestampField() {
+        runPython("""
+                store.putAll([{"key": "a", "value": "1", "timestamp": 700}])
+                []
+                """);
+        verify(delegate).putAll(List.of(KeyValue.pair("a", "1")));
+    }
+
+    @Test
     @DisplayName("putAll accepts a store iterator, so store.putAll(other.all()) copies a store")
     void putAllWithStoreIterator() {
         when(delegate.all()).thenReturn(entries("a", "b"));
@@ -350,7 +361,9 @@ class KeyValueStoreProxyTest {
         assertThat(pythonErrorOf("store.putAll([(\"a\", \"1\", \"2\")])"))
                 .startsWith("ValueError: ").contains("putAll entry 0");
         assertThat(pythonErrorOf("store.putAll([{\"key\": \"a\"}])"))
-                .startsWith("ValueError: ").contains("putAll entry 0");
+                .isEqualTo("ValueError: putAll entry 0 has no \"value\"");
+        assertThat(pythonErrorOf("store.putAll([{\"value\": \"1\"}])"))
+                .isEqualTo("ValueError: putAll entry 0 has no \"key\"");
         verify(delegate, never()).putAll(anyList());
     }
 
@@ -359,6 +372,18 @@ class KeyValueStoreProxyTest {
     void prefixScanWithNonStringPrefix() {
         assertThat(pythonErrorOf("store.prefixScan(42)")).startsWith("TypeError: ").contains("string prefix");
         verify(delegate, never()).prefixScan(any(), any());
+    }
+
+    @Test
+    @DisplayName("caller error messages name the Python type, never the value, which can be user data")
+    void callerErrorMessagesHaveNoValues() {
+        final var softly = new SoftAssertions();
+        softly.assertThat(pythonErrorOf("store.putAll([\"secret\"])")).contains("got str").doesNotContain("secret");
+        softly.assertThat(pythonErrorOf("store.putAll(1234567)")).contains("got int").doesNotContain("1234567");
+        softly.assertThat(pythonErrorOf("store.putAll([(\"secret\", \"1\", \"2\")])")).contains("got 3").doesNotContain("secret");
+        softly.assertThat(pythonErrorOf("store.putAll([{\"key\": \"secret\"}])")).contains("has no \"value\"").doesNotContain("secret");
+        softly.assertThat(pythonErrorOf("store.prefixScan(1234567)")).contains("got int").doesNotContain("1234567");
+        softly.assertAll();
     }
 
     @Test

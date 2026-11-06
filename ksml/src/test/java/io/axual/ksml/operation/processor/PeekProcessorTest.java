@@ -20,15 +20,20 @@ package io.axual.ksml.operation.processor;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.exception.DataException;
 import io.axual.ksml.exception.ExecutionException;
+import io.axual.ksml.proxy.store.TimestampedKeyValueStoreProxy;
 import org.apache.kafka.streams.processor.api.FixedKeyProcessorContext;
 import org.apache.kafka.streams.processor.api.FixedKeyRecord;
 import org.apache.kafka.streams.processor.api.InternalFixedKeyRecordFactory;
 import org.apache.kafka.streams.processor.api.Record;
 import org.apache.kafka.streams.state.KeyValueStore;
+import org.apache.kafka.streams.state.TimestampedKeyValueStore;
+import org.apache.kafka.streams.state.ValueAndTimestamp;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -37,7 +42,9 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -94,5 +101,40 @@ class PeekProcessorTest {
         assertThatThrownBy(() -> processor.init(context))
                 .isInstanceOf(ExecutionException.class)
                 .hasMessageContaining("state store");
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    @DisplayName("a write without a timestamp to a timestamped store uses the timestamp of the record being processed")
+    void timestampedStoreWriteUsesRecordTimestamp() {
+        final TimestampedKeyValueStore<Object, Object> store = mock(TimestampedKeyValueStore.class);
+        when(context.getStateStore("store")).thenReturn(store);
+        final var processor = new PeekProcessor("peek",
+                (stores, rec) -> ((TimestampedKeyValueStoreProxy) stores.get("store")).put("k", "v"), new String[]{"store"});
+        processor.init(context);
+
+        processor.process(InternalFixedKeyRecordFactory.create(new Record<>("key", "value", 1234L)));
+
+        final ArgumentCaptor<ValueAndTimestamp<Object>> captor = ArgumentCaptor.captor();
+        verify(store).put(any(), captor.capture());
+        assertThat(captor.getValue().timestamp()).isEqualTo(1234L);
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    @DisplayName("a write without a timestamp after the record was processed fails, and does not reuse the old timestamp")
+    void timestampedStoreWriteAfterProcessFails() {
+        final TimestampedKeyValueStore<Object, Object> store = mock(TimestampedKeyValueStore.class);
+        when(context.getStateStore("store")).thenReturn(store);
+        final var kept = new AtomicReference<TimestampedKeyValueStoreProxy>();
+        final var processor = new PeekProcessor("peek",
+                (stores, rec) -> kept.set((TimestampedKeyValueStoreProxy) stores.get("store")), new String[]{"store"});
+        processor.init(context);
+        processor.process(InternalFixedKeyRecordFactory.create(new Record<>("key", "value", 1234L)));
+
+        assertThatThrownBy(() -> kept.get().put("k", "v"))
+                .isInstanceOf(DataException.class)
+                .hasMessageContaining("No record is being processed");
+        verify(store, never()).put(any(), any());
     }
 }
