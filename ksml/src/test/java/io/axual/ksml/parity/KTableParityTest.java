@@ -149,7 +149,8 @@ class KTableParityTest {
                 .input("t_users").output("out_count", Format.STRING, Format.LONG).output("out_sum", Format.STRING, Format.LONG)
                 .reference(KTableParityTest::tableGroupByReference)
                 .ksml("parity/c21-table-group-by.yaml"))
-                .knownDifference("F01", "a new key is seen as an update of a DataNull value, the subtractor gets None and the app stops", 26)
+                // Stops on F05 before the delete, so F01 is not checked here. Check again after AXPD-12451
+                .knownDifference("F05", "the subtractor value parameter is typed as the aggregate type", 20)
                 .check();
     }
 
@@ -159,7 +160,8 @@ class KTableParityTest {
                 .input("t_users").output("out_count", Format.STRING, Format.LONG).output("out_sum", Format.STRING, Format.LONG)
                 .reference(KTableParityTest::tableGroupByReference)
                 .ksml("parity/c21b-table-group-by-guarded.yaml"))
-                .knownDifference("F05", "the subtractor value parameter is typed as the aggregate type; the count is also wrong (F01)", 22)
+                // Stops on F05 before the delete, so F01 is not checked here. Check again after AXPD-12451
+                .knownDifference("F05", "the subtractor value parameter is typed as the aggregate type", 20)
                 .check();
     }
 
@@ -220,7 +222,6 @@ class KTableParityTest {
                 .pipe("t_left", "k1", null, 4000)
                 .pipe("t_right", "k2", null, 5000)
                 .pipe("t_left", "k3", "{\"v\":3}", 6000)
-                .knownDifference("F01", "a table delete is joined as a None value instead of giving a tombstone", 6)
                 .check();
     }
 
@@ -267,7 +268,6 @@ class KTableParityTest {
                 .pipe("t_customers", "c1", "{\"name\":\"Ann\"}", 1000)
                 .pipe("t_orders", "o1", "{\"customer\":\"c1\",\"amount\":10}", 2000)
                 .pipe("t_orders", "o1", null, 3000)
-                .knownDifference("F01", "a tombstone on the orders table reaches the foreign-key extractor as None, so the app stops", 10)
                 .check();
     }
 

@@ -1,0 +1,21 @@
+streams:
+  orders:
+    topic: inMessages
+    keyType: string
+    valueType: json
+  sums:
+    topic: outMessages
+    keyType: string
+    valueType: json
+
+pipelines:
+  sum_orders:
+    from: orders
+    via:
+      - type: groupByKey
+      - type: reduce
+        reducer:
+          expression: '{"amount": value1["amount"] + value2["amount"]}'
+          resultType: json
+      - type: toStream
+    to: sums

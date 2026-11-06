@@ -20,14 +20,24 @@ package io.axual.ksml.runner.producer;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.notation.Notation;
+import io.axual.ksml.data.notation.NotationContext;
 import io.axual.ksml.data.notation.binary.BinaryNotation;
+import io.axual.ksml.data.notation.avro.AvroNotation;
+import io.axual.ksml.data.notation.avro.confluent.ConfluentAvroNotationProvider;
 import io.axual.ksml.data.notation.json.JsonNotation;
+import io.axual.ksml.data.notation.jsonschema.JsonSchemaNotation;
+import io.axual.ksml.data.notation.jsonschema.confluent.ConfluentJsonSchemaNotationProvider;
 import io.axual.ksml.data.object.DataInteger;
 import io.axual.ksml.data.object.DataObject;
 import io.axual.ksml.data.object.DataList;
+import io.axual.ksml.data.object.DataNull;
 import io.axual.ksml.data.object.DataString;
 import io.axual.ksml.data.object.DataStruct;
 import io.axual.ksml.data.object.DataTuple;
+import io.axual.ksml.data.schema.DataSchema;
+import io.axual.ksml.data.schema.StructSchema;
+import io.axual.ksml.data.type.StructType;
 import io.axual.ksml.definition.DefinitionConstants;
 import io.axual.ksml.definition.ParameterDefinition;
 import io.axual.ksml.definition.ProducerDefinition;
@@ -43,16 +53,22 @@ import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.clients.producer.RecordMetadata;
 import org.apache.kafka.common.header.Headers;
+import org.apache.kafka.common.header.internals.RecordHeaders;
 import org.apache.kafka.common.serialization.ByteArraySerializer;
 import org.apache.kafka.common.serialization.Serializer;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -70,15 +86,38 @@ class ExecutableProducerTest {
 
     private static final UserType STRING_TYPE = new UserType(DataString.DATATYPE);
     private static final String TOPIC = "output-topic";
+    private static final StructSchema ORDER_SCHEMA = new StructSchema("io.axual.test", "Order", null,
+            List.of(new StructSchema.Field("amount", DataSchema.INTEGER_SCHEMA)));
+    private static final UserType ORDER_TYPE_JSON_SCHEMA = new UserType(JsonSchemaNotation.NOTATION_NAME, new StructType(ORDER_SCHEMA));
+
+    private Notation previousJsonSchema;
+    private Notation previousAvro;
 
     @BeforeEach
     void registerNotations() {
+        previousJsonSchema = ExecutionContext.INSTANCE.notationLibrary().getIfExists(JsonSchemaNotation.NOTATION_NAME);
+        previousAvro = ExecutionContext.INSTANCE.notationLibrary().getIfExists(AvroNotation.NOTATION_NAME);
+
         // DataObjectConverter.convert resolves notations from the ExecutionContext, so the default
         // notation must be registered for the type conversions inside shapeMessage to work.
         final var jsonNotation = new JsonNotation();
         ExecutionContext.INSTANCE.notationLibrary().register(JsonNotation.NOTATION_NAME, jsonNotation);
         final var binaryNotation = new BinaryNotation(jsonNotation::serde);
         ExecutionContext.INSTANCE.notationLibrary().register(UserType.DEFAULT_NOTATION, binaryNotation);
+    }
+
+    @AfterEach
+    void restoreVendorNotations() {
+        restore(JsonSchemaNotation.NOTATION_NAME, previousJsonSchema);
+        restore(AvroNotation.NOTATION_NAME, previousAvro);
+    }
+
+    private static void restore(String name, Notation previous) {
+        if (previous != null) {
+            ExecutionContext.INSTANCE.notationLibrary().register(name, previous);
+        } else {
+            ExecutionContext.INSTANCE.notationLibrary().unregister(name);
+        }
     }
 
     private static ProducerStrategy acceptingStrategy() {
@@ -165,6 +204,56 @@ class ExecutableProducerTest {
         assertThat(shaped).isNotNull();
         assertThat(shaped.left()).isEqualTo(new DataString("k"));
         assertThat(shaped.right()).isEqualTo(new DataString("v"));
+    }
+
+    @Test
+    @DisplayName("A None key or value stays null, so it is written as a tombstone")
+    void shapeMessageKeepsNoneNull() {
+        final var tuple = new DataTuple(DataNull.INSTANCE, DataNull.INSTANCE);
+
+        final var shaped = ExecutableProducer.shapeMessage(tuple, STRING_TYPE, ORDER_TYPE_JSON_SCHEMA, acceptingStrategy());
+
+        assertThat(shaped).isNotNull();
+        assertThat(shaped.left()).isNull();
+        assertThat(shaped.right()).isNull();
+    }
+
+    static Stream<UserType> structTypes() {
+        return Stream.of(
+                new UserType(JsonNotation.NOTATION_NAME, new StructType()),
+                new UserType(AvroNotation.NOTATION_NAME, new StructType(ORDER_SCHEMA)),
+                ORDER_TYPE_JSON_SCHEMA);
+    }
+
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("structTypes")
+    @DisplayName("A generator that returns None for the value writes a tombstone, for every notation")
+    void noneValueIsTombstone(UserType valueType) {
+        registerVendorNotations();
+        final var shaped = ExecutableProducer.shapeMessage(
+                new DataTuple(new DataString("k"), DataNull.INSTANCE), STRING_TYPE, valueType, acceptingStrategy());
+
+        final var serializer = ExecutableProducer.serializerFor(valueType, false, Map.of());
+
+        // Before, a JSON Schema topic got a Jackson NullNode, written as an object, instead of a tombstone
+        assertThat(serializer.serialize(TOPIC, new RecordHeaders(), shaped.right())).isNull();
+    }
+
+    @Test
+    @DisplayName("A None key is written as a null key")
+    void noneKeyIsNullKey() {
+        registerVendorNotations();
+        final var serializer = ExecutableProducer.serializerFor(ORDER_TYPE_JSON_SCHEMA, true, Map.of());
+
+        assertThat(serializer.serialize(TOPIC, new RecordHeaders(), null)).isNull();
+    }
+
+    private static void registerVendorNotations() {
+        final var context = new NotationContext(Map.of("schema.registry.url", "mock://executable-producer-test", "auto.register.schemas", "true"));
+        ExecutionContext.INSTANCE.notationLibrary().register(JsonSchemaNotation.NOTATION_NAME,
+                new ConfluentJsonSchemaNotationProvider().createNotation(context));
+        ExecutionContext.INSTANCE.notationLibrary().register(AvroNotation.NOTATION_NAME,
+                new ConfluentAvroNotationProvider().createNotation(context));
     }
 
     // ---- instance-level produce tests (stubbed generator, no Python/GraalVM) -------------------

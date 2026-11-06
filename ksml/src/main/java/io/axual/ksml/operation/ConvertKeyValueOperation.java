@@ -20,6 +20,7 @@ package io.axual.ksml.operation;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.serde.TombstoneSerde;
 import io.axual.ksml.generator.TopologyBuildContext;
 import io.axual.ksml.stream.KStreamWrapper;
 import io.axual.ksml.stream.StreamWrapper;
@@ -48,13 +49,18 @@ public class ConvertKeyValueOperation extends BaseOperation {
 
         // Set up the mapping function to convert the key and value
         KeyValueMapper<Object, Object, KeyValue<Object, Object>> converter = (key, value) -> {
-            var keyAsData = flattenValue(key);
-            var convertedKey = mapper.convert(k.userType().notation(), keyAsData, kr.userType());
+            // A null key or a tombstone must stay null, else Kafka Streams sees a key or a value
+            var convertedKey = key != null
+                    ? mapper.convert(k.userType().notation(), flattenValue(key), kr.userType())
+                    : null;
+            var convertedValue = value != null
+                    ? mapper.convert(v.userType().notation(), flattenValue(value), vr.userType())
+                    : null;
 
-            var valueAsData = flattenValue(value);
-            var convertedValue = mapper.convert(v.userType().notation(), valueAsData, vr.userType());
-
-            return new KeyValue<>(convertedKey, convertedValue);
+            // An empty key or value can become a typed null, which is written as null, so it must be null here too
+            return new KeyValue<>(
+                    TombstoneSerde.isTombstone(convertedKey) ? null : convertedKey,
+                    TombstoneSerde.isTombstone(convertedValue) ? null : convertedValue);
         };
 
         // Inject the mapper into the topology

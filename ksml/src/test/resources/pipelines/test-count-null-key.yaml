@@ -1,0 +1,18 @@
+streams:
+  orders:
+    topic: input_topic
+    keyType: json
+    valueType: string
+  counts:
+    topic: output_topic
+    keyType: json
+    valueType: long
+
+pipelines:
+  count_orders:
+    from: orders
+    via:
+      - type: groupByKey
+      - type: count
+      - type: toStream
+    to: counts

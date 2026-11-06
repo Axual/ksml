@@ -20,6 +20,7 @@ package io.axual.ksml.proxy.store;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.object.DataObject;
 import org.apache.kafka.streams.state.TimestampedKeyValueStore;
 import org.apache.kafka.streams.state.ValueAndTimestamp;
 import org.graalvm.polyglot.HostAccess;
@@ -47,16 +48,21 @@ public class TimestampedKeyValueStoreProxy extends AbstractStateStoreProxy<Times
 
     @HostAccess.Export
     public void put(Object key, Object value, long timestamp) {
-        delegate.put(DATA_OBJECT_MAPPER.toDataObject(key), ValueAndTimestamp.make(DATA_OBJECT_MAPPER.toDataObject(value), timestamp));
+        delegate.put(DATA_OBJECT_MAPPER.toDataObject(key), ValueAndTimestamp.make(valueOrNull(value), timestamp));
     }
 
     @HostAccess.Export
     public Object putIfAbsent(Object key, Object value, long timestamp) {
-        return ProxyUtil.toPython(delegate.putIfAbsent(DATA_OBJECT_MAPPER.toDataObject(key), ValueAndTimestamp.make(DATA_OBJECT_MAPPER.toDataObject(value), timestamp)));
+        return ProxyUtil.toPython(delegate.putIfAbsent(DATA_OBJECT_MAPPER.toDataObject(key), ValueAndTimestamp.make(valueOrNull(value), timestamp)));
     }
 
     @HostAccess.Export
     public Object approximateNumEntries() {
         return ProxyUtil.toPython(delegate.approximateNumEntries());
+    }
+
+    // None must be a real null, so put deletes the key like in Kafka Streams
+    private static Object valueOrNull(Object value) {
+        return DataObject.nullIfNone(DATA_OBJECT_MAPPER.toDataObject(value));
     }
 }

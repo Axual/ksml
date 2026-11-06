@@ -1,0 +1,25 @@
+# A conversion to json keeps an empty value, so the count after the repartition still counts it.
+
+streams:
+  orders:
+    topic: input_topic
+    keyType: string
+    valueType: json
+  counts:
+    topic: count_topic
+    keyType: string
+    valueType: long
+
+pipelines:
+  count_orders:
+    from: orders
+    via:
+      - type: convertValue
+        into: json
+      - type: groupBy
+        mapper:
+          expression: key
+          resultType: string
+      - type: count
+      - type: toStream
+    to: counts

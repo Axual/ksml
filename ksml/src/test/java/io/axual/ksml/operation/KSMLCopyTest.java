@@ -24,6 +24,7 @@ import io.axual.ksml.testutil.KSMLTest;
 import io.axual.ksml.testutil.KSMLTestExtension;
 import io.axual.ksml.testutil.KSMLTopic;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.kafka.streams.KeyValue;
 import org.apache.kafka.streams.TestInputTopic;
 import org.apache.kafka.streams.TestOutputTopic;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -41,6 +42,12 @@ class KSMLCopyTest {
     @KSMLTopic(topic = "ksml_sensordata_copy")
     protected TestOutputTopic<String, String> outputTopic;
 
+    @KSMLTopic(topic = "json_input_topic")
+    protected TestInputTopic<String, String> jsonInputTopic;
+
+    @KSMLTopic(topic = "json_output_topic")
+    protected TestOutputTopic<String, String> jsonOutputTopic;
+
     @KSMLTest(topology = "pipelines/test-copying.yaml")
     void testCopying() {
         log.debug("testCopying()");
@@ -49,5 +56,17 @@ class KSMLCopyTest {
         assertThat(outputTopic.isEmpty()).as("record should be copied").isFalse();
         var keyValue = outputTopic.readKeyValue();
         log.info("Output topic key={}, value={}", keyValue.key, keyValue.value);
+    }
+
+    @KSMLTest(topology = "pipelines/test-copying-json.yaml")
+    void testCopyingKeepsEmptyValuesAndTombstones() {
+        // given an empty value (zero bytes) and a tombstone, on a json topic
+        jsonInputTopic.pipeInput("a", "");
+        jsonInputTopic.pipeInput("b", (String) null);
+
+        // the empty value is written as empty bytes, and the tombstone as a tombstone
+        assertThat(jsonOutputTopic.readKeyValuesToList()).containsExactly(
+                new KeyValue<>("a", ""),
+                new KeyValue<>("b", null));
     }
 }

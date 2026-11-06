@@ -1,0 +1,24 @@
+# A (key, None) element in the list of flatMap is a tombstone, so the count after it skips it.
+
+streams:
+  test_input:
+    topic: input_topic
+    keyType: string
+    valueType: json
+  test_count:
+    topic: count_topic
+    keyType: string
+    valueType: long
+
+pipelines:
+  main:
+    from: test_input
+    via:
+      - type: flatMap
+        mapper:
+          expression: '[(key, value), (key, None)]'
+          resultType: "[(string, json)]"
+      - type: groupByKey
+      - type: count
+      - type: toStream
+    to: test_count

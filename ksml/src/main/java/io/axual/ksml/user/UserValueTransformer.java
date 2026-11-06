@@ -45,6 +45,6 @@ public class UserValueTransformer extends Invoker implements ValueMapperWithKey<
     }
 
     public DataObject apply(StateStores stores, Object key, Object value) {
-        return timeExecutionOf(() -> function.call(stores, NATIVE_MAPPER.toDataObject(key), NATIVE_MAPPER.toDataObject(value)));
+        return timeExecutionOf(() -> nullIfNone(function.call(stores, NATIVE_MAPPER.toDataObject(key), NATIVE_MAPPER.toDataObject(value))));
     }
 }
