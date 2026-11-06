@@ -97,7 +97,7 @@ public abstract class AbstractStateStoreProxy<T extends StateStore> implements S
         } catch (DataException e) {
             // Only a list or tuple for a bytes store is read element by element; this element is an int out of range
             throw PythonErrors.valueError(storeError(role) + " has an int out of range for " + type + " (-128 to 255)", e);
-        } catch (ClassCastException e) {
+        } catch (ClassCastException _) {
             throw PythonErrors.typeError(storeError(role) + " must be " + type + ", got " + typeName(object));
         }
         if (value == null) return null;
