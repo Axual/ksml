@@ -149,7 +149,7 @@ class KTableParityTest {
                 .input("t_users").output("out_count", Format.STRING, Format.LONG).output("out_sum", Format.STRING, Format.LONG)
                 .reference(KTableParityTest::tableGroupByReference)
                 .ksml("parity/c21-table-group-by.yaml"))
-                // KSML stops on F05 before the delete, so this also hides the F01 delete path: check it again when F05 is fixed
+                // Stops on F05 before the delete, so F01 is not checked here. Check again after AXPD-12451
                 .knownDifference("F05", "the subtractor value parameter is typed as the aggregate type", 20)
                 .check();
     }
@@ -160,7 +160,7 @@ class KTableParityTest {
                 .input("t_users").output("out_count", Format.STRING, Format.LONG).output("out_sum", Format.STRING, Format.LONG)
                 .reference(KTableParityTest::tableGroupByReference)
                 .ksml("parity/c21b-table-group-by-guarded.yaml"))
-                // KSML stops on F05 before the delete, so this also hides the F01 delete path: check it again when F05 is fixed
+                // Stops on F05 before the delete, so F01 is not checked here. Check again after AXPD-12451
                 .knownDifference("F05", "the subtractor value parameter is typed as the aggregate type", 20)
                 .check();
     }

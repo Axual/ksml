@@ -1,0 +1,25 @@
+# Like test-convertvalue-tombstone.yaml, but groupBy repartitions, so the converted value goes through an internal topic.
+
+streams:
+  orders:
+    topic: input_topic
+    keyType: string
+    valueType: json
+  counts:
+    topic: count_topic
+    keyType: string
+    valueType: long
+
+pipelines:
+  count_orders:
+    from: orders
+    via:
+      - type: convertValue
+        into: string
+      - type: groupBy
+        mapper:
+          expression: key
+          resultType: string
+      - type: count
+      - type: toStream
+    to: counts

@@ -42,6 +42,12 @@ class KSMLCopyTest {
     @KSMLTopic(topic = "ksml_sensordata_copy")
     protected TestOutputTopic<String, String> outputTopic;
 
+    @KSMLTopic(topic = "json_input_topic")
+    protected TestInputTopic<String, String> jsonInputTopic;
+
+    @KSMLTopic(topic = "json_output_topic")
+    protected TestOutputTopic<String, String> jsonOutputTopic;
+
     @KSMLTest(topology = "pipelines/test-copying.yaml")
     void testCopying() {
         log.debug("testCopying()");
@@ -55,11 +61,11 @@ class KSMLCopyTest {
     @KSMLTest(topology = "pipelines/test-copying-json.yaml")
     void testCopyingKeepsEmptyValuesAndTombstones() {
         // given an empty value (zero bytes) and a tombstone, on a json topic
-        inputTopic.pipeInput("a", "");
-        inputTopic.pipeInput("b", (String) null);
+        jsonInputTopic.pipeInput("a", "");
+        jsonInputTopic.pipeInput("b", (String) null);
 
         // the empty value is written as empty bytes, and the tombstone as a tombstone
-        assertThat(outputTopic.readKeyValuesToList()).containsExactly(
+        assertThat(jsonOutputTopic.readKeyValuesToList()).containsExactly(
                 new KeyValue<>("a", ""),
                 new KeyValue<>("b", null));
     }
