@@ -1,0 +1,85 @@
+# $schema: https://raw.githubusercontent.com/Axual/ksml/refs/heads/main/docs/ksml-language-spec.json
+
+# Regression test for plain window stores (AXPD-11068): a Python function puts each record in an in-memory and a
+# RocksDB window store, and on the third record calls every window store method. Each iterator is read with a for
+# loop and with a hasNext() loop without close(). The result of each store is returned as one line of text.
+streams:
+  window_methods_input:
+    topic: window_methods_input
+    keyType: string
+    valueType: string
+  window_methods_output:
+    topic: window_methods_output
+    keyType: string
+    valueType: string
+
+stores:
+  window_memory:
+    type: window
+    keyType: string
+    valueType: string
+    retention: 1h
+    windowSize: 1m
+    persistent: false
+    caching: false
+    logging: false
+  window_rocksdb:
+    type: window
+    keyType: string
+    valueType: string
+    retention: 1h
+    windowSize: 1m
+    persistent: true
+    caching: false
+    logging: false
+
+functions:
+  check_window_stores:
+    type: valueTransformer
+    globalCode: |
+      from test_store_iterator_checks import read
+
+      # Window times above the int range, like real epoch millis. The text shows them minus BASE.
+      BASE = 3000000000
+
+      def describe(e):
+        # Single-key fetches have the window start as key, the other iterators a windowed key
+        if type(e["key"]) is dict:
+          return e["key"]["key"] + "@" + str(e["key"]["start"] - BASE) + ":" + e["value"]
+        return str(e["key"] - BASE) + ":" + e["value"]
+
+      def check(name, store):
+        line = name
+        line += " fetch=" + store.fetch("a", BASE)
+        # An unknown key, and a known key at a time without a window
+        line += " missing=" + str(store.fetch("x", BASE)) + "/" + str(store.fetch("a", BASE + 30000))
+        line += " fetchRange=" + read(lambda: store.fetch("a", BASE, BASE + 60000), describe)
+        line += " backwardFetchRange=" + read(lambda: store.backwardFetch("a", BASE, BASE + 60000), describe)
+        line += " fetchKeys=" + read(lambda: store.fetch("a", "b", BASE, BASE + 60000), describe)
+        line += " backwardFetchKeys=" + read(lambda: store.backwardFetch("a", "b", BASE, BASE + 60000), describe)
+        line += " all=" + read(lambda: store.all(), describe)
+        line += " backwardAll=" + read(lambda: store.backwardAll(), describe)
+        line += " fetchAll=" + read(lambda: store.fetchAll(BASE, BASE + 60000), describe)
+        line += " backwardFetchAll=" + read(lambda: store.backwardFetchAll(BASE, BASE + 60000), describe)
+        return line
+    code: |
+      # Values "1" and "2" go to the window that starts at BASE, value "3" to the window that starts at BASE + 60000.
+      # Value "4" goes to a window outside the time ranges above, and in the next RocksDB segment: with 1h retention
+      # a segment covers 30 minutes.
+      window_start = BASE + {"1": 0, "2": 0, "3": 60000, "4": 1800000}[value]
+      window_memory.put(key, value, window_start)
+      window_rocksdb.put(key, value, window_start)
+      result = check("memory", window_memory) + "\n" + check("rocksdb", window_rocksdb) if value == "4" else ""
+    expression: result
+    resultType: string
+    stores:
+      - window_memory
+      - window_rocksdb
+
+pipelines:
+  window_methods_pipeline:
+    from: window_methods_input
+    via:
+      - type: transformValue
+        mapper: check_window_stores
+    to: window_methods_output

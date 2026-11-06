@@ -1,6 +1,6 @@
 # $schema: https://raw.githubusercontent.com/Axual/ksml/refs/heads/main/docs/ksml-language-spec.json
 
-# Python iteration (for, list(), next(), contextlib.closing) over in-memory and RocksDB stores.
+# Python iteration (for, list(), next(), contextlib.closing, hasNext() without close()) over in-memory and RocksDB stores.
 streams:
   iterator_input:
     topic: store_iterator_input
@@ -66,6 +66,7 @@ functions:
     type: valueTransformer
     globalCode: |
       import contextlib
+      from test_store_iterator_checks import read_has_next
 
       def styles(name, make, describe):
         # Each style gets a new iterator from make(); describe() turns one entry into text
@@ -75,7 +76,8 @@ functions:
           first = describe(next(it))
         with contextlib.closing(make()) as it:
           closing = ",".join(describe(e) for e in it)
-        return name + " for=" + for_loop + " list=" + as_list + " next=" + first + " closing=" + closing
+        return (name + " for=" + for_loop + " list=" + as_list + " next=" + first + " closing=" + closing
+                + " hasNext=" + read_has_next(make(), describe))
 
       def kv_entry(e):
         return e["key"] + ":" + e["value"]
