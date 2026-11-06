@@ -83,7 +83,14 @@ if TYPE_CHECKING:
         def close(self) -> None: ...
 
     class StateStore(Protocol):
-        """Base interface for state stores"""
+        """Base interface for state stores.
+
+        Keys and values are converted to the keyType and valueType of the store when these are simple types: an int
+        to any number type, a float to float or double, a str to string, a bool to boolean, and bytes or a list or
+        tuple of ints from -128 to 255 to bytes. A value of another kind raises TypeError (also a float on an integer
+        store), an int out of range raises ValueError.
+        None and stores with other types are not converted.
+        """
 
         def name(self) -> str: ...
         def persistent(self) -> bool: ...
@@ -107,7 +114,7 @@ if TYPE_CHECKING:
         def prefixScan(self, prefix: str) -> StoreIterator:
             """Entries whose key starts with prefix. For stores with string keys.
 
-            Raises TypeError if prefix is not a string.
+            Raises TypeError if prefix is not a string, or the keyType of the store is not string.
             """
             ...
         def putAll(self, entries: Iterable[Union[Tuple[Any, Any], List[Any], Dict[str, Any]]]) -> None:
@@ -116,7 +123,13 @@ if TYPE_CHECKING:
         def approximateNumEntries(self) -> int: ...
 
     class SessionStore(StateStore, Protocol):
-        """Session store interface"""
+        """Session store interface.
+
+        A session key is a dict with "key", "start" and "end" (int times in milliseconds); start may equal end.
+        put and remove raise TypeError for a session key that is not a dict or a time that is not an int, and
+        ValueError for a missing field, a None key, a time out of the long range, a negative start, or a start after
+        the end.
+        """
 
         def put(self, sessionKey: Dict[str, Any], value: Any) -> None: ...
         def remove(self, sessionKey: Dict[str, Any]) -> None: ...
@@ -195,7 +208,7 @@ if TYPE_CHECKING:
         def prefixScan(self, prefix: str) -> StoreIterator:
             """Entries whose key starts with prefix. For stores with string keys.
 
-            Raises TypeError if prefix is not a string.
+            Raises TypeError if prefix is not a string, or the keyType of the store is not string.
             """
             ...
         def prefixScanWithTimestamp(self, prefix: str) -> StoreIterator: ...

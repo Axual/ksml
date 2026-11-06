@@ -83,8 +83,10 @@ functions:
         line += " putIfAbsentNew=" + str(store.putIfAbsent("e", "6"))
         store.delete("e")
         line += " deleteMissing=" + str(store.delete("e"))
-        # A None value in putAll deletes the key
+        # A None value in putAll deletes the key, as with put
         store.putAll([("d", None)])
+        store.put("e", "6")
+        store.put("e", None)
         line += " afterDelete=" + keys(store.all())
         # A bad entry and a tuple of three raise a Python error and write nothing
         try:

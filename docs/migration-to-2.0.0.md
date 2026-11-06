@@ -21,9 +21,11 @@ Before you upgrade, check each item below:
 * Rename any `as` name that is also a name under `streams`, `tables` or `globalTables`.
 * Add `toTable` before any `join` or `leftJoin` with `foreignKeyExtractor` that has a stream as input.
 * If Python code reads `get(key)["value"]` or `["timestamp"]` on a store with `timestamped: true`, or on the store of a `count`, `aggregate`, `reduce` or non-versioned table, use `getWithTimestamp(key)` instead. The same applies to the results of `delete` and `putIfAbsent`, and to `fetch(key, time)` on the store of a windowed aggregation (use `fetchWithTimestamp`).
+* If Python code calls `put` or `remove` on a session store, check that each session key is a dict with `key`, `start` and `end`, with `int` times. A session key that is not valid now raises an error instead of being ignored.
 * If you build your own code on top of the KSML libraries, update the Jackson package names.
 * If you extend `OperationProcessor` or `FixedKeyOperationProcessor`, implement `processRecord` instead of `process`.
 * If you create a `TimestampedKeyValueStoreProxy` or `TimestampedWindowStoreProxy` yourself, pass a `LongSupplier` that gives the timestamp of the record that is being processed.
+* If you use `KeyValueIteratorProxy` or `WindowStoreIteratorProxy`, use `StoreIteratorProxy` instead, and create store proxies with `ProxyUtil.wrapStateStore`.
 
 ## Apicurio Registry 3
 
@@ -209,6 +211,16 @@ There is no `deleteWithTimestamp`. If you need the old timestamp, call `getWithT
 The same applies to the store of a windowed aggregation that a Python function uses: `fetch(key, time)` returns only the value, as on a plain window store. Use `fetchWithTimestamp(key, time)` to read the timestamp. See [Timestamped Window Stores](reference/state-store-reference.md#timestamped-window-stores).
 
 `put(key, value)` without a timestamp now works on a timestamped store, and uses the timestamp of the record that is being processed. `put(key, value, timestamp)` still works. See [Timestamped Key-Value Stores](reference/state-store-reference.md#timestamped-key-value-stores).
+
+## Session store keys are checked
+
+In KSML 1.x, session store `put` and `remove` silently ignored a session key that they could not read: a key that was not a dict, missed a field, or had `start` and `end` times in the int range. Nothing was written, and no error was raised. A session with one record (`start` equal to `end`) failed with a Java error that Python could not catch.
+
+In KSML 2.0.0, any `int` time from 0 works and `start` may equal `end`. A session key that is not valid raises `TypeError` or `ValueError`, which `except Exception` catches. See [Session Store Methods](reference/state-store-reference.md#session-store-methods).
+
+What you need to do: if a Python function writes or removes sessions, check that each session key is a dict with `key`, `start` and `end`, with `int` times, `start` not negative and not after `end`. Code that passed other keys wrote nothing before, so fixing it can change what your application stores.
+
+Keys and values of stores are now also converted to the store's `keyType` and `valueType`. Code that worked before keeps working; see [Keys and Values](reference/state-store-reference.md#keys-and-values).
 
 ## Avro logical types
 

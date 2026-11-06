@@ -20,6 +20,8 @@ package io.axual.ksml.proxy.store;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.object.DataNull;
+import io.axual.ksml.data.object.DataString;
 import io.axual.ksml.python.PythonContext;
 import io.axual.ksml.python.PythonContextConfig;
 import org.apache.kafka.streams.KeyValue;
@@ -27,6 +29,7 @@ import org.apache.kafka.streams.state.KeyValueIterator;
 import org.apache.kafka.streams.state.TimestampedKeyValueStore;
 import org.apache.kafka.streams.state.ValueAndTimestamp;
 import org.graalvm.polyglot.Value;
+import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
@@ -39,10 +42,14 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.util.ArrayList;
 import java.util.List;
 
+import static io.axual.ksml.proxy.store.StoreProxyTestUtil.PYTHON_VALUES;
+import static io.axual.ksml.proxy.store.StoreProxyTestUtil.outcome;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.atMostOnce;
+import static org.mockito.Mockito.clearInvocations;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -73,24 +80,12 @@ class TimestampedKeyValueStoreProxyTest {
 
     /** Runs Python code with {@code store} bound to the proxy, and returns the result as a list of strings. */
     private List<String> runPython(String code) {
-        pythonContext.context().getBindings("python").putMember("store", proxy());
-        final var result = pythonContext.context().eval("python", code);
-        final var strings = new ArrayList<String>();
-        for (long i = 0; i < result.getArraySize(); i++) strings.add(result.getArrayElement(i).asString());
-        return strings;
+        return StoreProxyTestUtil.runPython(pythonContext.context(), proxy(), code);
     }
 
-    /** Runs Python code inside try/except Exception, and returns "ErrorType: message", or "no error". */
+    /** Runs a Python call on {@code store} inside try/except Exception; returns "ok", or "ErrorType: message". */
     private String pythonErrorOf(String call) {
-        return runPython("""
-                def run():
-                    try:
-                        %s
-                        return "no error"
-                    except Exception as e:
-                        return type(e).__name__ + ": " + str(e)
-                [run()]
-                """.formatted(call)).get(0);
+        return StoreProxyTestUtil.pythonErrorOf(pythonContext.context(), proxy(), call);
     }
 
     /** A Kafka iterator over timestamped entries: key k has value "value-k", the n-th entry has timestamp 100 + n. */
@@ -102,8 +97,9 @@ class TimestampedKeyValueStoreProxyTest {
         return (KeyValueIterator) new FakeKeyValueIterator<>(result);
     }
 
-    private static KeyValue<Object, ValueAndTimestamp<Object>> entry(Object key, Object value, long timestamp) {
-        return KeyValue.pair(key, ValueAndTimestamp.make(value, timestamp));
+    /** A putAll entry as the delegate gets it: like put, the proxy turns the key and the value into DataObjects. */
+    private static KeyValue<Object, ValueAndTimestamp<Object>> entry(String key, String value, long timestamp) {
+        return KeyValue.pair(new DataString(key), ValueAndTimestamp.make(new DataString(value), timestamp));
     }
 
     /** Captures the list of entries that the proxy passed to the delegate putAll. */
@@ -265,6 +261,35 @@ class TimestampedKeyValueStoreProxyTest {
     }
 
     @Test
+    @DisplayName("putAll gives the delegate the same Java objects as put, or raises the same error, for every kind of Python value")
+    void putAllConvertsLikePut() {
+        final var softly = new SoftAssertions();
+        pythonContext.context().getBindings("python").putMember("store", proxy());
+        for (final var value : PYTHON_VALUES) {
+            clearInvocations(delegate);
+            final var putOutcome = outcome(pythonContext.context(), "store.put(%1$s, %1$s)".formatted(value));
+            final var putAllOutcome = outcome(pythonContext.context(), "store.putAll([(%1$s, %1$s)])".formatted(value));
+            final ArgumentCaptor<Object> key = ArgumentCaptor.captor();
+            final ArgumentCaptor<ValueAndTimestamp<Object>> val = ArgumentCaptor.captor();
+            verify(delegate, atMostOnce()).put(key.capture(), val.capture());
+            final ArgumentCaptor<List<KeyValue<Object, ValueAndTimestamp<Object>>>> entries = ArgumentCaptor.captor();
+            verify(delegate, atMostOnce()).putAll(entries.capture());
+            softly.assertThat(putAllOutcome).as("outcome " + value).isEqualTo(putOutcome);
+            if (key.getAllValues().isEmpty() || entries.getAllValues().isEmpty()) continue;
+            final var entry = entries.getValue().get(0);
+            softly.assertThat(describe(entry.key)).as("key " + value).isEqualTo(describe(key.getValue()));
+            softly.assertThat(describe(entry.value)).as("value " + value).isEqualTo(describe(val.getValue()));
+        }
+        softly.assertAll();
+    }
+
+    /** The class and the text of a stored value, so values from two separate calls can be compared. */
+    private static String describe(Object object) {
+        if (object instanceof ValueAndTimestamp<?> vat) return StoreProxyTestUtil.describe(vat.value()) + "@" + vat.timestamp();
+        return StoreProxyTestUtil.describe(object);
+    }
+
+    @Test
     @DisplayName("putAll with tuples and dicts writes all values with the record timestamp in one delegate putAll")
     void putAllWithTuplesAndDicts() {
         runPython("""
@@ -298,13 +323,15 @@ class TimestampedKeyValueStoreProxyTest {
     }
 
     @Test
-    @DisplayName("putAll passes a None value to the delegate as null, which deletes the key")
+    @DisplayName("putAll passes a None value to the delegate as DataNull, like put, which deletes the key")
     void putAllWithNoneValue() {
         runPython("""
                 store.putAll([("a", None)])
                 []
                 """);
-        assertThat(capturePutAll()).containsExactly(KeyValue.pair("a", null));
+        // The delete depends on the serde writing DataNull as null bytes; the cached_ts check in
+        // test-keyvalue-store-methods-python.yaml shows it deletes through Kafka's caching store
+        assertThat(capturePutAll()).containsExactly(KeyValue.pair(new DataString("a"), ValueAndTimestamp.make(DataNull.INSTANCE, RECORD_TIMESTAMP)));
     }
 
     @Test

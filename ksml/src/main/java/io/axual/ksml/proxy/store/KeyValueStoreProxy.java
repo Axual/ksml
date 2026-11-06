@@ -20,7 +20,7 @@ package io.axual.ksml.proxy.store;
  * =========================LICENSE_END==================================
  */
 
-import org.apache.kafka.common.serialization.StringSerializer;
+import io.axual.ksml.data.type.DataType;
 import org.apache.kafka.streams.state.KeyValueStore;
 import org.graalvm.polyglot.HostAccess;
 
@@ -31,7 +31,12 @@ import org.graalvm.polyglot.HostAccess;
 public class KeyValueStoreProxy extends AbstractStateStoreProxy<KeyValueStore<Object, Object>> {
 
     public KeyValueStoreProxy(KeyValueStore<Object, Object> delegate) {
-        super(delegate);
+        this(delegate, null, null);
+    }
+
+    /** Creates a proxy for a store with these declared key and value types; {@code null} means unknown. */
+    public KeyValueStoreProxy(KeyValueStore<Object, Object> delegate, DataType keyType, DataType valueType) {
+        super(delegate, keyType, valueType);
     }
 
     // ==================== ReadOnlyKeyValueStore methods ====================
@@ -48,22 +53,18 @@ public class KeyValueStoreProxy extends AbstractStateStoreProxy<KeyValueStore<Ob
 
     @HostAccess.Export
     public Object range(Object from, Object to) {
-        return ProxyUtil.toPython(delegate.range(ProxyUtil.fromPython(from, "range from"), ProxyUtil.fromPython(to, "range to")));
+        return ProxyUtil.toPython(delegate.range(toKey(from), toKey(to)));
     }
 
     @HostAccess.Export
     public Object reverseRange(Object from, Object to) {
-        return ProxyUtil.toPython(delegate.reverseRange(ProxyUtil.fromPython(from, "reverseRange from"), ProxyUtil.fromPython(to, "reverseRange to")));
+        return ProxyUtil.toPython(delegate.reverseRange(toKey(from), toKey(to)));
     }
 
-    /**
-     * Returns the entries whose key starts with the given string. The prefix is serialized as UTF-8, so this only
-     * gives meaningful results for stores with string keys. A prefix that is not a string raises a Python
-     * {@code TypeError}.
-     */
+    /** Entries whose key starts with the string prefix, serialized as UTF-8. Raises TypeError for a non-string prefix or key type. */
     @HostAccess.Export
     public Object prefixScan(Object prefix) {
-        return ProxyUtil.toPython(delegate.prefixScan(ProxyUtil.toStringPrefix(prefix), new StringSerializer()));
+        return ProxyUtil.toPython(delegate.prefixScan(ProxyUtil.toStringPrefix(prefix, keyType), ProxyUtil.PREFIX_SERIALIZER));
     }
 
     @HostAccess.Export
@@ -73,29 +74,29 @@ public class KeyValueStoreProxy extends AbstractStateStoreProxy<KeyValueStore<Ob
 
     @HostAccess.Export
     public Object get(Object key) {
-        return ProxyUtil.toPython(delegate.get(NATIVE_MAPPER.fromPython(key)));
+        return ProxyUtil.toPython(delegate.get(toKey(key)));
     }
 
     // ==================== KeyValueStore methods ====================
 
     @HostAccess.Export
     public Object delete(Object key) {
-        return ProxyUtil.toPython(delegate.delete(NATIVE_MAPPER.fromPython(key)));
+        return ProxyUtil.toPython(delegate.delete(toKey(key)));
     }
 
     @HostAccess.Export
     public void put(Object key, Object value) {
-        delegate.put(NATIVE_MAPPER.fromPython(key), NATIVE_MAPPER.fromPython(value));
+        delegate.put(toKey(key), toValue(value));
     }
 
     /** Writes all entries with one call to the store. See {@link ProxyUtil#toKeyValueList(Object)}. */
     @HostAccess.Export
     public void putAll(Object entries) {
-        delegate.putAll(ProxyUtil.toKeyValueList(entries));
+        delegate.putAll(ProxyUtil.toKeyValueList(entries, this::toKey, this::toValue));
     }
 
     @HostAccess.Export
     public Object putIfAbsent(Object key, Object value) {
-        return ProxyUtil.toPython(delegate.putIfAbsent(NATIVE_MAPPER.fromPython(key), NATIVE_MAPPER.fromPython(value)));
+        return ProxyUtil.toPython(delegate.putIfAbsent(toKey(key), toValue(value)));
     }
 }

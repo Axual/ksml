@@ -169,164 +169,7 @@ This example demonstrates:
 - `store.get(key)` - Retrieve value from state store (returns None if not found)
 - `store.put(key, value)` - Store key-value pair in state store
 
-**Other key-value store methods:**
-
-- `store.delete(key)` - Remove a key, and return its old value
-- `store.putIfAbsent(key, value)` - Store the value only if the key has none, and return the existing value
-- `store.putAll(entries)` - Store many entries in one call. `entries` is a list or an iterator of `(key, value)` pairs or dicts with `key` and `value`, so `store.putAll(other_store.all())` copies a store. All entries are kept in memory first, so use this for small stores only. A value `None` deletes the key
-- `store.range(keyFrom, keyTo)` and `store.reverseRange(keyFrom, keyTo)` - Entries from `keyFrom` to `keyTo`, both included, in key order or in reverse. `None` means no bound
-- `store.all()` and `store.reverseAll()` - All entries, in key order or in reverse
-- `store.prefixScan(prefix)` - Entries whose key starts with `prefix`. The prefix is compared with the stored keys as UTF-8 bytes, so use it for stores with string keys
-- `store.approximateNumEntries()` - Estimated number of entries
-
-Keys are ordered by their serialized bytes. For string keys this is UTF-8 byte order: `"B"` comes before `"a"`, and `"a"` before `"ab"` before `"b"`.
-
-`putAll` and `prefixScan` check their arguments and raise a Python error that you can catch with `except Exception`:
-
-- `TypeError` - the argument has the wrong kind: `putAll` gets something that is not a list or an iterator, or an entry that is not a pair or a dict; `prefixScan` gets a prefix that is not a string
-- `ValueError` - the argument has the right kind, but wrong content: a pair that does not have 2 elements, or a dict without `key` or `value`
-
-The message names the position of the bad entry, for example `putAll entry 1 must be a (key, value) pair ...`. A `putAll` call with a bad entry writes nothing.
-
-### Window Store Methods
-
-Times are in milliseconds. `timeFrom` and `timeTo` select windows by their start time, both included.
-
-- `store.put(key, value, windowStartTimestamp)` - Store the value in the window that starts at `windowStartTimestamp`
-- `store.fetch(key, time)` - The value of the window that starts at `time`, or `None`
-- `store.fetch(key, timeFrom, timeTo)` and `store.backwardFetch(key, timeFrom, timeTo)` - The windows of one key,
-  oldest first or newest first. The key of each entry is the window start time
-- `store.fetch(keyFrom, keyTo, timeFrom, timeTo)` and `store.backwardFetch(keyFrom, keyTo, timeFrom, timeTo)` - The
-  windows of a range of keys
-- `store.fetchAll(timeFrom, timeTo)` and `store.backwardFetchAll(timeFrom, timeTo)` - The windows of all keys
-- `store.all()` and `store.backwardAll()` - All windows in the store
-
-### Session Store Methods
-
-A session is identified by a dict with `key`, `start` and `end` (times in milliseconds).
-
-- `store.put(sessionKey, value)` - Store the value of a session
-- `store.remove(sessionKey)` - Remove a session
-- `store.fetchSession(key, sessionStartTime, sessionEndTime)` - The value of one session, or `None`
-- `store.fetch(key)` and `store.backwardFetch(key)` - All sessions of one key, oldest first or newest first
-- `store.fetch(keyFrom, keyTo)` and `store.backwardFetch(keyFrom, keyTo)` - All sessions of a range of keys
-- `store.findSessions(key, earliestSessionEndTime, latestSessionStartTime)` and
-  `store.backwardFindSessions(key, earliestSessionEndTime, latestSessionStartTime)` - The sessions of one key that end
-  at or after `earliestSessionEndTime` and start at or before `latestSessionStartTime`
-- `store.findSessions(keyFrom, keyTo, earliestSessionEndTime, latestSessionStartTime)` and
-  `store.backwardFindSessions(keyFrom, keyTo, earliestSessionEndTime, latestSessionStartTime)` - The same for a range
-  of keys
-
-### Order of Window and Session Entries
-
-For window and session stores, when the entries have more than one key (`all()`, `fetchAll()`, key ranges and their
-`backward` versions), the order depends on the store. An in-memory store sorts them by time first, then by key. A
-RocksDB store keeps its data in time segments: it sorts the entries by segment first, then by key, then by time. The
-time is the window start for window stores and the session end for session stores.
-
-### Timestamped Key-Value Stores
-
-A key-value store with `timestamped: true` keeps a timestamp with each value. The store of a `count`, `aggregate`,
-`reduce` or table (not a versioned table) is also a timestamped store in Python, with or without `timestamped: true`. In Python it has the
-same methods as a plain key-value store, and they return the same results, so the same code works on both kinds of
-store:
-
-- `store.get(key)`, `store.delete(key)` and `store.putIfAbsent(key, value)` return only the value
-- `store.all()`, `store.range(...)`, `store.reverseRange(...)`, `store.reverseAll()` and `store.prefixScan(prefix)`
-  give entries with `key` and `value`
-- `store.put(key, value)`, `store.putIfAbsent(key, value)` and `store.putAll(entries)` store the values with the
-  timestamp of the record that is being processed
-
-To work with the timestamps, use these methods. They only exist on timestamped stores:
-
-- `store.getWithTimestamp(key)` - A dict with `value` and `timestamp`, or `None` if the key is not found
-- `store.put(key, value, timestamp)` and `store.putIfAbsent(key, value, timestamp)` - Store the value with the given
-  timestamp in milliseconds
-- `store.allWithTimestamp()`, `store.rangeWithTimestamp(keyFrom, keyTo)`,
-  `store.reverseRangeWithTimestamp(keyFrom, keyTo)`, `store.reverseAllWithTimestamp()` and
-  `store.prefixScanWithTimestamp(prefix)` - Entries with `key`, `value` and `timestamp`
-
-The store of a `count`, `aggregate`, `reduce` or table keeps timestamps only with `timestamped: true` or
-`persistent: false`. Otherwise, the `*WithTimestamp` methods return `-1` as the timestamp.
-
-In `putAll`, a dict entry can have a `timestamp` field. That entry is stored with this timestamp, so
-`store.putAll(other_store.allWithTimestamp())` copies a store with its timestamps. A `(key, value, timestamp)` tuple
-is not accepted. A plain key-value store ignores the `timestamp` field.
-
-A negative timestamp raises a `ValueError` and writes nothing, because Kafka cannot write it to a changelog topic.
-To copy a store that returns `-1` as the timestamp, use `store.putAll(other_store.all())`: the entries then get the
-timestamp of the current record.
-
-```python
-last = store.getWithTimestamp(key)
-if last is not None and last["timestamp"] > timestamp_limit:
-  log.info("recent value: {}", last["value"])
-store.put(key, value)  # stored with the timestamp of the current record
-```
-
-### Timestamped Window Stores
-
-A windowed aggregation, such as `count` or `aggregate`, keeps its results in a timestamped window store. When a
-Python function lists this store in its `stores`, it gets the same methods as a
-[plain window store](#window-store-methods), with the same results:
-
-- `store.fetch(key, time)` returns only the value
-- `store.fetch(...)`, `store.backwardFetch(...)`, `store.fetchAll(...)`, `store.backwardFetchAll(...)`, `store.all()`
-  and `store.backwardAll()` give entries with `key` and `value`
-- `store.put(key, value, windowStartTimestamp)` stores the value with the timestamp of the record that is being processed
-
-To work with the timestamps, use these methods:
-
-- `store.fetchWithTimestamp(key, time)` - A dict with `value` and `timestamp`, or `None` if there is no value
-- `store.put(key, value, windowStartTimestamp, timestamp)` - Store the value with the given timestamp
-- `fetchWithTimestamp`, `backwardFetchWithTimestamp`, `fetchAllWithTimestamp`, `backwardFetchAllWithTimestamp`,
-  `allWithTimestamp` and `backwardAllWithTimestamp` - The same arguments as the methods without `WithTimestamp`, and
-  entries with `key`, `value` and `timestamp`
-
-The store of a windowed aggregation keeps timestamps only with `timestamped: true` or `persistent: false`.
-Otherwise, the `*WithTimestamp` methods return `-1` as the timestamp.
-A negative timestamp in `put` raises a `ValueError`, as on a timestamped key-value store.
-
-### Reading Many Entries with Iterators
-
-Store methods that return many entries return an iterator. Each entry is a dict with `key` and `value`.
-The `key` depends on the method:
-
-| Method | `key` of each entry |
-|---|---|
-| Key-value store: `all()`, `reverseAll()`, `range()`, `reverseRange()`, `prefixScan()` | the key |
-| Window store: `fetch(key, timeFrom, timeTo)`, `backwardFetch(key, timeFrom, timeTo)` | the window start time |
-| Window store: `all()`, `fetchAll()`, `fetch(keyFrom, keyTo, timeFrom, timeTo)` and their `backward` variants | a dict with `key`, `start`, `end`, `startTime` and `endTime` |
-| Session store: `fetch()`, `findSessions()` and their `backward` variants | a dict with `key`, `start`, `end`, `startTime` and `endTime` |
-
-`fetch(key, time)` on a window store returns one value, not an iterator.
-
-Use the iterator like any Python iterator:
-
-```python
-for entry in store.all():
-  log.info("key={}, value={}", entry["key"], entry["value"])
-
-entries = list(store.all())
-```
-
-A store iterator holds resources (for RocksDB stores, native memory) until it is closed. KSML closes it when all
-entries are read, and when the function returns. So a loop can end early with `break`, `return` or an exception:
-
-```python
-found = None
-for entry in store.all():
-  if entry["value"] == value:
-    found = entry["key"]
-    break
-```
-
-Do not keep an iterator in a global variable for a later call: it is closed by then, and using it raises an error.
-To close an iterator before the function returns, use `contextlib.closing()`. A plain `with store.all() as entries:`
-does not work.
-
-Iterators also have the methods `hasNext()`, `next()` (returns `None` after the last entry), `peekNextKey()`
-(returns the next key without moving forward, or `None`) and `close()`.
+See [Key-Value Store Methods](#key-value-store-methods) for all methods.
 
 ### With Session Operations
 
@@ -418,6 +261,229 @@ retention = 2 × timeDifference + gracePeriod
 
 - [Windowed Aggregations](../tutorials/intermediate/windowing.md#tumbling-window-click-counting)
 - [Stream-Stream Joins](../tutorials/intermediate/joins.md#stream-stream-join)
+
+## Python Store Methods
+
+Python functions can call these methods on the stores listed in their `stores`.
+
+### Keys and Values
+
+Keys and values are converted to the `keyType` and `valueType` of the store. This matters for numbers: Python has one
+`int` type, while a store with `valueType: long` needs a long and a store with `valueType: int` an int. So
+`store.put(key, count + 1)` works on both. The keys of all methods are converted too, so `store.get(5)` finds the value
+that `store.put(5, ...)` wrote.
+
+A value is only converted to a type of the same kind:
+
+| Store type                     | Accepted Python values                               |
+|--------------------------------|------------------------------------------------------|
+| `byte`, `short`, `int`, `long` | `int`, within the range of the type                  |
+| `float`, `double`              | `int` or `float`                                     |
+| `string`                       | `str`                                                |
+| `boolean`                      | `bool`                                               |
+| `bytes`                        | `bytes`, or a list or tuple of ints from -128 to 255 |
+
+Reads return the value of a `bytes` store as a list of ints.
+
+Other values raise a Python error that you can catch with `except Exception`, and nothing is written:
+
+- `TypeError` - a value of another kind, for example a `float` on a `long` store (also a whole number like `2.0`), a
+  `str` on a `long` store, or an `int` on a `string` store. Convert the value first, for example with `int(...)` or
+  `str(...)`
+- `ValueError` - an `int` out of range, for example `2 ** 40` on an `int` store, `10 ** 400` on a `double` store, or
+  `300` in a list for a `bytes` store
+
+The message names the store and the types, not the value, for example
+`TypeError: Store counts: value must be long, got float`.
+
+`None` is not converted, so `store.put(key, None)` still deletes the key. Stores with other types (`json`, `avro:...`
+and other schema types, unions, enums, or no `keyType` / `valueType`) get keys and values as they are. Stores in the
+`assert` blocks of the [KSML test runner](../getting-started/testing-your-pipeline.md) convert the same way.
+
+### Key-Value Store Methods
+
+- `store.get(key)` - The value of the key, or `None`
+- `store.put(key, value)` - Store the value. A value `None` deletes the key
+- `store.delete(key)` - Remove a key, and return its old value
+- `store.putIfAbsent(key, value)` - Store the value only if the key has none, and return the existing value
+- `store.putAll(entries)` - Store many entries in one call. `entries` is a list or an iterator of `(key, value)` pairs or dicts with `key` and `value`, so `store.putAll(other_store.all())` copies a store. All entries are kept in memory first, so use this for small stores only. A value `None` deletes the key
+- `store.range(keyFrom, keyTo)` and `store.reverseRange(keyFrom, keyTo)` - Entries from `keyFrom` to `keyTo`, both included, in key order or in reverse. `None` means no bound
+- `store.all()` and `store.reverseAll()` - All entries, in key order or in reverse
+- `store.prefixScan(prefix)` - Entries whose key starts with `prefix`. The prefix is compared with the stored keys as UTF-8 bytes, so it only works for stores with `keyType: string`; on a store with another declared key type it raises `TypeError`
+- `store.approximateNumEntries()` - Estimated number of entries
+
+Keys are ordered by their serialized bytes. For string keys this is UTF-8 byte order: `"B"` comes before `"a"`, and `"a"` before `"ab"` before `"b"`.
+
+Besides the [conversion of keys and values](#keys-and-values), `putAll` and `prefixScan` check the form of their
+arguments and raise a Python error that you can catch with `except Exception`:
+
+- `TypeError` - the argument has the wrong kind: `putAll` gets something that is not a list or an iterator, or an entry that is not a pair or a dict; `prefixScan` gets a prefix that is not a string, or runs on a store whose `keyType` is not `string`
+- `ValueError` - the argument has the right kind, but wrong content: a pair that does not have 2 elements, or a dict without `key` or `value`
+
+The message names the position of the bad entry, for example `putAll entry 1 must be a (key, value) pair ...`. A `putAll` call with a bad entry writes nothing.
+
+### Window Store Methods
+
+Times are in milliseconds. `timeFrom` and `timeTo` select windows by their start time, both included.
+
+- `store.put(key, value, windowStartTimestamp)` - Store the value in the window that starts at `windowStartTimestamp`
+- `store.fetch(key, time)` - The value of the window that starts at `time`, or `None`
+- `store.fetch(key, timeFrom, timeTo)` and `store.backwardFetch(key, timeFrom, timeTo)` - The windows of one key,
+  oldest first or newest first. The key of each entry is the window start time
+- `store.fetch(keyFrom, keyTo, timeFrom, timeTo)` and `store.backwardFetch(keyFrom, keyTo, timeFrom, timeTo)` - The
+  windows of a range of keys
+- `store.fetchAll(timeFrom, timeTo)` and `store.backwardFetchAll(timeFrom, timeTo)` - The windows of all keys
+- `store.all()` and `store.backwardAll()` - All windows in the store
+
+### Session Store Methods
+
+A session is identified by a dict with `key`, `start` and `end` (times in milliseconds, as `int`). A session with one
+record has `start` equal to `end`. The session keys that `fetch` and `findSessions` return can be passed back to `put`
+and `remove`; their `startTime` and `endTime` fields are ignored. For a session key that is not valid, `put` and
+`remove` raise a Python error and write nothing:
+
+- `TypeError` - the session key is not a dict, or `start` or `end` is not an `int`
+- `ValueError` - `key`, `start` or `end` is missing, `key` is `None`, a time is out of the range of a long, `start` is
+  negative, or `start` is after `end`
+
+- `store.put(sessionKey, value)` - Store the value of a session
+- `store.remove(sessionKey)` - Remove a session
+- `store.fetchSession(key, sessionStartTime, sessionEndTime)` - The value of one session, or `None`
+- `store.fetch(key)` and `store.backwardFetch(key)` - All sessions of one key, oldest first or newest first
+- `store.fetch(keyFrom, keyTo)` and `store.backwardFetch(keyFrom, keyTo)` - All sessions of a range of keys
+- `store.findSessions(key, earliestSessionEndTime, latestSessionStartTime)` and
+  `store.backwardFindSessions(key, earliestSessionEndTime, latestSessionStartTime)` - The sessions of one key that end
+  at or after `earliestSessionEndTime` and start at or before `latestSessionStartTime`
+- `store.findSessions(keyFrom, keyTo, earliestSessionEndTime, latestSessionStartTime)` and
+  `store.backwardFindSessions(keyFrom, keyTo, earliestSessionEndTime, latestSessionStartTime)` - The same for a range
+  of keys
+
+### Order of Window and Session Entries
+
+For window and session stores, when the entries have more than one key (`all()`, `fetchAll()`, key ranges and their
+`backward` versions), the order depends on the store. An in-memory store sorts them by time first, then by key. A
+RocksDB store keeps its data in time segments: it sorts the entries by segment first, then by key, then by time. The
+time is the window start for window stores and the session end for session stores.
+
+### Timestamped Key-Value Stores
+
+A key-value store with `timestamped: true` keeps a timestamp with each value. The store of a `count`, `aggregate`,
+`reduce` or table (not a versioned table) is also a timestamped store in Python, with or without `timestamped: true`. In Python it has the
+same methods as a plain key-value store, and they return the same results, so the same code works on both kinds of
+store:
+
+- `store.get(key)`, `store.delete(key)` and `store.putIfAbsent(key, value)` return only the value
+- `store.all()`, `store.range(...)`, `store.reverseRange(...)`, `store.reverseAll()` and `store.prefixScan(prefix)`
+  give entries with `key` and `value`
+- `store.put(key, value)`, `store.putIfAbsent(key, value)` and `store.putAll(entries)` store the values with the
+  timestamp of the record that is being processed
+
+To work with the timestamps, use these methods. They only exist on timestamped stores:
+
+- `store.getWithTimestamp(key)` - A dict with `value` and `timestamp`, or `None` if the key is not found
+- `store.put(key, value, timestamp)` and `store.putIfAbsent(key, value, timestamp)` - Store the value with the given
+  timestamp in milliseconds
+- `store.allWithTimestamp()`, `store.rangeWithTimestamp(keyFrom, keyTo)`,
+  `store.reverseRangeWithTimestamp(keyFrom, keyTo)`, `store.reverseAllWithTimestamp()` and
+  `store.prefixScanWithTimestamp(prefix)` - Entries with `key`, `value` and `timestamp`
+
+The store of a `count`, `aggregate`, `reduce` or table keeps timestamps only with `timestamped: true` or
+`persistent: false`. Otherwise, the `*WithTimestamp` methods return `-1` as the timestamp.
+
+In `putAll`, a dict entry can have a `timestamp` field. That entry is stored with this timestamp, so
+`store.putAll(other_store.allWithTimestamp())` copies a store with its timestamps. A `(key, value, timestamp)` tuple
+is not accepted. A plain key-value store ignores the `timestamp` field.
+
+A negative timestamp raises a `ValueError` and writes nothing, because Kafka cannot write it to a changelog topic.
+To copy a store that returns `-1` as the timestamp, use `store.putAll(other_store.all())`: the entries then get the
+timestamp of the current record.
+
+```python
+last = store.getWithTimestamp(key)
+if last is not None and last["timestamp"] > timestamp_limit:
+  log.info("recent value: {}", last["value"])
+store.put(key, value)  # stored with the timestamp of the current record
+```
+
+### Timestamped Window Stores
+
+A windowed aggregation, such as `count` or `aggregate`, keeps its results in a timestamped window store. When a
+Python function lists this store in its `stores`, it gets the same methods as a
+[plain window store](#window-store-methods), with the same results:
+
+- `store.fetch(key, time)` returns only the value
+- `store.fetch(...)`, `store.backwardFetch(...)`, `store.fetchAll(...)`, `store.backwardFetchAll(...)`, `store.all()`
+  and `store.backwardAll()` give entries with `key` and `value`
+- `store.put(key, value, windowStartTimestamp)` stores the value with the timestamp of the record that is being processed
+
+To work with the timestamps, use these methods:
+
+- `store.fetchWithTimestamp(key, time)` - A dict with `value` and `timestamp`, or `None` if there is no value
+- `store.put(key, value, windowStartTimestamp, timestamp)` - Store the value with the given timestamp
+- `fetchWithTimestamp`, `backwardFetchWithTimestamp`, `fetchAllWithTimestamp`, `backwardFetchAllWithTimestamp`,
+  `allWithTimestamp` and `backwardAllWithTimestamp` - The same arguments as the methods without `WithTimestamp`, and
+  entries with `key`, `value` and `timestamp`
+
+The store of a windowed aggregation keeps timestamps only with `timestamped: true` or `persistent: false`.
+Otherwise, the `*WithTimestamp` methods return `-1` as the timestamp.
+A negative timestamp in `put` raises a `ValueError`, as on a timestamped key-value store.
+
+### Versioned Key-Value Stores
+
+A key-value store with `versioned: true` keeps the old values of a key for the `historyRetention` time. Unlike on the
+other stores, `get` returns a dict, not the value:
+
+- `store.get(key)` - The newest value, as a dict with `value` and `timestamp`, or `None`
+- `store.get(key, as_of_timestamp)` - The value that was valid at `as_of_timestamp`, as a dict with `value`,
+  `timestamp` and, if a newer value replaced it, `validTo`. `None` if there was no value
+- `store.put(key, value, timestamp)` - Store the value from `timestamp` on. Returns the time until which the value is
+  valid, `-1` if it is the newest value, or `-9223372036854775808` if it was not written
+- `store.delete(key, timestamp)` - Delete the key from `timestamp` on, and return the value that was valid at that
+  time as a dict, or `None`
+
+`put` and `delete` do nothing when `timestamp` is older than the newest time the store has seen minus the
+`historyRetention`.
+
+### Reading Many Entries with Iterators
+
+Store methods that return many entries return an iterator. Each entry is a dict with `key` and `value`.
+The `key` depends on the method:
+
+| Method | `key` of each entry |
+|---|---|
+| Key-value store: `all()`, `reverseAll()`, `range()`, `reverseRange()`, `prefixScan()` | the key |
+| Window store: `fetch(key, timeFrom, timeTo)`, `backwardFetch(key, timeFrom, timeTo)` | the window start time |
+| Window store: `all()`, `fetchAll()`, `fetch(keyFrom, keyTo, timeFrom, timeTo)` and their `backward` variants | a dict with `key`, `start`, `end`, `startTime` and `endTime` |
+| Session store: `fetch()`, `findSessions()` and their `backward` variants | a dict with `key`, `start`, `end`, `startTime` and `endTime` |
+
+`fetch(key, time)` on a window store returns one value, not an iterator.
+
+Use the iterator like any Python iterator:
+
+```python
+for entry in store.all():
+  log.info("key={}, value={}", entry["key"], entry["value"])
+
+entries = list(store.all())
+```
+
+A store iterator holds resources (for RocksDB stores, native memory) until it is closed. KSML closes it when all
+entries are read, and when the function returns. So a loop can end early with `break`, `return` or an exception:
+
+```python
+found = None
+for entry in store.all():
+  if entry["value"] == value:
+    found = entry["key"]
+    break
+```
+
+Do not keep an iterator in a global variable for a later call: it is closed by then, and using it raises an error.
+To close an iterator before the function returns, use `contextlib.closing()`. A plain `with store.all() as entries:`
+does not work.
+
+Iterators also have the methods `hasNext()`, `next()` (returns `None` after the last entry), `peekNextKey()`
+(returns the next key without moving forward, or `None`) and `close()`.
 
 ## Storage Architecture
 

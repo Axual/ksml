@@ -1224,5 +1224,6 @@ When your Python functions execute, they have access to:
     - `store.put(key, value)` - Store a value
     - `store.delete(key)` - Remove a value
     - Must be declared in the function's `stores` parameter
+    - See [Python Store Methods](state-store-reference.md#python-store-methods) for all methods
 
 This execution context provides the tools needed for debugging, monitoring, and implementing stateful processing.

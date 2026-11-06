@@ -20,6 +20,7 @@ package io.axual.ksml.operation.processor;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.definition.StateStoreDefinition;
 import io.axual.ksml.exception.ExecutionException;
 import io.axual.ksml.proxy.store.ProxyUtil;
 import io.axual.ksml.store.StateStores;
@@ -28,6 +29,8 @@ import org.apache.kafka.streams.processor.api.FixedKeyProcessor;
 import org.apache.kafka.streams.processor.api.FixedKeyProcessorContext;
 import org.apache.kafka.streams.processor.api.FixedKeyRecord;
 
+import java.util.function.Function;
+
 public abstract class FixedKeyOperationProcessor implements FixedKeyProcessor<Object, Object, Object> {
     protected FixedKeyProcessorContext<Object, Object> context;
     private final String name;
@@ -35,10 +38,16 @@ public abstract class FixedKeyOperationProcessor implements FixedKeyProcessor<Ob
     protected final StateStores stores = new StateStores();
     // The timestamp of the record that is being processed, null between records
     private Long recordTimestamp;
+    private Function<String, StateStoreDefinition> storeDefinitions = storeName -> null;
 
     protected FixedKeyOperationProcessor(String name, String[] storeNames) {
         this.name = name;
         this.storeNames = storeNames;
+    }
+
+    /** Sets where {@link #init} looks up the definitions, and so the declared types, of the stores it wraps. */
+    void storeDefinitions(Function<String, StateStoreDefinition> storeDefinitions) {
+        this.storeDefinitions = storeDefinitions;
     }
 
     @Override
@@ -51,7 +60,7 @@ public abstract class FixedKeyOperationProcessor implements FixedKeyProcessor<Ob
                 throw new ExecutionException("Could not connect processor '" + name + "' to state store '" + storeName + "'");
             }
             // Wrap the store in a proxy for security
-            stores.put(storeName, ProxyUtil.wrapStateStore(store, () -> recordTimestamp != null ? recordTimestamp : ProxyUtil.noRecordTimestamp()));
+            stores.put(storeName, ProxyUtil.wrapStateStore(store, storeDefinitions.apply(storeName), () -> recordTimestamp != null ? recordTimestamp : ProxyUtil.noRecordTimestamp()));
         }
     }
 

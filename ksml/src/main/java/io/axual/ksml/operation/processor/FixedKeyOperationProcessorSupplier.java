@@ -20,8 +20,11 @@ package io.axual.ksml.operation.processor;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.definition.StateStoreDefinition;
 import org.apache.kafka.streams.processor.api.FixedKeyProcessor;
 import org.apache.kafka.streams.processor.api.FixedKeyProcessorSupplier;
+
+import java.util.function.Function;
 
 public class FixedKeyOperationProcessorSupplier<T> implements FixedKeyProcessorSupplier<Object, Object, Object> {
     public interface ProcessorFactory<T> {
@@ -32,16 +35,26 @@ public class FixedKeyOperationProcessorSupplier<T> implements FixedKeyProcessorS
     protected final ProcessorFactory<T> factory;
     protected final T action;
     protected final String[] storeNames;
+    protected final Function<String, StateStoreDefinition> storeDefinitions;
 
     public FixedKeyOperationProcessorSupplier(String name, ProcessorFactory<T> factory, T action, String[] storeNames) {
+        this(name, factory, action, storeNames, storeName -> null);
+    }
+
+    /** Like the other constructor; the processors look up the declared types of their stores in storeDefinitions. */
+    public FixedKeyOperationProcessorSupplier(String name, ProcessorFactory<T> factory, T action, String[] storeNames, Function<String, StateStoreDefinition> storeDefinitions) {
         this.name = name;
         this.factory = factory;
         this.action = action;
         this.storeNames = storeNames;
+        this.storeDefinitions = storeDefinitions;
     }
 
     @Override
     public FixedKeyProcessor<Object, Object, Object> get() {
-        return factory.create(name, action, storeNames);
+        final var processor = factory.create(name, action, storeNames);
+        // Only KSML's own processors use state store proxies
+        if (processor instanceof FixedKeyOperationProcessor operationProcessor) operationProcessor.storeDefinitions(storeDefinitions);
+        return processor;
     }
 }
