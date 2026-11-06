@@ -1055,8 +1055,8 @@ Monitor state store sizes:
 **Problem:** A tombstone (a record with a `null` value) is a delete, not a value
 
 **Solution:** `aggregate`, `reduce` and `count` skip tombstones, so the `aggregator` is not called for them. An empty
-value (zero bytes) on a `json` topic is not a tombstone: it still reaches the `aggregator` as `None`, so keep a check
-for it:
+value (zero bytes) with `valueType: json` (without a schema) is not a tombstone: it still reaches the `aggregator` as
+`None`, so keep a check for it:
 ```yaml
 code: |
   if value is None:

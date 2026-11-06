@@ -252,7 +252,7 @@ A tombstone is a record with a key but no value. It means "delete this key". In 
 An empty value (zero bytes) is not a tombstone. With `valueType: json` (without a schema) or a union type, it reaches
 your functions as `None`, but it is a value: `count`, `reduce` and `aggregate` do not skip it, also after a `groupBy`.
 With `valueType: string` it is an empty string. Other types, like `long`, `avro` or `json` with a schema, can not read
-an empty value and give an error.
+an empty value and give an error. A `convertValue` of an empty value to such a type gives a tombstone.
 
 ### Functions that are not called for a tombstone
 

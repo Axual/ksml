@@ -92,6 +92,16 @@ class TombstoneSerdeTest {
     }
 
     @Test
+    @DisplayName("null and a typed null are tombstones, DataNull (an empty value) and other data are not")
+    void isTombstone() {
+        assertThat(TombstoneSerde.isTombstone(null)).isTrue();
+        assertThat(TombstoneSerde.isTombstone(new DataString())).isTrue();
+        assertThat(TombstoneSerde.isTombstone(new DataStruct(null, true))).isTrue();
+        assertThat(TombstoneSerde.isTombstone(DataNull.INSTANCE)).isFalse();
+        assertThat(TombstoneSerde.isTombstone(new DataString(""))).isFalse();
+    }
+
+    @Test
     @DisplayName("Other data is serialized by the notation")
     void otherDataGoesToTheNotationSerializer() {
         assertThat(serde.serializer().serialize(TOPIC, "ab")).isEqualTo("ab".getBytes(StandardCharsets.UTF_8));

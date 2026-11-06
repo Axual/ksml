@@ -23,6 +23,7 @@ package io.axual.ksml.operation;
 import io.axual.ksml.testutil.KSMLTest;
 import io.axual.ksml.testutil.KSMLTestExtension;
 import io.axual.ksml.testutil.KSMLTopic;
+import io.axual.ksml.testutil.KSMLTopologyTest;
 import org.apache.kafka.streams.KeyValue;
 import org.apache.kafka.streams.TestInputTopic;
 import org.apache.kafka.streams.TestOutputTopic;
@@ -51,5 +52,27 @@ class KSMLConvertValueTest {
         assertThat(countTopic.readKeyValuesToList()).containsExactly(
                 new KeyValue<>("a", 1L),
                 new KeyValue<>("a", 2L));
+    }
+
+    @KSMLTopologyTest(topologies = {"pipelines/test-convertvalue-tombstone.yaml", "pipelines/test-convertvalue-tombstone-groupby.yaml"})
+    void testConvertValueMakesEmptyValueATombstone() {
+        // given an empty value (zero bytes) converted from json to string, which gives None
+        inputTopic.pipeInput("a", "{\"v\": 1}");
+        inputTopic.pipeInput("a", "");
+        inputTopic.pipeInput("a", "{\"v\": 2}");
+
+        // None is a tombstone, so the count skips it, with or without a repartition
+        assertThat(countTopic.readValuesToList()).containsExactly(1L, 2L);
+    }
+
+    @KSMLTest(topology = "pipelines/test-convertvalue-json-groupby.yaml")
+    void testConvertValueToJsonKeepsEmptyValue() {
+        // given an empty value (zero bytes) converted to json, which keeps it an empty value
+        inputTopic.pipeInput("a", "{\"v\": 1}");
+        inputTopic.pipeInput("a", "");
+        inputTopic.pipeInput("a", "{\"v\": 2}");
+
+        // an empty value is not a tombstone, also after a repartition, so it is counted
+        assertThat(countTopic.readValuesToList()).containsExactly(1L, 2L, 3L);
     }
 }

@@ -94,7 +94,7 @@ public interface DataObject extends DataEquals {
     String toString(Printer printer);
 
     /**
-     * Returns true if the value is Python's None: null, {@link DataNull} or a typed null, like a null struct.
+     * Returns true for null, {@link DataNull} and a typed null, like a null struct.
      */
     static boolean isNone(Object value) {
         return switch (value) {
