@@ -194,10 +194,10 @@ KSML 2.0.0 handles tombstones like Kafka Streams. This changes the result of som
 * On a table, `filter` and `filterNot` do not call the `predicate` for a tombstone. The delete is passed on.
 * A function that returns `None` gives a tombstone. From a `reducer` or `aggregator`, it deletes the key from the store. As a value, a later `count`, `reduce` or `aggregate` skips it.
 * A key mapper that returns `None` gives a real `null` key.
-* `groupBy`, `groupByKey`, `count`, `reduce` and `aggregate` skip a record with a `null` key, like Kafka Streams. That is a `null` key read from a topic, of any key type, or from a `groupBy` mapper that returns `None`. Before, such a record could stop the application with a `NullPointerException`.
+* `groupBy`, `groupByKey`, `count`, `reduce` and `aggregate` skip a record with a `null` key, like Kafka Streams. That is a `null` key read from a topic, of any key type, or from a `groupBy` mapper that returns `None`. A table, `toTable` and a `join` with a table skip it too, and a `leftJoin` with a table calls the `valueJoiner` with `None` for `value2`. Before, such a record could stop the application with a `NullPointerException`.
 * A join between tables writes a tombstone when the joined row is deleted. Consumers of the output topic get these tombstones.
 
-An empty value (zero bytes) is not a tombstone: it still reaches your functions as `None`, also after a `groupBy` or another step that uses an internal topic. If such a record is written to a topic without a change, the value stays empty. On the 1.x line it was written as a tombstone. But if a function returns that `None`, the result is now a tombstone.
+An empty value (zero bytes) is not a tombstone. With `valueType: json` (without a schema) or a union type, it still reaches your functions as `None`, also after a `groupBy` or another step that uses an internal topic. If such a record is written to a topic without a change, the value stays empty. On the 1.x line it was written as a tombstone. But if a function returns that `None`, the result is now a tombstone.
 
 [Tombstones and `None`](reference/function-reference.md#tombstones-and-none) and [Tombstones in joins](reference/operation-reference.md#tombstones-in-joins) list the details.
 

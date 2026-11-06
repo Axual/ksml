@@ -31,9 +31,8 @@ import java.nio.ByteBuffer;
 import java.util.Map;
 
 /**
- * Wraps a notation Serde so a tombstone is always null bytes on a topic and null in Kafka Streams,
- * also when the notation itself would make a typed null of it, or write None as a value.
- * An empty value (DataNull) is written as empty bytes, so it is not turned into a tombstone on an internal topic.
+ * Makes a tombstone null in Kafka Streams and null bytes on a topic, for every notation.
+ * An empty value (DataNull) is written as empty bytes.
  */
 public class TombstoneSerde implements Serde<Object> {
     private static final byte[] EMPTY = new byte[0];

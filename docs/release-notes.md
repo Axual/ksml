@@ -61,7 +61,7 @@ Major dependency upgrades. This release moves KSML to Jackson 3, Apicurio Regist
 * Fixed `aggregate` after `cogroup` and `windowBySession`, which always failed at startup with "Merger is expected to take at least 3 parameters".
 * Fixed: when Kafka Streams fails, for example after an error in a Python function, KSML now exits with code 1. Before, it kept running without processing, so Docker or Kubernetes did not restart it.
 * Fixed: on SIGTERM, KSML now commits and closes Kafka Streams before it exits, so records are not processed twice after a restart. See [Stopping KSML](reference/configuration-reference.md#stopping-ksml).
-* Breaking change: tombstones are now handled like in Kafka Streams. `count`, `reduce` and `aggregate` skip them, a join between tables writes a delete, and a function that returns `None` gives a tombstone. See [Upgrading to 2.0.0](migration-to-2.0.0.md).
+* Breaking change: tombstones are now handled like in Kafka Streams. `count`, `reduce` and `aggregate` skip them, a join between tables writes a delete, and a function that returns `None` gives a tombstone. An empty value is now written as empty bytes, not as a tombstone. See [Upgrading to 2.0.0](migration-to-2.0.0.md#tombstones-are-handled-like-in-kafka-streams).
 
 ## 1.3.0 (2026-06-23)
 

@@ -99,6 +99,14 @@ class TimestampedKeyValueStoreProxyTest {
     }
 
     @Test
+    @DisplayName("putIfAbsent with None does not store a value")
+    void putIfAbsentNoneStoresNoValue() {
+        pythonContext.context().getBindings("python").putMember("store", proxy());
+        pythonContext.context().eval("python", "store.putIfAbsent('key', None, 100)");
+        verify(delegate).putIfAbsent(any(), isNull());
+    }
+
+    @Test
     @DisplayName("putIfAbsent wraps the raw value with the given timestamp before storing")
     void putIfAbsentWrapsValueWithTimestamp() {
         when(delegate.putIfAbsent(any(), any())).thenReturn(null);
