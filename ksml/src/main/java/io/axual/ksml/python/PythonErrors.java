@@ -70,7 +70,7 @@ public final class PythonErrors {
     private static Context currentContext() {
         try {
             return Context.getCurrent();
-        } catch (IllegalStateException e) {
+        } catch (IllegalStateException _) {
             return null;
         }
     }
