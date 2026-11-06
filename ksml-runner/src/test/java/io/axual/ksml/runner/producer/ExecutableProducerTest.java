@@ -90,23 +90,20 @@ class ExecutableProducerTest {
             List.of(new StructSchema.Field("amount", DataSchema.INTEGER_SCHEMA)));
     private static final UserType ORDER_TYPE_JSON_SCHEMA = new UserType(JsonSchemaNotation.NOTATION_NAME, new StructType(ORDER_SCHEMA));
 
+    private Notation previousJsonSchema;
+    private Notation previousAvro;
+
     @BeforeEach
     void registerNotations() {
+        previousJsonSchema = ExecutionContext.INSTANCE.notationLibrary().getIfExists(JsonSchemaNotation.NOTATION_NAME);
+        previousAvro = ExecutionContext.INSTANCE.notationLibrary().getIfExists(AvroNotation.NOTATION_NAME);
+
         // DataObjectConverter.convert resolves notations from the ExecutionContext, so the default
         // notation must be registered for the type conversions inside shapeMessage to work.
         final var jsonNotation = new JsonNotation();
         ExecutionContext.INSTANCE.notationLibrary().register(JsonNotation.NOTATION_NAME, jsonNotation);
         final var binaryNotation = new BinaryNotation(jsonNotation::serde);
         ExecutionContext.INSTANCE.notationLibrary().register(UserType.DEFAULT_NOTATION, binaryNotation);
-    }
-
-    private Notation previousJsonSchema;
-    private Notation previousAvro;
-
-    @BeforeEach
-    void saveVendorNotations() {
-        previousJsonSchema = ExecutionContext.INSTANCE.notationLibrary().getIfExists(JsonSchemaNotation.NOTATION_NAME);
-        previousAvro = ExecutionContext.INSTANCE.notationLibrary().getIfExists(AvroNotation.NOTATION_NAME);
     }
 
     @AfterEach
