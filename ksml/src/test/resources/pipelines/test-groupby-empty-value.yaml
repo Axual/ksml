@@ -1,0 +1,23 @@
+# groupBy repartitions, so an empty value goes through an internal topic before it is counted.
+
+streams:
+  orders:
+    topic: json_input_topic
+    keyType: string
+    valueType: json
+  counts:
+    topic: output_topic
+    keyType: string
+    valueType: long
+
+pipelines:
+  count_orders:
+    from: orders
+    via:
+      - type: groupBy
+        mapper:
+          expression: key
+          resultType: string
+      - type: count
+      - type: toStream
+    to: counts

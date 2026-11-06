@@ -53,10 +53,10 @@ public class KSMLJoinTest {
     TestOutputTopic<String, String> sensorAlerts;
 
     @KSMLTopic(topic = "left_topic")
-    TestInputTopic<String, String> leftTable;
+    TestInputTopic<String, String> leftTopic;
 
     @KSMLTopic(topic = "right_topic")
-    TestInputTopic<String, String> rightTable;
+    TestInputTopic<String, String> rightTopic;
 
     @KSMLTopic(topic = "output_topic")
     TestOutputTopic<String, String> tableJoinOut;
@@ -66,9 +66,9 @@ public class KSMLJoinTest {
 
     @KSMLTest(topology = "pipelines/test-join-table-tombstone.yaml")
     void testTableJoinTombstoneDeletesRow() {
-        leftTable.pipeInput("key1", "{\"v\": 1}");
-        rightTable.pipeInput("key1", "{\"v\": 2}");
-        leftTable.pipeInput("key1", (String) null);
+        leftTopic.pipeInput("key1", "{\"v\": 1}");
+        rightTopic.pipeInput("key1", "{\"v\": 2}");
+        leftTopic.pipeInput("key1", (String) null);
 
         // the delete on the left table should delete the joined row, like in Kafka Streams
         final var result = tableJoinOut.readKeyValuesToList();
@@ -121,10 +121,10 @@ public class KSMLJoinTest {
 
     @KSMLTest(topology = "pipelines/test-join-joiner-none.yaml")
     void testValueJoinerNoneIsTombstone() {
-        rightTable.pipeInput("a", "{\"name\": \"Ann\"}");
-        leftTable.pipeInput("a", "{\"amount\": 1}");
-        leftTable.pipeInput("a", "{\"amount\": 0}");
-        leftTable.pipeInput("a", "{\"amount\": 2}");
+        rightTopic.pipeInput("a", "{\"name\": \"Ann\"}");
+        leftTopic.pipeInput("a", "{\"amount\": 1}");
+        leftTopic.pipeInput("a", "{\"amount\": 0}");
+        leftTopic.pipeInput("a", "{\"amount\": 2}");
 
         // the joiner returns None for an amount of 0, which is a tombstone, so the count skips it
         assertThat(joinCountTopic.readKeyValuesToList()).containsExactly(

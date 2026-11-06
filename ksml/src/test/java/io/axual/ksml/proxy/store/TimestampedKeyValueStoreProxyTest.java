@@ -36,6 +36,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -87,6 +88,14 @@ class TimestampedKeyValueStoreProxyTest {
         verify(delegate).put(any(), captor.capture());
         assertThat(captor.getValue().timestamp()).isEqualTo(100L);
         assertThat(captor.getValue().value()).isNotNull();
+    }
+
+    @Test
+    @DisplayName("put with None deletes the key")
+    void putNoneDeletes() {
+        pythonContext.context().getBindings("python").putMember("store", proxy());
+        pythonContext.context().eval("python", "store.put('key', None, 100)");
+        verify(delegate).put(any(), isNull());
     }
 
     @Test

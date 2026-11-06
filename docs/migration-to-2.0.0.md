@@ -197,7 +197,7 @@ KSML 2.0.0 handles tombstones like Kafka Streams. This changes the result of som
 * `groupBy`, `groupByKey`, `count`, `reduce` and `aggregate` skip a record with a `null` key, like Kafka Streams. That is a `null` key read from a topic, of any key type, or from a `groupBy` mapper that returns `None`. Before, such a record could stop the application with a `NullPointerException`.
 * A join between tables writes a tombstone when the joined row is deleted. Consumers of the output topic get these tombstones.
 
-An empty value (zero bytes) is not a tombstone: it still reaches your functions as `None`. But if a function returns that `None`, the result is now a tombstone.
+An empty value (zero bytes) is not a tombstone: it still reaches your functions as `None`, also after a `groupBy` or another step that uses an internal topic. If such a record is written to a topic without a change, the value stays empty. On the 1.x line it was written as a tombstone. But if a function returns that `None`, the result is now a tombstone.
 
 [Tombstones and `None`](reference/function-reference.md#tombstones-and-none) and [Tombstones in joins](reference/operation-reference.md#tombstones-in-joins) list the details.
 
@@ -205,6 +205,7 @@ What you need to do:
 
 * If a `reducer` or `aggregator` handles `None` to process deletes, handle the delete before the grouping instead. For example, a `mapValues` that returns `{"deleted": True}` for `None` turns the tombstone into a value that the `aggregator` gets.
 * If a function returns `None` and a later step should still see the record, return a value instead.
+* If a `groupBy` mapper returns `None` for some records, return a real key instead, or the records are skipped.
 * If a pipeline writes a join between tables to a topic, check that the consumers of that topic accept tombstones.
 * State built by 1.x is not recomputed: counts that include tombstones and joined rows that were not deleted stay as they are. If they must be correct, reset the application and process the input again.
 

@@ -400,7 +400,8 @@ The `mapper` can be defined using:
 - `expression`: A simple expression returning the grouping key
 - `code`: A Python code block returning the grouping key
 
-A `mapper` that returns `None` gives a `null` key, so the record is skipped, like in Kafka Streams.
+A `mapper` that returns `None` gives a `null` key, so the next `count`, `reduce` or `aggregate` skips the record, like
+in Kafka Streams.
 
 #### Example
 
@@ -420,7 +421,7 @@ Groups records by their existing key for subsequent aggregation operations.
 
 None. This operation is typically followed by an aggregation operation.
 
-A record with a `null` key is skipped, like in Kafka Streams.
+A record with a `null` key is skipped by the next `count`, `reduce` or `aggregate`, like in Kafka Streams.
 
 #### Example
 
