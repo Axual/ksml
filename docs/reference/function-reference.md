@@ -249,8 +249,10 @@ parameters like `key` and `value` are still available in your function code.
 A tombstone is a record with a key but no value. It means "delete this key". In Python, the value of a tombstone is
 `None`. KSML handles tombstones like Kafka Streams does.
 
-An empty value (zero bytes) is not a tombstone. It also reaches your functions as `None`, but it is a value: `count`,
-`reduce` and `aggregate` do not skip it, also after a `groupBy`.
+An empty value (zero bytes) is not a tombstone. With `valueType: json` (without a schema) or a union type, it reaches
+your functions as `None`, but it is a value: `count`, `reduce` and `aggregate` do not skip it, also after a `groupBy`.
+With `valueType: string` it is an empty string. Other types, like `long`, `avro` or `json` with a schema, can not read
+an empty value and give an error.
 
 ### Functions that are not called for a tombstone
 

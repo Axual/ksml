@@ -175,7 +175,6 @@ public class TimestampedKeyValueStoreProxy extends AbstractStateStoreProxy<Times
 
     // None must be a real null, so put deletes the key like in Kafka Streams
     private static Object valueOrNull(Object value) {
-        final var result = DATA_OBJECT_MAPPER.toDataObject(value);
-        return DataObject.isNone(result) ? null : result;
+        return DataObject.nullIfNone(DATA_OBJECT_MAPPER.toDataObject(value));
     }
 }

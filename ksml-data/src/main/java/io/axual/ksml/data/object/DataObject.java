@@ -106,4 +106,11 @@ public interface DataObject extends DataEquals {
             default -> false;
         };
     }
+
+    /**
+     * Returns null if the value is None (see {@link #isNone}), else the value itself.
+     */
+    static <T> T nullIfNone(T value) {
+        return isNone(value) ? null : value;
+    }
 }

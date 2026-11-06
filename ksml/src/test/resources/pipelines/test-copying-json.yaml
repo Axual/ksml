@@ -1,0 +1,16 @@
+# Copies a json stream, so the output shows how an empty value and a tombstone are written.
+
+streams:
+  orders:
+    topic: ksml_sensordata_avro
+    keyType: string
+    valueType: json
+  orders_copy:
+    topic: ksml_sensordata_copy
+    keyType: string
+    valueType: json
+
+pipelines:
+  main:
+    from: orders
+    to: orders_copy
