@@ -77,12 +77,18 @@ class TombstoneSerdeTest {
     }
 
     @Test
-    @DisplayName("None, also DataNull or a typed null, is serialized as a tombstone")
-    void noneIsTombstone() {
-        assertThat(serde.serializer().serialize(TOPIC, DataNull.INSTANCE)).isNull();
+    @DisplayName("A typed null is serialized as a tombstone")
+    void typedNullIsTombstone() {
         assertThat(serde.serializer().serialize(TOPIC, new DataString())).isNull();
         assertThat(serde.serializer().serialize(TOPIC, new RecordHeaders(), new DataStruct(null, true))).isNull();
         assertThat(serde.serializer().serialize(TOPIC, new DataString(""))).as("an empty string is a value").isNotNull();
+    }
+
+    @Test
+    @DisplayName("An empty value (DataNull) is serialized as empty bytes, not as a tombstone")
+    void emptyValueStaysEmpty() {
+        assertThat(serde.serializer().serialize(TOPIC, DataNull.INSTANCE)).isEmpty();
+        assertThat(serde.serializer().serialize(TOPIC, new RecordHeaders(), DataNull.INSTANCE)).isEmpty();
     }
 
     @Test

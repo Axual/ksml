@@ -20,6 +20,7 @@ package io.axual.ksml.runner.producer;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.notation.Notation;
 import io.axual.ksml.data.notation.NotationContext;
 import io.axual.ksml.data.notation.binary.BinaryNotation;
 import io.axual.ksml.data.notation.avro.AvroNotation;
@@ -55,6 +56,7 @@ import org.apache.kafka.common.header.Headers;
 import org.apache.kafka.common.header.internals.RecordHeaders;
 import org.apache.kafka.common.serialization.ByteArraySerializer;
 import org.apache.kafka.common.serialization.Serializer;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -96,6 +98,29 @@ class ExecutableProducerTest {
         ExecutionContext.INSTANCE.notationLibrary().register(JsonNotation.NOTATION_NAME, jsonNotation);
         final var binaryNotation = new BinaryNotation(jsonNotation::serde);
         ExecutionContext.INSTANCE.notationLibrary().register(UserType.DEFAULT_NOTATION, binaryNotation);
+    }
+
+    private Notation previousJsonSchema;
+    private Notation previousAvro;
+
+    @BeforeEach
+    void saveVendorNotations() {
+        previousJsonSchema = ExecutionContext.INSTANCE.notationLibrary().getIfExists(JsonSchemaNotation.NOTATION_NAME);
+        previousAvro = ExecutionContext.INSTANCE.notationLibrary().getIfExists(AvroNotation.NOTATION_NAME);
+    }
+
+    @AfterEach
+    void restoreVendorNotations() {
+        restore(JsonSchemaNotation.NOTATION_NAME, previousJsonSchema);
+        restore(AvroNotation.NOTATION_NAME, previousAvro);
+    }
+
+    private static void restore(String name, Notation previous) {
+        if (previous != null) {
+            ExecutionContext.INSTANCE.notationLibrary().register(name, previous);
+        } else {
+            ExecutionContext.INSTANCE.notationLibrary().unregister(name);
+        }
     }
 
     private static ProducerStrategy acceptingStrategy() {

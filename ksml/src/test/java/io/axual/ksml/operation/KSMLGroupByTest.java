@@ -25,6 +25,7 @@ import io.axual.ksml.testutil.KSMLTestExtension;
 import io.axual.ksml.testutil.KSMLTopic;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.avro.generic.GenericRecord;
+import org.apache.kafka.streams.KeyValue;
 import org.apache.kafka.streams.TestInputTopic;
 import org.apache.kafka.streams.TestOutputTopic;
 import org.junit.jupiter.api.DisplayName;
@@ -92,5 +93,30 @@ public class KSMLGroupByTest {
         assertThat(result).hasSize(1);
         assertThat(result.getFirst().key).isEqualToIgnoringWhitespace("{\"region\":\"eu\"}");
         assertThat(result.getFirst().value).isEqualTo(1L);
+    }
+
+    @KSMLTest(topology = "pipelines/test-groupby-empty-value.yaml")
+    void testGroupByCountsEmptyValues() {
+        // given an empty value (zero bytes) between two orders, which goes through the repartition topic
+        jsonInputTopic.pipeInput("a", "{\"amount\": 1}");
+        jsonInputTopic.pipeInput("a", "");
+        jsonInputTopic.pipeInput("a", "{\"amount\": 4}");
+
+        // an empty value is not a tombstone, also after a repartition, so it is counted
+        assertThat(outputTopic.readValuesToList()).containsExactly(1L, 2L, 3L);
+    }
+
+    @KSMLTest(topology = "pipelines/test-groupby-table-delete.yaml")
+    void testGroupByTableDeleteLowersTheCount() {
+        // given two users in eu, and then one of them is deleted
+        jsonInputTopic.pipeInput("u1", "{\"region\": \"eu\"}");
+        jsonInputTopic.pipeInput("u2", "{\"region\": \"eu\"}");
+        jsonInputTopic.pipeInput("u1", (String) null);
+
+        // the delete removes u1 from the eu count
+        assertThat(outputTopic.readKeyValuesToList()).containsExactly(
+                new KeyValue<>("eu", 1L),
+                new KeyValue<>("eu", 2L),
+                new KeyValue<>("eu", 1L));
     }
 }

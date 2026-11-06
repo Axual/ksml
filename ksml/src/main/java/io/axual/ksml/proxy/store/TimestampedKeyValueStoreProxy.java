@@ -20,6 +20,7 @@ package io.axual.ksml.proxy.store;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.object.DataObject;
 import io.axual.ksml.data.type.DataType;
 import org.apache.kafka.streams.state.KeyValueIterator;
 import org.apache.kafka.streams.state.TimestampedKeyValueStore;
@@ -146,7 +147,7 @@ public class TimestampedKeyValueStoreProxy extends AbstractStateStoreProxy<Times
 
     @HostAccess.Export
     public void put(Object key, Object value, long timestamp) {
-        delegate.put(DATA_OBJECT_MAPPER.toDataObject(toRequiredKey(key)), ValueAndTimestamp.make(DATA_OBJECT_MAPPER.toDataObject(toValue(value)), ProxyUtil.checkTimestamp(timestamp, "put")));
+        delegate.put(DATA_OBJECT_MAPPER.toDataObject(toRequiredKey(key)), ValueAndTimestamp.make(valueOrNull(toValue(value)), ProxyUtil.checkTimestamp(timestamp, "put")));
     }
 
     /** Like {@link KeyValueStoreProxy#putAll}; a dict entry may have a timestamp, others get the record timestamp. */
@@ -164,11 +165,17 @@ public class TimestampedKeyValueStoreProxy extends AbstractStateStoreProxy<Times
     /** Stores the value with the given timestamp if the key has none, and returns the existing value. */
     @HostAccess.Export
     public Object putIfAbsent(Object key, Object value, long timestamp) {
-        return ProxyUtil.toPython(ProxyUtil.valueOf(delegate.putIfAbsent(DATA_OBJECT_MAPPER.toDataObject(toRequiredKey(key)), ValueAndTimestamp.make(DATA_OBJECT_MAPPER.toDataObject(toValue(value)), ProxyUtil.checkTimestamp(timestamp, "putIfAbsent")))));
+        return ProxyUtil.toPython(ProxyUtil.valueOf(delegate.putIfAbsent(DATA_OBJECT_MAPPER.toDataObject(toRequiredKey(key)), ValueAndTimestamp.make(valueOrNull(toValue(value)), ProxyUtil.checkTimestamp(timestamp, "putIfAbsent")))));
     }
 
     /** A value {@code None} stays null, so putAll deletes the key without reading the record timestamp, like put. */
     private Object toPutAllValue(Object value, String role) {
         return value == null ? null : DATA_OBJECT_MAPPER.toDataObject(toValue(value, role));
+    }
+
+    // None must be a real null, so put deletes the key like in Kafka Streams
+    private static Object valueOrNull(Object value) {
+        final var result = DATA_OBJECT_MAPPER.toDataObject(value);
+        return DataObject.isNone(result) ? null : result;
     }
 }

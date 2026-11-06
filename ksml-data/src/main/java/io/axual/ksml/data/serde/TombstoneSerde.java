@@ -20,6 +20,7 @@ package io.axual.ksml.data.serde;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.object.DataNull;
 import io.axual.ksml.data.object.DataObject;
 import org.apache.kafka.common.header.Headers;
 import org.apache.kafka.common.serialization.Deserializer;
@@ -32,8 +33,10 @@ import java.util.Map;
 /**
  * Wraps a notation Serde so a tombstone is always null bytes on a topic and null in Kafka Streams,
  * also when the notation itself would make a typed null of it, or write None as a value.
+ * An empty value (DataNull) is written as empty bytes, so it is not turned into a tombstone on an internal topic.
  */
 public class TombstoneSerde implements Serde<Object> {
+    private static final byte[] EMPTY = new byte[0];
     private final Serde<Object> serde;
 
     public TombstoneSerde(Serde<Object> serde) {
@@ -68,11 +71,13 @@ public class TombstoneSerde implements Serde<Object> {
 
         @Override
         public byte[] serialize(String topic, Object data) {
+            if (data == DataNull.INSTANCE) return EMPTY;
             return DataObject.isNone(data) ? null : serializer.serialize(topic, data);
         }
 
         @Override
         public byte[] serialize(String topic, Headers headers, Object data) {
+            if (data == DataNull.INSTANCE) return EMPTY;
             return DataObject.isNone(data) ? null : serializer.serialize(topic, headers, data);
         }
 

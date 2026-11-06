@@ -159,6 +159,14 @@ class TimestampedKeyValueStoreProxyTest {
     }
 
     @Test
+    @DisplayName("put with None deletes the key")
+    void putNoneDeletes() {
+        pythonContext.context().getBindings("python").putMember("store", proxy());
+        pythonContext.context().eval("python", "store.put('key', None, 100)");
+        verify(delegate).put(any(), isNull());
+    }
+
+    @Test
     @DisplayName("putIfAbsent wraps the raw value with the given timestamp before storing")
     void putIfAbsentWrapsValueWithTimestamp() {
         when(delegate.putIfAbsent(any(), any())).thenReturn(null);
