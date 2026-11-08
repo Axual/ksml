@@ -274,6 +274,12 @@ What changes for a running application:
 * **Stream-stream joins.** The shared store of a `leftJoin` or `outerJoin` between two streams now has a changelog topic, unless both `thisStore` and `otherStore` set `logging: false`. In 1.x it only had one when `thisStore` set `logging: true`, and the `logging` of `otherStore` was ignored. If `thisStore` and `otherStore` have different `logging` values, KSML now stops with an error. The two window stores of the join always had changelog topics, and still do: `logging: false` on them now logs a warning. See [Changelog topics of stream-stream joins](reference/state-store-reference.md#for-stream-stream-joins).
 * **Timestamps.** A RocksDB store of a `count`, `aggregate`, `reduce` or table now keeps timestamps, so `getWithTimestamp` and `fetchWithTimestamp` return the record timestamp instead of `-1`.
 
+KSML now also follows the Kafka Streams setting `dsl.store.format`. With `dsl.store.format: HEADERS` in the `kafka`
+section of the runner config, declared stores that are persistent and timestamped keep the record headers with each
+value. The default (`DEFAULT`) changes nothing, so you only need to act if you set it: switch the format only on a new
+application or after a reset, because existing state keeps its old format. See
+[Store Format](reference/state-store-reference.md#store-format).
+
 To keep the KSML 1.x behavior for a store, set the options explicitly:
 
 ```yaml
