@@ -30,6 +30,7 @@ import io.axual.ksml.python.PythonDataObjectMapper;
 import io.axual.ksml.python.PythonErrors;
 import io.axual.ksml.python.PythonNativeMapper;
 import io.axual.ksml.type.UserType;
+import org.apache.kafka.common.header.Headers;
 import org.apache.kafka.common.serialization.Serializer;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.apache.kafka.streams.KeyValue;
@@ -49,6 +50,7 @@ import org.graalvm.polyglot.Value;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.LongSupplier;
+import java.util.function.Supplier;
 import java.util.function.BiFunction;
 
 /**
@@ -283,6 +285,16 @@ public class ProxyUtil {
         }
         // Return unwrapped for unknown store types
         return store;
+    }
+
+    /**
+     * Like {@link #wrapStateStore(StateStore, StateStoreDefinition, LongSupplier)}, and writes to headers-aware stores
+     * keep the headers of the record that is being processed.
+     *
+     * @param recordHeaders the headers of the record that is being processed
+     */
+    public static StateStore wrapStateStore(StateStore store, StateStoreDefinition definition, LongSupplier recordTimestamp, Supplier<Headers> recordHeaders) {
+        return wrapStateStore(store, definition, recordTimestamp);
     }
 
     private static DataType dataTypeOf(UserType type) {
