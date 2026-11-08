@@ -92,7 +92,8 @@ This applies to stores that are persistent and timestamped (both are the default
 them or Python functions use them, and to the window stores of stream-stream joins. It does not apply to in-memory
 stores (`persistent: false`), stores with `timestamped: false` and versioned stores: Kafka Streams has no
 headers-aware format for them. Session stores are headers-aware when they are persistent. With the default value
-`DEFAULT`, no store is headers-aware.
+`DEFAULT`, no store is headers-aware. Python functions use headers-aware stores with the same methods as before; see
+[Headers-Aware Stores](#headers-aware-stores).
 
 Operations without a `store` are not declared stores: Kafka Streams creates their stores and picks the format itself,
 also from `dsl.store.format`. Tables and globalTables without a `store` keep an in-memory store, which is not
@@ -485,6 +486,21 @@ A negative timestamp in `put` raises a `ValueError`, as on a timestamped key-val
 
 A window store under `stores:` that only Python functions use is a plain window store, also with `timestamped: true`.
 It has no `*WithTimestamp` methods.
+
+### Headers-Aware Stores
+
+With [`dsl.store.format: HEADERS`](#store-format), persistent stores keep the record headers with each value. Python
+uses them with the same methods, and gets the same results, as without headers:
+
+- A key-value store has the methods of a [timestamped key-value store](#timestamped-key-value-stores).
+- A window store has the methods of a [timestamped window store](#timestamped-window-stores), including the
+  `*WithTimestamp` methods. Without `HEADERS`, a window store under `stores` has the methods of a
+  [plain window store](#window-store-methods); the methods that both have return the same results.
+- A session store has the methods of a [session store](#session-store-methods).
+
+Reads never return headers. A write from Python stores the value with the headers of the record that is being
+processed, so the headers stay with the value in the store and its changelog topic, as Kafka Streams does for its own
+operations. A write while no record is being processed stores no headers.
 
 ### Versioned Key-Value Stores
 

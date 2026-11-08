@@ -35,7 +35,7 @@ Each implementation task follows TDD: first commit the failing test, then the fi
 - [x] 4.4 Add a parameterized end-to-end test (KSML definition plus Python in `TopologyTestDriver`) that runs the same keyValue, window and session store calls with the headers format off and on, and asserts the same Python results (spec "Same calls for both formats"). Verify it passes.
 - [x] 4.5 Add the test for the ticket's comment criterion: Python `store.get(key)` and `store.all()` on a keyValue store declared without options return the same results as on a `persistent: false, timestamped: false` store. Verify it passes.
 - [x] 4.6 Add an interactive query test (through `ksml-query` or the Kafka Streams IQ types) that a headers-aware keyValue store written from Python keeps the record's headers and can be queried as a plain keyValue store. Verify it passes.
-- [ ] 4.7 Document in `docs/reference/state-store-reference.md` (Python store API section) that headers-aware stores have the same Python API, that reads return values only, and that writes keep the current record's headers. Verify the docs build.
+- [x] 4.7 Document in `docs/reference/state-store-reference.md` (Python store API section) that headers-aware stores have the same Python API, that reads return values only, and that writes keep the current record's headers. Verify the docs build.
 
 ## 5. Integration verification
 
