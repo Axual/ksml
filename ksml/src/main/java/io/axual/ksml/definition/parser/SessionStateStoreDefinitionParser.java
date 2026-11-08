@@ -26,7 +26,9 @@ import io.axual.ksml.dsl.KSMLDSL;
 import io.axual.ksml.parser.DefinitionParser;
 import io.axual.ksml.parser.NamedObjectParser;
 import io.axual.ksml.parser.StructsParser;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 public class SessionStateStoreDefinitionParser extends DefinitionParser<SessionStateStoreDefinition> implements NamedObjectParser {
     private final boolean requireStoreType;
     private final boolean requireKeyValueType;
@@ -66,6 +68,7 @@ public class SessionStateStoreDefinitionParser extends DefinitionParser<SessionS
                 loggingField,
                 (name, persistent, timestamped, retention, keyType, valueType, caching, logging, tags) -> {
                     name = FieldParsers.validateName("Session state store", name, defaultShortName);
+                    warnIfTimestamped(name, timestamped);
                     return new SessionStateStoreDefinition(name, persistent, timestamped, retention, keyType, valueType, caching, logging);
                 });
 
@@ -81,8 +84,16 @@ public class SessionStateStoreDefinitionParser extends DefinitionParser<SessionS
                 loggingField,
                 (name, persistent, timestamped, retention, caching, logging, tags) -> {
                     name = FieldParsers.validateName("Session state store", name, defaultShortName);
+                    warnIfTimestamped(name, timestamped);
                     return new SessionStateStoreDefinition(name, persistent, timestamped, retention, null, null, caching, logging);
                 });
+    }
+
+    // Kafka Streams has no timestamped session store, so the setting has no effect
+    private static void warnIfTimestamped(String name, Boolean timestamped) {
+        if (timestamped != null) {
+            log.warn("Session state store \"{}\" sets \"timestamped\", which has no effect on session stores. Remove the setting", name);
+        }
     }
 
     @Override
