@@ -107,7 +107,7 @@ class HeadersStoreProxyTest {
         when(keyValueStore.get("key")).thenReturn(ValueTimestampHeaders.make("value", 100L, traceHeaders()));
         assertThat(runPython(wrap(keyValueStore, new RecordHeaders()), """
                 [store.get("key"), str(store.getWithTimestamp("key"))]
-                """)).containsExactly("value", "{'value': 'value', 'timestamp': 100}");
+                """)).containsExactly("value", "{'timestamp': 100, 'value': 'value'}");
     }
 
     @Test
@@ -172,7 +172,7 @@ class HeadersStoreProxyTest {
         when(windowStore.fetch("key", 1000L)).thenReturn(ValueTimestampHeaders.make("value", 100L, traceHeaders()));
         assertThat(runPython(wrap(windowStore, new RecordHeaders()), """
                 [store.fetch("key", 1000), str(store.fetchWithTimestamp("key", 1000))]
-                """)).containsExactly("value", "{'value': 'value', 'timestamp': 100}");
+                """)).containsExactly("value", "{'timestamp': 100, 'value': 'value'}");
     }
 
     @Test

@@ -39,8 +39,11 @@ import org.apache.kafka.streams.processor.StateStore;
 import org.apache.kafka.streams.state.KeyValueIterator;
 import org.apache.kafka.streams.state.KeyValueStore;
 import org.apache.kafka.streams.state.SessionStore;
+import org.apache.kafka.streams.state.SessionStoreWithHeaders;
 import org.apache.kafka.streams.state.TimestampedKeyValueStore;
+import org.apache.kafka.streams.state.TimestampedKeyValueStoreWithHeaders;
 import org.apache.kafka.streams.state.TimestampedWindowStore;
+import org.apache.kafka.streams.state.TimestampedWindowStoreWithHeaders;
 import org.apache.kafka.streams.state.ValueAndTimestamp;
 import org.apache.kafka.streams.state.VersionedKeyValueStore;
 import org.apache.kafka.streams.state.VersionedRecord;
@@ -293,7 +296,18 @@ public class ProxyUtil {
      *
      * @param recordHeaders the headers of the record that is being processed
      */
+    @SuppressWarnings("unchecked")
     public static StateStore wrapStateStore(StateStore store, StateStoreDefinition definition, LongSupplier recordTimestamp, Supplier<Headers> recordHeaders) {
+        // A headers-aware store is shown as the store type without headers, so Python gets the same methods and results
+        final var keyType = definition != null ? dataTypeOf(definition.keyType()) : null;
+        final var valueType = definition != null ? dataTypeOf(definition.valueType()) : null;
+        if (store instanceof TimestampedKeyValueStoreWithHeaders<?, ?> headersStore) {
+            return new TimestampedKeyValueStoreProxy(new HeadersKeyValueStoreAdapter((TimestampedKeyValueStoreWithHeaders<Object, Object>) headersStore, recordHeaders), keyType, valueType, recordTimestamp);
+        } else if (store instanceof TimestampedWindowStoreWithHeaders<?, ?> headersStore) {
+            return new TimestampedWindowStoreProxy(new HeadersWindowStoreAdapter((TimestampedWindowStoreWithHeaders<Object, Object>) headersStore, recordHeaders), keyType, valueType, recordTimestamp);
+        } else if (store instanceof SessionStoreWithHeaders<?, ?> headersStore) {
+            return new SessionStoreProxy(new HeadersSessionStoreAdapter((SessionStoreWithHeaders<Object, Object>) headersStore, recordHeaders), keyType, valueType);
+        }
         return wrapStateStore(store, definition, recordTimestamp);
     }
 
