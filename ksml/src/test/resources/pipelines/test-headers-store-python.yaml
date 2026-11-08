@@ -1,0 +1,36 @@
+# $schema: https://raw.githubusercontent.com/Axual/ksml/refs/heads/main/docs/ksml-language-spec.json
+
+# Python writes each record into a store. With the headers store format, the store keeps the record headers.
+streams:
+  headers_store_input:
+    topic: headers_store_input
+    keyType: string
+    valueType: string
+  headers_store_output:
+    topic: headers_store_output
+    keyType: string
+    valueType: string
+
+stores:
+  headers_store:
+    type: keyValue
+    keyType: string
+    valueType: string
+
+functions:
+  write_store:
+    type: valueTransformer
+    code: |
+      headers_store.put(key, value)
+    expression: value
+    resultType: string
+    stores:
+      - headers_store
+
+pipelines:
+  write_store_pipeline:
+    from: headers_store_input
+    via:
+      - type: transformValue
+        mapper: write_store
+    to: headers_store_output
