@@ -103,17 +103,23 @@ Where the headers come from: `OperationProcessor` and `FixedKeyOperationProcesso
 
 ### D6. Stream-stream join logging rule
 
-`BaseOperation.streamJoinedOf` stops calling `withLoggingDisabled()` unconditionally. It works out one logging value:
+KSML requires both `thisStore` and `otherStore` on a stream-stream join (the parser rejects a join without either), and passes both to Kafka Streams as store suppliers. Kafka Streams 4.4 (`KStreamImplJoin`) builds join stores from given suppliers with logging always on, and applies the `StreamJoined` logging flag only to stores it generates itself and to the shared store of a left or outer join. So:
 
-| thisStore | otherStore | logging |
+- The two join window stores always have changelog topics. This was already the case before this change.
+- `logging` on the join stores controls the shared store. `BaseOperation.streamJoinedOf` stops calling `withLoggingDisabled()` unconditionally and stops looking only at `thisStore`:
+
+| thisStore.logging | otherStore.logging | `StreamJoined` logging (shared store) |
 |---|---|---|
-| not declared | not declared | on (Kafka Streams default) |
-| declared | not declared | thisStore.logging |
-| not declared | declared | otherStore.logging |
-| declared | declared, same value | that value |
-| declared | declared, different | `TopologyException` naming both stores |
+| true (the default) | true (the default) | on |
+| false | false | off |
+| different values | | `TopologyException` naming both stores |
 
-Values are the ones D1 resolved, so a declared store without `logging` counts as `true`. Changelog and store names stay Kafka Streams' own (for example `<thisStore>-outer-shared-join-store` and `<app>-<store>-changelog`). Tests assert on the topology description, not on hard-coded names that KSML doesn't control.
+- A join store with `logging: false` logs a warning at build time: Kafka Streams keeps that store's changelog, and only the shared store's changelog is turned off.
+
+Values are the ones D1 resolved, so a store without `logging` counts as `true`. The conflict check applies to inner joins too, so the rule is the same for every stream-stream join. Changelog and store names stay Kafka Streams' own (for example `<thisStore>-outer-shared-join-store` and `<app>-<store>-changelog`). Tests assert on the produced changelog topics, not on hard-coded names that KSML doesn't control.
+
+- *Alternative: make `thisStore` and `otherStore` optional, so Kafka Streams creates the join stores itself.* Rejected for this change: it changes the parser, the JSON schema and the docs, which is beyond F13.
+- *Alternative: stop passing suppliers and let Kafka Streams build the join stores through `StreamJoined.withStoreName` and `DslStoreSuppliers`, so `logging: false` applies to all three stores.* Rejected: the stores get generated names instead of the declared ones, which renames the changelog topics of existing applications so they lose their join state on upgrade, and it needs the store validation and format handling reworked.
 
 ## Risks / Trade-offs
 
@@ -122,7 +128,7 @@ Values are the ones D1 resolved, so a declared store without `logging` counts as
 - [Switching `dsl.store.format` on an application with existing state] → Kafka Streams' headers stores can open plain or timestamped data through their migrating RocksDB stores. Whether that holds for every type is not something KSML guarantees: the migration guide advises a reset or a new application id, and says that switching back from HEADERS is unsupported.
 - [More tests run RocksDB, so the build gets slower] → Measure in group 1. Tests that don't care about persistence set `persistent: false`.
 - [The headers proxies duplicate the timestamped proxies] → Share conversion helpers, and run one parameterized test suite that runs the same Python calls against both formats (the spec's "same calls" scenario).
-- [Join logging conflict error on topologies that used to build] → It only happens when both stores are declared with different `logging`. The error message says how to fix it.
+- [Join logging conflict error on topologies that used to build] → It only happens when the two join stores have different `logging` values. The error message says how to fix it.
 
 ## Migration Plan
 

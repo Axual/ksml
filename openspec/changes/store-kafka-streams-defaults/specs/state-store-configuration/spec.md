@@ -65,17 +65,24 @@ When the runner's Kafka config sets `dsl.store.format` to `HEADERS`, declared st
 - **WHEN** `dsl.store.format` is `HEADERS` and a store is declared with `persistent: false`, with `timestamped: false`, or with `versioned: true`
 - **THEN** the store is built without the headers-aware format
 
-### Requirement: Stream-stream join stores log by default
-The join stores of a stream-stream join (inner, left or outer) SHALL log to changelog topics unless a declared join store sets `logging: false`. If both join stores are declared and their `logging` values differ, building the topology SHALL fail with an error that names both stores.
+### Requirement: Shared join store follows the join stores' logging
+The shared store of a stream-stream left or outer join SHALL log to a changelog topic when both declared join stores have `logging` true (the default), and SHALL NOT log when both have `logging` false. If the two join stores of any stream-stream join have different `logging` values, building the topology SHALL fail with an error that names both stores.
 
-#### Scenario: Join without declared stores
-- **WHEN** a pipeline uses an outer join between two streams and declares no join stores
-- **THEN** the join stores, including the outer join's shared store, have changelog topics
+#### Scenario: Join stores with default logging
+- **WHEN** a pipeline uses an outer join between two streams and declares `thisStore` and `otherStore` without `logging`
+- **THEN** the outer join's shared store has a changelog topic
 
-#### Scenario: Declared join store disables logging
-- **WHEN** a stream-stream join declares only `thisStore` with `logging: false`
-- **THEN** none of the join stores have a changelog topic
+#### Scenario: Join stores with logging off
+- **WHEN** an outer join between two streams declares `thisStore` and `otherStore` with `logging: false`
+- **THEN** the outer join's shared store has no changelog topic
 
 #### Scenario: Conflicting join store logging
 - **WHEN** a stream-stream join declares `thisStore` with `logging: true` and `otherStore` with `logging: false`
 - **THEN** building the topology fails with an error that names both stores
+
+### Requirement: Join window stores always log
+The two declared window stores of a stream-stream join SHALL always log to changelog topics, as Kafka Streams does for join stores that the application provides. When a join store sets `logging: false`, KSML SHALL log a warning that names the store and says that only the shared store's changelog is turned off.
+
+#### Scenario: Window stores with logging off
+- **WHEN** an outer join between two streams declares `thisStore` and `otherStore` with `logging: false`
+- **THEN** both window stores have changelog topics and a warning naming each store is logged
