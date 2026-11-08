@@ -1,0 +1,53 @@
+# $schema: https://raw.githubusercontent.com/Axual/ksml/refs/heads/main/docs/ksml-language-spec.json
+
+# An outer join whose stores both set logging: false: none of the join stores log.
+streams:
+  test_input1:
+    topic: input1
+    keyType: string
+    valueType: string
+  test_input2:
+    topic: input2
+    keyType: string
+    valueType: string
+  test_output:
+    topic: joined
+    keyType: string
+    valueType: string
+
+stores:
+  this_store:
+    type: window
+    keyType: string
+    valueType: string
+    retainDuplicates: true
+    windowSize: 2s
+    retention: 3s
+    logging: false
+  other_store:
+    type: window
+    keyType: string
+    valueType: string
+    retainDuplicates: true
+    windowSize: 2s
+    retention: 3s
+    logging: false
+
+functions:
+  join_values:
+    type: valueJoiner
+    resultType: string
+    expression: str(value1) + "," + str(value2)
+
+pipelines:
+  main:
+    from: test_input1
+    via:
+      - type: outerJoin
+        stream: test_input2
+        valueJoiner: join_values
+        timeDifference: 1s
+        grace: 1s
+        thisStore: this_store
+        otherStore: other_store
+    to: test_output
