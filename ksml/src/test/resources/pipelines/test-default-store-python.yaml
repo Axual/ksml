@@ -1,0 +1,52 @@
+# $schema: https://raw.githubusercontent.com/Axual/ksml/refs/heads/main/docs/ksml-language-spec.json
+
+# Python get() and all() on a store declared without options, and on a store with the options that a store without
+# options got before AXPD-12445 (in memory, not timestamped, no changelog). Both should give the same results.
+streams:
+  default_store_input:
+    topic: default_store_input
+    keyType: string
+    valueType: string
+  default_store_output:
+    topic: default_store_output
+    keyType: string
+    valueType: string
+
+stores:
+  default_store:
+    type: keyValue
+    keyType: string
+    valueType: json
+  old_default_store:
+    type: keyValue
+    keyType: string
+    valueType: json
+    persistent: false
+    timestamped: false
+    caching: false
+    logging: false
+
+functions:
+  read_stores:
+    type: valueTransformer
+    code: |
+      lines = []
+      for name, store in [("default", default_store), ("old_default", old_default_store)]:
+        store.put("a", {"count": 1})
+        store.put("b", {"count": 2})
+        entries = [str(e) for e in store.all()]
+        lines.append(name + " get=" + str(store.get("a")) + " missing=" + str(store.get("x")) + " all=" + ";".join(entries))
+      result = "\n".join(lines)
+    expression: result
+    resultType: string
+    stores:
+      - default_store
+      - old_default_store
+
+pipelines:
+  read_stores_pipeline:
+    from: default_store_input
+    via:
+      - type: transformValue
+        mapper: read_stores
+    to: default_store_output
