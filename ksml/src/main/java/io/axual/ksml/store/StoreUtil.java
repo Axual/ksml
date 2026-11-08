@@ -71,6 +71,16 @@ public class StoreUtil {
         return result;
     }
 
+    // Like Kafka Streams, stores built for processors are not cached unless the definition asks for it
+    private static boolean processorStoreCaching(StateStoreDefinition store) {
+        return Boolean.TRUE.equals(store.caching());
+    }
+
+    // Like Kafka Streams, stores materialized by DSL operations are cached unless the definition says otherwise
+    private static boolean materializedStoreCaching(StateStoreDefinition store) {
+        return !Boolean.FALSE.equals(store.caching());
+    }
+
     private static KeyValueBytesStoreSupplier getKeyValueStoreSupplier(KeyValueStateStoreDefinition store) {
         if (!store.persistent()) {
             return Stores.inMemoryKeyValueStore(store.name());
@@ -125,7 +135,7 @@ public class StoreUtil {
                     ? Stores.timestampedKeyValueStoreBuilder(supplier, keyType.serde(), valueType.serde())
                     : Stores.keyValueStoreBuilder(supplier, keyType.serde(), valueType.serde());
         }
-        storeBuilder = store.caching() ? storeBuilder.withCachingEnabled() : storeBuilder.withCachingDisabled();
+        storeBuilder = processorStoreCaching(store) ? storeBuilder.withCachingEnabled() : storeBuilder.withCachingDisabled();
         storeBuilder = store.logging() ? storeBuilder.withLoggingEnabled(new HashMap<>()) : storeBuilder.withLoggingDisabled();
         return storeBuilder;
     }
@@ -141,7 +151,7 @@ public class StoreUtil {
         final var valueType = new StreamDataType(store.valueType(), false);
         final var supplier = getSessionStoreSupplier(store);
         var storeBuilder = Stores.sessionStoreBuilder(supplier, keyType.serde(), valueType.serde());
-        storeBuilder = store.caching() ? storeBuilder.withCachingEnabled() : storeBuilder.withCachingDisabled();
+        storeBuilder = processorStoreCaching(store) ? storeBuilder.withCachingEnabled() : storeBuilder.withCachingDisabled();
         storeBuilder = store.logging() ? storeBuilder.withLoggingEnabled(new HashMap<>()) : storeBuilder.withLoggingDisabled();
         return storeBuilder;
     }
@@ -161,7 +171,7 @@ public class StoreUtil {
         final var valueType = new StreamDataType(store.valueType(), false);
         final var supplier = getWindowStoreSupplier(store);
         var storeBuilder = Stores.windowStoreBuilder(supplier, keyType.serde(), valueType.serde());
-        storeBuilder = store.caching() ? storeBuilder.withCachingEnabled() : storeBuilder.withCachingDisabled();
+        storeBuilder = processorStoreCaching(store) ? storeBuilder.withCachingEnabled() : storeBuilder.withCachingDisabled();
         storeBuilder = store.logging() ? storeBuilder.withLoggingEnabled(new HashMap<>()) : storeBuilder.withLoggingDisabled();
         return storeBuilder;
     }
@@ -191,7 +201,7 @@ public class StoreUtil {
         final var keySerde = new StreamDataType(store.keyType(), true).serde();
         @SuppressWarnings("unchecked") final var valueSerde = (Serde<V>) new StreamDataType(store.valueType(), false).serde();
         mat = mat.withKeySerde(keySerde).withValueSerde(valueSerde);
-        mat = store.caching() ? mat.withCachingEnabled() : mat.withCachingDisabled();
+        mat = materializedStoreCaching(store) ? mat.withCachingEnabled() : mat.withCachingDisabled();
         mat = store.logging() ? mat.withLoggingEnabled(new HashMap<>()) : mat.withLoggingDisabled();
         return new MaterializedStore<>(mat, keySerde, valueSerde);
     }
