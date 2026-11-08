@@ -1,6 +1,6 @@
 # $schema: https://raw.githubusercontent.com/Axual/ksml/refs/heads/main/docs/ksml-language-spec.json
 
-# Python reads the store of a windowed aggregate without timestamped: true, on an in-memory and a RocksDB store.
+# Python reads the store of a windowed aggregate with timestamped: false, on an in-memory and a RocksDB store.
 streams:
   windowed_aggregate_store_input:
     topic: windowed_aggregate_store_input
@@ -19,6 +19,7 @@ stores:
     windowSize: 1m
     retention: 1h
     persistent: false
+    timestamped: false
     caching: false
     logging: false
   window_total_rocksdb:
@@ -28,6 +29,7 @@ stores:
     windowSize: 1m
     retention: 1h
     persistent: true
+    timestamped: false
     caching: false
     logging: false
 

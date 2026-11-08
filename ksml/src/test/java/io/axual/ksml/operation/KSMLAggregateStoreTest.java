@@ -100,13 +100,13 @@ public class KSMLAggregateStoreTest {
     }
 
     @KSMLTest(topology = "pipelines/test-aggregate-store-python.yaml")
-    @DisplayName("get() on the store of an aggregate returns only the value, also without timestamped: true")
+    @DisplayName("get() on the store of an aggregate returns only the value, also with timestamped: false")
     void testPythonGetOnAggregateStore() {
         aggregateStoreInput.pipeInput("a", "1", 1000L);
         aggregateStoreInput.pipeInput("a", "2", 2000L);
 
         // get() returns the stored record, which has its own "value" field.
-        // Without timestamped: true, only the in-memory store keeps the timestamp; RocksDB returns -1.
+        // With timestamped: false, only the in-memory store keeps the timestamp; RocksDB returns -1.
         assertThat(aggregateStoreOutput.readValuesToList()).containsExactlyInAnyOrder(
                 "memory get=a:1 getWithTimestamp=1@1000",
                 "rocksdb get=a:1 getWithTimestamp=1@-1",
@@ -115,12 +115,12 @@ public class KSMLAggregateStoreTest {
     }
 
     @KSMLTest(topology = "pipelines/test-windowed-aggregate-store-python.yaml")
-    @DisplayName("fetch() on the store of a windowed aggregate returns only the value, also without timestamped: true")
+    @DisplayName("fetch() on the store of a windowed aggregate returns only the value, also with timestamped: false")
     void testPythonFetchOnWindowedAggregateStore() {
         windowedAggregateStoreInput.pipeInput("a", "1", 1000L);
         windowedAggregateStoreInput.pipeInput("a", "2", 2000L);
 
-        // Without timestamped: true, only the in-memory store keeps the timestamp; RocksDB returns -1.
+        // With timestamped: false, only the in-memory store keeps the timestamp; RocksDB returns -1.
         assertThat(windowedAggregateStoreOutput.readValuesToList()).containsExactlyInAnyOrder(
                 "memory fetch=a:1 fetchWithTimestamp=1@1000",
                 "rocksdb fetch=a:1 fetchWithTimestamp=1@-1",
