@@ -255,6 +255,16 @@ pipelines:
           retainDuplicates: true
 ```
 
+**Changelog topics of stream-stream joins:** A stream-stream join has two window stores, `thisStore` and
+`otherStore`. A `leftJoin` or `outerJoin` also has a shared store for records that have not found a match yet.
+Kafka Streams always gives the two window stores a changelog topic, also with `logging: false`. The `logging` setting
+of the two window stores decides whether the shared store gets a changelog topic:
+
+- Both without `logging`, or both `logging: true`: the shared store has a changelog topic. This is the default.
+- Both `logging: false`: the shared store has no changelog topic. KSML logs a warning for each window store, because
+  their own changelog topics stay.
+- Different values: KSML stops with an error that names both stores. Set `logging` to the same value on both.
+
 ### Retention Guidelines
 
 **For Window Aggregations:**
