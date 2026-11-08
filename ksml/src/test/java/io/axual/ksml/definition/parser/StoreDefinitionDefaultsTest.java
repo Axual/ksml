@@ -25,6 +25,7 @@ import io.axual.ksml.data.mapper.DataObjectFlattener;
 import io.axual.ksml.data.mapper.DataTypeFlattener;
 import io.axual.ksml.data.notation.NotationContext;
 import io.axual.ksml.data.notation.binary.BinaryNotation;
+import io.axual.ksml.definition.SessionStateStoreDefinition;
 import io.axual.ksml.execution.ExecutionContext;
 import io.axual.ksml.store.StoreUtil;
 import io.axual.ksml.parser.ParseNode;
@@ -37,6 +38,11 @@ import org.apache.kafka.streams.state.VersionedKeyValueStore;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+
+import java.io.ByteArrayOutputStream;
+import java.io.PrintStream;
+import java.nio.charset.StandardCharsets;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -134,5 +140,44 @@ class StoreDefinitionDefaultsTest {
         final var built = builder.build();
         assertThat(built.persistent()).isTrue();
         assertThat(built).isInstanceOf(VersionedKeyValueStore.class);
+    }
+
+    private static String stderrOf(ThrowingRunnable action) throws Exception {
+        // slf4j-simple writes to System.err
+        final var originalErr = System.err;
+        final var captured = new ByteArrayOutputStream();
+        System.setErr(new PrintStream(captured, true, StandardCharsets.UTF_8));
+        try {
+            action.run();
+        } finally {
+            System.setErr(originalErr);
+        }
+        return captured.toString(StandardCharsets.UTF_8);
+    }
+
+    private interface ThrowingRunnable {
+        void run() throws Exception;
+    }
+
+    @Test
+    @DisplayName("a session store with timestamped logs a warning naming the store and still builds")
+    void sessionStoreWithTimestampedWarns() throws Exception {
+        final var node = nodeOf("name: session_store\nkeyType: string\nvalueType: string\nretention: 1m\ntimestamped: true");
+        final var parser = new SessionStateStoreDefinitionParser(false, true).parser();
+        final var store = new AtomicReference<SessionStateStoreDefinition>();
+
+        final var log = stderrOf(() -> store.set(parser.parse(node)));
+
+        assertThat(log).contains("WARN").contains("session_store").contains("timestamped");
+        assertThat(StoreUtil.getStoreBuilder(store.get()).build()).isNotNull();
+    }
+
+    @Test
+    @DisplayName("a session store without timestamped logs no warning")
+    void sessionStoreWithoutTimestampedDoesNotWarn() throws Exception {
+        final var node = nodeOf("name: session_store\nkeyType: string\nvalueType: string\nretention: 1m");
+        final var parser = new SessionStateStoreDefinitionParser(false, true).parser();
+
+        assertThat(stderrOf(() -> parser.parse(node))).doesNotContain("timestamped");
     }
 }
