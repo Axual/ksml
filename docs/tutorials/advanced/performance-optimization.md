@@ -459,7 +459,7 @@ runner:
 **Key Configuration Details:**
 
 - **num.stream.threads**: Controls parallelism. Set based on CPU cores and partition count
-- **cache.max.bytes.buffering**: KSML automatically enables caching when `caching: true` is set on stores
+- **cache.max.bytes.buffering** (`statestore.cache.max.bytes` in newer Kafka Streams versions): The total size of the store caches. Stores that operations materialize are cached by default; set `caching: false` on a store to turn it off
 - **topology.optimization**: KSML defaults to `StreamsConfig.OPTIMIZE` for performance
 - **commit.interval.ms**: Balance between throughput and latency. Higher values = better throughput
 - **processing.guarantee**: `exactly_once_v2` provides stronger guarantees but lower performance
@@ -531,19 +531,19 @@ stores:
 
 **Configuration Parameter Details:**
 
-- **persistent**: 
+- **persistent** (default `true`): 
       - `true`: Uses RocksDB for disk persistence, survives restarts
       - `false`: In-memory only, faster but data lost on restart
   
-- **caching**: 
-      - `true`: KSML enables write caching to reduce downstream traffic
+- **caching** (default `true` when an operation materializes the store, `false` when Python functions use it): 
+      - `true`: KSML enables write caching to reduce downstream traffic. Results are emitted on commit (`commit.interval.ms`) or when the cache is full
       - `false`: Direct writes, lower latency but higher network usage
   
-- **logging**: 
+- **logging** (default `true`): 
       - `true`: Creates changelog topic for fault tolerance and exactly-once processing
       - `false`: No changelog, faster but no fault tolerance
   
-- **timestamped**: 
+- **timestamped** (default `true`): 
       - `true`: Stores values with timestamps for time-aware processing
       - `false`: Plain values, more efficient when timestamps not needed
   

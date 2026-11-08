@@ -22,6 +22,8 @@ Before you upgrade, check each item below:
 * Add `toTable` before any `join` or `leftJoin` with `foreignKeyExtractor` that has a stream as input.
 * Do not keep a store iterator in a global variable for a later function call.
 * If Python code reads `get(key)["value"]` or `["timestamp"]` on a store with `timestamped: true`, or on the store of a `count`, `aggregate`, `reduce` or non-versioned table, use `getWithTimestamp(key)` instead. The same applies to the results of `delete` and `putIfAbsent`, and to `fetch(key, time)` on the store of a windowed aggregation (use `fetchWithTimestamp`).
+* Check every store you declare under `stores` or in an operation: it is now persistent, timestamped and has a changelog topic unless it sets `persistent`, `timestamped` or `logging` to `false`. Make sure the application can create the changelog topics (or create them yourself) and that `state.dir` is on a volume that has room for RocksDB. See [Declared stores use the Kafka Streams defaults](#declared-stores-use-the-kafka-streams-defaults).
+* If you rely on every update of an `aggregate`, `count`, `reduce` or table being emitted, set `caching: false` on its store.
 * If Python code calls `put` or `remove` on a session store, check that each session key is a dict with `key`, `start` and `end`, with `int` times. A session key that is not valid now raises an error instead of being ignored.
 * If you build your own code on top of the KSML libraries, update the Jackson package names.
 * If you use `KeyValueIteratorProxy` or `WindowStoreIteratorProxy`, use `StoreIteratorProxy` instead, and create store proxies with `ProxyUtil.wrapStateStore`.
@@ -247,6 +249,44 @@ In KSML 2.0.0, any `int` time from 0 works and `start` may equal `end`. A sessio
 What you need to do: if a Python function writes or removes sessions, check that each session key is a dict with `key`, `start` and `end`, with `int` times, `start` not negative and not after `end`. Code that passed other keys wrote nothing before, so fixing it can change what your application stores.
 
 Keys and values of stores are now also converted to the store's `keyType` and `valueType`. Code that worked before keeps working; see [Keys and Values](reference/state-store-reference.md#keys-and-values).
+
+## Declared stores use the Kafka Streams defaults
+
+In KSML 1.x, a store you declared was kept in memory, had no changelog topic, was not timestamped and was not cached, unless you switched these options on. Its state was lost when the application restarted. In KSML 2.0.0, declared stores get the same defaults as in Kafka Streams:
+
+| Option | KSML 1.x default | KSML 2.0.0 default |
+|---|---|---|
+| `persistent` | `false` | `true` |
+| `logging` | `false` | `true` |
+| `timestamped` | `false` | `true` |
+| `caching` | `false` | `true` when an operation such as `aggregate`, `count`, `reduce` or a table materializes the store, `false` when Python functions use it |
+
+This applies to stores under `stores` and to stores declared inside an operation or on a table. Tables and globalTables without a `store`, and operations without a `store`, do not change. An option you set explicitly keeps its value.
+
+What changes for a running application:
+
+* **Changelog topics.** Each declared store gets a changelog topic named `<application.id>-<store name>-changelog`. If topics are created by hand or need ACLs in your cluster, create them or grant the application the right to create topics before the upgrade. A table with a `store` reuses its input topic as changelog when `topology.optimization` is `all`, which is the KSML runner's default.
+* **State on disk.** Persistent stores keep their state in RocksDB under `state.dir`. Put `state.dir` on a volume with enough room, and keep it between restarts so the stores do not have to be restored from their changelog every time.
+* **Fewer, later results from cached stores.** With caching, an `aggregate`, `count`, `reduce` or table emits the latest result for a key when Kafka Streams commits (`commit.interval.ms`) or when the cache is full (`statestore.cache.max.bytes`), instead of every update. Downstream steps and topics see fewer records. Set `caching: false` on the store if you need every update.
+* **Versioned stores.** A store with `versioned: true` but without `persistent: true` was silently a plain in-memory store in 1.x. It is now a real versioned store.
+* **Session stores.** Setting `timestamped` on a session store now logs a warning, because it has no effect there.
+* **Timestamps.** A RocksDB store of a `count`, `aggregate`, `reduce` or table now keeps timestamps, so `getWithTimestamp` and `fetchWithTimestamp` return the record timestamp instead of `-1`.
+
+To keep the KSML 1.x behavior for a store, set the options explicitly:
+
+```yaml
+stores:
+  my_store:
+    type: keyValue
+    keyType: string
+    valueType: json
+    persistent: false
+    logging: false
+    timestamped: false
+    caching: false
+```
+
+A store that was in memory without a changelog in 1.x started empty after every restart. After the upgrade, it starts empty once more, because there is no earlier state to restore, and from then on it keeps its state.
 
 ## Avro logical types
 
