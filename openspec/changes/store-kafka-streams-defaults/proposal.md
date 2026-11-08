@@ -2,7 +2,7 @@
 
 ## Why
 
-KSML builds declared state stores with its own defaults: in memory, no changelog, not timestamped and not cached. Kafka Streams defaults to persistent, logged and timestamped stores, and caches DSL stores. As a result, a KSML application silently loses state on restart unless the user knows to switch every option on. KSML also ignores the Kafka Streams `dsl.store.format` setting, and stream-stream joins never get a changelog. KSML 2.0 is the release where these defaults can change (AXPD-12445, findings F06, F13 and F26).
+KSML builds declared state stores with its own defaults: in memory, no changelog, not timestamped and not cached. Kafka Streams defaults to persistent, logged and timestamped stores, and caches DSL stores. As a result, a KSML application silently loses state on restart unless the user knows to switch every option on. KSML also ignores the Kafka Streams `dsl.store.format` setting, and the shared store of stream-stream left and outer joins only gets a changelog when `thisStore` sets `logging: true`. KSML 2.0 is the release where these defaults can change (AXPD-12445, findings F06, F13 and F26).
 
 ## What Changes
 
@@ -10,7 +10,7 @@ KSML builds declared state stores with its own defaults: in memory, no changelog
 - **BREAKING** A declared store that leaves out `caching` follows Kafka Streams. Caching is on when a DSL operation (for example `aggregate`, `count` or a table) materializes the store, and off when Python functions use the store. Today caching is always off.
 - A versioned keyValue store that leaves out `persistent` is now a real versioned store. Today it silently falls back to a plain in-memory store.
 - Setting `timestamped` on a session store logs a warning, because Kafka Streams has no timestamped session store and the setting has no effect.
-- **BREAKING** Stream-stream joins (inner, left and outer) log their join stores to changelog topics by default, as in Kafka Streams. Declared join stores control this through `logging`. If the two declared join stores ask for different `logging` values, the topology is rejected with a clear error.
+- **BREAKING** The shared store of a stream-stream left or outer join logs to a changelog topic by default, as in Kafka Streams. The two join stores, which KSML always requires, control this through `logging`. If they ask for different `logging` values, the topology is rejected with a clear error. The two join window stores keep logging always, as Kafka Streams does for stores the application provides, and `logging: false` on them logs a warning.
 - With `dsl.store.format: HEADERS` in the runner's Kafka config, persistent, timestamped, non-versioned declared stores are built in the headers-aware format. With the default setting (`DEFAULT`) nothing changes. In-memory stores, versioned stores and stores with `timestamped: false` are not affected.
 - Python functions can use headers-aware stores with the same API and results as timestamped stores. Reads return values, never headers. A write from Python stores the current record's headers with the value, or no headers when no record is being processed.
 - Documentation and a migration section explain the new defaults, the extra changelog topics and ACLs, RocksDB state on disk, caching emission timing, and how to opt out.
