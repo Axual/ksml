@@ -32,6 +32,9 @@ import org.apache.kafka.common.serialization.Deserializer;
 import org.apache.kafka.common.serialization.Serde;
 import org.apache.kafka.common.serialization.Serializer;
 import org.apache.kafka.streams.kstream.JoinWindows;
+import org.apache.kafka.streams.kstream.internals.MaterializedInternal;
+import org.apache.kafka.streams.processor.StateStore;
+import org.apache.kafka.streams.state.internals.WrappedStateStore;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -140,6 +143,43 @@ class StoreUtilTest {
     @DisplayName("materialize produces a materialized window store")
     void materializesWindowStore() {
         assertThat(StoreUtil.materialize(windowStore(true, false, false, Duration.ofSeconds(60), Duration.ofSeconds(10))).materialized()).isNotNull();
+    }
+
+    // --- caching defaults ------------------------------------------------------------------------
+
+    private static KeyValueStateStoreDefinition keyValueStoreWithCaching(Boolean caching) {
+        return new KeyValueStateStoreDefinition("store", null, null, null, null, null, UNKNOWN, UNKNOWN, caching, null);
+    }
+
+    // Every wrapper layer implements CachedStateStore, so look for the caching layer by its class name
+    private static boolean isCached(StateStore store) {
+        StateStore current = store;
+        while (current instanceof WrappedStateStore<?, ?, ?> wrapped) {
+            if (current.getClass().getSimpleName().startsWith("Caching")) return true;
+            current = wrapped.wrapped();
+        }
+        return false;
+    }
+
+    @Test
+    @DisplayName("a store without caching is cached when a DSL operation materializes it")
+    void materializedStoreIsCachedByDefault() {
+        final var materialized = new MaterializedInternal<>(StoreUtil.materialize(keyValueStoreWithCaching(null)).materialized());
+        assertThat(materialized.cachingEnabled()).isTrue();
+    }
+
+    @Test
+    @DisplayName("a store without caching is not cached when built for Python functions")
+    void processorStoreIsNotCachedByDefault() {
+        assertThat(isCached(StoreUtil.getStoreBuilder(keyValueStoreWithCaching(null)).build())).isFalse();
+    }
+
+    @Test
+    @DisplayName("an explicit caching value wins for both materialized and processor stores")
+    void explicitCachingWins() {
+        final var materialized = new MaterializedInternal<>(StoreUtil.materialize(keyValueStoreWithCaching(false)).materialized());
+        assertThat(materialized.cachingEnabled()).isFalse();
+        assertThat(isCached(StoreUtil.getStoreBuilder(keyValueStoreWithCaching(true)).build())).isTrue();
     }
 
     // --- validatedWindowStore --------------------------------------------------------------------
