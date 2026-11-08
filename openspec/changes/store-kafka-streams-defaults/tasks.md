@@ -15,8 +15,8 @@ Each implementation task follows TDD: first commit the failing test, then the fi
 
 ## 2. Stream-stream join store logging (design D6)
 
-- [ ] 2.1 Add failing topology tests: an outer stream-stream join whose two declared stores leave out `logging` has changelog topics for its window stores and its shared store; with both stores at `logging: false` the window stores still have changelog topics, the shared store has none, and a warning names each store; with different `logging` values, building fails with an error naming both stores. Verify the tests fail.
-- [ ] 2.2 Change `BaseOperation.streamJoinedOf` to use the logging rule from D6 instead of the unconditional `withLoggingDisabled()`. Verify the 2.1 tests pass and the existing join tests still pass.
+- [x] 2.1 Add failing topology tests: an outer stream-stream join whose two declared stores leave out `logging` has changelog topics for its window stores and its shared store; with both stores at `logging: false` the window stores still have changelog topics, the shared store has none, and a warning names each store; with different `logging` values, building fails with an error naming both stores. Verify the tests fail.
+- [x] 2.2 Change `BaseOperation.streamJoinedOf` to use the logging rule from D6 instead of the unconditional `withLoggingDisabled()`. Verify the 2.1 tests pass and the existing join tests still pass.
 - [ ] 2.3 Document the join changelog behavior (window stores always log, `logging` controls the shared store, the warning and the conflict error) in `docs/reference/state-store-reference.md` (or the join operation reference) and in the migration guide section from 1.8. Verify the docs build.
 
 ## 3. Headers store format (design D4)
