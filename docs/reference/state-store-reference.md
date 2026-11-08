@@ -78,6 +78,30 @@ default depends on how the store is used, again as in Kafka Streams:
 
 Tables and globalTables without a `store` are not affected: their stores stay in memory without a changelog topic.
 
+### Store Format
+
+With `dsl.store.format: HEADERS` in the `kafka` section of the runner config, KSML builds declared stores in the
+headers-aware format of Kafka Streams, which keeps the record headers with each value:
+
+```yaml
+kafka:
+  dsl.store.format: HEADERS
+```
+
+This applies to stores that are persistent and timestamped (both are the default), whether an operation materializes
+them or Python functions use them, and to the window stores of stream-stream joins. It does not apply to in-memory
+stores (`persistent: false`), stores with `timestamped: false` and versioned stores: Kafka Streams has no
+headers-aware format for them. Session stores are headers-aware when they are persistent. With the default value
+`DEFAULT`, no store is headers-aware.
+
+Operations without a `store` are not declared stores: Kafka Streams creates their stores and picks the format itself,
+also from `dsl.store.format`. Tables and globalTables without a `store` keep an in-memory store, which is not
+headers-aware.
+
+**Changing the format of a running application:** a store keeps its data on disk and in its changelog topic in the
+format it was created with. Before you switch `dsl.store.format` on an application that already has state, reset the
+application or give it a new `application.id`. Switching back from `HEADERS` to `DEFAULT` is not supported.
+
 ### Window Store Specific Parameters
 
 | Parameter | Type | Required | Default | Description |
