@@ -72,6 +72,23 @@ public class KSMLOuterJoinTest {
                 .containsEntry("4", "?,vier");
     }
 
+    @KSMLTest(topology = "pipelines/test-outerjoin-reference.yaml", headersStoreFormat = true)
+    @DisplayName("Two topics can be outer joined with the headers store format")
+    void testJoinWithHeadersStoreFormat() {
+        inputTopic1.pipeInput("1", "one", 100);
+        inputTopic1.pipeInput("3", "three", 100);
+        inputTopic2.pipeInput("1", "eins", 120);
+        inputTopic2.pipeInput("4", "vier", 120);
+
+        // and the join window has passed (by sending a message into the next window)
+        inputTopic1.pipeInput("5", "trois", 6000);
+
+        assertThat(mergedTopic.readKeyValuesToMap()).hasSize(3)
+                .containsEntry("1", "one,eins")
+                .containsEntry("3", "three,?")
+                .containsEntry("4", "?,vier");
+    }
+
     @KSMLTest(topology = "pipelines/test-outerjoin-inline.yaml")
     @DisplayName("Two topics can be outer joined with inline value joiner")
     void testJoinInline() {
