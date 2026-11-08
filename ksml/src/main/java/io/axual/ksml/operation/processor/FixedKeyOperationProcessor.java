@@ -24,6 +24,8 @@ import io.axual.ksml.definition.StateStoreDefinition;
 import io.axual.ksml.exception.ExecutionException;
 import io.axual.ksml.proxy.store.ProxyUtil;
 import io.axual.ksml.store.StateStores;
+import org.apache.kafka.common.header.Headers;
+import org.apache.kafka.common.header.internals.RecordHeaders;
 import org.apache.kafka.streams.processor.StateStore;
 import org.apache.kafka.streams.processor.api.FixedKeyProcessor;
 import org.apache.kafka.streams.processor.api.FixedKeyProcessorContext;
@@ -38,6 +40,8 @@ public abstract class FixedKeyOperationProcessor implements FixedKeyProcessor<Ob
     protected final StateStores stores = new StateStores();
     // The timestamp of the record that is being processed, null between records
     private Long recordTimestamp;
+    // The headers of the record that is being processed, null between records
+    private Headers recordHeaders;
     private Function<String, StateStoreDefinition> storeDefinitions = storeName -> null;
 
     protected FixedKeyOperationProcessor(String name, String[] storeNames) {
@@ -60,18 +64,22 @@ public abstract class FixedKeyOperationProcessor implements FixedKeyProcessor<Ob
                 throw new ExecutionException("Could not connect processor '" + name + "' to state store '" + storeName + "'");
             }
             // Wrap the store in a proxy for security
-            stores.put(storeName, ProxyUtil.wrapStateStore(store, storeDefinitions.apply(storeName), () -> recordTimestamp != null ? recordTimestamp : ProxyUtil.noRecordTimestamp()));
+            stores.put(storeName, ProxyUtil.wrapStateStore(store, storeDefinitions.apply(storeName),
+                    () -> recordTimestamp != null ? recordTimestamp : ProxyUtil.noRecordTimestamp(),
+                    () -> recordHeaders != null ? recordHeaders : new RecordHeaders()));
         }
     }
 
-    /** Remembers the timestamp of the record, so Python writes to timestamped stores can use it, then processes it. */
+    /** Remembers the timestamp and headers of the record, so Python writes to timestamped and headers-aware stores can use them, then processes it. */
     @Override
     public final void process(FixedKeyRecord<Object, Object> rec) {
         try {
             recordTimestamp = rec.timestamp();
+            recordHeaders = rec.headers();
             processRecord(rec);
         } finally {
             recordTimestamp = null;
+            recordHeaders = null;
         }
     }
 
