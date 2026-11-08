@@ -36,7 +36,9 @@ public abstract class StateStoreDefinition extends AbstractDefinition {
     private final boolean timestamped;
     private final UserType keyType;
     private final UserType valueType;
-    private final boolean caching;
+    // Null when the definition leaves caching out: Kafka Streams caches DSL stores but not processor stores,
+    // so the default depends on where the store is used
+    private final Boolean caching;
     private final boolean logging;
 
     protected StateStoreDefinition(StoreType type, String name, Boolean persistent, Boolean timestamped, UserType keyType, UserType valueType, Boolean caching, Boolean logging) {
@@ -49,7 +51,7 @@ public abstract class StateStoreDefinition extends AbstractDefinition {
         this.timestamped = timestamped == null || timestamped;
         this.keyType = keyType;
         this.valueType = valueType;
-        this.caching = caching != null && caching;
+        this.caching = caching;
         this.logging = logging == null || logging;
     }
 
