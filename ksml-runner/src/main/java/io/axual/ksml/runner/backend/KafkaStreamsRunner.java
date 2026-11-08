@@ -149,7 +149,7 @@ public class KafkaStreamsRunner implements Runner {
         final var topologyConfig = new TopologyConfig(streamsConfig);
         final var streamsBuilder = new StreamsBuilder(topologyConfig);
         var optimize = streamsProps.getOrDefault(StreamsConfig.TOPOLOGY_OPTIMIZATION_CONFIG, StreamsConfig.OPTIMIZE);
-        final var topologyGenerator = new TopologyGenerator(applicationId, (String) optimize, config.pythonContextConfig());
+        final var topologyGenerator = new TopologyGenerator(applicationId, (String) optimize, config.pythonContextConfig(), headersStoreFormat(streamsConfig));
         final var topology = topologyGenerator.create(streamsBuilder, config.definitions);
         final var topologyDesc = topology.describe();
         final var ksmlTagEnricher = KsmlTagEnricher.from(topologyDesc);
@@ -171,7 +171,8 @@ public class KafkaStreamsRunner implements Runner {
      * @return {@code true} for the headers-aware format
      */
     static boolean headersStoreFormat(StreamsConfig streamsConfig) {
-        return false;
+        // The same check that Kafka Streams makes; StreamsConfig already validated the value
+        return StreamsConfig.DSL_STORE_FORMAT_HEADERS.equalsIgnoreCase(streamsConfig.getString(StreamsConfig.DSL_STORE_FORMAT_CONFIG));
     }
 
     /**
