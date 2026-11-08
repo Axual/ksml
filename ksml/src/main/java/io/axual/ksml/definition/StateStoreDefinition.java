@@ -44,12 +44,13 @@ public abstract class StateStoreDefinition extends AbstractDefinition {
         Objects.requireNonNull(name, "State stores must have a defined name");
         this.type = type;
         this.name = name;
-        this.persistent = persistent != null && persistent;
-        this.timestamped = timestamped != null && timestamped;
+        // Like Kafka Streams, stores are persistent, timestamped and logged unless the definition says otherwise
+        this.persistent = persistent == null || persistent;
+        this.timestamped = timestamped == null || timestamped;
         this.keyType = keyType;
         this.valueType = valueType;
         this.caching = caching != null && caching;
-        this.logging = logging != null && logging;
+        this.logging = logging == null || logging;
     }
 
     @Override

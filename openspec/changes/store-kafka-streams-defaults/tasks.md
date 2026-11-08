@@ -4,8 +4,8 @@ Each implementation task follows TDD: first commit the failing test, then the fi
 
 ## 1. Declared store defaults (design D1-D3)
 
-- [ ] 1.1 Add failing tests in `StoreUtilTest` and the definition parser tests: a keyValue, window and session store declared without options is persistent, timestamped and logged; explicit `false` values are kept; a versioned store without `persistent` is a persistent versioned store. Verify the tests fail for the right reason.
-- [ ] 1.2 Change `StateStoreDefinition` (and subclasses, `with(...)`, `BaseOperation.validate*Store`) so `persistent`/`logging`/`timestamped` turn `null` into `true` and `caching` stays a nullable `Boolean`. Verify the 1.1 tests pass.
+- [x] 1.1 Add failing tests in `StoreUtilTest` and the definition parser tests: a keyValue, window and session store declared without options is persistent, timestamped and logged; explicit `false` values are kept; a versioned store without `persistent` is a persistent versioned store. Verify the tests fail for the right reason.
+- [x] 1.2 Change `StateStoreDefinition` (and subclasses, `with(...)`, `BaseOperation.validate*Store`) so `persistent`/`logging`/`timestamped` turn `null` into `true` and `caching` stays a nullable `Boolean`. Verify the 1.1 tests pass.
 - [ ] 1.3 Add failing tests for caching: a store without `caching` is cached when materialized by `aggregate`/`count` and not cached when built for Python functions; explicit `caching` wins in both cases. Then resolve caching in `StoreUtil.materialize` (null -> true) and `getStoreBuilder` (null -> false). Verify the tests pass.
 - [ ] 1.4 Add a failing test that a session store with `timestamped` logs a warning naming the store and still builds. Then add the warning in `SessionStateStoreDefinitionParser`. Verify the test passes.
 - [ ] 1.5 Run the full `ksml` module tests. Fix tests that relied on the old defaults with explicit flags or new expectations, and record the build time before and after to measure the RocksDB cost (design Open Question). Verify `mvn -pl ksml test` passes.

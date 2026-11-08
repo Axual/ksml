@@ -37,6 +37,7 @@ import org.apache.kafka.streams.state.SessionBytesStoreSupplier;
 import org.apache.kafka.streams.state.SessionStore;
 import org.apache.kafka.streams.state.StoreBuilder;
 import org.apache.kafka.streams.state.Stores;
+import org.apache.kafka.streams.state.VersionedBytesStoreSupplier;
 import org.apache.kafka.streams.state.WindowBytesStoreSupplier;
 import org.apache.kafka.streams.state.WindowStore;
 
@@ -75,12 +76,19 @@ public class StoreUtil {
             return Stores.inMemoryKeyValueStore(store.name());
         }
         if (store.versioned()) {
-            return Stores.persistentVersionedKeyValueStore(store.name(), store.historyRetention(), store.segmentInterval());
+            return getVersionedStoreSupplier(store);
         }
         if (store.timestamped()) {
             return Stores.persistentTimestampedKeyValueStore(store.name());
         }
         return Stores.persistentKeyValueStore(store.name());
+    }
+
+    private static VersionedBytesStoreSupplier getVersionedStoreSupplier(KeyValueStateStoreDefinition store) {
+        // Without a segment interval, Kafka Streams picks a default based on the history retention
+        return store.segmentInterval().isZero()
+                ? Stores.persistentVersionedKeyValueStore(store.name(), store.historyRetention())
+                : Stores.persistentVersionedKeyValueStore(store.name(), store.historyRetention(), store.segmentInterval());
     }
 
     @SuppressWarnings("java:S1452") // wildcard is unavoidable: KV/Session/Window store builders have unrelated type parameters
@@ -101,7 +109,7 @@ public class StoreUtil {
         StoreBuilder<?> storeBuilder;
         if (store.persistent()) {
             if (store.versioned()) {
-                final var supplier = Stores.persistentVersionedKeyValueStore(store.name(), store.historyRetention(), store.segmentInterval());
+                final var supplier = getVersionedStoreSupplier(store);
                 storeBuilder = Stores.versionedKeyValueStoreBuilder(supplier, keyType.serde(), valueType.serde());
             } else {
                 final var supplier = store.timestamped()
