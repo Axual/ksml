@@ -131,4 +131,4 @@ Values are the ones D1 resolved, so a declared store without `logging` counts as
 
 ## Open Questions
 
-- What the RocksDB cost in the test suite turns out to be. This only affects which tests get `persistent: false`, not the design.
+- ~~What the RocksDB cost in the test suite turns out to be.~~ Measured in task 1.5 on GraalVM: the `ksml` module tests take 49.8 s before and 54.6 s after (1047 vs 1057 tests). No tests need `persistent: false` for speed.
