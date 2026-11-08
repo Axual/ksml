@@ -88,16 +88,17 @@ Session stores have no timestamped variant, so for them `useHeaders` checks only
 - *Alternative: `Materialized.as(DslStoreSuppliers)` / `StreamJoined.withDslStoreSuppliers`, letting Kafka Streams pick the format.* Rejected: it can't express versioned stores, `timestamped: false` or validated join suppliers, and processor stores go through `StoreBuilder` anyway. We would end up with two mechanisms instead of one.
 - *Alternative: read the config from the `StreamsBuilder`.* Not possible, because the topology config isn't public on `StreamsBuilder`.
 
-### D5. New proxies for headers stores, reusing the timestamped API
+### D5. Adapters that show headers stores as the store types Python already knows
 
-Add `TimestampedKeyValueStoreWithHeadersProxy`, `TimestampedWindowStoreWithHeadersProxy` and `SessionStoreWithHeadersProxy`. `ProxyUtil.wrapStateStore` checks for `TimestampedKeyValueStoreWithHeaders`, `TimestampedWindowStoreWithHeaders` and `SessionStoreWithHeaders` **before** the generic `KeyValueStore`, `WindowStore` and `SessionStore` checks.
+Three package-private adapters show a headers-aware store as the store type without headers: `HeadersKeyValueStoreAdapter` as a `TimestampedKeyValueStore`, `HeadersWindowStoreAdapter` as a `TimestampedWindowStore` and `HeadersSessionStoreAdapter` as a `SessionStore`. `ProxyUtil.wrapStateStore` checks for `TimestampedKeyValueStoreWithHeaders`, `TimestampedWindowStoreWithHeaders` and `SessionStoreWithHeaders` **before** the generic store checks, and wraps the adapter in the existing `TimestampedKeyValueStoreProxy`, `TimestampedWindowStoreProxy` or `SessionStoreProxy`.
 
-- Python-facing methods and results match `TimestampedKeyValueStoreProxy`, `TimestampedWindowStoreProxy` and `SessionStoreProxy`.
-- On read: unwrap `ValueTimestampHeaders` to the value, or to `{value, timestamp}` for `*WithTimestamp` methods. Unwrap `AggregationWithHeaders` to the aggregate. `ProxyUtil.toPython` learns both types, and the iterator helpers get headers variants.
-- On write: wrap the value as `ValueTimestampHeaders.make(value, timestamp, headers)` or `AggregationWithHeaders.make(agg, headers)`.
-- To avoid duplicating method lists, the implementation may factor out the shared conversion. The tests define the required behavior.
+- On read: the adapters turn `ValueTimestampHeaders` into `ValueAndTimestamp` and `AggregationWithHeaders` into the aggregate, also inside iterators (`ValueMappingIterator`). The existing proxies then give Python exactly what they give for timestamped and session stores.
+- On write: the adapters turn `ValueAndTimestamp` into `ValueTimestampHeaders.make(value, timestamp, headers)` and an aggregate into `AggregationWithHeaders.make(aggregate, headers)`.
+- Kafka Streams' default methods for `prefixScan`, `reverseRange`, `backwardFetch` and `findSessions` throw, so the adapters override every method that the proxies call.
 
-Where the headers come from: `OperationProcessor` and `FixedKeyOperationProcessor` already remember `recordTimestamp` while processing. They will also remember `rec.headers()` and pass a `Supplier<Headers>` to `wrapStateStore`, next to the timestamp supplier. Outside record processing the supplier returns empty `RecordHeaders`. The proxies copy the headers before storing them, so later changes to the record don't change stored entries.
+- *Alternative: new proxy classes for headers stores.* Rejected: they would copy every Python-facing method of the three proxies, and the copies could drift apart. With adapters, Python gets the same methods and results by construction, and the existing proxy tests keep covering them.
+
+Where the headers come from: `OperationProcessor` and `FixedKeyOperationProcessor` already remember `recordTimestamp` while processing. They also remember `rec.headers()` and pass a `Supplier<Headers>` to a new `wrapStateStore` overload, next to the timestamp supplier. Outside record processing the supplier returns empty `RecordHeaders`. The adapters copy the headers before storing them, so later changes to the record don't change stored entries.
 
 - *Alternative: always store empty headers.* Rejected: Kafka Streams' own DSL processors keep record headers, and parity with them is the point of the HEADERS format.
 
@@ -127,7 +128,7 @@ Values are the ones D1 resolved, so a store without `logging` counts as `true`. 
 - [Caching changes when DSL results are emitted (deduplicated, emitted on commit)] → Document it, and note that `statestore.cache.max.bytes` and `commit.interval.ms` control it. `TopologyTestDriver` commits after every record, so most tests are unaffected. Any that are get explicit `caching: false`.
 - [Switching `dsl.store.format` on an application with existing state] → Kafka Streams' headers stores can open plain or timestamped data through their migrating RocksDB stores. Whether that holds for every type is not something KSML guarantees: the migration guide advises a reset or a new application id, and says that switching back from HEADERS is unsupported.
 - [More tests run RocksDB, so the build gets slower] → Measure in group 1. Tests that don't care about persistence set `persistent: false`.
-- [The headers proxies duplicate the timestamped proxies] → Share conversion helpers, and run one parameterized test suite that runs the same Python calls against both formats (the spec's "same calls" scenario).
+- [The adapters must override every store method the proxies call, or Kafka Streams' throwing defaults surface] → Unit tests per adapter, and an end-to-end test that runs the same Python calls against both formats (the spec's "same calls" scenario).
 - [Join logging conflict error on topologies that used to build] → It only happens when the two join stores have different `logging` values. The error message says how to fix it.
 
 ## Migration Plan
