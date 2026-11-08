@@ -23,6 +23,7 @@ Before you upgrade, check each item below:
 * Do not keep a store iterator in a global variable for a later function call.
 * If Python code reads `get(key)["value"]` or `["timestamp"]` on a store with `timestamped: true`, or on the store of a `count`, `aggregate`, `reduce` or non-versioned table, use `getWithTimestamp(key)` instead. The same applies to the results of `delete` and `putIfAbsent`, and to `fetch(key, time)` on the store of a windowed aggregation (use `fetchWithTimestamp`).
 * Check every store you declare under `stores` or in an operation: it is now persistent, timestamped and has a changelog topic unless it sets `persistent`, `timestamped` or `logging` to `false`. Make sure the application can create the changelog topics (or create them yourself) and that `state.dir` is on a volume that has room for RocksDB. See [Declared stores use the Kafka Streams defaults](#declared-stores-use-the-kafka-streams-defaults).
+* If a stream-stream join sets `logging` on `thisStore` but not on `otherStore` (or the other way around), give both the same value.
 * If you rely on every update of an `aggregate`, `count`, `reduce` or table being emitted, set `caching: false` on its store.
 * If Python code calls `put` or `remove` on a session store, check that each session key is a dict with `key`, `start` and `end`, with `int` times. A session key that is not valid now raises an error instead of being ignored.
 * If you build your own code on top of the KSML libraries, update the Jackson package names.
@@ -270,6 +271,7 @@ What changes for a running application:
 * **Fewer, later results from cached stores.** With caching, an `aggregate`, `count`, `reduce` or table emits the latest result for a key when Kafka Streams commits (`commit.interval.ms`) or when the cache is full (`statestore.cache.max.bytes`), instead of every update. Downstream steps and topics see fewer records. Set `caching: false` on the store if you need every update.
 * **Versioned stores.** A store with `versioned: true` but without `persistent: true` was silently a plain in-memory store in 1.x. It is now a real versioned store.
 * **Session stores.** Setting `timestamped` on a session store now logs a warning, because it has no effect there.
+* **Stream-stream joins.** The shared store of a `leftJoin` or `outerJoin` between two streams now has a changelog topic, unless both `thisStore` and `otherStore` set `logging: false`. In 1.x it only had one when `thisStore` set `logging: true`, and the `logging` of `otherStore` was ignored. If `thisStore` and `otherStore` have different `logging` values, KSML now stops with an error. The two window stores of the join always had changelog topics, and still do: `logging: false` on them now logs a warning. See [Changelog topics of stream-stream joins](reference/state-store-reference.md#for-stream-stream-joins).
 * **Timestamps.** A RocksDB store of a `count`, `aggregate`, `reduce` or table now keeps timestamps, so `getWithTimestamp` and `fetchWithTimestamp` return the record timestamp instead of `-1`.
 
 To keep the KSML 1.x behavior for a store, set the options explicitly:
