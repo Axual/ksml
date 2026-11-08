@@ -95,4 +95,11 @@ public class KSMLStoreDeclaredTypesTest {
                 "count=1 fraction=TypeError bool=TypeError zero=ok/0",
                 "count=1 fraction=TypeError bool=TypeError zero=ok/0");
     }
+
+    @KSMLTest(topology = "pipelines/test-store-declared-types-python.yaml", headersStoreFormat = true)
+    @DisplayName("Python keys and values are converted to the declared simple types of every kind of store, also with the headers store format")
+    void testStoreDeclaredTypesWithHeadersStoreFormat() {
+        // Persistent stores are headers-aware here; Python gets the same results as without headers (AXPD-12445)
+        testStoreDeclaredTypes();
+    }
 }

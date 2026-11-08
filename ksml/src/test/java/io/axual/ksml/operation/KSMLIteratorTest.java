@@ -27,6 +27,9 @@ import io.axual.ksml.testutil.KSMLTopic;
 import org.apache.kafka.streams.TestInputTopic;
 import org.apache.kafka.streams.TestOutputTopic;
 import org.apache.kafka.streams.TopologyTestDriver;
+import org.apache.kafka.streams.state.SessionStoreWithHeaders;
+import org.apache.kafka.streams.state.TimestampedKeyValueStoreWithHeaders;
+import org.apache.kafka.streams.state.TimestampedWindowStoreWithHeaders;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.extension.ExtendWith;
 
@@ -106,5 +109,21 @@ public class KSMLIteratorTest {
         assertThat(openIterators(driver, "early_exit_memory")).isZero();
         assertThat(openIterators(driver, "early_exit_rocksdb")).isZero();
         assertThat(earlyExitOutput.isEmpty()).isTrue();
+    }
+
+    @KSMLTest(topology = "pipelines/test-store-iterator-python.yaml", modulesDirectory = "pipelines", headersStoreFormat = true)
+    @DisplayName("store iterators work with Python for, list(), next(), contextlib.closing and hasNext(), and are closed, also with the headers store format")
+    void testPythonIterationWithHeadersStoreFormat() {
+        // Persistent stores are headers-aware here; Python gets the same results as without headers (AXPD-12445)
+        testPythonIteration();
+        assertThat(driver.getAllStateStores().values()).anyMatch(store -> store instanceof TimestampedKeyValueStoreWithHeaders<?, ?> || store instanceof TimestampedWindowStoreWithHeaders<?, ?> || store instanceof SessionStoreWithHeaders<?, ?>);
+    }
+
+    @KSMLTest(topology = "pipelines/test-store-iterator-early-exit-python.yaml", headersStoreFormat = true)
+    @DisplayName("store iterators left open are closed when the function returns, and close() closes only once, also with the headers store format")
+    void testEarlyExitClosesIteratorsWithHeadersStoreFormat() {
+        // Persistent stores are headers-aware here; Python gets the same results as without headers (AXPD-12445)
+        testEarlyExitClosesIterators();
+        assertThat(driver.getAllStateStores().values()).anyMatch(store -> store instanceof TimestampedKeyValueStoreWithHeaders<?, ?> || store instanceof TimestampedWindowStoreWithHeaders<?, ?> || store instanceof SessionStoreWithHeaders<?, ?>);
     }
 }

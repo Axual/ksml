@@ -27,6 +27,7 @@ import io.axual.ksml.testutil.KSMLTopic;
 import org.apache.kafka.streams.TestInputTopic;
 import org.apache.kafka.streams.TestOutputTopic;
 import org.apache.kafka.streams.TopologyTestDriver;
+import org.apache.kafka.streams.state.TimestampedKeyValueStoreWithHeaders;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.extension.ExtendWith;
 
@@ -73,5 +74,13 @@ public class KSMLKeyValueStoreMethodsTest {
                 "ts_cached", "ts_cached_copy")) {
             assertThat(openIterators(driver, store)).as(store).isZero();
         }
+    }
+
+    @KSMLTest(topology = "pipelines/test-keyvalue-store-methods-python.yaml", headersStoreFormat = true)
+    @DisplayName("Key-value store methods work from Python on in-memory, RocksDB and cached stores, plain and timestamped, also with the headers store format")
+    void testKeyValueStoreMethodsWithHeadersStoreFormat() {
+        // Persistent stores are headers-aware here; Python gets the same results as without headers (AXPD-12445)
+        testKeyValueStoreMethods();
+        assertThat(driver.getAllStateStores().values()).anyMatch(store -> store instanceof TimestampedKeyValueStoreWithHeaders<?, ?>);
     }
 }

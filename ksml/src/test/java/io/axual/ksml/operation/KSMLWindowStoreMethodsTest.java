@@ -26,6 +26,7 @@ import io.axual.ksml.testutil.KSMLTopic;
 import org.apache.kafka.streams.TestInputTopic;
 import org.apache.kafka.streams.TestOutputTopic;
 import org.apache.kafka.streams.TopologyTestDriver;
+import org.apache.kafka.streams.state.TimestampedWindowStoreWithHeaders;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.extension.ExtendWith;
 
@@ -94,5 +95,13 @@ public class KSMLWindowStoreMethodsTest {
 
     private static String reversed(String entries) {
         return String.join(",", List.of(entries.split(",")).reversed());
+    }
+
+    @KSMLTest(topology = "pipelines/test-window-store-methods-python.yaml", modulesDirectory = "pipelines", headersStoreFormat = true)
+    @DisplayName("Window store methods work from Python on in-memory and RocksDB stores, and close their iterators, also with the headers store format")
+    void testWindowStoreMethodsWithHeadersStoreFormat() {
+        // Persistent stores are headers-aware here; Python gets the same results as without headers (AXPD-12445)
+        testWindowStoreMethods();
+        assertThat(driver.getAllStateStores().values()).anyMatch(store -> store instanceof TimestampedWindowStoreWithHeaders<?, ?>);
     }
 }
