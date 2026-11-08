@@ -58,6 +58,14 @@ public class StoreUtil {
      * @return a validated window store.
      */
     public static WindowBytesStoreSupplier validatedWindowStore(WindowStateStoreDefinition store, JoinWindows joinWindows) {
+        return validatedWindowStore(store, joinWindows, false);
+    }
+
+    /**
+     * Like {@link #validatedWindowStore(WindowStateStoreDefinition, JoinWindows)}, in the headers-aware format when
+     * {@code headersStoreFormat} is set and the store supports it.
+     */
+    public static WindowBytesStoreSupplier validatedWindowStore(WindowStateStoreDefinition store, JoinWindows joinWindows, boolean headersStoreFormat) {
         final var result = getWindowStoreSupplier(store);
         if (!result.retainDuplicates()) {
             throw new TopologyException("The window store '" + store.name() + "' should have 'retainDuplicates' set to 'true'.");
@@ -103,6 +111,15 @@ public class StoreUtil {
 
     @SuppressWarnings("java:S1452") // wildcard is unavoidable: KV/Session/Window store builders have unrelated type parameters
     public static StoreBuilder<?> getStoreBuilder(StateStoreDefinition store) {
+        return getStoreBuilder(store, false);
+    }
+
+    /**
+     * Like {@link #getStoreBuilder(StateStoreDefinition)}, in the headers-aware format when
+     * {@code headersStoreFormat} is set and the store supports it.
+     */
+    @SuppressWarnings("java:S1452") // wildcard is unavoidable: KV/Session/Window store builders have unrelated type parameters
+    public static StoreBuilder<?> getStoreBuilder(StateStoreDefinition store, boolean headersStoreFormat) {
         if (store instanceof KeyValueStateStoreDefinition kvStore) {
             return getKeyValueStateStoreBuilder(kvStore);
         } else if (store instanceof SessionStateStoreDefinition sessionStore) {
@@ -181,17 +198,29 @@ public class StoreUtil {
     }
 
     public static <V> MaterializedStore<V, KeyValueStore<Bytes, byte[]>> materialize(KeyValueStateStoreDefinition store) {
+        return materialize(store, false);
+    }
+
+    public static <V> MaterializedStore<V, KeyValueStore<Bytes, byte[]>> materialize(KeyValueStateStoreDefinition store, boolean headersStoreFormat) {
         Materialized<Object, V, KeyValueStore<Bytes, byte[]>> mat = Materialized.as(getKeyValueStoreSupplier(store));
         return materialize(mat, store);
     }
 
     public static <V> MaterializedStore<V, SessionStore<Bytes, byte[]>> materialize(SessionStateStoreDefinition store) {
+        return materialize(store, false);
+    }
+
+    public static <V> MaterializedStore<V, SessionStore<Bytes, byte[]>> materialize(SessionStateStoreDefinition store, boolean headersStoreFormat) {
         Materialized<Object, V, SessionStore<Bytes, byte[]>> mat = Materialized.as(getSessionStoreSupplier(store));
         if (store.retention() != null) mat = mat.withRetention(store.retention());
         return materialize(mat, store);
     }
 
     public static <V> MaterializedStore<V, WindowStore<Bytes, byte[]>> materialize(WindowStateStoreDefinition store) {
+        return materialize(store, false);
+    }
+
+    public static <V> MaterializedStore<V, WindowStore<Bytes, byte[]>> materialize(WindowStateStoreDefinition store, boolean headersStoreFormat) {
         Materialized<Object, V, WindowStore<Bytes, byte[]>> mat = Materialized.as(getWindowStoreSupplier(store));
         if (store.retention() != null) mat = mat.withRetention(store.retention());
         return materialize(mat, store);

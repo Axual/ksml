@@ -34,6 +34,11 @@ import org.apache.kafka.common.serialization.Serializer;
 import org.apache.kafka.streams.kstream.JoinWindows;
 import org.apache.kafka.streams.kstream.internals.MaterializedInternal;
 import org.apache.kafka.streams.processor.StateStore;
+import org.apache.kafka.streams.state.HeadersBytesStoreSupplier;
+import org.apache.kafka.streams.state.SessionStoreWithHeaders;
+import org.apache.kafka.streams.state.StoreSupplier;
+import org.apache.kafka.streams.state.TimestampedKeyValueStoreWithHeaders;
+import org.apache.kafka.streams.state.TimestampedWindowStoreWithHeaders;
 import org.apache.kafka.streams.state.internals.WrappedStateStore;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -180,6 +185,79 @@ class StoreUtilTest {
         final var materialized = new MaterializedInternal<>(StoreUtil.materialize(keyValueStoreWithCaching(false)).materialized());
         assertThat(materialized.cachingEnabled()).isFalse();
         assertThat(isCached(StoreUtil.getStoreBuilder(keyValueStoreWithCaching(true)).build())).isTrue();
+    }
+
+    // --- headers store format --------------------------------------------------------------------
+
+    private static KeyValueStateStoreDefinition defaultKeyValueStore() {
+        return new KeyValueStateStoreDefinition("store", null, null, null, null, null, UNKNOWN, UNKNOWN, null, null);
+    }
+
+    private static WindowStateStoreDefinition defaultWindowStore() {
+        return new WindowStateStoreDefinition("store", null, null, Duration.ofSeconds(60), Duration.ofSeconds(10), null, UNKNOWN, UNKNOWN, null, null);
+    }
+
+    private static SessionStateStoreDefinition defaultSessionStore() {
+        return new SessionStateStoreDefinition("store", null, null, Duration.ofSeconds(60), UNKNOWN, UNKNOWN, null, null);
+    }
+
+    private static StoreSupplier<?> materializedSupplier(StoreUtil.MaterializedStore<?, ?> store) {
+        return new MaterializedInternal<>(store.materialized()).storeSupplier();
+    }
+
+    @Test
+    @DisplayName("with the headers format, default stores that operations materialize get headers-aware suppliers")
+    void headersFormatMaterializedStores() {
+        assertThat(materializedSupplier(StoreUtil.materialize(defaultKeyValueStore(), true))).isInstanceOf(HeadersBytesStoreSupplier.class);
+        assertThat(materializedSupplier(StoreUtil.materialize(defaultWindowStore(), true))).isInstanceOf(HeadersBytesStoreSupplier.class);
+        assertThat(materializedSupplier(StoreUtil.materialize(defaultSessionStore(), true))).isInstanceOf(HeadersBytesStoreSupplier.class);
+    }
+
+    @Test
+    @DisplayName("with the headers format, default stores for Python functions are headers-aware stores")
+    void headersFormatProcessorStores() {
+        assertThat(StoreUtil.getStoreBuilder(defaultKeyValueStore(), true).build()).isInstanceOf(TimestampedKeyValueStoreWithHeaders.class);
+        assertThat(StoreUtil.getStoreBuilder(defaultWindowStore(), true).build()).isInstanceOf(TimestampedWindowStoreWithHeaders.class);
+        assertThat(StoreUtil.getStoreBuilder(defaultSessionStore(), true).build()).isInstanceOf(SessionStoreWithHeaders.class);
+    }
+
+    @Test
+    @DisplayName("with the headers format, a join window store gets a headers-aware supplier")
+    void headersFormatJoinStore() {
+        final var store = new WindowStateStoreDefinition("store", null, null, Duration.ofSeconds(2), Duration.ofSeconds(2), true, UNKNOWN, UNKNOWN, null, null);
+        assertThat(StoreUtil.validatedWindowStore(store, joinWindows(), true)).isInstanceOf(HeadersBytesStoreSupplier.class);
+    }
+
+    private static Stream<Arguments> storesWithoutHeaders() {
+        return Stream.of(
+                Arguments.of("in-memory", new KeyValueStateStoreDefinition("store", false, null, null, null, null, UNKNOWN, UNKNOWN, null, null)),
+                Arguments.of("not timestamped", new KeyValueStateStoreDefinition("store", null, false, null, null, null, UNKNOWN, UNKNOWN, null, null)),
+                Arguments.of("versioned", new KeyValueStateStoreDefinition("store", null, null, true, Duration.ofHours(1), null, UNKNOWN, UNKNOWN, null, null)),
+                Arguments.of("in-memory window", new WindowStateStoreDefinition("store", false, null, Duration.ofSeconds(60), Duration.ofSeconds(10), null, UNKNOWN, UNKNOWN, null, null)),
+                Arguments.of("not timestamped window", new WindowStateStoreDefinition("store", null, false, Duration.ofSeconds(60), Duration.ofSeconds(10), null, UNKNOWN, UNKNOWN, null, null)),
+                Arguments.of("in-memory session", new SessionStateStoreDefinition("store", false, null, Duration.ofSeconds(60), UNKNOWN, UNKNOWN, null, null)));
+    }
+
+    @ParameterizedTest(name = "a {0} store is not headers-aware")
+    @DisplayName("with the headers format, in-memory, not timestamped and versioned stores are not headers-aware")
+    @MethodSource("storesWithoutHeaders")
+    void headersFormatSkipsUnsupportedStores(String name, StateStoreDefinition store) {
+        assertThat(isHeadersAware(StoreUtil.getStoreBuilder(store, true).build())).isFalse();
+    }
+
+    @Test
+    @DisplayName("without the headers format, default stores are not headers-aware")
+    void defaultFormatHasNoHeaders() {
+        assertThat(isHeadersAware(StoreUtil.getStoreBuilder(defaultKeyValueStore(), false).build())).isFalse();
+        assertThat(isHeadersAware(StoreUtil.getStoreBuilder(defaultWindowStore(), false).build())).isFalse();
+        assertThat(isHeadersAware(StoreUtil.getStoreBuilder(defaultSessionStore(), false).build())).isFalse();
+        assertThat(materializedSupplier(StoreUtil.materialize(defaultKeyValueStore(), false))).isNotInstanceOf(HeadersBytesStoreSupplier.class);
+    }
+
+    private static boolean isHeadersAware(StateStore store) {
+        return store instanceof TimestampedKeyValueStoreWithHeaders<?, ?>
+                || store instanceof TimestampedWindowStoreWithHeaders<?, ?>
+                || store instanceof SessionStoreWithHeaders<?, ?>;
     }
 
     // --- validatedWindowStore --------------------------------------------------------------------
