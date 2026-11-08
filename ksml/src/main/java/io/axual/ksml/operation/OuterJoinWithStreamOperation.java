@@ -66,7 +66,7 @@ public class OuterJoinWithStreamOperation extends DualStoreOperation {
         final var joiner = userFunctionOf(context, VALUEJOINER_NAME, valueJoiner, vr, superOf(k), superOf(v), superOf(vo));
         final var thisStore = validateWindowStore(thisStore(), k, vr);
         final var otherStore = validateWindowStore(otherStore(), k, vr);
-        final var streamJoined = streamJoinedOf(thisStore, otherStore, k, v, vo, joinWindows);
+        final var streamJoined = streamJoinedOf(context, thisStore, otherStore, k, v, vo, joinWindows);
         final var userJoiner = valueJoiner(joiner, tags);
         final KStream<Object, Object> output = streamJoined != null
                 ? input.stream.outerJoin(otherStream.stream, userJoiner, joinWindows, streamJoined)
