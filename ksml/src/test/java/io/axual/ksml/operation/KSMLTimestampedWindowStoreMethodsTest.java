@@ -27,6 +27,7 @@ import org.apache.avro.generic.GenericRecord;
 import org.apache.kafka.streams.TestInputTopic;
 import org.apache.kafka.streams.TestOutputTopic;
 import org.apache.kafka.streams.TopologyTestDriver;
+import org.apache.kafka.streams.state.TimestampedWindowStoreWithHeaders;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.extension.ExtendWith;
 
@@ -92,5 +93,21 @@ public class KSMLTimestampedWindowStoreMethodsTest {
 
         // put without a timestamp uses the record timestamp (3000)
         assertThat(avroOutput.readValuesToList()).containsExactly("Amsterdam@3000 Amsterdam@777");
+    }
+
+    @KSMLTest(topology = "pipelines/test-timestamped-window-store-methods-python.yaml", modulesDirectory = "pipelines", headersStoreFormat = true)
+    @DisplayName("Timestamped window stores have the window store API plus *WithTimestamp methods, on in-memory and RocksDB stores, also with the headers store format")
+    void testTimestampedWindowStoreMethodsWithHeadersStoreFormat() {
+        // Persistent stores are headers-aware here; Python gets the same results as without headers (AXPD-12445)
+        testTimestampedWindowStoreMethods();
+        assertThat(driver.getAllStateStores().values()).anyMatch(store -> store instanceof TimestampedWindowStoreWithHeaders<?, ?>);
+    }
+
+    @KSMLTest(topology = "pipelines/test-timestamped-window-store-avro-put-python.yaml", schemaDirectory = "schemas", headersStoreFormat = true)
+    @DisplayName("put() writes an Avro value from Python to a timestamped window store, also with the headers store format")
+    void testPutAvroValueWithHeadersStoreFormat() {
+        // Persistent stores are headers-aware here; Python gets the same results as without headers (AXPD-12445)
+        testPutAvroValue();
+        assertThat(driver.getAllStateStores().values()).anyMatch(store -> store instanceof TimestampedWindowStoreWithHeaders<?, ?>);
     }
 }
