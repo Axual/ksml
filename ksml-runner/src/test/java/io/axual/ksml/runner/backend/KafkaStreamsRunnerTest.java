@@ -779,4 +779,21 @@ class KafkaStreamsRunnerTest {
         }
     }
 
+    static Stream<Arguments> storeFormatData() {
+        return Stream.of(
+                Arguments.of(named("HEADERS", "HEADERS"), true),
+                Arguments.of(named("headers in lower case", "headers"), true),
+                Arguments.of(named("DEFAULT", "DEFAULT"), false),
+                Arguments.of(named("not set", null), false));
+    }
+
+    @ParameterizedTest
+    @DisplayName("dsl.store.format decides whether declared stores use the headers-aware format")
+    @MethodSource("storeFormatData")
+    void headersStoreFormat(String storeFormat, boolean expected) {
+        final var props = new HashMap<String, Object>(INPUT_CONFIG_WITHOUT_PATTERNS);
+        if (storeFormat != null) props.put(StreamsConfig.DSL_STORE_FORMAT_CONFIG, storeFormat);
+
+        assertThat(KafkaStreamsRunner.headersStoreFormat(new StreamsConfig(props))).isEqualTo(expected);
+    }
 }

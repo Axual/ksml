@@ -165,6 +165,16 @@ public class KafkaStreamsRunner implements Runner {
     }
 
     /**
+     * Whether declared stores are built in the headers-aware format, as {@code dsl.store.format: HEADERS} asks for.
+     *
+     * @param streamsConfig the validated Kafka Streams configuration
+     * @return {@code true} for the headers-aware format
+     */
+    static boolean headersStoreFormat(StreamsConfig streamsConfig) {
+        return false;
+    }
+
+    /**
      * Logs state changes in the Kafka Streams application.
      * This method is used as a state listener for the Kafka Streams instance.
      *

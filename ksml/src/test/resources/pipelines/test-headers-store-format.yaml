@@ -1,0 +1,28 @@
+# $schema: https://raw.githubusercontent.com/Axual/ksml/refs/heads/main/docs/ksml-language-spec.json
+
+# A count with a declared store, without Python, to check the store format that TopologyGenerator builds.
+streams:
+  input:
+    topic: input
+    keyType: string
+    valueType: string
+  output:
+    topic: output
+    keyType: string
+    valueType: long
+
+stores:
+  count_store:
+    type: keyValue
+    keyType: string
+    valueType: long
+
+pipelines:
+  count_pipeline:
+    from: input
+    via:
+      - type: groupByKey
+      - type: count
+        store: count_store
+      - type: toStream
+    to: output
