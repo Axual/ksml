@@ -66,7 +66,7 @@ public class StoreUtil {
      * {@code headersStoreFormat} is set and the store supports it.
      */
     public static WindowBytesStoreSupplier validatedWindowStore(WindowStateStoreDefinition store, JoinWindows joinWindows, boolean headersStoreFormat) {
-        final var result = getWindowStoreSupplier(store);
+        final var result = getWindowStoreSupplier(store, headersStoreFormat);
         if (!result.retainDuplicates()) {
             throw new TopologyException("The window store '" + store.name() + "' should have 'retainDuplicates' set to 'true'.");
         }
@@ -89,12 +89,29 @@ public class StoreUtil {
         return !Boolean.FALSE.equals(store.caching());
     }
 
-    private static KeyValueBytesStoreSupplier getKeyValueStoreSupplier(KeyValueStateStoreDefinition store) {
+    // Like Kafka Streams, only persistent timestamped stores have a headers-aware format, and versioned stores have none
+    private static boolean useHeaders(KeyValueStateStoreDefinition store, boolean headersStoreFormat) {
+        return headersStoreFormat && store.persistent() && store.timestamped() && !store.versioned();
+    }
+
+    private static boolean useHeaders(WindowStateStoreDefinition store, boolean headersStoreFormat) {
+        return headersStoreFormat && store.persistent() && store.timestamped();
+    }
+
+    // Session stores are not timestamped, so only persistence matters
+    private static boolean useHeaders(SessionStateStoreDefinition store, boolean headersStoreFormat) {
+        return headersStoreFormat && store.persistent();
+    }
+
+    private static KeyValueBytesStoreSupplier getKeyValueStoreSupplier(KeyValueStateStoreDefinition store, boolean headersStoreFormat) {
         if (!store.persistent()) {
             return Stores.inMemoryKeyValueStore(store.name());
         }
         if (store.versioned()) {
             return getVersionedStoreSupplier(store);
+        }
+        if (useHeaders(store, headersStoreFormat)) {
+            return Stores.persistentTimestampedKeyValueStoreWithHeaders(store.name());
         }
         if (store.timestamped()) {
             return Stores.persistentTimestampedKeyValueStore(store.name());
@@ -121,33 +138,27 @@ public class StoreUtil {
     @SuppressWarnings("java:S1452") // wildcard is unavoidable: KV/Session/Window store builders have unrelated type parameters
     public static StoreBuilder<?> getStoreBuilder(StateStoreDefinition store, boolean headersStoreFormat) {
         if (store instanceof KeyValueStateStoreDefinition kvStore) {
-            return getKeyValueStateStoreBuilder(kvStore);
+            return getKeyValueStateStoreBuilder(kvStore, headersStoreFormat);
         } else if (store instanceof SessionStateStoreDefinition sessionStore) {
-            return getSessionStateStoreBuilder(sessionStore);
+            return getSessionStateStoreBuilder(sessionStore, headersStoreFormat);
         } else if (store instanceof WindowStateStoreDefinition windowStore) {
-            return getWindowStateStoreBuilder(windowStore);
+            return getWindowStateStoreBuilder(windowStore, headersStoreFormat);
         }
         throw new IllegalArgumentException("Unknown store type: " + store.getClass().getSimpleName());
     }
 
-    private static StoreBuilder<?> getKeyValueStateStoreBuilder(KeyValueStateStoreDefinition store) {
+    private static StoreBuilder<?> getKeyValueStateStoreBuilder(KeyValueStateStoreDefinition store, boolean headersStoreFormat) {
         final var keyType = new StreamDataType(store.keyType(), true);
         final var valueType = new StreamDataType(store.valueType(), false);
         StoreBuilder<?> storeBuilder;
-        if (store.persistent()) {
-            if (store.versioned()) {
-                final var supplier = getVersionedStoreSupplier(store);
-                storeBuilder = Stores.versionedKeyValueStoreBuilder(supplier, keyType.serde(), valueType.serde());
-            } else {
-                final var supplier = store.timestamped()
-                        ? Stores.persistentTimestampedKeyValueStore(store.name())
-                        : Stores.persistentKeyValueStore(store.name());
-                storeBuilder = store.timestamped()
-                        ? Stores.timestampedKeyValueStoreBuilder(supplier, keyType.serde(), valueType.serde())
-                        : Stores.keyValueStoreBuilder(supplier, keyType.serde(), valueType.serde());
-            }
+        if (store.persistent() && store.versioned()) {
+            final var supplier = getVersionedStoreSupplier(store);
+            storeBuilder = Stores.versionedKeyValueStoreBuilder(supplier, keyType.serde(), valueType.serde());
+        } else if (useHeaders(store, headersStoreFormat)) {
+            final var supplier = getKeyValueStoreSupplier(store, true);
+            storeBuilder = Stores.timestampedKeyValueStoreWithHeadersBuilder(supplier, keyType.serde(), valueType.serde());
         } else {
-            final var supplier = Stores.inMemoryKeyValueStore(store.name());
+            final var supplier = getKeyValueStoreSupplier(store, false);
             storeBuilder = store.timestamped()
                     ? Stores.timestampedKeyValueStoreBuilder(supplier, keyType.serde(), valueType.serde())
                     : Stores.keyValueStoreBuilder(supplier, keyType.serde(), valueType.serde());
@@ -157,25 +168,33 @@ public class StoreUtil {
         return storeBuilder;
     }
 
-    private static SessionBytesStoreSupplier getSessionStoreSupplier(SessionStateStoreDefinition store) {
-        return store.persistent()
-                ? Stores.persistentSessionStore(store.name(), store.retention())
-                : Stores.inMemorySessionStore(store.name(), store.retention());
+    private static SessionBytesStoreSupplier getSessionStoreSupplier(SessionStateStoreDefinition store, boolean headersStoreFormat) {
+        if (!store.persistent()) {
+            return Stores.inMemorySessionStore(store.name(), store.retention());
+        }
+        return useHeaders(store, headersStoreFormat)
+                ? Stores.persistentSessionStoreWithHeaders(store.name(), store.retention())
+                : Stores.persistentSessionStore(store.name(), store.retention());
     }
 
-    private static StoreBuilder<?> getSessionStateStoreBuilder(SessionStateStoreDefinition store) {
+    private static StoreBuilder<?> getSessionStateStoreBuilder(SessionStateStoreDefinition store, boolean headersStoreFormat) {
         final var keyType = new StreamDataType(store.keyType(), true);
         final var valueType = new StreamDataType(store.valueType(), false);
-        final var supplier = getSessionStoreSupplier(store);
-        var storeBuilder = Stores.sessionStoreBuilder(supplier, keyType.serde(), valueType.serde());
+        final var supplier = getSessionStoreSupplier(store, headersStoreFormat);
+        StoreBuilder<?> storeBuilder = useHeaders(store, headersStoreFormat)
+                ? Stores.sessionStoreWithHeadersBuilder(supplier, keyType.serde(), valueType.serde())
+                : Stores.sessionStoreBuilder(supplier, keyType.serde(), valueType.serde());
         storeBuilder = processorStoreCaching(store) ? storeBuilder.withCachingEnabled() : storeBuilder.withCachingDisabled();
         storeBuilder = store.logging() ? storeBuilder.withLoggingEnabled(new HashMap<>()) : storeBuilder.withLoggingDisabled();
         return storeBuilder;
     }
 
-    private static WindowBytesStoreSupplier getWindowStoreSupplier(WindowStateStoreDefinition store) {
+    private static WindowBytesStoreSupplier getWindowStoreSupplier(WindowStateStoreDefinition store, boolean headersStoreFormat) {
         if (!store.persistent()) {
             return Stores.inMemoryWindowStore(store.name(), store.retention(), store.windowSize(), store.retainDuplicates());
+        }
+        if (useHeaders(store, headersStoreFormat)) {
+            return Stores.persistentTimestampedWindowStoreWithHeaders(store.name(), store.retention(), store.windowSize(), store.retainDuplicates());
         }
         if (store.timestamped()) {
             return Stores.persistentTimestampedWindowStore(store.name(), store.retention(), store.windowSize(), store.retainDuplicates());
@@ -183,11 +202,13 @@ public class StoreUtil {
         return Stores.persistentWindowStore(store.name(), store.retention(), store.windowSize(), store.retainDuplicates());
     }
 
-    private static StoreBuilder<?> getWindowStateStoreBuilder(WindowStateStoreDefinition store) {
+    private static StoreBuilder<?> getWindowStateStoreBuilder(WindowStateStoreDefinition store, boolean headersStoreFormat) {
         final var keyType = new StreamDataType(store.keyType(), true);
         final var valueType = new StreamDataType(store.valueType(), false);
-        final var supplier = getWindowStoreSupplier(store);
-        var storeBuilder = Stores.windowStoreBuilder(supplier, keyType.serde(), valueType.serde());
+        final var supplier = getWindowStoreSupplier(store, headersStoreFormat);
+        StoreBuilder<?> storeBuilder = useHeaders(store, headersStoreFormat)
+                ? Stores.timestampedWindowStoreWithHeadersBuilder(supplier, keyType.serde(), valueType.serde())
+                : Stores.windowStoreBuilder(supplier, keyType.serde(), valueType.serde());
         storeBuilder = processorStoreCaching(store) ? storeBuilder.withCachingEnabled() : storeBuilder.withCachingDisabled();
         storeBuilder = store.logging() ? storeBuilder.withLoggingEnabled(new HashMap<>()) : storeBuilder.withLoggingDisabled();
         return storeBuilder;
@@ -202,7 +223,7 @@ public class StoreUtil {
     }
 
     public static <V> MaterializedStore<V, KeyValueStore<Bytes, byte[]>> materialize(KeyValueStateStoreDefinition store, boolean headersStoreFormat) {
-        Materialized<Object, V, KeyValueStore<Bytes, byte[]>> mat = Materialized.as(getKeyValueStoreSupplier(store));
+        Materialized<Object, V, KeyValueStore<Bytes, byte[]>> mat = Materialized.as(getKeyValueStoreSupplier(store, headersStoreFormat));
         return materialize(mat, store);
     }
 
@@ -211,7 +232,7 @@ public class StoreUtil {
     }
 
     public static <V> MaterializedStore<V, SessionStore<Bytes, byte[]>> materialize(SessionStateStoreDefinition store, boolean headersStoreFormat) {
-        Materialized<Object, V, SessionStore<Bytes, byte[]>> mat = Materialized.as(getSessionStoreSupplier(store));
+        Materialized<Object, V, SessionStore<Bytes, byte[]>> mat = Materialized.as(getSessionStoreSupplier(store, headersStoreFormat));
         if (store.retention() != null) mat = mat.withRetention(store.retention());
         return materialize(mat, store);
     }
@@ -221,7 +242,7 @@ public class StoreUtil {
     }
 
     public static <V> MaterializedStore<V, WindowStore<Bytes, byte[]>> materialize(WindowStateStoreDefinition store, boolean headersStoreFormat) {
-        Materialized<Object, V, WindowStore<Bytes, byte[]>> mat = Materialized.as(getWindowStoreSupplier(store));
+        Materialized<Object, V, WindowStore<Bytes, byte[]>> mat = Materialized.as(getWindowStoreSupplier(store, headersStoreFormat));
         if (store.retention() != null) mat = mat.withRetention(store.retention());
         return materialize(mat, store);
     }

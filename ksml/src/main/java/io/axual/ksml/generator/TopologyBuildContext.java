@@ -67,6 +67,9 @@ public class TopologyBuildContext {
     private final StreamsBuilder builder;
     private final TopologyResources resources;
     private final PythonContext pythonContext;
+    // Whether stores are built in the headers-aware format, set with the Kafka Streams dsl.store.format config
+    @Getter
+    private final boolean headersStoreFormat;
     @Getter
     private final DataObjectConverter converter = new DataObjectConverter();
 
@@ -81,9 +84,17 @@ public class TopologyBuildContext {
     public TopologyBuildContext(StreamsBuilder builder,
                                 TopologyResources resources,
                                 PythonContextConfig pcConfig) {
+        this(builder, resources, pcConfig, false);
+    }
+
+    public TopologyBuildContext(StreamsBuilder builder,
+                                TopologyResources resources,
+                                PythonContextConfig pcConfig,
+                                boolean headersStoreFormat) {
         this.builder = builder;
         this.resources = resources;
         this.pythonContext = new PythonContext(pcConfig);
+        this.headersStoreFormat = headersStoreFormat;
     }
 
     public String namespace() {
@@ -105,21 +116,21 @@ public class TopologyBuildContext {
 
     public <V> Materialized<Object, V, KeyValueStore<Bytes, byte[]>> materialize(KeyValueStateStoreDefinition store) {
         resources.register(store.name(), store);
-        return StoreUtil.<V>materialize(store).materialized();
+        return StoreUtil.<V>materialize(store, headersStoreFormat).materialized();
     }
 
     public <V> Materialized<Object, V, SessionStore<Bytes, byte[]>> materialize(SessionStateStoreDefinition store) {
         resources.register(store.name(), store);
-        return StoreUtil.<V>materialize(store).materialized();
+        return StoreUtil.<V>materialize(store, headersStoreFormat).materialized();
     }
 
     public <V> Materialized<Object, V, WindowStore<Bytes, byte[]>> materialize(WindowStateStoreDefinition store) {
         resources.register(store.name(), store);
-        return StoreUtil.<V>materialize(store).materialized();
+        return StoreUtil.<V>materialize(store, headersStoreFormat).materialized();
     }
 
     public void createUserStateStore(StateStoreDefinition store) {
-        final var storeBuilder = StoreUtil.getStoreBuilder(store);
+        final var storeBuilder = StoreUtil.getStoreBuilder(store, headersStoreFormat);
         builder.addStateStore(storeBuilder);
     }
 
@@ -255,7 +266,7 @@ public class TopologyBuildContext {
                     ? tableDefinition.store().with(tableDefinition.keyType(), tableDefinition.valueType())
                     // Set up a store for tables, mapping to the topic itself, so we don't require an extra state store topic
                     : new KeyValueStateStoreDefinition(tableDefinition.topic(), false, false, false, Duration.ofSeconds(900), Duration.ofSeconds(60), streamKey.userType(), streamValue.userType(), false, false);
-            final var mat = StoreUtil.materialize(store);
+            final var mat = StoreUtil.materialize(store, headersStoreFormat);
             final var consumed = consumedOf(name, mat.keySerde(), mat.valueSerde(), def.tsExtractor(), def.resetPolicy());
             return new KTableWrapper(builder.table(tableDefinition.topic(), consumed, mat.materialized()), streamKey, streamValue);
         }
@@ -267,7 +278,7 @@ public class TopologyBuildContext {
                     ? globalTableDefinition.store().with(globalTableDefinition.keyType(), globalTableDefinition.valueType())
                     // Set up a store for globalTables, mapping to the topic itself, so we don't require an extra state store topic
                     : new KeyValueStateStoreDefinition(globalTableDefinition.topic(), false, false, false, Duration.ofSeconds(900), Duration.ofSeconds(60), streamKey.userType(), streamValue.userType(), false, false);
-            final var mat = StoreUtil.materialize(store);
+            final var mat = StoreUtil.materialize(store, headersStoreFormat);
             final var consumed = consumedOf(name, mat.keySerde(), mat.valueSerde(), def.tsExtractor(), def.resetPolicy());
             return new GlobalKTableWrapper(builder.globalTable(globalTableDefinition.topic(), consumed, mat.materialized()), streamKey, streamValue);
         }

@@ -485,16 +485,16 @@ public abstract class BaseOperation implements StreamOperation {
         return result;
     }
 
-    protected StreamJoined<Object, Object, Object> streamJoinedOf(WindowStateStoreDefinition thisStore, WindowStateStoreDefinition otherStore, StreamDataType k, StreamDataType v, StreamDataType vo, JoinWindows joinWindows) {
+    protected StreamJoined<Object, Object, Object> streamJoinedOf(TopologyBuildContext context, WindowStateStoreDefinition thisStore, WindowStateStoreDefinition otherStore, StreamDataType k, StreamDataType v, StreamDataType vo, JoinWindows joinWindows) {
         var result = StreamJoined.with(k.serde(), v.serde(), vo.serde());
         if (name != null) result = result.withName(name);
         result = streamJoinedLogging(thisStore, otherStore) ? result.withLoggingEnabled(new HashMap<>()) : result.withLoggingDisabled();
         if (thisStore != null) {
             if (thisStore.name() != null) result = result.withStoreName(thisStore.name());
-            result = result.withThisStoreSupplier(StoreUtil.validatedWindowStore(thisStore, joinWindows));
+            result = result.withThisStoreSupplier(StoreUtil.validatedWindowStore(thisStore, joinWindows, context.headersStoreFormat()));
         }
         if (otherStore != null) {
-            result = result.withOtherStoreSupplier(StoreUtil.validatedWindowStore(otherStore, joinWindows));
+            result = result.withOtherStoreSupplier(StoreUtil.validatedWindowStore(otherStore, joinWindows, context.headersStoreFormat()));
         }
         return result;
     }

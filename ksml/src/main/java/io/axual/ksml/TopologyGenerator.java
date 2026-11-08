@@ -50,12 +50,21 @@ public class TopologyGenerator {
     private final String applicationId;
     private final Properties optimization;
     private final PythonContextConfig pythonContextConfig;
+    private final boolean headersStoreFormat;
 
     public TopologyGenerator(String applicationId) {
         this(applicationId, null, PythonContextConfig.builder().build());
     }
 
     public TopologyGenerator(String applicationId, String optimization, PythonContextConfig pythonContextConfig) {
+        this(applicationId, optimization, pythonContextConfig, false);
+    }
+
+    /**
+     * @param headersStoreFormat whether declared stores are built in the headers-aware format, as the Kafka Streams
+     *                           {@code dsl.store.format: HEADERS} config asks for
+     */
+    public TopologyGenerator(String applicationId, String optimization, PythonContextConfig pythonContextConfig, boolean headersStoreFormat) {
         // Parse configuration
         this.applicationId = applicationId;
         this.optimization = new Properties();
@@ -65,6 +74,7 @@ public class TopologyGenerator {
         this.pythonContextConfig = pythonContextConfig != null
                 ? pythonContextConfig
                 : PythonContextConfig.builder().build();
+        this.headersStoreFormat = headersStoreFormat;
     }
 
     public Topology create(StreamsBuilder streamsBuilder, Map<String, TopologyDefinition> definitions) {
@@ -79,7 +89,7 @@ public class TopologyGenerator {
                     definition.version() != null ? definition.version() : UNDEFINED,
                     definition.namespace() != null ? definition.namespace() : UNDEFINED);
 
-            final var context = new TopologyBuildContext(streamsBuilder, definition, pythonContextConfig);
+            final var context = new TopologyBuildContext(streamsBuilder, definition, pythonContextConfig, headersStoreFormat);
             generate(definition, context);
             stores.putAll(definition.stateStores());
         });

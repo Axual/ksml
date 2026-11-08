@@ -21,8 +21,8 @@ Each implementation task follows TDD: first commit the failing test, then the fi
 
 ## 3. Headers store format (design D4)
 
-- [ ] 3.1 Add failing `StoreUtilTest` cases: with the headers format on, default keyValue, window and session stores get headers-aware suppliers and builders (for both materialized and processor use); in-memory, `timestamped: false` and versioned stores do not; with the headers format off, nothing changes. Verify the tests fail.
-- [ ] 3.2 Add the `headersStoreFormat` flag to `StoreUtil`, `TopologyBuildContext` and `TopologyGenerator` (existing constructors default to `false`), and pick the suppliers and builders from the D4 table. Verify the 3.1 tests pass.
+- [x] 3.1 Add failing `StoreUtilTest` cases: with the headers format on, default keyValue, window and session stores get headers-aware suppliers and builders (for both materialized and processor use); in-memory, `timestamped: false` and versioned stores do not; with the headers format off, nothing changes. Verify the tests fail.
+- [x] 3.2 Add the `headersStoreFormat` flag to `StoreUtil`, `TopologyBuildContext` and `TopologyGenerator` (existing constructors default to `false`), and pick the suppliers and builders from the D4 table. Verify the 3.1 tests pass.
 - [ ] 3.3 Add a failing `KafkaStreamsRunner` test that `dsl.store.format: HEADERS` (any case) in the Kafka config builds a topology with headers-aware stores and that an absent value does not. Then pass the flag on from `KafkaStreamsRunner`. Verify the test passes.
 - [ ] 3.4 Add a test that a stream-stream join with declared stores still builds and joins correctly with the headers format on. Verify it passes.
 - [ ] 3.5 Document `dsl.store.format: HEADERS` (which stores it affects, which it doesn't, and the caution about switching formats on existing state) in `docs/reference/state-store-reference.md`, the runner configuration docs and the migration guide. Verify the docs build.
