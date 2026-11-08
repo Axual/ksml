@@ -280,7 +280,8 @@ stores:
     caching: true
 ```
 
-For details, see [State Store Reference](state-store-reference.md).
+As in Kafka Streams, a store is persistent, timestamped and has a changelog topic unless it sets these options to
+`false`. For details and the caching default, see [State Store Reference](state-store-reference.md#configuration-parameters).
 
 ## Producers
 

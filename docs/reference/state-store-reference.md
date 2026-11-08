@@ -65,10 +65,18 @@ Define directly within operations for custom configurations:
 | `type` | String | Yes | - | Store type: `keyValue`, `window`, or `session` |
 | `keyType` | String | Yes | - | Data type for keys (see [Data Types Reference](data-and-formats-reference.md)) |
 | `valueType` | String | Yes | - | Data type for values |
-| `persistent` | Boolean | No | `false` | If `true`, uses RocksDB (disk); if `false`, uses in-memory storage |
-| `caching` | Boolean | No | `false` | If `true`, improves read performance but delays updates |
-| `logging` | Boolean | No | `false` | If `true`, creates changelog topic for fault tolerance (in addition to local storage) |
-| `timestamped` | Boolean | No | `false` | If `true`, stores timestamp with each entry |
+| `persistent` | Boolean | No | `true` | If `true`, uses RocksDB (disk); if `false`, uses in-memory storage |
+| `caching` | Boolean | No | See below | If `true`, improves read performance but delays updates |
+| `logging` | Boolean | No | `true` | If `true`, creates changelog topic for fault tolerance (in addition to local storage) |
+| `timestamped` | Boolean | No | `true` | If `true`, stores timestamp with each entry. Has no effect on session stores: setting it there logs a warning |
+
+These defaults are the same as in Kafka Streams. Set an option to `false` to turn it off. Without `caching`, the
+default depends on how the store is used, again as in Kafka Streams:
+
+- When an operation such as `aggregate`, `count`, `reduce` or a table materializes the store, it is cached.
+- When Python functions use the store (it is listed in their `stores`), it is not cached.
+
+Tables and globalTables without a `store` are not affected: their stores stay in memory without a changelog topic.
 
 ### Window Store Specific Parameters
 
@@ -86,7 +94,10 @@ Define directly within operations for custom configurations:
 | `historyRetention` | Duration | No (Yes if versioned) | - | How long to keep old versions |
 | `segmentInterval` | Duration | No | - | Segment size for versioned stores |
 
-**Important:** Versioned stores (`versioned: true`) cannot have caching enabled (`caching: false` is required).
+**Important:** Versioned stores (`versioned: true`) do not support caching. When an operation materializes a
+versioned store, Kafka Streams ignores caching. For a versioned store that Python functions use, do not set
+`caching: true`. Like other stores, a versioned store is persistent unless it sets `persistent: false`, in which case
+it becomes a plain in-memory store without versions.
 
 ### Session Store Specific Parameters
 
@@ -394,10 +405,10 @@ To work with the timestamps, use these methods. They only exist on timestamped s
   `store.reverseRangeWithTimestamp(keyFrom, keyTo)`, `store.reverseAllWithTimestamp()` and
   `store.prefixScanWithTimestamp(prefix)` - Entries with `key`, `value` and `timestamp`
 
-The store of a `count`, `aggregate`, `reduce` or table keeps timestamps only with `timestamped: true` or
-`persistent: false`. Otherwise, the `*WithTimestamp` methods can return `-1` as the timestamp: always without caching,
-and with `caching: true` once the entry has left the cache (for example after a restart). Do not pass this timestamp
-to `put`.
+The store of a `count`, `aggregate`, `reduce` or table keeps timestamps unless it is persistent and sets
+`timestamped: false`. In that case, the `*WithTimestamp` methods can return `-1` as the timestamp: always without
+caching, and with `caching: true` once the entry has left the cache (for example after a restart). Do not pass this
+timestamp to `put`.
 
 In `putAll`, a dict entry can have a `timestamp` field. That entry is stored with this timestamp, so
 `store.putAll(other_store.allWithTimestamp())` copies a store with its timestamps. A `(key, value, timestamp)` tuple
@@ -433,9 +444,9 @@ To work with the timestamps, use these methods:
   `allWithTimestamp` and `backwardAllWithTimestamp` - The same arguments as the methods without `WithTimestamp`, and
   entries with `key`, `value` and `timestamp`
 
-The store of a windowed aggregation keeps timestamps only with `timestamped: true` or `persistent: false`.
-Otherwise, the `*WithTimestamp` methods can return `-1` as the timestamp: always without caching, and with
-`caching: true` once the entry has left the cache (for example after a restart). Do not pass this timestamp to `put`.
+The store of a windowed aggregation keeps timestamps unless it is persistent and sets `timestamped: false`. In that
+case, the `*WithTimestamp` methods can return `-1` as the timestamp: always without caching, and with `caching: true`
+once the entry has left the cache (for example after a restart). Do not pass this timestamp to `put`.
 A negative timestamp in `put` raises a `ValueError`, as on a timestamped key-value store.
 
 A window store under `stores:` that only Python functions use is a plain window store, also with `timestamped: true`.
@@ -519,7 +530,7 @@ It's important to understand that `persistent` and `logging` control different a
 | Configuration | Description | Use Case |
 |--------------|-------------|----------|
 | `persistent: true, logging: false` | RocksDB only (local durability, no fault tolerance) | Development, non-critical state |
-| `persistent: true, logging: true` | RocksDB + changelog (local durability + fault tolerance) | **Production (Recommended)** ✅ |
+| `persistent: true, logging: true` | RocksDB + changelog (local durability + fault tolerance). The default | **Production (Recommended)** ✅ |
 | `persistent: false, logging: true` | In-memory + changelog (fast access, fault tolerant) | High-performance with recovery |
 | `persistent: false, logging: false` | In-memory only (fastest, data lost on restart) | Temporary caches, testing |
 
@@ -541,6 +552,10 @@ When `logging: true` is configured:
 |---------|----------|----------|
 | `caching: true` | Batches updates, reduces downstream load | High-throughput with acceptable latency |
 | `caching: false` | Immediate emission of all updates | Real-time requirements, debugging |
+
+With caching, an operation emits the latest result for a key when Kafka Streams commits (`commit.interval.ms`) or when
+the cache is full (`statestore.cache.max.bytes`), instead of emitting every update. Stores that operations materialize
+are cached by default; see [Common Parameters](#common-parameters-all-store-types).
 
 ### Persistence Trade-offs
 

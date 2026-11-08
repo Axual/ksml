@@ -40,15 +40,15 @@ public class WindowStateStoreDefinitionParser extends DefinitionParser<WindowSta
     @Override
     protected StructsParser<WindowStateStoreDefinition> parser() {
         final var nameField = FieldParsers.optional(FieldParsers.stringField(KSMLDSL.Stores.NAME, false, "The name of the window store. If this field is not defined, then the name is derived from the context."));
-        final var persistentField = FieldParsers.optional(FieldParsers.booleanField(KSMLDSL.Stores.PERSISTENT, "\"true\" if this window store needs to be stored on disk, \"false\" otherwise"));
-        final var timestampedField = FieldParsers.optional(FieldParsers.booleanField(KSMLDSL.Stores.TIMESTAMPED, "\"true\" if elements in the store are timestamped, \"false\" otherwise"));
+        final var persistentField = FieldParsers.optional(FieldParsers.booleanField(KSMLDSL.Stores.PERSISTENT, "\"true\" if this window store needs to be stored on disk, \"false\" otherwise. Defaults to \"true\""));
+        final var timestampedField = FieldParsers.optional(FieldParsers.booleanField(KSMLDSL.Stores.TIMESTAMPED, "\"true\" if elements in the store are timestamped, \"false\" otherwise. Defaults to \"true\""));
         final var retentionField = FieldParsers.optional(FieldParsers.durationField(KSMLDSL.Stores.RETENTION, "The duration for which elements in the window store are retained"));
         final var windowSizeField = FieldParsers.optional(FieldParsers.durationField(KSMLDSL.Stores.WINDOW_SIZE, "Size of the windows (cannot be negative)"));
         final var retainDuplicatesField = FieldParsers.optional(FieldParsers.booleanField(KSMLDSL.Stores.RETAIN_DUPLICATES, "Whether or not to retain duplicates"));
         final var keyTypeField = FieldParsers.userTypeField(KSMLDSL.Stores.KEY_TYPE, "The key type of the window store", false);
         final var valueTypeField = FieldParsers.userTypeField(KSMLDSL.Stores.VALUE_TYPE, "The value type of the window store", false);
-        final var cachingField = FieldParsers.optional(FieldParsers.booleanField(KSMLDSL.Stores.CACHING, "\"true\" if changed to the window store need to be buffered and periodically released, \"false\" to emit all changes directly"));
-        final var loggingField = FieldParsers.optional(FieldParsers.booleanField(KSMLDSL.Stores.LOGGING, "\"true\" if a changelog topic should be set up on Kafka for this window store, \"false\" otherwise"));
+        final var cachingField = FieldParsers.optional(FieldParsers.booleanField(KSMLDSL.Stores.CACHING, "\"true\" if changes to the window store need to be buffered and periodically released, \"false\" to emit all changes directly. Defaults to \"true\" when an operation materializes the store, and to \"false\" when functions use it"));
+        final var loggingField = FieldParsers.optional(FieldParsers.booleanField(KSMLDSL.Stores.LOGGING, "\"true\" if a changelog topic should be set up on Kafka for this window store, \"false\" otherwise. Defaults to \"true\""));
 
         // Determine this parser's name by the two input booleans
         final var parserPostfix = (requireStoreType ? "" : KSMLDSL.Types.WITH_IMPLICIT_STORE_TYPE_POSTFIX)
