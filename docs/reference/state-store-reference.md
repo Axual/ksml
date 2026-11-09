@@ -285,11 +285,15 @@ A value is only converted to a type of the same kind:
 
 Reads return the value of a `bytes` store as a list of ints.
 
+This is stricter than the conversion of a function result to its `resultType`, on purpose: a function with
+`resultType: long` may return `5.0`, but `store.put(key, 5.0)` on a `long` store raises `TypeError`, so a value of the
+wrong kind is never stored by accident.
+
 Other values raise a Python error that you can catch with `except Exception`, and nothing is written:
 
 - `TypeError` - a value of another kind, for example a `float` on a `long` store (also a whole number like `2.0`), a
   `str` on a `long` store, or an `int` on a `string` store. Convert the value first, for example with `int(...)` or
-  `str(...)`
+  `str(...)`. A `bool` on a number store is also a `TypeError`, although in Python `True` is an `int` too
 - `ValueError` - an `int` out of range, for example `2 ** 40` on an `int` store, `10 ** 400` on a `double` store, or
   `300` in a list for a `bytes` store
 
