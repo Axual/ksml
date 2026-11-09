@@ -54,6 +54,7 @@ public class KSMLSessionStoreMethodsTest {
     void testSessionStoreMethods() {
         input.pipeInput("a", "1", 1000L);
         input.pipeInput("b", "2", 2000L);
+        input.pipeInput("c", "2", 2500L);
         input.pipeInput("a", "3", 3000L);
 
         final var lines = output.readValuesToList().stream()
@@ -62,8 +63,8 @@ public class KSMLSessionStoreMethodsTest {
                 .toList();
         final var singleKey = " fetchSession=1 missing=None"
                 + " fetch=a@10:1,a@30:3 backwardFetch=a@30:3,a@10:1";
-        final var findSingleKey = " findSessions=a@10:1,a@30:3 backwardFindSessions=a@30:3,a@10:1";
-        // Both stores order these by session end and by key alike
+        final var findSingleKey = " findSessions=a@30:3 backwardFindSessions=a@30:3 findSessionsBeforeStart=a@10:1";
+        // Both stores order these by session end and by key alike. The key ranges leave out key c
         final var findKeys = " findSessionsKeys=a@10:1,b@20:2 backwardFindSessionsKeys=b@20:2,a@10:1";
         final var afterRemove = " afterRemove=a@30:3";
         // The in-memory store orders by session end, then key. RocksDB orders by time segment, then key, then session

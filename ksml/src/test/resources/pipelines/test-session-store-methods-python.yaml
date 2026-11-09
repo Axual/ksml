@@ -1,8 +1,8 @@
 # $schema: https://raw.githubusercontent.com/Axual/ksml/refs/heads/main/docs/ksml-language-spec.json
 
 # Regression test for session stores (AXPD-11068): a Python function puts each record in an in-memory and a RocksDB
-# session store, and on the third record calls every session store method. Each iterator is read with a for loop and
-# with a hasNext() loop without close(). The result of each store is returned as one line of text.
+# session store, and on the record with value "3" calls every session store method. Each iterator is read with a for
+# loop and with a hasNext() loop without close(). The result of each store is returned as one line of text.
 streams:
   session_methods_input:
     topic: session_methods_input
@@ -54,10 +54,13 @@ functions:
         line += " backwardFetch=" + read(lambda: store.backwardFetch("a"), describe)
         line += " fetchKeys=" + read(lambda: store.fetch("a", "b"), describe)
         line += " backwardFetchKeys=" + read(lambda: store.backwardFetch("a", "b"), describe)
-        line += " findSessions=" + read(lambda: store.findSessions("a", BASE, BASE + 40), describe)
-        line += " backwardFindSessions=" + read(lambda: store.backwardFindSessions("a", BASE, BASE + 40), describe)
+        # Sessions of key a that end at or after 31 and start at or before 40: a@10 ends at 11, so only a@30
+        line += " findSessions=" + read(lambda: store.findSessions("a", BASE + 31, BASE + 40), describe)
+        line += " backwardFindSessions=" + read(lambda: store.backwardFindSessions("a", BASE + 31, BASE + 40), describe)
+        # Sessions of key a that start at or before 29: a@30 starts later, so only a@10
+        line += " findSessionsBeforeStart=" + read(lambda: store.findSessions("a", BASE, BASE + 29), describe)
         # Sessions that end at or after 11 and start at or before 20: a@10 ends at 11 and b@20 starts at 20, so both
-        # are on the edge and included; a@30 starts later
+        # are on the edge and included; a@30 starts later, and key c is outside the key range
         line += " findSessionsKeys=" + read(lambda: store.findSessions("a", "b", BASE + 11, BASE + 20), describe)
         line += " backwardFindSessionsKeys=" + read(
             lambda: store.backwardFindSessions("a", "b", BASE + 11, BASE + 20), describe)
@@ -65,7 +68,7 @@ functions:
         line += " afterRemove=" + read(lambda: store.fetch("a"), describe)
         return line
     code: |
-      # Value "1" is the session at 10, value "2" at 20 and value "3" at 30
+      # Value "1" is the session at 10, value "2" at 20 and value "3" at 30. Key c is outside the key ranges above.
       session_memory.put(session(key, int(value) * 10), value)
       session_rocksdb.put(session(key, int(value) * 10), value)
       result = check("memory", session_memory) + "\n" + check("rocksdb", session_rocksdb) if value == "3" else ""
