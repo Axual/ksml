@@ -181,7 +181,7 @@ The new steps add Kafka topics to your application: `toTable` adds a state store
 
 ## Store iterators are closed when the function returns
 
-KSML now closes a store iterator when all entries are read, or when the Python function that created it returns. An iterator that is kept, for example in a global variable, raises an error when a later call uses it:
+KSML now closes a store iterator when all entries are read, or when the KSML function (the function in your definition) that created it returns. An iterator that is kept, for example in a global variable, raises an error when a later call uses it:
 
 ```
 Store iterator was closed when the function that created it returned

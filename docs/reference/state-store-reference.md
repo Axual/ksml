@@ -193,7 +193,8 @@ entries = list(store.all())
 ```
 
 A store iterator holds resources (for RocksDB stores, native memory) until it is closed. KSML closes it when all
-entries are read, and when the function returns. So a loop can end early with `break`, `return` or an exception:
+entries are read, and when the KSML function (the function in your definition) returns. So a loop can end early with
+`break`, `return` or an exception:
 
 ```python
 found = None
@@ -204,8 +205,10 @@ for entry in store.all():
 ```
 
 Do not keep an iterator in a global variable for a later call: it is closed by then, and using it raises an error.
-To close an iterator before the function returns, use `contextlib.closing()`. A plain `with store.all() as entries:`
-does not work.
+A helper function that the KSML function calls, for example a `def` in `globalCode` or in a module, does not close
+its iterators when it returns. They stay open until the KSML function returns. So in a helper that runs a loop, or
+to close an iterator before the KSML function returns, use `contextlib.closing()`. A plain
+`with store.all() as entries:` does not work.
 
 Iterators also have the methods `hasNext()`, `next()` (returns `None` after the last entry), `peekNextKey()`
 (returns the next key without moving forward, or `None`) and `close()`.

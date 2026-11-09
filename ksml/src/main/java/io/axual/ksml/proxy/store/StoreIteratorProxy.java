@@ -37,7 +37,8 @@ import java.util.NoSuchElementException;
 /**
  * Python view of a Kafka store iterator. Works with Python {@code for}/{@code next()}/{@code list()}
  * and with {@code hasNext()}, {@code next()}, {@code peekNextKey()}, {@code close()}.
- * Closes the Kafka iterator when all entries are read, or when the Python function that created it returns.
+ * Closes the Kafka iterator when all entries are read, or when the KSML function call that created it ends (see
+ * {@link #beginCall()}); a Python helper function returning does not close it.
  */
 @Slf4j
 public class StoreIteratorProxy implements AbstractProxy, ProxyIterator, ProxyObject {

@@ -243,7 +243,8 @@ For a complete list of configuration parameters for all store types, see the [St
 
 ### Iterating Over a Store
 - Read many entries with a `for` loop: `for entry in store.all():`, where each entry has `key` and `value`
-- The loop can stop early with `break`: KSML closes the iterator when the function returns
+- The loop can stop early with `break`: KSML closes the iterator when the KSML function returns. A helper function
+  that you call from it does not close its iterators when it returns
 - See [Reading Many Entries with Iterators](../../reference/state-store-reference.md#reading-many-entries-with-iterators) for all iterator methods
 
 State stores are a powerful feature in KSML that enable sophisticated stateful stream processing patterns. By understanding the configuration options and trade-offs, you can build robust and efficient streaming applications.
