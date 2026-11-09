@@ -265,6 +265,18 @@ class KeyValueStoreProxyTest {
     }
 
     @Test
+    @DisplayName("prefixScan(\"\") reads all(), as Kafka's in-memory and caching stores fail on an empty prefix")
+    void prefixScanWithEmptyPrefix() {
+        final var kafkaIterator = entries("a", "b");
+        when(delegate.all()).thenReturn(kafkaIterator);
+        assertThat(runPython("""
+                [e["key"] for e in store.prefixScan("")]
+                """)).containsExactly("a", "b");
+        verify(delegate, never()).prefixScan(any(), any());
+        assertThat(kafkaIterator.closeCount).isEqualTo(1);
+    }
+
+    @Test
     @DisplayName("putAll with (key, value) tuples writes all entries with one delegate putAll")
     void putAllWithTuples() {
         runPython("""

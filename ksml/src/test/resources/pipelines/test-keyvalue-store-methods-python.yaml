@@ -72,6 +72,8 @@ functions:
         line += " reverseRange=" + keys(store.reverseRange("a", "b"))
         line += " reverseAll=" + keys(store.reverseAll())
         line += " prefixScan=" + keys(store.prefixScan("a"))
+        # Every key starts with "": Kafka's in-memory and caching stores fail on an empty prefix
+        line += " prefixScanEmpty=" + keys(store.prefixScan(""))
         # None means no bound
         line += " rangeFromNone=" + keys(store.range(None, "ab"))
         line += " rangeToNone=" + keys(store.range("b", None))

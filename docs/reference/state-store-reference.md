@@ -176,7 +176,7 @@ This example demonstrates:
 - `store.putAll(entries)` - Store many entries in one call. `entries` is a list or an iterator of `(key, value)` pairs or dicts with `key` and `value`, so `store.putAll(other_store.all())` copies a store. All entries are kept in memory first, so use this for small stores only. A value `None` deletes the key
 - `store.range(from_key, to_key)` and `store.reverseRange(from_key, to_key)` - Entries from `from_key` to `to_key`, both included, in key order or in reverse. `None` means no bound
 - `store.all()` and `store.reverseAll()` - All entries, in key order or in reverse
-- `store.prefixScan(prefix)` - Entries whose key starts with `prefix`. The prefix is compared with the stored keys as UTF-8 bytes, so use it for stores with string keys
+- `store.prefixScan(prefix)` - Entries whose key starts with `prefix`. The prefix is compared with the stored keys as UTF-8 bytes, so use it for stores with string keys. An empty prefix returns all entries
 - `store.approximateNumEntries()` - Estimated number of entries
 
 Keys are ordered by their serialized bytes. For string keys this is UTF-8 byte order: `"B"` comes before `"a"`, and `"a"` before `"ab"` before `"b"`.

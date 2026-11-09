@@ -59,11 +59,14 @@ public class KeyValueStoreProxy extends AbstractStateStoreProxy<KeyValueStore<Ob
     /**
      * Returns the entries whose key starts with the given string. The prefix is serialized as UTF-8, so this only
      * gives meaningful results for stores with string keys. A prefix that is not a string raises a Python
-     * {@code TypeError}.
+     * {@code TypeError}. An empty prefix returns all entries.
      */
     @HostAccess.Export
     public Object prefixScan(Object prefix) {
-        return ProxyUtil.toPython(delegate.prefixScan(ProxyUtil.toStringPrefix(prefix), new StringSerializer()));
+        final var stringPrefix = ProxyUtil.toStringPrefix(prefix);
+        // Kafka's in-memory and caching stores fail on an empty prefix; every key starts with ""
+        if (stringPrefix.isEmpty()) return ProxyUtil.toPython(delegate.all());
+        return ProxyUtil.toPython(delegate.prefixScan(stringPrefix, new StringSerializer()));
     }
 
     @HostAccess.Export
