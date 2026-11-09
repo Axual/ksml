@@ -1,7 +1,7 @@
 # $schema: https://raw.githubusercontent.com/Axual/ksml/refs/heads/main/docs/ksml-language-spec.json
 
-# This example keeps the last reading of each sensor in a store, and reads the store with a for loop to sum up
-# the sensors of the same type and owner
+# This example keeps the last reading of each sensor in a store, and reads the sensors of the same type and owner
+# with prefixScan and a for loop
 
 streams:
   sensor_source:
@@ -37,10 +37,9 @@ functions:
       prefix = key[:key.rindex("_") + 1]
       count = 0
       total = 0.0
-      for entry in last_sensor_values.all():
-        if entry["key"].startswith(prefix):
-          count += 1
-          total += entry["value"]["value"]
+      for entry in last_sensor_values.prefixScan(prefix):
+        count += 1
+        total += entry["value"]["value"]
       return {"sensors": count, "average": round(total / count, 2)}
     resultType: json
 

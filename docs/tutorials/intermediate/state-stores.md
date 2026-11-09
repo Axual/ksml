@@ -236,12 +236,14 @@ This processor keeps the last reading of each sensor, and sums up the sensors of
 This example demonstrates:
 
 - **Store access from Python**: The function lists `last_sensor_values` in its `stores`, and calls `put` on it
-- **Iteration**: `for entry in last_sensor_values.all():` reads every entry of the store
+- **Iteration**: `for entry in last_sensor_values.prefixScan(prefix):` reads the entries whose key starts with
+  `prefix`, here the sensors of the same type and owner. `all()` would read every entry of the store
 - **Closing**: KSML closes the iterator when the loop has read all entries. A loop that stops early with `break` or
   `return` is closed when the KSML function returns
 
-See [Reading Many Entries with Iterators](../../reference/state-store-reference.md#reading-many-entries-with-iterators) for all
-iterator methods.
+Key-value stores also have `range`, `reverseRange`, `reverseAll` and `putAll`. See
+[With Manual State Access](../../reference/state-store-reference.md#with-manual-state-access) and
+[Reading Many Entries with Iterators](../../reference/state-store-reference.md#reading-many-entries-with-iterators).
 
 ## Configuration Parameters
 
