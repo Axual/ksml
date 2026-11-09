@@ -76,6 +76,8 @@ functions:
         line += " reverseRangeWithTimestamp=" + stamped(store.reverseRangeWithTimestamp("a", "b"))
         line += " reverseAllWithTimestamp=" + stamped(store.reverseAllWithTimestamp())
         line += " prefixScanWithTimestamp=" + stamped(store.prefixScanWithTimestamp("a"))
+        # Every key starts with "": Kafka's in-memory store fails on an empty prefix
+        line += " prefixScanWithTimestampEmpty=" + stamped(store.prefixScanWithTimestamp(""))
         # delete and putIfAbsent return only the value
         line += " putIfAbsent=" + str(store.putIfAbsent("a", "9", 900))
         line += " delete=" + str(store.delete("c"))

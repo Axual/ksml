@@ -62,6 +62,7 @@ public class KSMLTimestampedKeyValueStoreMethodsTest {
                 + " reverseRangeWithTimestamp=b:2@500,ab:4@700,a:1@1000"
                 + " reverseAllWithTimestamp=d:5@1000,c:3@1000,b:2@500,ab:4@700,a:1@1000"
                 + " prefixScanWithTimestamp=a:1@1000,ab:4@700"
+                + " prefixScanWithTimestampEmpty=a:1@1000,ab:4@700,b:2@500,c:3@1000,d:5@1000"
                 + " putIfAbsent=1 delete=3 putIfAbsentNew=None deleteMissing=None afterDelete=a:1,ab:4,b:2"
                 + " badEntry=TypeError threeTuple=ValueError x=None negative=ValueError n=None"
                 + " copy=a:1@1000,ab:4@700,b:2@500";
