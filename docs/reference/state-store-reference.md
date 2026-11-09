@@ -296,7 +296,8 @@ Other values raise a Python error that you can catch with `except Exception`, an
 The message names the store and the types, not the value, for example
 `TypeError: Store counts: value must be long, got float`.
 
-`None` is not converted, so `store.put(key, None)` still deletes the key. Stores with other types (`json`, `avro:...`
+`None` is not converted, so `store.put(key, None)` still deletes the key. A `None` key in `put`, `putIfAbsent` or
+`putAll` raises `ValueError` on every store, because Kafka does not accept it. Stores with other types (`json`, `avro:...`
 and other schema types, unions, enums, or no `keyType` / `valueType`) get keys and values as they are. Stores in the
 `assert` blocks of the [KSML test runner](../getting-started/testing-your-pipeline.md) convert the same way.
 

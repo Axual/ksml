@@ -140,19 +140,19 @@ public class TimestampedKeyValueStoreProxy extends AbstractStateStoreProxy<Times
     @HostAccess.Export
     public void put(Object key, Object value) {
         // A delete needs no timestamp, so it also works outside record processing
-        if (value == null) delegate.put(DATA_OBJECT_MAPPER.toDataObject(key), null);
+        if (value == null) delegate.put(DATA_OBJECT_MAPPER.toDataObject(toWriteKey(key)), null);
         else put(key, value, recordTimestamp.getAsLong());
     }
 
     @HostAccess.Export
     public void put(Object key, Object value, long timestamp) {
-        delegate.put(DATA_OBJECT_MAPPER.toDataObject(toKey(key)), ValueAndTimestamp.make(DATA_OBJECT_MAPPER.toDataObject(toValue(value)), ProxyUtil.checkTimestamp(timestamp, "put")));
+        delegate.put(DATA_OBJECT_MAPPER.toDataObject(toWriteKey(key)), ValueAndTimestamp.make(DATA_OBJECT_MAPPER.toDataObject(toValue(value)), ProxyUtil.checkTimestamp(timestamp, "put")));
     }
 
     /** Like {@link KeyValueStoreProxy#putAll}; a dict entry may have a timestamp, others get the record timestamp. */
     @HostAccess.Export
     public void putAll(Object entries) {
-        delegate.putAll(ProxyUtil.toTimestampedKeyValueList(entries, recordTimestamp, (key, role) -> DATA_OBJECT_MAPPER.toDataObject(toKey(key, role)), (value, role) -> DATA_OBJECT_MAPPER.toDataObject(toValue(value, role))));
+        delegate.putAll(ProxyUtil.toTimestampedKeyValueList(entries, recordTimestamp, (key, role) -> DATA_OBJECT_MAPPER.toDataObject(toWriteKey(key, role)), this::toPutAllValue));
     }
 
     /** Stores the value with the record timestamp if the key has none, and returns the existing value. */
@@ -164,6 +164,11 @@ public class TimestampedKeyValueStoreProxy extends AbstractStateStoreProxy<Times
     /** Stores the value with the given timestamp if the key has none, and returns the existing value. */
     @HostAccess.Export
     public Object putIfAbsent(Object key, Object value, long timestamp) {
-        return ProxyUtil.toPython(ProxyUtil.valueOf(delegate.putIfAbsent(DATA_OBJECT_MAPPER.toDataObject(toKey(key)), ValueAndTimestamp.make(DATA_OBJECT_MAPPER.toDataObject(toValue(value)), ProxyUtil.checkTimestamp(timestamp, "putIfAbsent")))));
+        return ProxyUtil.toPython(ProxyUtil.valueOf(delegate.putIfAbsent(DATA_OBJECT_MAPPER.toDataObject(toWriteKey(key)), ValueAndTimestamp.make(DATA_OBJECT_MAPPER.toDataObject(toValue(value)), ProxyUtil.checkTimestamp(timestamp, "putIfAbsent")))));
+    }
+
+    /** A value {@code None} stays null, so putAll deletes the key without reading the record timestamp, like put. */
+    private Object toPutAllValue(Object value, String role) {
+        return value == null ? null : DATA_OBJECT_MAPPER.toDataObject(toValue(value, role));
     }
 }

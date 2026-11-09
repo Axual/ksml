@@ -128,6 +128,75 @@ class StoreProxyDeclaredTypesTest {
     }
 
     @Test
+    @DisplayName("A None key in put, putIfAbsent or putAll raises ValueError, as Kafka rejects a null key, and writes nothing")
+    void noneKeyInWrites() {
+        final KeyValueStore<Object, Object> kvStore = mock(KeyValueStore.class);
+        when(kvStore.name()).thenReturn("counts");
+        final var kv = new KeyValueStoreProxy(kvStore, LONG, LONG);
+        assertThat(run(kv, "store.put(None, 5)")).isEqualTo("ValueError: Store counts: key must not be None");
+        assertThat(run(kv, "store.putIfAbsent(None, 5)")).isEqualTo("ValueError: Store counts: key must not be None");
+        assertThat(run(kv, "store.putAll([(1, 5), (None, 6)])"))
+                .isEqualTo("ValueError: Store counts: putAll entry 1 key must not be None");
+        assertThat(run(kv, "store.putAll([{'key': None, 'value': 6}])"))
+                .isEqualTo("ValueError: Store counts: putAll entry 0 key must not be None");
+        verify(kvStore, never()).put(any(), any());
+        verify(kvStore, never()).putIfAbsent(any(), any());
+        verify(kvStore, never()).putAll(anyList());
+
+        final TimestampedKeyValueStore<Object, Object> tsStore = mock(TimestampedKeyValueStore.class);
+        when(tsStore.name()).thenReturn("counts");
+        final var ts = new TimestampedKeyValueStoreProxy(tsStore, LONG, LONG, () -> 1000L);
+        assertThat(run(ts, "store.put(None, 5)")).isEqualTo("ValueError: Store counts: key must not be None");
+        assertThat(run(ts, "store.put(None, None)")).isEqualTo("ValueError: Store counts: key must not be None");
+        assertThat(run(ts, "store.putIfAbsent(None, 5, 2000)")).isEqualTo("ValueError: Store counts: key must not be None");
+        assertThat(run(ts, "store.putAll([(None, 6)])")).isEqualTo("ValueError: Store counts: putAll entry 0 key must not be None");
+        verify(tsStore, never()).put(any(), any());
+        verify(tsStore, never()).putIfAbsent(any(), any());
+        verify(tsStore, never()).putAll(anyList());
+
+        final WindowStore<Object, Object> windowStore = mock(WindowStore.class);
+        when(windowStore.name()).thenReturn("counts");
+        assertThat(run(new WindowStoreProxy(windowStore, LONG, LONG), "store.put(None, 5, 0)"))
+                .isEqualTo("ValueError: Store counts: key must not be None");
+        verify(windowStore, never()).put(any(), any(), anyLong());
+
+        final TimestampedWindowStore<Object, Object> tsWindowStore = mock(TimestampedWindowStore.class);
+        when(tsWindowStore.name()).thenReturn("counts");
+        final var tsWindow = new TimestampedWindowStoreProxy(tsWindowStore, LONG, LONG, () -> 1000L);
+        assertThat(run(tsWindow, "store.put(None, 5, 0)")).isEqualTo("ValueError: Store counts: key must not be None");
+        assertThat(run(tsWindow, "store.put(None, None, 0)")).isEqualTo("ValueError: Store counts: key must not be None");
+        verify(tsWindowStore, never()).put(any(), any(), anyLong());
+
+        final VersionedKeyValueStore<Object, Object> versionedStore = mock(VersionedKeyValueStore.class);
+        when(versionedStore.name()).thenReturn("counts");
+        assertThat(run(new VersionedKeyValueStoreProxy(versionedStore, LONG, LONG), "store.put(None, 5, 1000)"))
+                .isEqualTo("ValueError: Store counts: key must not be None");
+        verify(versionedStore, never()).put(any(), any(), anyLong());
+    }
+
+    @Test
+    @DisplayName("Timestamped stores: None deletes with the key converted to the declared type, also without a record")
+    void timestampedStoreNoneValueConvertsKey() {
+        final TimestampedKeyValueStore<Object, Object> kvStore = mock(TimestampedKeyValueStore.class);
+        final var kv = new TimestampedKeyValueStoreProxy(kvStore, LONG, LONG, ProxyUtil::noRecordTimestamp);
+        assertThat(run(kv, "store.put(5, None)")).isEqualTo("ok");
+        final var key = ArgumentCaptor.forClass(Object.class);
+        verify(kvStore).put(key.capture(), isNull());
+        assertLong(key.getValue(), 5);
+        assertThat(run(kv, "store.putAll([(6, None)])")).isEqualTo("ok");
+        final ArgumentCaptor<List<KeyValue<Object, ValueAndTimestamp<Object>>>> entries = ArgumentCaptor.captor();
+        verify(kvStore).putAll(entries.capture());
+        assertLong(entries.getValue().get(0).key, 6);
+        assertThat(entries.getValue().get(0).value).isNull();
+
+        final TimestampedWindowStore<Object, Object> windowStore = mock(TimestampedWindowStore.class);
+        final var window = new TimestampedWindowStoreProxy(windowStore, LONG, LONG, ProxyUtil::noRecordTimestamp);
+        assertThat(run(window, "store.put(7, None, 0)")).isEqualTo("ok");
+        verify(windowStore).put(key.capture(), isNull(), anyLong());
+        assertLong(key.getValue(), 7);
+    }
+
+    @Test
     @DisplayName("Key-value store: a float, a str or a bool on a long store raises TypeError naming the types, and writes nothing")
     void keyValueStoreRejectsOtherKinds() {
         final KeyValueStore<Object, Object> delegate = mock(KeyValueStore.class);

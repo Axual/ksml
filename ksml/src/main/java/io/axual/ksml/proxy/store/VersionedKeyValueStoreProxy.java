@@ -58,6 +58,6 @@ public class VersionedKeyValueStoreProxy extends AbstractStateStoreProxy<Version
 
     @HostAccess.Export
     public Object put(Object key, Object value, long timestamp) {
-        return ProxyUtil.toPython(delegate.put(toKey(key), toValue(value), timestamp));
+        return ProxyUtil.toPython(delegate.put(toWriteKey(key), toValue(value), timestamp));
     }
 }

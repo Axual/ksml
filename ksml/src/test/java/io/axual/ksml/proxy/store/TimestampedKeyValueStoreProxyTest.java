@@ -20,7 +20,6 @@ package io.axual.ksml.proxy.store;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.object.DataNull;
 import io.axual.ksml.data.object.DataString;
 import io.axual.ksml.python.PythonContext;
 import io.axual.ksml.python.PythonContextConfig;
@@ -324,15 +323,13 @@ class TimestampedKeyValueStoreProxyTest {
     }
 
     @Test
-    @DisplayName("putAll passes a None value to the delegate as DataNull, like put, which deletes the key")
+    @DisplayName("putAll passes a None value to the delegate as null, like put, which deletes the key")
     void putAllWithNoneValue() {
         runPython("""
                 store.putAll([("a", None)])
                 []
                 """);
-        // The delete depends on the serde writing DataNull as null bytes; the cached_ts check in
-        // test-keyvalue-store-methods-python.yaml shows it deletes through Kafka's caching store
-        assertThat(capturePutAll()).containsExactly(KeyValue.pair(new DataString("a"), ValueAndTimestamp.make(DataNull.INSTANCE, RECORD_TIMESTAMP)));
+        assertThat(capturePutAll()).containsExactly(KeyValue.pair(new DataString("a"), null));
     }
 
     @Test
@@ -411,6 +408,6 @@ class TimestampedKeyValueStoreProxyTest {
                 """);
         assertThat(result.asString()).isEqualTo("no error");
         verify(delegate).put(any(), isNull());
-        assertThat(capturePutAll()).containsExactly(KeyValue.pair("b", null), KeyValue.pair("c", null));
+        assertThat(capturePutAll()).containsExactly(KeyValue.pair(new DataString("b"), null), KeyValue.pair(new DataString("c"), null));
     }
 }

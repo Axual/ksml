@@ -90,6 +90,6 @@ public class WindowStoreProxy extends AbstractStateStoreProxy<WindowStore<Object
 
     @HostAccess.Export
     public void put(Object key, Object value, long windowStartTimestamp) {
-        delegate.put(toKey(key), toValue(value), windowStartTimestamp);
+        delegate.put(toWriteKey(key), toValue(value), windowStartTimestamp);
     }
 }

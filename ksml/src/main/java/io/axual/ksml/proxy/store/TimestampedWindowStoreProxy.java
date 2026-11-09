@@ -147,12 +147,12 @@ public class TimestampedWindowStoreProxy extends AbstractStateStoreProxy<Timesta
     @HostAccess.Export
     public void put(Object key, Object value, long windowStartTimestamp) {
         // A value None deletes the window entry, which needs no timestamp, so it also works outside record processing
-        if (value == null) delegate.put(NATIVE_MAPPER.fromPython(key), null, windowStartTimestamp);
+        if (value == null) delegate.put(toWriteKey(key), null, windowStartTimestamp);
         else put(key, value, windowStartTimestamp, recordTimestamp.getAsLong());
     }
 
     @HostAccess.Export
     public void put(Object key, Object value, long windowStartTimestamp, long timestamp) {
-        delegate.put(toKey(key), ValueAndTimestamp.make(toValue(value), ProxyUtil.checkTimestamp(timestamp, "put")), windowStartTimestamp);
+        delegate.put(toWriteKey(key), ValueAndTimestamp.make(toValue(value), ProxyUtil.checkTimestamp(timestamp, "put")), windowStartTimestamp);
     }
 }
