@@ -211,7 +211,9 @@ To work with the timestamps, use these methods. They only exist on timestamped s
   `store.prefixScanWithTimestamp(prefix)` - Entries with `key`, `value` and `timestamp`
 
 The store of a `count`, `aggregate`, `reduce` or table keeps timestamps only with `timestamped: true` or
-`persistent: false`. Otherwise, the `*WithTimestamp` methods return `-1` as the timestamp.
+`persistent: false`. Otherwise, the `*WithTimestamp` methods can return `-1` as the timestamp: always without caching,
+and with `caching: true` once the entry has left the cache (for example after a restart). Do not pass this timestamp
+to `put`.
 
 In `putAll`, a dict entry can have a `timestamp` field. That entry is stored with this timestamp, so
 `store.putAll(other_store.allWithTimestamp())` copies a store with its timestamps. A `(key, value, timestamp)` tuple
@@ -248,8 +250,12 @@ To work with the timestamps, use these methods:
   entries with `key`, `value` and `timestamp`
 
 The store of a windowed aggregation keeps timestamps only with `timestamped: true` or `persistent: false`.
-Otherwise, the `*WithTimestamp` methods return `-1` as the timestamp.
+Otherwise, the `*WithTimestamp` methods can return `-1` as the timestamp: always without caching, and with
+`caching: true` once the entry has left the cache (for example after a restart). Do not pass this timestamp to `put`.
 A negative timestamp in `put` raises a `ValueError`, as on a timestamped key-value store.
+
+A window store under `stores:` that only Python functions use is a plain window store, also with `timestamped: true`.
+It has no `*WithTimestamp` methods.
 
 ### Reading Many Entries with Iterators
 
