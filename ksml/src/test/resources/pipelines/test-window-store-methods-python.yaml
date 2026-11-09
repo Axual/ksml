@@ -1,7 +1,7 @@
 # $schema: https://raw.githubusercontent.com/Axual/ksml/refs/heads/main/docs/ksml-language-spec.json
 
 # Regression test for plain window stores (AXPD-11068): a Python function puts each record in an in-memory and a
-# RocksDB window store, and on the third record calls every window store method. Each iterator is read with a for
+# RocksDB window store, and on the last record calls every window store method. Each iterator is read with a for
 # loop and with a hasNext() loop without close(). The result of each store is returned as one line of text.
 streams:
   window_methods_input:
@@ -63,10 +63,11 @@ functions:
         line += " backwardFetchAll=" + read(lambda: store.backwardFetchAll(BASE, BASE + 60000), describe)
         return line
     code: |
-      # Values "1" and "2" go to the window that starts at BASE, value "3" to the window that starts at BASE + 60000.
-      # Value "4" goes to a window outside the time ranges above, and in the next RocksDB segment: with 1h retention
-      # a segment covers 30 minutes.
-      window_start = BASE + {"1": 0, "2": 0, "3": 60000, "4": 1800000}[value]
+      # Values "1", "2" and "5" (keys a, b and c) go to the window that starts at BASE, value "3" to the window that
+      # starts at BASE + 60000. Key c is outside the key ranges above, and value "6" goes to a window that starts
+      # before them, in the same RocksDB segment as BASE. Value "4" goes to a window after the time ranges above, and
+      # in the next RocksDB segment: with 1h retention a segment covers 30 minutes.
+      window_start = BASE + {"1": 0, "2": 0, "3": 60000, "5": 0, "6": -60000, "4": 1800000}[value]
       window_memory.put(key, value, window_start)
       window_rocksdb.put(key, value, window_start)
       result = check("memory", window_memory) + "\n" + check("rocksdb", window_rocksdb) if value == "4" else ""

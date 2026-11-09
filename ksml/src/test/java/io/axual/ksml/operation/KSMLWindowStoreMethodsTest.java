@@ -59,32 +59,37 @@ public class KSMLWindowStoreMethodsTest {
         input.pipeInput("a", "1", 3_000_001_000L);
         input.pipeInput("b", "2", 3_000_002_000L);
         input.pipeInput("a", "3", 3_000_061_000L);
+        input.pipeInput("c", "5", 3_000_003_000L);
+        input.pipeInput("a", "6", 3_000_004_000L);
         input.pipeInput("a", "4", 3_001_801_000L);
 
         final var lines = output.readValuesToList().stream()
                 .filter(v -> !v.isEmpty())
                 .flatMap(String::lines)
                 .toList();
+        // The time ranges start at 0, so the window at -60000 is left out
         final var single = " fetch=1 missing=None/None fetchRange=0:1,60000:3 backwardFetchRange=60000:3,0:1";
         // The in-memory store orders by window start, then key. RocksDB orders by time segment, then key, then window
-        // start: the window at 1800000 is in the next segment, so it comes after key b. The time-range fetches leave it
-        // out.
-        final var memoryOrder = "a@0:1,b@0:2,a@60000:3";
-        final var rocksdbOrder = "a@0:1,a@60000:3,b@0:2";
-        final var memoryAll = memoryOrder + ",a@1800000:4";
-        final var rocksdbAll = rocksdbOrder + ",a@1800000:4";
+        // start: the window at 1800000 is in the next segment, so it comes after keys b and c. The key ranges leave out
+        // key c, the time ranges the windows at -60000 and 1800000.
+        final var memoryKeyRange = "a@0:1,b@0:2,a@60000:3";
+        final var rocksdbKeyRange = "a@0:1,a@60000:3,b@0:2";
+        final var memoryTimeRange = "a@0:1,b@0:2,c@0:5,a@60000:3";
+        final var rocksdbTimeRange = "a@0:1,a@60000:3,b@0:2,c@0:5";
+        final var memoryAll = "a@-60000:6," + memoryTimeRange + ",a@1800000:4";
+        final var rocksdbAll = "a@-60000:6," + rocksdbTimeRange + ",a@1800000:4";
         assertThat(lines).containsExactly(
-                "memory" + single + iterators(memoryOrder, memoryAll),
-                "rocksdb" + single + iterators(rocksdbOrder, rocksdbAll));
+                "memory" + single + iterators(memoryKeyRange, memoryTimeRange, memoryAll),
+                "rocksdb" + single + iterators(rocksdbKeyRange, rocksdbTimeRange, rocksdbAll));
 
         assertThat(openIterators(driver, "window_memory")).isZero();
         assertThat(openIterators(driver, "window_rocksdb")).isZero();
     }
 
-    private static String iterators(String inRange, String all) {
-        return " fetchKeys=" + inRange + " backwardFetchKeys=" + reversed(inRange)
+    private static String iterators(String keyRange, String timeRange, String all) {
+        return " fetchKeys=" + keyRange + " backwardFetchKeys=" + reversed(keyRange)
                 + " all=" + all + " backwardAll=" + reversed(all)
-                + " fetchAll=" + inRange + " backwardFetchAll=" + reversed(inRange);
+                + " fetchAll=" + timeRange + " backwardFetchAll=" + reversed(timeRange);
     }
 
     private static String reversed(String entries) {
