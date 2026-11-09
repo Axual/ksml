@@ -179,7 +179,7 @@ This example demonstrates:
 - `store.prefixScan(prefix)` - Entries whose key starts with `prefix`. The prefix is compared with the stored keys as UTF-8 bytes, so use it for stores with string keys. An empty prefix returns all entries
 - `store.approximateNumEntries()` - Estimated number of entries
 
-Keys are ordered by their serialized bytes. For string keys this is UTF-8 byte order: `"B"` comes before `"a"`, and `"a"` before `"ab"` before `"b"`.
+Keys are ordered by their serialized bytes, not by their value. For string keys this is UTF-8 byte order: `"B"` comes before `"a"`, and `"a"` before `"ab"` before `"b"`. For number keys this is not numeric order: negative numbers come after positive numbers, so `range(-10, 10)` on a `long` key store returns nothing.
 
 `putAll` and `prefixScan` check their arguments and raise a Python error that you can catch with `except Exception`:
 
