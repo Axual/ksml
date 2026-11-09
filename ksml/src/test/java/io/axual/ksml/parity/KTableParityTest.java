@@ -165,6 +165,22 @@ class KTableParityTest {
                 .check();
     }
 
+    private static void tableGroupByCountReference(StreamsBuilder builder) {
+        final var users = builder.table("t_users", CONSUMED);
+        users.groupBy((k, v) -> KeyValue.pair(Json.text(v, "region"), v), Grouped.with(Serdes.String(), Serdes.String()))
+                .count(Materialized.with(Serdes.String(), Serdes.Long()))
+                .toStream().to("out_count", PRODUCED_LONG);
+    }
+
+    @Test
+    void c21cTableGroupByCount() {
+        tableGroupByInput(ParityCase.of("C21c", "KTable groupBy + count only: a value moves to a new key, a delete")
+                .input("t_users").output("out_count", Format.STRING, Format.LONG)
+                .reference(KTableParityTest::tableGroupByCountReference)
+                .ksml("parity/c21c-table-group-by-count.yaml"))
+                .check();
+    }
+
     @Test
     void c22SuppressUntilTimeLimit() {
         ParityCase.of("C22", "KTable suppress untilTimeLimit with no buffer settings (unbounded in Kafka Streams)")

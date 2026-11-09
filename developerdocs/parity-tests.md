@@ -163,9 +163,9 @@ Fixed so far, and now guarded by their cases:
 - `foreignKeyExtractor` on a stream join is rejected at startup (F04). The unit tests
   `JoinWithTableOperationTest` and `LeftJoinWithTableOperationTest` guard this. C36c
   checks the documented way, `toTable` before the join.
-- Tombstones are a real `null` inside Kafka Streams (F01) (C12, C14, C15, C15b, C33, C35,
-  C36e), and a global table join no longer throws when the key mapper returns `None` (F07)
-  (C34).
+- Tombstones are a real `null` inside Kafka Streams (F01) (C12, C14, C15, C15b, C21c,
+  C33, C35, C36e), and a global table join no longer throws when the key mapper returns
+  `None` (F07) (C34).
 
 ## Add a case
 
