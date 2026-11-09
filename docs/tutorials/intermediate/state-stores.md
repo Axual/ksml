@@ -242,7 +242,7 @@ This example demonstrates:
   `return` is closed when the KSML function returns
 
 Key-value stores also have `range`, `reverseRange`, `reverseAll` and `putAll`. See
-[With Manual State Access](../../reference/state-store-reference.md#with-manual-state-access) and
+[Key-Value Store Methods](../../reference/state-store-reference.md#key-value-store-methods) and
 [Reading Many Entries with Iterators](../../reference/state-store-reference.md#reading-many-entries-with-iterators).
 
 ## Configuration Parameters
