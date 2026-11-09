@@ -16,6 +16,7 @@ Before starting this tutorial:
     kafka-topics.sh --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic owner_sensor_counts && \
     kafka-topics.sh --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic sensor_type_totals && \
     kafka-topics.sh --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic owner_counts && \
+    kafka-topics.sh --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic owner_sensor_summary && \
     ```
 
 ## Understanding State Stores in Kafka Streams
@@ -214,6 +215,33 @@ graph LR
 ```
 
 Compared to the predefined store above, this store has no changelog topic and lives only in memory: after a restart, the totals start again from zero.
+
+### 3. Reading Many Entries from a Store
+
+A Python function can read a store entry by entry with a `for` loop. Each entry is a dict with `key` and `value`.
+This processor keeps the last reading of each sensor, and sums up the sensors of the same type and owner:
+
+??? info "Sensor Ownership Producer (click to expand)"
+
+    ```yaml
+    {% include "../../../ksml/src/test/resources/docs-examples/intermediate-tutorial/state-stores/producer-sensor-ownership.yaml" %}
+    ```
+
+??? info "Store Iteration Processor (click to expand)"
+
+    ```yaml
+    {% include "../../../ksml/src/test/resources/docs-examples/intermediate-tutorial/state-stores/processor-iterate-store.yaml" %}
+    ```
+
+This example demonstrates:
+
+- **Store access from Python**: The function lists `last_sensor_values` in its `stores`, and calls `put` on it
+- **Iteration**: `for entry in last_sensor_values.all():` reads every entry of the store
+- **Closing**: KSML closes the iterator when the loop has read all entries. A loop that stops early with `break` or
+  `return` is closed when the KSML function returns
+
+See [Reading Many Entries with Iterators](../../reference/state-store-reference.md#reading-many-entries-with-iterators) for all
+iterator methods.
 
 ## Configuration Parameters
 
