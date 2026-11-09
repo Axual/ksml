@@ -140,7 +140,9 @@ public class TimestampedWindowStoreProxy extends AbstractStateStoreProxy<Timesta
     /** Stores the value in the window that starts at the given time, with the timestamp of the record being processed. */
     @HostAccess.Export
     public void put(Object key, Object value, long windowStartTimestamp) {
-        put(key, value, windowStartTimestamp, recordTimestamp.getAsLong());
+        // A value None deletes the window entry, which needs no timestamp, so it also works outside record processing
+        if (value == null) delegate.put(NATIVE_MAPPER.fromPython(key), null, windowStartTimestamp);
+        else put(key, value, windowStartTimestamp, recordTimestamp.getAsLong());
     }
 
     @HostAccess.Export

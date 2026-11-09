@@ -132,10 +132,12 @@ public class TimestampedKeyValueStoreProxy extends AbstractStateStoreProxy<Times
         return ProxyUtil.toPython(ProxyUtil.valueOf(delegate.delete(NATIVE_MAPPER.fromPython(key))));
     }
 
-    /** Stores the value with the timestamp of the record that is being processed. */
+    /** Stores the value with the timestamp of the record that is being processed. A value {@code None} deletes the key. */
     @HostAccess.Export
     public void put(Object key, Object value) {
-        put(key, value, recordTimestamp.getAsLong());
+        // A delete needs no timestamp, so it also works outside record processing
+        if (value == null) delegate.put(DATA_OBJECT_MAPPER.toDataObject(key), null);
+        else put(key, value, recordTimestamp.getAsLong());
     }
 
     @HostAccess.Export

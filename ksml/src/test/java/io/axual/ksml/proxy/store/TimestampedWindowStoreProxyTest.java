@@ -250,4 +250,11 @@ class TimestampedWindowStoreProxyTest {
                 .startsWith("ValueError: No record is being processed");
         verifyNoInteractions(delegate);
     }
+
+    @Test
+    @DisplayName("put with a None value deletes the window entry also outside record processing, as a delete needs no timestamp")
+    void deleteWithNoneWithoutRecord() {
+        assertThat(pythonErrorOf(ProxyUtil.wrapStateStore(delegate), "store.put(\"key\", None, 60000)")).isEqualTo("no error");
+        verify(delegate).put("key", null, 60000L);
+    }
 }

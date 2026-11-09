@@ -199,7 +199,8 @@ store:
 - `store.all()`, `store.range(...)`, `store.reverseRange(...)`, `store.reverseAll()` and `store.prefixScan(prefix)`
   give entries with `key` and `value`
 - `store.put(key, value)`, `store.putIfAbsent(key, value)` and `store.putAll(entries)` store the values with the
-  timestamp of the record that is being processed
+  timestamp of the record that is being processed. A value `None` deletes the key, also when no record is being
+  processed
 
 To work with the timestamps, use these methods. They only exist on timestamped stores:
 

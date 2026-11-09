@@ -149,6 +149,11 @@ public class ProxyUtil {
     public static List<KeyValue<Object, ValueAndTimestamp<Object>>> toTimestampedKeyValueList(Object entries, LongSupplier recordTimestamp) {
         final var result = new ArrayList<KeyValue<Object, ValueAndTimestamp<Object>>>();
         for (final var e : toEntries(entries, true)) {
+            // A value None deletes the key, which needs no timestamp, so it also works outside record processing
+            if (e.value() == null) {
+                result.add(KeyValue.pair(e.key(), null));
+                continue;
+            }
             final long timestamp = e.timestamp() != null ? e.timestamp() : recordTimestamp.getAsLong();
             result.add(KeyValue.pair(e.key(), ValueAndTimestamp.make(e.value(), timestamp)));
         }

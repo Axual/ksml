@@ -43,6 +43,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -365,5 +366,24 @@ class TimestampedKeyValueStoreProxyTest {
         assertThat(pythonErrorOf("store.putAll([{\"key\": \"a\", \"value\": \"1\", \"timestamp\": -1}])"))
                 .isEqualTo("ValueError: putAll entry 0 timestamp must not be negative, got -1");
         verifyNoInteractions(delegate);
+    }
+
+    @Test
+    @DisplayName("put and putAll with a None value delete the key also outside record processing, as a delete needs no timestamp")
+    void deleteWithNoneWithoutRecord() {
+        pythonContext.context().getBindings("python").putMember("store", new TimestampedKeyValueStoreProxy(delegate, ProxyUtil::noRecordTimestamp));
+        final var result = pythonContext.context().eval("python", """
+                def run():
+                    try:
+                        store.put("a", None)
+                        store.putAll([("b", None), {"key": "c", "value": None}])
+                        return "no error"
+                    except Exception as e:
+                        return type(e).__name__ + ": " + str(e)
+                run()
+                """);
+        assertThat(result.asString()).isEqualTo("no error");
+        verify(delegate).put(any(), isNull());
+        assertThat(capturePutAll()).containsExactly(KeyValue.pair("b", null), KeyValue.pair("c", null));
     }
 }
