@@ -274,6 +274,15 @@ class StoreProxyDeclaredTypesTest {
         assertThat(run(proxy, "store.put(1, [2 ** 40])")).isEqualTo(outOfRange);
         assertThat(run(proxy, "store.put(1, ['a'])")).isEqualTo("TypeError: Store blobs: value must be bytes, got list");
         assertThat(run(proxy, "store.put(1, {'a': 1})")).isEqualTo("TypeError: Store blobs: value must be bytes, got dict");
+        // A value that is not bytes, a list or a tuple is not read element by element, so it is a TypeError
+        assertThat(run(proxy, "store.put(1, 5)")).isEqualTo("TypeError: Store blobs: value must be bytes, got int");
+        assertThat(run(proxy, "store.put(1, 1.5)")).isEqualTo("TypeError: Store blobs: value must be bytes, got float");
+        assertThat(run(proxy, "store.put(1, True)")).isEqualTo("TypeError: Store blobs: value must be bytes, got bool");
+        assertThat(run(proxy, "store.put(1, 10 ** 30)")).isEqualTo("TypeError: Store blobs: value must be bytes, got int");
+        assertThat(run(proxy, "store.put(1, {1, 2})")).startsWith("TypeError: Store blobs: value must be bytes, got ");
+        // Only int elements: a float or a bool element is a TypeError, as on an integer store
+        assertThat(run(proxy, "store.put(1, [1.0])")).isEqualTo("TypeError: Store blobs: value must be bytes, got list");
+        assertThat(run(proxy, "store.put(1, (1, True))")).isEqualTo("TypeError: Store blobs: value must be bytes, got tuple");
         assertThat(run(proxy, "store.putAll([(1, [300])])"))
                 .isEqualTo("ValueError: Store blobs: putAll entry 0 value has an int out of range for bytes (-128 to 255)");
         verify(delegate, times(3)).put(any(), any());

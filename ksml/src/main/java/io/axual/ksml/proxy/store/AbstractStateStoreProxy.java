@@ -106,8 +106,10 @@ public abstract class AbstractStateStoreProxy<T extends StateStore> implements S
         try {
             value = readValue(type, container, object);
         } catch (DataException e) {
-            // Only a list or tuple for a bytes store is read element by element; this element is an int out of range
-            throw PythonErrors.valueError(storeError(role) + " has an int out of range for " + type + " (-128 to 255)", e);
+            // Only bytes, a list or a tuple for a bytes store is read element by element; there an int is out of range
+            if (isByteElements(container, object))
+                throw PythonErrors.valueError(storeError(role) + " has an int out of range for " + type + " (-128 to 255)", e);
+            throw PythonErrors.typeError(storeError(role) + " must be " + type + ", got " + typeName(object));
         } catch (ClassCastException _) {
             throw PythonErrors.typeError(storeError(role) + " must be " + type + ", got " + typeName(object));
         }
@@ -127,8 +129,21 @@ public abstract class AbstractStateStoreProxy<T extends StateStore> implements S
         // The expected type only helps to read Python bytes; for other types it could coerce a value of another kind.
         // GraalVM passes Python bytes as a Java object, so it is read back as a polyglot value to get a byte[].
         if (object instanceof DataObject dataObject) return DATA_OBJECT_TO_JAVA.fromDataObject(dataObject);
-        if (container == byte[].class) return NATIVE_MAPPER.fromPython(type, Value.asValue(object));
+        if (isByteElements(container, object)) {
+            final var elements = Value.asValue(object);
+            // Only ints are bytes; the mapper would read a float or a bool element as an int. toStoreType makes the
+            // ClassCastException a TypeError, as for any value of another kind.
+            for (long index = 0; index < elements.getArraySize(); index++)
+                if (!"int".equals(PythonErrors.typeName(elements.getArrayElement(index))))
+                    throw new ClassCastException("bytes element is not an int");
+            return NATIVE_MAPPER.fromPython(type, elements);
+        }
         return NATIVE_MAPPER.fromPython(object);
+    }
+
+    /** Whether a value for a bytes store is read element by element: Python bytes, a list or a tuple. */
+    private static boolean isByteElements(Class<?> container, Object object) {
+        return container == byte[].class && !(object instanceof DataObject) && Value.asValue(object).hasArrayElements();
     }
 
     /** Whether {@link #toStoreType} converts values to this container class. */
