@@ -22,6 +22,7 @@ Before you upgrade, check each item below:
 * Add `toTable` before any `join` or `leftJoin` with `foreignKeyExtractor` that has a stream as input.
 * Do not keep a store iterator in a global variable for a later function call.
 * If you build your own code on top of the KSML libraries, update the Jackson package names.
+* If you use `KeyValueIteratorProxy` or `WindowStoreIteratorProxy`, use `StoreIteratorProxy` instead, and create store proxies with `ProxyUtil.wrapStateStore`.
 
 ## Apicurio Registry 3
 

@@ -63,6 +63,7 @@ Major dependency upgrades. This release moves KSML to Jackson 3, Apicurio Regist
 * Fixed: on SIGTERM, KSML now commits and closes Kafka Streams before it exits, so records are not processed twice after a restart. See [Stopping KSML](reference/configuration-reference.md#stopping-ksml).
 * State store iterators now work in `for`, `list()` and `next()`. KSML closes them when all entries are read or when the KSML function returns (a helper function that it calls does not close them). `peekNextKey()` is new. See [State Store Reference](reference/state-store-reference.md#reading-many-entries-with-iterators).
 * Breaking change: a store iterator can not be used after the function that created it returned, for example from a global. This now raises an error. See [Upgrading to 2.0.0](migration-to-2.0.0.md).
+* Breaking change for Java code that extends KSML: `KeyValueIteratorProxy` and `WindowStoreIteratorProxy` are removed. Use `StoreIteratorProxy`, which wraps every store iterator. See [Upgrading to 2.0.0](migration-to-2.0.0.md).
 
 ## 1.3.0 (2026-06-23)
 
