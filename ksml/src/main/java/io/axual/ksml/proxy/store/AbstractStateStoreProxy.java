@@ -109,14 +109,14 @@ public abstract class AbstractStateStoreProxy<T extends StateStore> implements S
             // Only bytes, a list or a tuple for a bytes store is read element by element; there an int is out of range
             if (isByteElements(container, object))
                 throw PythonErrors.valueError(storeError(role) + " has an int out of range for " + type + " (-128 to 255)", e);
-            throw PythonErrors.typeError(storeError(role) + " must be " + type + ", got " + typeName(object));
+            throw kindError(role, type, typeName(object));
         } catch (ClassCastException _) {
-            throw PythonErrors.typeError(storeError(role) + " must be " + type + ", got " + typeName(object));
+            throw kindError(role, type, typeName(object));
         }
         if (value == null) return null;
         if (!isConvertible(container)) return object;
         if (!fits(container, value))
-            throw PythonErrors.typeError(storeError(role) + " must be " + type + ", got " + typeName(object, value));
+            throw kindError(role, type, typeName(object, value));
         try {
             return convert(type, container, value);
         } catch (ArithmeticException | DataException e) {
@@ -199,6 +199,11 @@ public abstract class AbstractStateStoreProxy<T extends StateStore> implements S
     /** The start of an error message about this store, followed by what is wrong. */
     protected String storeError(String subject) {
         return "Store " + name() + ": " + subject;
+    }
+
+    /** The TypeError for a key or value of another kind than the declared type, for example "must be long, got float". */
+    private RuntimeException kindError(String role, DataType type, String actual) {
+        return PythonErrors.typeError(storeError(role) + " must be " + type + ", got " + actual);
     }
 
     @HostAccess.Export
