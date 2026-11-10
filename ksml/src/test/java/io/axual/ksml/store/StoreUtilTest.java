@@ -38,6 +38,7 @@ import org.apache.kafka.streams.state.HeadersBytesStoreSupplier;
 import org.apache.kafka.streams.state.SessionStoreWithHeaders;
 import org.apache.kafka.streams.state.StoreSupplier;
 import org.apache.kafka.streams.state.TimestampedKeyValueStoreWithHeaders;
+import org.apache.kafka.streams.state.TimestampedWindowStore;
 import org.apache.kafka.streams.state.TimestampedWindowStoreWithHeaders;
 import org.apache.kafka.streams.state.internals.WrappedStateStore;
 import org.junit.jupiter.api.BeforeEach;
@@ -119,6 +120,16 @@ class StoreUtilTest {
         assertThat(StoreUtil.getStoreBuilder(windowStore(true, false, false, Duration.ofSeconds(60), Duration.ofSeconds(10)))).isNotNull();
         assertThat(StoreUtil.getStoreBuilder(windowStore(true, true, false, Duration.ofSeconds(60), Duration.ofSeconds(10)))).isNotNull();
         assertThat(StoreUtil.getStoreBuilder(windowStore(false, false, false, Duration.ofSeconds(60), Duration.ofSeconds(10)))).isNotNull();
+    }
+
+    @Test
+    @DisplayName("builds timestamped window stores for Python, unless the store sets timestamped: false")
+    void buildsTimestampedWindowStoreForProcessors() {
+        assertThat(StoreUtil.getStoreBuilder(windowStore(true, true, false, Duration.ofSeconds(60), Duration.ofSeconds(10))).build()).isInstanceOf(TimestampedWindowStore.class);
+        assertThat(StoreUtil.getStoreBuilder(windowStore(false, true, false, Duration.ofSeconds(60), Duration.ofSeconds(10))).build()).isInstanceOf(TimestampedWindowStore.class);
+        assertThat(StoreUtil.getStoreBuilder(defaultWindowStore(), false).build()).isInstanceOf(TimestampedWindowStore.class);
+        assertThat(StoreUtil.getStoreBuilder(windowStore(true, false, false, Duration.ofSeconds(60), Duration.ofSeconds(10))).build()).isNotInstanceOf(TimestampedWindowStore.class);
+        assertThat(StoreUtil.getStoreBuilder(windowStore(false, false, false, Duration.ofSeconds(60), Duration.ofSeconds(10))).build()).isNotInstanceOf(TimestampedWindowStore.class);
     }
 
     @Test
