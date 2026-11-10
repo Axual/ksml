@@ -1,0 +1,67 @@
+# $schema: https://raw.githubusercontent.com/Axual/ksml/refs/heads/main/docs/ksml-language-spec.json
+
+# Window stores under stores are timestamped unless they set timestamped: false (AXPD-12445). A Python function puts
+# each record in a window store without options, an in-memory window store and a window store with
+# timestamped: false, and reads it back. The result is one line of text per record.
+streams:
+  window_timestamps_input:
+    topic: window_timestamps_input
+    keyType: string
+    valueType: string
+  window_timestamps_output:
+    topic: window_timestamps_output
+    keyType: string
+    valueType: string
+
+stores:
+  window_default:
+    type: window
+    keyType: string
+    valueType: string
+    retention: 1h
+    windowSize: 1m
+  window_memory:
+    type: window
+    keyType: string
+    valueType: string
+    retention: 1h
+    windowSize: 1m
+    persistent: false
+  window_plain:
+    type: window
+    keyType: string
+    valueType: string
+    retention: 1h
+    windowSize: 1m
+    timestamped: false
+
+functions:
+  check_window_timestamps:
+    type: valueTransformer
+    globalCode: |
+      def with_timestamp(store, key):
+        if not hasattr(store, "fetchWithTimestamp"):
+          return "noTimestamps:" + store.fetch(key, 0)
+        found = store.fetchWithTimestamp(key, 0)
+        return found["value"] + "@" + str(found["timestamp"])
+    code: |
+      window_default.put(key, value, 0)
+      window_memory.put(key, value, 0)
+      window_plain.put(key, value, 0)
+      result = ("default=" + with_timestamp(window_default, key)
+                + " memory=" + with_timestamp(window_memory, key)
+                + " plain=" + with_timestamp(window_plain, key))
+    expression: result
+    resultType: string
+    stores:
+      - window_default
+      - window_memory
+      - window_plain
+
+pipelines:
+  window_timestamps_pipeline:
+    from: window_timestamps_input
+    via:
+      - type: transformValue
+        mapper: check_window_timestamps
+    to: window_timestamps_output

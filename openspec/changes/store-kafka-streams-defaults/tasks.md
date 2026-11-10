@@ -39,7 +39,7 @@ Each implementation task follows TDD: first commit the failing test, then the fi
 
 ## 5. Window store builder and upgrade (design D7)
 
-- [ ] 5.1 Add failing tests: a window store without options, used by Python with the headers format off, is built as a timestamped window store and Python gets `fetchWithTimestamp` with the record's timestamp; a window store with `timestamped: false` stays a plain window store. Verify the tests fail.
+- [x] 5.1 Add failing tests: a window store without options, used by Python with the headers format off, is built as a timestamped window store and Python gets `fetchWithTimestamp` with the record's timestamp; a window store with `timestamped: false` stays a plain window store. Verify the tests fail.
 - [ ] 5.2 Change `StoreUtil.getWindowStateStoreBuilder` to use `Stores.timestampedWindowStoreBuilder` for timestamped stores without the headers format. Verify the 5.1 tests and the existing window store tests pass.
 - [ ] 5.3 Add an upgrade test in `ksml-integration-tests`: run a KSML 1.x image with persistent window stores (`timestamped: true` and `timestamped` unset) written from Python, stop it, then run this build with the same application id, topics and state directory, and check what Python reads; repeat without the local state (changelog restore). Record the result in design Open Questions.
 - [ ] 5.4 Choose D7 (a) or (b) with the user based on 5.3, and update the artifacts (`/opsx:update`). For (b), add failing tests and then the state cleanup. For (a), make the 5.3 test assert the documented behavior. Verify the 5.3 test passes.
