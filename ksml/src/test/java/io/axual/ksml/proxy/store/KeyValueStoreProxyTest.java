@@ -40,6 +40,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -47,12 +48,17 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import static io.axual.ksml.proxy.store.StoreProxyTestUtil.PYTHON_VALUES;
+import static io.axual.ksml.proxy.store.StoreProxyTestUtil.describe;
+import static io.axual.ksml.proxy.store.StoreProxyTestUtil.outcome;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.catchThrowable;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.atMostOnce;
+import static org.mockito.Mockito.clearInvocations;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -195,11 +201,7 @@ class KeyValueStoreProxyTest {
     /** Runs Python code with {@code store} bound to the proxy, and returns the result as a list of strings. */
     private List<String> runPython(String code) {
         try (var pythonContext = new PythonContext(PythonContextConfig.builder().build())) {
-            pythonContext.context().getBindings("python").putMember("store", proxy());
-            final var result = pythonContext.context().eval("python", code);
-            final var strings = new ArrayList<String>();
-            for (long i = 0; i < result.getArraySize(); i++) strings.add(result.getArrayElement(i).asString());
-            return strings;
+            return StoreProxyTestUtil.runPython(pythonContext.context(), proxy(), code);
         }
     }
 
@@ -331,17 +333,36 @@ class KeyValueStoreProxyTest {
         verify(delegate).putAll(Arrays.asList(KeyValue.pair("a", null)));
     }
 
-    /** Runs Python code inside try/except Exception, and returns "ErrorType: message", or "no error". */
+    @Test
+    @DisplayName("putAll gives the delegate the same Java objects as put, or raises the same error, for every kind of Python value")
+    void putAllConvertsLikePut() {
+        final var softly = new SoftAssertions();
+        try (var pythonContext = new PythonContext(PythonContextConfig.builder().build())) {
+            pythonContext.context().getBindings("python").putMember("store", proxy());
+            for (final var value : PYTHON_VALUES) {
+                clearInvocations(delegate);
+                final var putOutcome = outcome(pythonContext.context(), "store.put(%1$s, %1$s)".formatted(value));
+                final var putAllOutcome = outcome(pythonContext.context(), "store.putAll([(%1$s, %1$s)])".formatted(value));
+                final ArgumentCaptor<Object> key = ArgumentCaptor.captor();
+                final ArgumentCaptor<Object> val = ArgumentCaptor.captor();
+                verify(delegate, atMostOnce()).put(key.capture(), val.capture());
+                final ArgumentCaptor<List<KeyValue<Object, Object>>> entries = ArgumentCaptor.captor();
+                verify(delegate, atMostOnce()).putAll(entries.capture());
+                softly.assertThat(putAllOutcome).as("outcome " + value).isEqualTo(putOutcome);
+                if (key.getAllValues().isEmpty() || entries.getAllValues().isEmpty()) continue;
+                final var entry = entries.getValue().get(0);
+                softly.assertThat(describe(entry.key)).as("key " + value).isEqualTo(describe(key.getValue()));
+                softly.assertThat(describe(entry.value)).as("value " + value).isEqualTo(describe(val.getValue()));
+            }
+        }
+        softly.assertAll();
+    }
+
+    /** Runs a Python call on {@code store} inside try/except Exception; returns "ok", or "ErrorType: message". */
     private String pythonErrorOf(String call) {
-        return runPython("""
-                def run():
-                    try:
-                        %s
-                        return "no error"
-                    except Exception as e:
-                        return type(e).__name__ + ": " + str(e)
-                [run()]
-                """.formatted(call)).get(0);
+        try (var pythonContext = new PythonContext(PythonContextConfig.builder().build())) {
+            return StoreProxyTestUtil.pythonErrorOf(pythonContext.context(), proxy(), call);
+        }
     }
 
     @Test

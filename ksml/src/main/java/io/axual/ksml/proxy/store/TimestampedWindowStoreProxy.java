@@ -20,6 +20,7 @@ package io.axual.ksml.proxy.store;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.type.DataType;
 import org.apache.kafka.streams.state.TimestampedWindowStore;
 import org.apache.kafka.streams.state.ValueAndTimestamp;
 import org.graalvm.polyglot.HostAccess;
@@ -38,7 +39,12 @@ public class TimestampedWindowStoreProxy extends AbstractStateStoreProxy<Timesta
     private final LongSupplier recordTimestamp;
 
     public TimestampedWindowStoreProxy(TimestampedWindowStore<Object, Object> delegate, LongSupplier recordTimestamp) {
-        super(delegate);
+        this(delegate, null, null, recordTimestamp);
+    }
+
+    /** Creates a proxy for a store with these declared key and value types; {@code null} means unknown. */
+    public TimestampedWindowStoreProxy(TimestampedWindowStore<Object, Object> delegate, DataType keyType, DataType valueType, LongSupplier recordTimestamp) {
+        super(delegate, keyType, valueType);
         this.recordTimestamp = recordTimestamp;
     }
 
@@ -46,53 +52,53 @@ public class TimestampedWindowStoreProxy extends AbstractStateStoreProxy<Timesta
 
     @HostAccess.Export
     public Object fetch(Object key, long time) {
-        return ProxyUtil.toPython(ProxyUtil.valueOf(delegate.fetch(NATIVE_MAPPER.fromPython(key), time)));
+        return ProxyUtil.toPython(ProxyUtil.valueOf(delegate.fetch(toRequiredKey(key), time)));
     }
 
     /** Returns {@code {value, timestamp}} for the key in the window that starts at the given time, or {@code None}. */
     @HostAccess.Export
     public Object fetchWithTimestamp(Object key, long time) {
-        return ProxyUtil.toPython(delegate.fetch(ProxyUtil.fromPython(key, "fetchWithTimestamp key"), time));
+        return ProxyUtil.toPython(delegate.fetch(toRequiredKey(key), time));
     }
 
     @HostAccess.Export
     public Object fetch(Object key, long timeFrom, long timeTo) {
-        return ProxyUtil.toPythonTimestamped(delegate.fetch(ProxyUtil.fromPython(key, "fetch key"), timeFrom, timeTo), false);
+        return ProxyUtil.toPythonTimestamped(delegate.fetch(toRequiredKey(key), timeFrom, timeTo), false);
     }
 
     @HostAccess.Export
     public Object fetchWithTimestamp(Object key, long timeFrom, long timeTo) {
-        return ProxyUtil.toPythonTimestamped(delegate.fetch(ProxyUtil.fromPython(key, "fetchWithTimestamp key"), timeFrom, timeTo), true);
+        return ProxyUtil.toPythonTimestamped(delegate.fetch(toRequiredKey(key), timeFrom, timeTo), true);
     }
 
     @HostAccess.Export
     public Object fetch(Object keyFrom, Object keyTo, long timeFrom, long timeTo) {
-        return ProxyUtil.toPythonTimestamped(delegate.fetch(ProxyUtil.fromPython(keyFrom, "fetch keyFrom"), ProxyUtil.fromPython(keyTo, "fetch keyTo"), timeFrom, timeTo), false);
+        return ProxyUtil.toPythonTimestamped(delegate.fetch(toKey(keyFrom), toKey(keyTo), timeFrom, timeTo), false);
     }
 
     @HostAccess.Export
     public Object fetchWithTimestamp(Object keyFrom, Object keyTo, long timeFrom, long timeTo) {
-        return ProxyUtil.toPythonTimestamped(delegate.fetch(ProxyUtil.fromPython(keyFrom, "fetchWithTimestamp keyFrom"), ProxyUtil.fromPython(keyTo, "fetchWithTimestamp keyTo"), timeFrom, timeTo), true);
+        return ProxyUtil.toPythonTimestamped(delegate.fetch(toKey(keyFrom), toKey(keyTo), timeFrom, timeTo), true);
     }
 
     @HostAccess.Export
     public Object backwardFetch(Object key, long timeFrom, long timeTo) {
-        return ProxyUtil.toPythonTimestamped(delegate.backwardFetch(ProxyUtil.fromPython(key, "backwardFetch key"), timeFrom, timeTo), false);
+        return ProxyUtil.toPythonTimestamped(delegate.backwardFetch(toRequiredKey(key), timeFrom, timeTo), false);
     }
 
     @HostAccess.Export
     public Object backwardFetchWithTimestamp(Object key, long timeFrom, long timeTo) {
-        return ProxyUtil.toPythonTimestamped(delegate.backwardFetch(ProxyUtil.fromPython(key, "backwardFetchWithTimestamp key"), timeFrom, timeTo), true);
+        return ProxyUtil.toPythonTimestamped(delegate.backwardFetch(toRequiredKey(key), timeFrom, timeTo), true);
     }
 
     @HostAccess.Export
     public Object backwardFetch(Object keyFrom, Object keyTo, long timeFrom, long timeTo) {
-        return ProxyUtil.toPythonTimestamped(delegate.backwardFetch(ProxyUtil.fromPython(keyFrom, "backwardFetch keyFrom"), ProxyUtil.fromPython(keyTo, "backwardFetch keyTo"), timeFrom, timeTo), false);
+        return ProxyUtil.toPythonTimestamped(delegate.backwardFetch(toKey(keyFrom), toKey(keyTo), timeFrom, timeTo), false);
     }
 
     @HostAccess.Export
     public Object backwardFetchWithTimestamp(Object keyFrom, Object keyTo, long timeFrom, long timeTo) {
-        return ProxyUtil.toPythonTimestamped(delegate.backwardFetch(ProxyUtil.fromPython(keyFrom, "backwardFetchWithTimestamp keyFrom"), ProxyUtil.fromPython(keyTo, "backwardFetchWithTimestamp keyTo"), timeFrom, timeTo), true);
+        return ProxyUtil.toPythonTimestamped(delegate.backwardFetch(toKey(keyFrom), toKey(keyTo), timeFrom, timeTo), true);
     }
 
     @HostAccess.Export
@@ -141,12 +147,12 @@ public class TimestampedWindowStoreProxy extends AbstractStateStoreProxy<Timesta
     @HostAccess.Export
     public void put(Object key, Object value, long windowStartTimestamp) {
         // A value None deletes the window entry, which needs no timestamp, so it also works outside record processing
-        if (value == null) delegate.put(NATIVE_MAPPER.fromPython(key), null, windowStartTimestamp);
+        if (value == null) delegate.put(toRequiredKey(key), null, windowStartTimestamp);
         else put(key, value, windowStartTimestamp, recordTimestamp.getAsLong());
     }
 
     @HostAccess.Export
     public void put(Object key, Object value, long windowStartTimestamp, long timestamp) {
-        delegate.put(NATIVE_MAPPER.fromPython(key), ValueAndTimestamp.make(NATIVE_MAPPER.fromPython(value), ProxyUtil.checkTimestamp(timestamp, "put")), windowStartTimestamp);
+        delegate.put(toRequiredKey(key), ValueAndTimestamp.make(toValue(value), ProxyUtil.checkTimestamp(timestamp, "put")), windowStartTimestamp);
     }
 }
