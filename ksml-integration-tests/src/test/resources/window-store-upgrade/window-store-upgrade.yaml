@@ -1,0 +1,68 @@
+# Writes and reads window stores from Python, with a definition that KSML 1.3.2 and this version both run
+# (AXPD-12445). A value "put:<windowStart>:<value>" puts the value in both stores, a value "get:<windowStart>"
+# reads both stores and returns what Python got.
+streams:
+  window_upgrade_input:
+    topic: window_upgrade_input
+    keyType: string
+    valueType: string
+  window_upgrade_output:
+    topic: window_upgrade_output
+    keyType: string
+    valueType: string
+
+stores:
+  # Explicitly timestamped: in KSML 1.x this was a timestamped RocksDB store behind a plain window store builder
+  window_timestamped:
+    type: window
+    keyType: string
+    valueType: string
+    retention: 1h
+    windowSize: 1m
+    persistent: true
+    timestamped: true
+    caching: false
+    logging: true
+  # Without timestamped: a plain window store in KSML 1.x, and a timestamped one in this version
+  window_unset:
+    type: window
+    keyType: string
+    valueType: string
+    retention: 1h
+    windowSize: 1m
+    persistent: true
+    caching: false
+    logging: true
+
+functions:
+  window_upgrade:
+    type: valueTransformer
+    globalCode: |
+      def read(store, key, window_start):
+        try:
+          return str(store.fetch(key, window_start))
+        except Exception:
+          return "error"
+    code: |
+      parts = value.split(":")
+      window_start = int(parts[1])
+      if parts[0] == "put":
+        window_timestamped.put(key, parts[2], window_start)
+        window_unset.put(key, parts[2], window_start)
+        result = "put"
+      else:
+        result = ("timestamped=" + read(window_timestamped, key, window_start)
+                  + " unset=" + read(window_unset, key, window_start))
+    expression: result
+    resultType: string
+    stores:
+      - window_timestamped
+      - window_unset
+
+pipelines:
+  window_upgrade_pipeline:
+    from: window_upgrade_input
+    via:
+      - type: transformValue
+        mapper: window_upgrade
+    to: window_upgrade_output

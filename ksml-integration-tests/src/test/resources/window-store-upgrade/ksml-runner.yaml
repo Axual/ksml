@@ -1,0 +1,12 @@
+ksml:
+  definitions:
+    window-store-upgrade: window-store-upgrade.yaml
+  storageDirectory: /ksml/state
+  createStorageDirectory: true
+
+kafka:
+  bootstrap.servers: broker:9093
+  application.id: io.ksml.window.store.upgrade.test
+  security.protocol: PLAINTEXT
+  auto.offset.reset: earliest
+  commit.interval.ms: 1000
