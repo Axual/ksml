@@ -1,0 +1,45 @@
+# Copy of test-state-store.yaml with timestamped: true. Both must give the same results; keep them in sync.
+# "default" in the name: timestamped: true is planned to become the default, and then a store without options
+# becomes this store.
+
+streams:
+  sensor_source_avro:
+    topic: ksml_sensordata_avro
+    keyType: string
+    valueType: avro:SensorData
+  sensor_store_result:
+    topic: ksml_sensordata_store_result
+    keyType: string
+    valueType: string
+
+stores:
+  last_sensor_data_store:
+    type: keyValue
+    timestamped: true
+    keyType: string
+    valueType: json
+    persistent: false
+    historyRetention: 1h
+    caching: false
+    logging: false
+
+functions:
+  process_message:
+    type: valueTransformer
+    code: |
+      # Returns what Python reads from the store; SensorData has its own "value" field
+      last_value = last_sensor_data_store.get(key)
+      result = "none" if last_value is None else last_value.get("city") + ":" + last_value["value"]
+      last_sensor_data_store.put(key, value)
+    expression: result
+    resultType: string
+    stores:
+      - last_sensor_data_store
+
+pipelines:
+  process_message:
+    from: sensor_source_avro
+    via:
+      - type: transformValue
+        mapper: process_message
+    to: sensor_store_result

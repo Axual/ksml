@@ -36,7 +36,7 @@ public class PeekProcessor extends FixedKeyOperationProcessor {
     }
 
     @Override
-    public void process(FixedKeyRecord<Object, Object> rec) {
+    protected void processRecord(FixedKeyRecord<Object, Object> rec) {
         action.apply(stores, rec);
         context.forward(rec);
     }

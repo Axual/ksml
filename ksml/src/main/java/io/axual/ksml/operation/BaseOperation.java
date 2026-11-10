@@ -80,6 +80,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Function;
 
 import static io.axual.ksml.definition.DefinitionConstants.HEADERS_TYPE;
 
@@ -183,6 +184,19 @@ public abstract class BaseOperation implements StreamOperation {
         result[0] = element;
         System.arraycopy(elements, 0, result, 1, elements.length);
         return result;
+    }
+
+    /**
+     * The definitions of the given state stores, looked up now, so that the processors do not keep the whole build
+     * context in memory while the application runs.
+     */
+    protected static Function<String, StateStoreDefinition> storeDefinitions(TopologyBuildContext context, String[] storeNames) {
+        final var definitions = new HashMap<String, StateStoreDefinition>();
+        for (final var storeName : storeNames) {
+            final var definition = context.stateStore(storeName);
+            if (definition != null) definitions.put(storeName, definition);
+        }
+        return definitions::get;
     }
 
     private UserType[] toUserTypes(StreamDataType[] streamDataTypes) {

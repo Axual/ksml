@@ -1,0 +1,29 @@
+streams:
+  numbers:
+    topic: ksml_numbers
+    keyType: string
+    valueType: string
+
+stores:
+  number_counts:
+    type: keyValue
+    keyType: long
+    valueType: long
+    persistent: false
+    caching: false
+    logging: false
+
+functions:
+  count_numbers:
+    type: forEach
+    code: |
+      number = int(value)
+      count = number_counts.get(number)
+      number_counts.put(number, (count or 0) + 1)
+    stores:
+      - number_counts
+
+pipelines:
+  count_numbers:
+    from: numbers
+    forEach: count_numbers

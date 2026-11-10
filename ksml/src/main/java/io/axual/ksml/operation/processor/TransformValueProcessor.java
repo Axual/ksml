@@ -36,7 +36,7 @@ public class TransformValueProcessor extends FixedKeyOperationProcessor {
     }
 
     @Override
-    public void process(FixedKeyRecord<Object, Object> rec) {
+    protected void processRecord(FixedKeyRecord<Object, Object> rec) {
         var v = action.apply(stores, rec);
         context.forward(rec.withValue(v));
     }

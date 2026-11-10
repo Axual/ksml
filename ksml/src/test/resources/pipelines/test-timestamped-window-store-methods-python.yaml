@@ -1,0 +1,106 @@
+# $schema: https://raw.githubusercontent.com/Axual/ksml/refs/heads/main/docs/ksml-language-spec.json
+
+# A windowed aggregate keeps its results in a timestamped window store. A Python function that uses this store calls
+# every window store method and the *WithTimestamp methods on it, for an in-memory and a RocksDB store. When key "a"
+# reaches a count of 2, it returns the results as one line of text.
+streams:
+  timestamped_window_input:
+    topic: timestamped_window_input
+    keyType: string
+    valueType: string
+  timestamped_window_output:
+    topic: timestamped_window_output
+    keyType: string
+    valueType: string
+
+stores:
+  window_memory:
+    type: window
+    timestamped: true
+    keyType: string
+    valueType: json
+    windowSize: 1m
+    retention: 1h
+    persistent: false
+    caching: false
+    logging: false
+  window_rocksdb:
+    type: window
+    timestamped: true
+    keyType: string
+    valueType: json
+    windowSize: 1m
+    retention: 1h
+    persistent: true
+    caching: false
+    logging: false
+
+functions:
+  init_count:
+    type: initializer
+    expression: '{"n": 0}'
+    resultType: json
+  add_count:
+    type: aggregator
+    expression: '{"n": aggregatedValue["n"] + 1}'
+    resultType: json
+
+  # Each function uses only the store of its own pipeline; the checks are in test_timestamped_window_checks.py
+  check_memory:
+    type: valueTransformer
+    globalCode: from test_timestamped_window_checks import check
+    code: |
+      result = check("memory", window_memory) if value["n"] == 2 and key["key"] == "a" else ""
+    expression: result
+    resultType: string
+    stores:
+      - window_memory
+
+  check_rocksdb:
+    type: valueTransformer
+    globalCode: from test_timestamped_window_checks import check
+    code: |
+      result = check("rocksdb", window_rocksdb) if value["n"] == 2 and key["key"] == "a" else ""
+    expression: result
+    resultType: string
+    stores:
+      - window_rocksdb
+
+pipelines:
+  memory_pipeline:
+    from: timestamped_window_input
+    via:
+      - type: groupByKey
+      - type: windowByTime
+        windowType: tumbling
+        duration: 1m
+        grace: 0s
+      - type: aggregate
+        store: window_memory
+        initializer: init_count
+        aggregator: add_count
+      - type: toStream
+      - type: transformValue
+        mapper: check_memory
+      - type: convertKey
+        into: string
+    to: timestamped_window_output
+
+  rocksdb_pipeline:
+    from: timestamped_window_input
+    via:
+      - type: groupByKey
+      - type: windowByTime
+        windowType: tumbling
+        duration: 1m
+        grace: 0s
+      - type: aggregate
+        store: window_rocksdb
+        initializer: init_count
+        aggregator: add_count
+      - type: toStream
+      - type: transformValue
+        mapper: check_rocksdb
+      - type: convertKey
+        into: string
+    to: timestamped_window_output

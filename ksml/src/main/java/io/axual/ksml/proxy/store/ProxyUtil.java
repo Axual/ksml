@@ -20,13 +20,18 @@ package io.axual.ksml.proxy.store;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.exception.DataException;
 import io.axual.ksml.data.mapper.DataObjectFlattener;
 import io.axual.ksml.data.object.DataObject;
+import io.axual.ksml.data.object.DataString;
+import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.data.value.Struct;
+import io.axual.ksml.definition.StateStoreDefinition;
 import io.axual.ksml.python.PythonDataObjectMapper;
 import io.axual.ksml.python.PythonErrors;
 import io.axual.ksml.python.PythonNativeMapper;
+import io.axual.ksml.type.UserType;
+import org.apache.kafka.common.serialization.Serializer;
+import org.apache.kafka.common.serialization.StringSerializer;
 import org.apache.kafka.streams.KeyValue;
 import org.apache.kafka.streams.kstream.Windowed;
 import org.apache.kafka.streams.processor.StateStore;
@@ -43,6 +48,8 @@ import org.graalvm.polyglot.Value;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.LongSupplier;
+import java.util.function.BiFunction;
 
 /**
  * Utility class for creating proxy objects and converted values returned to Python
@@ -55,6 +62,8 @@ public class ProxyUtil {
     private static final DataObjectFlattener FLATTENER = new DataObjectFlattener();
     private static final PythonNativeMapper NATIVE_MAPPER = new PythonNativeMapper();
     private static final PythonDataObjectMapper DATA_OBJECT_MAPPER = new PythonDataObjectMapper(true);
+    /** Serializes {@code prefixScan} prefixes as UTF-8. */
+    static final Serializer<String> PREFIX_SERIALIZER = new StringSerializer();
 
     private ProxyUtil() {
     }
@@ -109,62 +118,139 @@ public class ProxyUtil {
     }
 
     /**
-     * Converts the Python argument of {@code putAll} to Kafka entries. The argument is a list or an iterator of
-     * (key, value) pairs or dicts with key and value. A bad entry raises a Python {@code TypeError} or
-     * {@code ValueError} that names its position, before anything is written.
+     * Wraps an iterator of a timestamped key-value store for Python. Without timestamps, entries are
+     * {@code {key, value}} like on a plain key-value store; with timestamps, they are {@code {key, value, timestamp}}.
      */
-    public static List<KeyValue<Object, Object>> toKeyValueList(Object entries) {
+    public static <V> Object toPythonTimestamped(KeyValueIterator<?, ValueAndTimestamp<V>> iterator, boolean withTimestamp) {
+        return new StoreIteratorProxy(iterator, entry -> timestampedEntry(entry, withTimestamp));
+    }
+
+    private static Object timestampedEntry(KeyValue<?, ?> kv, boolean withTimestamp) {
+        final var vat = (ValueAndTimestamp<?>) kv.value;
+        final var converted = new Struct<>();
+        converted.put(KEY_FIELD, toPython(kv.key));
+        converted.put(VALUE_FIELD, toPython(valueOf(vat)));
+        if (withTimestamp && vat != null) converted.put(TIMESTAMP_FIELD, toPython(vat.timestamp()));
+        return NATIVE_MAPPER.toRealPythonValue(converted);
+    }
+
+    /** Returns the value of a timestamped store result, or {@code null} when there is none. */
+    public static Object valueOf(ValueAndTimestamp<?> vat) {
+        return vat != null ? vat.value() : null;
+    }
+
+    /**
+     * Converts the {@code putAll} argument: a list or an iterator of (key, value) pairs or dicts with key and value.
+     * A bad entry raises TypeError or ValueError with its position, before anything is written. A dict
+     * {@code timestamp} field is ignored. Keys and values get the same conversion as in the store's put.
+     */
+    public static List<KeyValue<Object, Object>> toKeyValueList(Object entries, BiFunction<Object, String, Object> convertKey, BiFunction<Object, String, Object> convertValue) {
+        return toEntries(entries, false, convertKey, convertValue).stream().map(e -> KeyValue.pair(e.key(), e.value())).toList();
+    }
+
+    /** Like {@link #toKeyValueList}, but uses a dict {@code timestamp} field; other entries get the record timestamp. */
+    public static List<KeyValue<Object, ValueAndTimestamp<Object>>> toTimestampedKeyValueList(Object entries, LongSupplier recordTimestamp, BiFunction<Object, String, Object> convertKey, BiFunction<Object, String, Object> convertValue) {
+        final var result = new ArrayList<KeyValue<Object, ValueAndTimestamp<Object>>>();
+        for (final var e : toEntries(entries, true, convertKey, convertValue)) {
+            // A value None deletes the key, which needs no timestamp, so it also works outside record processing
+            if (e.value() == null) {
+                result.add(KeyValue.pair(e.key(), null));
+                continue;
+            }
+            final long timestamp = e.timestamp() != null ? e.timestamp() : recordTimestamp.getAsLong();
+            result.add(KeyValue.pair(e.key(), ValueAndTimestamp.make(e.value(), timestamp)));
+        }
+        return result;
+    }
+
+    private record Entry(Object key, Object value, Long timestamp) {
+    }
+
+    private static List<Entry> toEntries(Object entries, boolean readTimestamp, BiFunction<Object, String, Object> convertKey, BiFunction<Object, String, Object> convertValue) {
         final var value = Value.asValue(entries);
         final Value iterator;
         if (value.hasHashEntries())
             throw PythonErrors.typeError("putAll needs a list or an iterator of entries; for a dict use putAll(d.items())");
         if (value.hasIterator()) iterator = value.getIterator();
         else if (value.isIterator()) iterator = value;
-        else throw PythonErrors.typeError("putAll needs a list or an iterator of entries, got: " + value);
+        else throw PythonErrors.typeError("putAll needs a list or an iterator of entries, got " + PythonErrors.typeName(value));
 
-        final var result = new ArrayList<KeyValue<Object, Object>>();
+        final var result = new ArrayList<Entry>();
         while (iterator.hasIteratorNextElement()) {
             final var entry = iterator.getIteratorNextElement();
-            result.add(toKeyValue(result.size(), entry));
+            result.add(toEntry(result.size(), entry, readTimestamp, convertKey, convertValue));
         }
         return result;
     }
 
-    private static KeyValue<Object, Object> toKeyValue(int position, Value entry) {
+    private static Entry toEntry(int position, Value entry, boolean readTimestamp, BiFunction<Object, String, Object> convertKey, BiFunction<Object, String, Object> convertValue) {
         final var name = "putAll entry " + position;
         if (entry.hasArrayElements()) {
             if (entry.getArraySize() != 2)
-                throw PythonErrors.valueError(name + " must have 2 elements (key, value), got " + entry.getArraySize() + ": " + entry);
-            return KeyValue.pair(
-                    fromPython(entry.getArrayElement(0), name + " key"),
-                    fromPython(entry.getArrayElement(1), name + " value"));
+                throw PythonErrors.valueError(name + " must have 2 elements (key, value), got " + entry.getArraySize());
+            return new Entry(toStoreObject(entry.getArrayElement(0), convertKey, name + " key"), toStoreObject(entry.getArrayElement(1), convertValue, name + " value"), null);
         }
         if (entry.hasHashEntries()) {
             if (!entry.hasHashEntry(KEY_FIELD) || !entry.hasHashEntry(VALUE_FIELD))
-                throw PythonErrors.valueError(name + " must have \"key\" and \"value\", got: " + entry);
-            return KeyValue.pair(
-                    fromPython(entry.getHashValue(KEY_FIELD), name + " key"),
-                    fromPython(entry.getHashValue(VALUE_FIELD), name + " value"));
+                throw PythonErrors.valueError(name + " has no \"" + (entry.hasHashEntry(KEY_FIELD) ? VALUE_FIELD : KEY_FIELD) + "\"");
+            return new Entry(
+                    toStoreObject(entry.getHashValue(KEY_FIELD), convertKey, name + " key"),
+                    toStoreObject(entry.getHashValue(VALUE_FIELD), convertValue, name + " value"),
+                    readTimestamp ? toTimestamp(entry, name) : null);
         }
-        throw PythonErrors.typeError(name + " must be a (key, value) pair or a dict with \"key\" and \"value\", got: " + entry);
+        throw PythonErrors.typeError(name + " must be a (key, value) pair or a dict with \"key\" and \"value\", got " + PythonErrors.typeName(entry));
     }
 
-    /** Converts the Python argument of {@code prefixScan} to a string prefix. */
-    public static String toStringPrefix(Object prefix) {
-        if (fromPython(prefix, "prefixScan prefix") instanceof String result) return result;
-        throw PythonErrors.typeError("prefixScan needs a string prefix, got: " + prefix);
+    /** {@code as(Object.class)} gives the same Java object that GraalVM passes to an {@code Object} parameter of put. */
+    private static Object toStoreObject(Value value, BiFunction<Object, String, Object> convert, String role) {
+        return convert.apply(value.as(Object.class), role);
+    }
+
+    /** Reads the optional timestamp field of a dict entry. A missing field or {@code None} means "no timestamp". */
+    private static Long toTimestamp(Value entry, String name) {
+        if (!entry.hasHashEntry(TIMESTAMP_FIELD)) return null;
+        final var timestamp = entry.getHashValue(TIMESTAMP_FIELD);
+        if (timestamp.isNull()) return null;
+        final var type = PythonErrors.typeName(timestamp);
+        if (!"int".equals(type)) throw PythonErrors.typeError(name + " timestamp must be an int, got " + type);
+        if (!timestamp.fitsInLong()) throw PythonErrors.valueError(name + " timestamp is out of range for long");
+        return checkTimestamp(timestamp.asLong(), name);
     }
 
     /**
-     * Converts a Python argument to a Java value. A value that cannot be converted raises a Python
-     * {@code ValueError}, because it is a caller error.
+     * Raises a Python {@code ValueError} for a negative timestamp. Kafka cannot write it to a changelog topic, and the
+     * stream thread would stop.
      */
-    public static Object fromPython(Object object, String name) {
-        try {
-            return NATIVE_MAPPER.fromPython(object);
-        } catch (DataException e) {
-            throw PythonErrors.valueError(name + ": " + e.getMessage(), e);
-        }
+    public static long checkTimestamp(long timestamp, String name) {
+        if (timestamp < 0) throw PythonErrors.valueError(name + " timestamp must not be negative, got " + timestamp);
+        return timestamp;
+    }
+
+    /** Converts the Python argument of {@code prefixScan} to a string prefix. */
+    public static String toStringPrefix(Object prefix, DataType keyType) {
+        // Kafka compares the UTF-8 prefix with the serialized keys, which only works for plain string keys
+        if (keyType != null && keyType != DataType.UNKNOWN && !DataString.DATATYPE.equals(keyType))
+            throw PythonErrors.typeError("prefixScan needs a store with string keys, got keyType " + keyType);
+        if (NATIVE_MAPPER.fromPython(prefix) instanceof String result) return result;
+        throw PythonErrors.typeError("prefixScan needs a string prefix, got " + PythonErrors.typeName(prefix));
+    }
+
+    /**
+     * Wraps a state store outside record processing. A write without a timestamp to a timestamped store then raises a
+     * Python {@code ValueError}, because there is no record timestamp to use.
+     */
+    public static StateStore wrapStateStore(StateStore store) {
+        return wrapStateStore(store, (StateStoreDefinition) null);
+    }
+
+    /** Like {@link #wrapStateStore(StateStore)}, and converts keys and values to the types the definition declares. */
+    public static StateStore wrapStateStore(StateStore store, StateStoreDefinition definition) {
+        return wrapStateStore(store, definition, ProxyUtil::noRecordTimestamp);
+    }
+
+    /** Raises a Python {@code ValueError}: a write without a timestamp needs a record that is being processed. */
+    public static long noRecordTimestamp() {
+        throw PythonErrors.valueError("No record is being processed, so a write to a timestamped store needs a timestamp");
     }
 
     /**
@@ -172,25 +258,34 @@ public class ProxyUtil {
      * The proxies delegate all operations to the underlying store while providing
      * a controlled interface that can be safely exposed to user code (e.g., Python functions).
      *
-     * @param store the state store to wrap
+     * @param store           the state store to wrap
+     * @param definition      the store's definition, which declares its key and value types, or {@code null}
+     * @param recordTimestamp the timestamp of the record that is being processed, used by timestamped stores when
+     *                        Python writes without a timestamp
      * @return a proxy wrapper around the store, or the original store if no proxy is available
      */
     @SuppressWarnings("unchecked")
-    public static StateStore wrapStateStore(StateStore store) {
+    public static StateStore wrapStateStore(StateStore store, StateStoreDefinition definition, LongSupplier recordTimestamp) {
+        final var keyType = definition != null ? dataTypeOf(definition.keyType()) : null;
+        final var valueType = definition != null ? dataTypeOf(definition.valueType()) : null;
         if (store instanceof VersionedKeyValueStore<?, ?> versionedStore) {
-            return new VersionedKeyValueStoreProxy((VersionedKeyValueStore<Object, Object>) versionedStore);
+            return new VersionedKeyValueStoreProxy((VersionedKeyValueStore<Object, Object>) versionedStore, keyType, valueType);
         } else if (store instanceof TimestampedKeyValueStore<?, ?> timestampedKeyValueStore) {
-            return new TimestampedKeyValueStoreProxy((TimestampedKeyValueStore<Object, Object>) timestampedKeyValueStore);
+            return new TimestampedKeyValueStoreProxy((TimestampedKeyValueStore<Object, Object>) timestampedKeyValueStore, keyType, valueType, recordTimestamp);
         } else if (store instanceof KeyValueStore<?, ?> kvStore) {
-            return new KeyValueStoreProxy((KeyValueStore<Object, Object>) kvStore);
+            return new KeyValueStoreProxy((KeyValueStore<Object, Object>) kvStore, keyType, valueType);
         } else if (store instanceof SessionStore<?, ?> sessionStore) {
-            return new SessionStoreProxy((SessionStore<Object, Object>) sessionStore);
+            return new SessionStoreProxy((SessionStore<Object, Object>) sessionStore, keyType, valueType);
         } else if (store instanceof TimestampedWindowStore<?, ?> timestampedWindowStore) {
-            return new TimestampedWindowStoreProxy((TimestampedWindowStore<Object, Object>) timestampedWindowStore);
+            return new TimestampedWindowStoreProxy((TimestampedWindowStore<Object, Object>) timestampedWindowStore, keyType, valueType, recordTimestamp);
         } else if (store instanceof WindowStore<?, ?> windowStore) {
-            return new WindowStoreProxy((WindowStore<Object, Object>) windowStore);
+            return new WindowStoreProxy((WindowStore<Object, Object>) windowStore, keyType, valueType);
         }
         // Return unwrapped for unknown store types
         return store;
+    }
+
+    private static DataType dataTypeOf(UserType type) {
+        return type != null ? type.dataType() : null;
     }
 }
