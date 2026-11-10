@@ -88,8 +88,10 @@ if TYPE_CHECKING:
         Keys and values are converted to the keyType and valueType of the store when these are simple types: an int
         to any number type, a float to float or double, a str to string, a bool to boolean, and bytes or a list or
         tuple of ints from -128 to 255 to bytes. A value of another kind raises TypeError (also a float on an integer
-        store), an int out of range raises ValueError.
-        None and stores with other types are not converted.
+        store, and a bool on a number store), an int out of range raises ValueError.
+        A None value is not converted. A None key in a method that takes one key, such as get, put, putIfAbsent,
+        putAll, delete or fetch, raises ValueError; None as a range bound means no bound. Stores with other types are
+        not converted.
         """
 
         def name(self) -> str: ...
