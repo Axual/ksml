@@ -206,9 +206,14 @@ public class StoreUtil {
         final var keyType = new StreamDataType(store.keyType(), true);
         final var valueType = new StreamDataType(store.valueType(), false);
         final var supplier = getWindowStoreSupplier(store, headersStoreFormat);
-        StoreBuilder<?> storeBuilder = useHeaders(store, headersStoreFormat)
-                ? Stores.timestampedWindowStoreWithHeadersBuilder(supplier, keyType.serde(), valueType.serde())
-                : Stores.windowStoreBuilder(supplier, keyType.serde(), valueType.serde());
+        StoreBuilder<?> storeBuilder;
+        if (useHeaders(store, headersStoreFormat)) {
+            storeBuilder = Stores.timestampedWindowStoreWithHeadersBuilder(supplier, keyType.serde(), valueType.serde());
+        } else {
+            storeBuilder = store.timestamped()
+                    ? Stores.timestampedWindowStoreBuilder(supplier, keyType.serde(), valueType.serde())
+                    : Stores.windowStoreBuilder(supplier, keyType.serde(), valueType.serde());
+        }
         storeBuilder = processorStoreCaching(store) ? storeBuilder.withCachingEnabled() : storeBuilder.withCachingDisabled();
         storeBuilder = store.logging() ? storeBuilder.withLoggingEnabled(new HashMap<>()) : storeBuilder.withLoggingDisabled();
         return storeBuilder;

@@ -1,6 +1,6 @@
 # $schema: https://raw.githubusercontent.com/Axual/ksml/refs/heads/main/docs/ksml-language-spec.json
 
-# Regression test for plain window stores (AXPD-11068): a Python function puts each record in an in-memory and a
+# Regression test for window stores under stores (AXPD-11068): a Python function puts each record in an in-memory and a
 # RocksDB window store, and on the last record calls every window store method. Each iterator is read with a for
 # loop and with a hasNext() loop without close(). The result of each store is returned as one line of text.
 streams:

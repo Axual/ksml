@@ -59,8 +59,8 @@ public class KSMLWindowStoreTimestampsTest {
                 "default=x@1000 memory=x@1000 plain=noTimestamps:x",
                 "default=y@2000 memory=y@2000 plain=noTimestamps:y");
 
-        assertThat(driver.getStateStore("window_default")).isInstanceOf(TimestampedWindowStore.class);
-        assertThat(driver.getStateStore("window_memory")).isInstanceOf(TimestampedWindowStore.class);
-        assertThat(driver.getStateStore("window_plain")).isNotInstanceOf(TimestampedWindowStore.class);
+        assertThat(driver.getAllStateStores().get("window_default")).isInstanceOf(TimestampedWindowStore.class);
+        assertThat(driver.getAllStateStores().get("window_memory")).isInstanceOf(TimestampedWindowStore.class);
+        assertThat(driver.getAllStateStores().get("window_plain")).isNotInstanceOf(TimestampedWindowStore.class);
     }
 }

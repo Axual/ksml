@@ -36,7 +36,7 @@ import static io.axual.ksml.testutil.StoreMetrics.openIterators;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * Regression test for plain window stores (AXPD-11068): Python calls every window store method on an in-memory and a
+ * Regression test for window stores under stores (AXPD-11068): Python calls every window store method on an in-memory and a
  * RocksDB store, reads each iterator with a for loop and with a hasNext() loop, and leaves no iterator open.
  */
 @ExtendWith(KSMLTestExtension.class)
