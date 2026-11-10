@@ -43,21 +43,21 @@ public class VersionedKeyValueStoreProxy extends AbstractStateStoreProxy<Version
 
     @HostAccess.Export
     public Object delete(Object key, long timestamp) {
-        return ProxyUtil.toPython(delegate.delete(toKey(key), timestamp));
+        return ProxyUtil.toPython(delegate.delete(toRequiredKey(key), timestamp));
     }
 
     @HostAccess.Export
     public Object get(Object key) {
-        return ProxyUtil.toPython(delegate.get(toKey(key)));
+        return ProxyUtil.toPython(delegate.get(toRequiredKey(key)));
     }
 
     @HostAccess.Export
     public Object get(Object key, long asOfTimestamp) {
-        return ProxyUtil.toPython(delegate.get(toKey(key), asOfTimestamp));
+        return ProxyUtil.toPython(delegate.get(toRequiredKey(key), asOfTimestamp));
     }
 
     @HostAccess.Export
     public Object put(Object key, Object value, long timestamp) {
-        return ProxyUtil.toPython(delegate.put(toWriteKey(key), toValue(value), timestamp));
+        return ProxyUtil.toPython(delegate.put(toRequiredKey(key), toValue(value), timestamp));
     }
 }

@@ -55,7 +55,7 @@ public class SessionStoreProxy extends AbstractStateStoreProxy<SessionStore<Obje
 
     @HostAccess.Export
     public Object backwardFetch(final Object key) {
-        return ProxyUtil.toPython(delegate.backwardFetch(toKey(key)));
+        return ProxyUtil.toPython(delegate.backwardFetch(toRequiredKey(key)));
     }
 
     @HostAccess.Export
@@ -65,7 +65,7 @@ public class SessionStoreProxy extends AbstractStateStoreProxy<SessionStore<Obje
 
     @HostAccess.Export
     public Object backwardFindSessions(final Object key, final long earliestSessionEndTime, final long latestSessionStartTime) {
-        return ProxyUtil.toPython(delegate.backwardFindSessions(toKey(key), earliestSessionEndTime, latestSessionStartTime));
+        return ProxyUtil.toPython(delegate.backwardFindSessions(toRequiredKey(key), earliestSessionEndTime, latestSessionStartTime));
     }
 
     @HostAccess.Export
@@ -75,7 +75,7 @@ public class SessionStoreProxy extends AbstractStateStoreProxy<SessionStore<Obje
 
     @HostAccess.Export
     public Object fetch(final Object key) {
-        return ProxyUtil.toPython(delegate.fetch(toKey(key)));
+        return ProxyUtil.toPython(delegate.fetch(toRequiredKey(key)));
     }
 
     @HostAccess.Export
@@ -85,12 +85,12 @@ public class SessionStoreProxy extends AbstractStateStoreProxy<SessionStore<Obje
 
     @HostAccess.Export
     public Object fetchSession(final Object key, final long sessionStartTime, final long sessionEndTime) {
-        return ProxyUtil.toPython(delegate.fetchSession(toKey(key), sessionStartTime, sessionEndTime));
+        return ProxyUtil.toPython(delegate.fetchSession(toRequiredKey(key), sessionStartTime, sessionEndTime));
     }
 
     @HostAccess.Export
     public Object findSessions(Object key, long earliestSessionEndTime, long latestSessionStartTime) {
-        return ProxyUtil.toPython(delegate.findSessions(toKey(key), earliestSessionEndTime, latestSessionStartTime));
+        return ProxyUtil.toPython(delegate.findSessions(toRequiredKey(key), earliestSessionEndTime, latestSessionStartTime));
     }
 
     @HostAccess.Export

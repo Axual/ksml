@@ -52,23 +52,23 @@ public class TimestampedWindowStoreProxy extends AbstractStateStoreProxy<Timesta
 
     @HostAccess.Export
     public Object fetch(Object key, long time) {
-        return ProxyUtil.toPython(ProxyUtil.valueOf(delegate.fetch(toKey(key), time)));
+        return ProxyUtil.toPython(ProxyUtil.valueOf(delegate.fetch(toRequiredKey(key), time)));
     }
 
     /** Returns {@code {value, timestamp}} for the key in the window that starts at the given time, or {@code None}. */
     @HostAccess.Export
     public Object fetchWithTimestamp(Object key, long time) {
-        return ProxyUtil.toPython(delegate.fetch(toKey(key), time));
+        return ProxyUtil.toPython(delegate.fetch(toRequiredKey(key), time));
     }
 
     @HostAccess.Export
     public Object fetch(Object key, long timeFrom, long timeTo) {
-        return ProxyUtil.toPythonTimestamped(delegate.fetch(toKey(key), timeFrom, timeTo), false);
+        return ProxyUtil.toPythonTimestamped(delegate.fetch(toRequiredKey(key), timeFrom, timeTo), false);
     }
 
     @HostAccess.Export
     public Object fetchWithTimestamp(Object key, long timeFrom, long timeTo) {
-        return ProxyUtil.toPythonTimestamped(delegate.fetch(toKey(key), timeFrom, timeTo), true);
+        return ProxyUtil.toPythonTimestamped(delegate.fetch(toRequiredKey(key), timeFrom, timeTo), true);
     }
 
     @HostAccess.Export
@@ -83,12 +83,12 @@ public class TimestampedWindowStoreProxy extends AbstractStateStoreProxy<Timesta
 
     @HostAccess.Export
     public Object backwardFetch(Object key, long timeFrom, long timeTo) {
-        return ProxyUtil.toPythonTimestamped(delegate.backwardFetch(toKey(key), timeFrom, timeTo), false);
+        return ProxyUtil.toPythonTimestamped(delegate.backwardFetch(toRequiredKey(key), timeFrom, timeTo), false);
     }
 
     @HostAccess.Export
     public Object backwardFetchWithTimestamp(Object key, long timeFrom, long timeTo) {
-        return ProxyUtil.toPythonTimestamped(delegate.backwardFetch(toKey(key), timeFrom, timeTo), true);
+        return ProxyUtil.toPythonTimestamped(delegate.backwardFetch(toRequiredKey(key), timeFrom, timeTo), true);
     }
 
     @HostAccess.Export
@@ -147,12 +147,12 @@ public class TimestampedWindowStoreProxy extends AbstractStateStoreProxy<Timesta
     @HostAccess.Export
     public void put(Object key, Object value, long windowStartTimestamp) {
         // A value None deletes the window entry, which needs no timestamp, so it also works outside record processing
-        if (value == null) delegate.put(toWriteKey(key), null, windowStartTimestamp);
+        if (value == null) delegate.put(toRequiredKey(key), null, windowStartTimestamp);
         else put(key, value, windowStartTimestamp, recordTimestamp.getAsLong());
     }
 
     @HostAccess.Export
     public void put(Object key, Object value, long windowStartTimestamp, long timestamp) {
-        delegate.put(toWriteKey(key), ValueAndTimestamp.make(toValue(value), ProxyUtil.checkTimestamp(timestamp, "put")), windowStartTimestamp);
+        delegate.put(toRequiredKey(key), ValueAndTimestamp.make(toValue(value), ProxyUtil.checkTimestamp(timestamp, "put")), windowStartTimestamp);
     }
 }

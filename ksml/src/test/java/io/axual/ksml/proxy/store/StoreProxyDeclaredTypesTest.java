@@ -175,6 +175,60 @@ class StoreProxyDeclaredTypesTest {
     }
 
     @Test
+    @DisplayName("A None key in a single-key read or delete raises ValueError, as Kafka rejects a null key, and calls no store")
+    void noneKeyInSingleKeyReadsAndDeletes() {
+        final var error = "ValueError: Store counts: key must not be None";
+        final KeyValueStore<Object, Object> kvStore = mock(KeyValueStore.class);
+        when(kvStore.name()).thenReturn("counts");
+        final var kv = new KeyValueStoreProxy(kvStore, LONG, LONG);
+        assertThat(run(kv, "store.get(None)")).isEqualTo(error);
+        assertThat(run(kv, "store.delete(None)")).isEqualTo(error);
+        verify(kvStore, never()).get(any());
+        verify(kvStore, never()).delete(any());
+
+        final TimestampedKeyValueStore<Object, Object> tsStore = mock(TimestampedKeyValueStore.class);
+        when(tsStore.name()).thenReturn("counts");
+        final var ts = new TimestampedKeyValueStoreProxy(tsStore, LONG, LONG, () -> 1000L);
+        assertThat(run(ts, "store.get(None)")).isEqualTo(error);
+        assertThat(run(ts, "store.getWithTimestamp(None)")).isEqualTo(error);
+        assertThat(run(ts, "store.delete(None)")).isEqualTo(error);
+        verify(tsStore, never()).get(any());
+        verify(tsStore, never()).delete(any());
+
+        final VersionedKeyValueStore<Object, Object> versionedStore = mock(VersionedKeyValueStore.class);
+        when(versionedStore.name()).thenReturn("counts");
+        final var versioned = new VersionedKeyValueStoreProxy(versionedStore, LONG, LONG);
+        assertThat(run(versioned, "store.get(None)")).isEqualTo(error);
+        assertThat(run(versioned, "store.get(None, 1000)")).isEqualTo(error);
+        assertThat(run(versioned, "store.delete(None, 1000)")).isEqualTo(error);
+        verify(versionedStore, never()).get(any());
+        verify(versionedStore, never()).get(any(), anyLong());
+        verify(versionedStore, never()).delete(any(), anyLong());
+
+        final WindowStore<Object, Object> windowStore = mock(WindowStore.class);
+        when(windowStore.name()).thenReturn("counts");
+        final var window = new WindowStoreProxy(windowStore, LONG, LONG);
+        assertThat(run(window, "store.fetch(None, 0)")).isEqualTo(error);
+        assertThat(run(window, "store.fetch(None, 0, 1000)")).isEqualTo(error);
+        verify(windowStore, never()).fetch(any(), anyLong());
+        verify(windowStore, never()).fetch(any(), anyLong(), anyLong());
+
+        final TimestampedWindowStore<Object, Object> tsWindowStore = mock(TimestampedWindowStore.class);
+        when(tsWindowStore.name()).thenReturn("counts");
+        final var tsWindow = new TimestampedWindowStoreProxy(tsWindowStore, LONG, LONG, () -> 1000L);
+        assertThat(run(tsWindow, "store.fetchWithTimestamp(None, 0)")).isEqualTo(error);
+        verify(tsWindowStore, never()).fetch(any(), anyLong());
+
+        final SessionStore<Object, Object> sessionStore = mock(SessionStore.class);
+        when(sessionStore.name()).thenReturn("counts");
+        final var session = new SessionStoreProxy(sessionStore, LONG, LONG);
+        assertThat(run(session, "store.fetch(None)")).isEqualTo(error);
+        assertThat(run(session, "store.findSessions(None, 0, 1000)")).isEqualTo(error);
+        verify(sessionStore, never()).fetch(any());
+        verify(sessionStore, never()).findSessions(any(), anyLong(), anyLong());
+    }
+
+    @Test
     @DisplayName("Timestamped stores: None deletes with the key converted to the declared type, also without a record")
     void timestampedStoreNoneValueConvertsKey() {
         final TimestampedKeyValueStore<Object, Object> kvStore = mock(TimestampedKeyValueStore.class);

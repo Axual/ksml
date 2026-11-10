@@ -80,29 +80,29 @@ public class KeyValueStoreProxy extends AbstractStateStoreProxy<KeyValueStore<Ob
 
     @HostAccess.Export
     public Object get(Object key) {
-        return ProxyUtil.toPython(delegate.get(toKey(key)));
+        return ProxyUtil.toPython(delegate.get(toRequiredKey(key)));
     }
 
     // ==================== KeyValueStore methods ====================
 
     @HostAccess.Export
     public Object delete(Object key) {
-        return ProxyUtil.toPython(delegate.delete(toKey(key)));
+        return ProxyUtil.toPython(delegate.delete(toRequiredKey(key)));
     }
 
     @HostAccess.Export
     public void put(Object key, Object value) {
-        delegate.put(toWriteKey(key), toValue(value));
+        delegate.put(toRequiredKey(key), toValue(value));
     }
 
     /** Writes all entries with one call to the store. See {@link ProxyUtil#toKeyValueList(Object)}. */
     @HostAccess.Export
     public void putAll(Object entries) {
-        delegate.putAll(ProxyUtil.toKeyValueList(entries, this::toWriteKey, this::toValue));
+        delegate.putAll(ProxyUtil.toKeyValueList(entries, this::toRequiredKey, this::toValue));
     }
 
     @HostAccess.Export
     public Object putIfAbsent(Object key, Object value) {
-        return ProxyUtil.toPython(delegate.putIfAbsent(toWriteKey(key), toValue(value)));
+        return ProxyUtil.toPython(delegate.putIfAbsent(toRequiredKey(key), toValue(value)));
     }
 }

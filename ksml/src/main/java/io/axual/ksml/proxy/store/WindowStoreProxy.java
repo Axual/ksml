@@ -53,7 +53,7 @@ public class WindowStoreProxy extends AbstractStateStoreProxy<WindowStore<Object
 
     @HostAccess.Export
     public Object backwardFetch(Object key, long timeFrom, long timeTo) {
-        return ProxyUtil.toPython(delegate.backwardFetch(toKey(key), timeFrom, timeTo));
+        return ProxyUtil.toPython(delegate.backwardFetch(toRequiredKey(key), timeFrom, timeTo));
     }
 
     @HostAccess.Export
@@ -68,12 +68,12 @@ public class WindowStoreProxy extends AbstractStateStoreProxy<WindowStore<Object
 
     @HostAccess.Export
     public Object fetch(Object key, long time) {
-        return ProxyUtil.toPython(delegate.fetch(toKey(key), time));
+        return ProxyUtil.toPython(delegate.fetch(toRequiredKey(key), time));
     }
 
     @HostAccess.Export
     public Object fetch(Object key, long timeFrom, long timeTo) {
-        return ProxyUtil.toPython(delegate.fetch(toKey(key), timeFrom, timeTo));
+        return ProxyUtil.toPython(delegate.fetch(toRequiredKey(key), timeFrom, timeTo));
     }
 
     @HostAccess.Export
@@ -90,6 +90,6 @@ public class WindowStoreProxy extends AbstractStateStoreProxy<WindowStore<Object
 
     @HostAccess.Export
     public void put(Object key, Object value, long windowStartTimestamp) {
-        delegate.put(toWriteKey(key), toValue(value), windowStartTimestamp);
+        delegate.put(toRequiredKey(key), toValue(value), windowStartTimestamp);
     }
 }

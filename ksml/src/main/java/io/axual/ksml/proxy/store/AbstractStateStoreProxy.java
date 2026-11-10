@@ -61,7 +61,10 @@ public abstract class AbstractStateStoreProxy<T extends StateStore> implements S
         this.valueType = valueType;
     }
 
-    /** Converts a Python key to the store's declared key type (see {@link #toStoreType}), as a Java value for Kafka. */
+    /**
+     * Converts a Python key to the store's declared key type (see {@link #toStoreType}), as a Java value for Kafka.
+     * Only for a range bound, where {@code None} means no bound; a single key uses {@link #toRequiredKey(Object)}.
+     */
     protected Object toKey(Object key) {
         return toKey(key, "key");
     }
@@ -71,13 +74,16 @@ public abstract class AbstractStateStoreProxy<T extends StateStore> implements S
         return NATIVE_MAPPER.fromPython(toStoreType(keyType, key, role));
     }
 
-    /** Like {@link #toKey(Object)}, for a write: Kafka rejects a {@code None} key, so it raises a Python ValueError. */
-    protected Object toWriteKey(Object key) {
-        return toWriteKey(key, "key");
+    /**
+     * Like {@link #toKey(Object)}, for a single key in a read or a write: Kafka rejects a {@code None} key with a
+     * NullPointerException, which Python cannot catch, so it raises a Python ValueError.
+     */
+    protected Object toRequiredKey(Object key) {
+        return toRequiredKey(key, "key");
     }
 
-    /** Like {@link #toWriteKey(Object)}; {@code role} names the key in error messages. */
-    protected Object toWriteKey(Object key, String role) {
+    /** Like {@link #toRequiredKey(Object)}; {@code role} names the key in error messages. */
+    protected Object toRequiredKey(Object key, String role) {
         if (key == null) throw PythonErrors.valueError(storeError(role) + " must not be None");
         return toKey(key, role);
     }
