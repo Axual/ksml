@@ -86,3 +86,14 @@ The two declared window stores of a stream-stream join SHALL always log to chang
 #### Scenario: Window stores with logging off
 - **WHEN** an outer join between two streams declares `thisStore` and `otherStore` with `logging: false`
 - **THEN** both window stores have changelog topics and a warning naming each store is logged
+
+### Requirement: Existing window store state reads correctly after the upgrade
+Window store state written by KSML 1.x SHALL read correctly after the upgrade to this version, both from local state and after a restore from the changelog topic.
+
+#### Scenario: Local state from KSML 1.x
+- **WHEN** a KSML 1.x application with a persistent window store wrote values from Python, and this version starts with the same application id and state directory
+- **THEN** Python reads the same values from the store as before the upgrade
+
+#### Scenario: Restore from the changelog
+- **WHEN** the same application starts on this version without local state
+- **THEN** the store is restored from the changelog and Python reads the same values as before the upgrade
