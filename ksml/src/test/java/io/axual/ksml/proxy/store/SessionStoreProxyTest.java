@@ -192,6 +192,8 @@ class SessionStoreProxyTest {
                 .isEqualTo("TypeError: Store sessions: session key must be a dict with \"key\", \"start\" and \"end\", got str");
         assertThat(run("store.remove(5)"))
                 .isEqualTo("TypeError: Store sessions: session key must be a dict with \"key\", \"start\" and \"end\", got int");
+        assertThat(run("store.put(None, 'v')"))
+                .isEqualTo("TypeError: Store sessions: session key must be a dict with \"key\", \"start\" and \"end\", got NoneType");
         assertThat(run("store.put({'key': 'a', 'start': 10}, 'v')"))
                 .isEqualTo("ValueError: Store sessions: session key must have \"key\", \"start\" and \"end\"");
         assertThat(run("store.put({'key': 'a', 'start': '10', 'end': 20}, 'v')"))
