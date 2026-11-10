@@ -97,3 +97,7 @@ Window store state written by KSML 1.x SHALL read correctly after the upgrade to
 #### Scenario: Restore from the changelog
 - **WHEN** the same application starts on this version without local state
 - **THEN** the store is restored from the changelog and Python reads the same values as before the upgrade
+
+#### Scenario: Cleanup runs once
+- **WHEN** this version has already started on a state directory and restarts
+- **THEN** it keeps the local state of its window stores

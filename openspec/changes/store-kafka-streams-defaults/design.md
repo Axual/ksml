@@ -126,7 +126,7 @@ Values are the ones D1 resolved, so a store without `logging` counts as `true`. 
 
 `StoreUtil.getWindowStateStoreBuilder` uses `Stores.windowStoreBuilder` for every window store without the headers format, so Python gets a `WindowStoreProxy` without the `*WithTimestamp` methods, even with `timestamped: true`. With this change, `timestamped && !useHeaders` uses `Stores.timestampedWindowStoreBuilder`, and `timestamped: false` keeps `windowStoreBuilder`. Kafka Streams wraps an in-memory supplier with a timestamped marker and a RocksDB supplier with its adapter, so both in-memory and persistent stores work.
 
-Existing state (Kafka Streams 4.4 source, not yet tested):
+Existing state, as read from the Kafka Streams 4.4 source before task 5.3:
 
 | 1.x declaration | Local RocksDB state after the fix | Restore from the changelog |
 |---|---|---|
@@ -134,10 +134,20 @@ Existing state (Kafka Streams 4.4 source, not yet tested):
 | `persistent: true`, `timestamped` unset or false | migrated by Kafka Streams' plain-to-timestamped upgrade path | correct |
 | `persistent: true`, `timestamped: true` | misread: 1.x wrote plain value bytes into the timestamped column family, and the new store can't tell them apart | correct: the changelog holds plain values and record timestamps |
 
-Only the last row is at risk. The upgrade test (task 5.3) decides how to handle it:
+Result of task 5.3: KSML 1.1.0 (Kafka Streams 4.0) leaves RocksDB data and a `.checkpoint` file. This version then crashes on the first Python `fetch` from a `timestamped: true` window store, with an `IndexOutOfBoundsException`. KSML 1.3.2 (Kafka Streams 4.3) leaves no data on disk, because its shutdown hook doesn't wait for Kafka Streams to close and RocksDB runs without a write-ahead log. This version then restores from the changelog and reads correctly.
 
-- *(a) Fallback:* the migration guide says how to reset these stores (delete the local state so it restores from the changelog, or use a new application id), and the proposal marks the change **BREAKING**.
-- *(b) Automatic:* KSML writes a format marker in each store directory and, before Kafka Streams starts, deletes unmarked 1.x local state of persistent timestamped window stores, so Kafka Streams restores it from the changelog.
+Decision: clean up 1.x local state once. Before Kafka Streams starts, `KafkaStreamsRunner` calls `WindowStoreUpgrade.prepare(<state.dir>/<application.id>, stores)` with the stores that `TopologyGenerator` built for Python functions (`createUserStateStore`). If the application state directory has no `.ksml-store-format` marker, `prepare` does this in every task directory (`<n>_<n>`), for each persistent, timestamped window store among them:
+
+- deletes `<task>/<store>` and `<task>/<store>.position`, and logs it at INFO
+- logs a WARN when the store has `logging: false`, because its data can't be restored
+- deletes the task's `.checkpoint` when it deleted a store there, because Kafka Streams would otherwise load the old offsets and skip the restore; the other stores of that task are then restored from their changelogs too
+
+Then it writes the marker, creating the directory if needed. Kafka Streams restores the deleted stores from their changelogs. The marker is one file per application state directory, so it survives Kafka Streams deleting and recreating task directories. Kafka Streams ignores unknown files there; only `KafkaStreams.cleanUp()`, which KSML doesn't call, warns about them.
+
+Not touched: window stores that DSL operations materialize (1.x already built them as timestamped), and stores with `timestamped: false` (built the same way in 1.x and now).
+
+- *Alternative: (a) document a reset in the migration guide and mark the change BREAKING.* Rejected: users who miss the guide get a crash.
+- *Alternative: (c) convert the values in place.* Rejected: more code, and the restore from the changelog is enough.
 
 ## Risks / Trade-offs
 
@@ -147,7 +157,7 @@ Only the last row is at risk. The upgrade test (task 5.3) decides how to handle 
 - [More tests run RocksDB, so the build gets slower] → Measure in group 1. Tests that don't care about persistence set `persistent: false`.
 - [The adapters must override every store method the proxies call, or Kafka Streams' throwing defaults surface] → Unit tests per adapter, and an end-to-end test that runs the same Python calls against both formats (the spec's "same calls" scenario).
 - [Join logging conflict error on topologies that used to build] → It only happens when the two join stores have different `logging` values. The error message says how to fix it.
-- [1.x local state of persistent timestamped window stores is misread after D7] → The upgrade test checks it before the fix ships. The result picks D7 (a) or (b).
+- [The first start after the upgrade restores these window stores from the changelog] → It happens once, it's logged, and the migration guide mentions it.
 
 ## Migration Plan
 
@@ -157,4 +167,4 @@ Only the last row is at risk. The upgrade test (task 5.3) decides how to handle 
 ## Open Questions
 
 - ~~What the RocksDB cost in the test suite turns out to be.~~ Measured in task 1.5 on GraalVM: the `ksml` module tests take 49.8 s before and 54.6 s after (1047 vs 1057 tests). No tests need `persistent: false` for speed.
-- Does 1.x window store state read correctly after D7, from local state and after a changelog restore? Task 5.3 answers this. The result picks D7 (a) or (b), and the proposal, specs and tasks are updated to match.
+- ~~Does 1.x window store state read correctly after D7, from local state and after a changelog restore?~~ Answered by task 5.3, see D7.
