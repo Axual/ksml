@@ -47,6 +47,12 @@ public class KSMLStoreDeclaredTypesTest {
     @KSMLTopic(topic = "declared_types_output")
     TestOutputTopic<String, String> output;
 
+    @KSMLTopic(topic = "declared_types_count_input")
+    TestInputTopic<String, String> countInput;
+
+    @KSMLTopic(topic = "declared_types_count_output")
+    TestOutputTopic<String, String> countOutput;
+
     @KSMLTest(topology = "pipelines/test-store-declared-types-python.yaml")
     @DisplayName("Python keys and values are converted to the declared simple types of every kind of store")
     void testStoreDeclaredTypes() {
@@ -76,5 +82,17 @@ public class KSMLStoreDeclaredTypesTest {
                 // A list of ints is also bytes; reads return bytes as a list of ints
                 "bytes bytes=ok/[97, 98] list=ok/[97, 98] str=TypeError",
                 "byte put=ok/5 large=ValueError");
+    }
+
+    @KSMLTest(topology = "pipelines/test-store-declared-types-count-python.yaml")
+    @DisplayName("The store of a count gets its long value type from the operation, so put(key, 0) resets the count")
+    void testCountStoreDeclaredTypes() {
+        countInput.pipeInput("a", "x", 1000L);
+        countInput.pipeInput("a", "x", 2000L);
+
+        // put(key, 0) stored a long, so the second record counts from 0 again
+        assertThat(countOutput.readValuesToList()).containsExactly(
+                "count=1 fraction=TypeError bool=TypeError zero=ok/0",
+                "count=1 fraction=TypeError bool=TypeError zero=ok/0");
     }
 }
