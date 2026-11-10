@@ -59,6 +59,11 @@ public final class SharedKsmlInfra {
     private SharedKsmlInfra() {
     }
 
+    /** The network of the shared containers, for containers that connect to the broker as {@code broker:9093}. */
+    public static Network network() {
+        return NETWORK;
+    }
+
     /** The shared Kafka broker, started on first access. */
     public static synchronized KafkaContainer kafka() {
         if (kafka == null) {
