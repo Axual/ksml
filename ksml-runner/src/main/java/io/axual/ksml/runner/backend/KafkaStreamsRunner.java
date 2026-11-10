@@ -23,6 +23,7 @@ package io.axual.ksml.runner.backend;
 
 import io.axual.ksml.TopologyGenerator;
 import io.axual.ksml.client.resolving.ResolvingClientConfig;
+import io.axual.ksml.definition.StateStoreDefinition;
 import io.axual.ksml.execution.ExecutionContext;
 import io.axual.ksml.execution.ExecutionErrorHandler;
 import io.axual.ksml.generator.TopologyDefinition;
@@ -32,6 +33,7 @@ import io.axual.ksml.python.PythonContextConfig;
 import io.axual.ksml.runner.config.ApplicationServerConfig;
 import io.axual.ksml.runner.exception.RunnerException;
 import io.axual.ksml.runner.streams.KSMLClientSupplier;
+import io.axual.ksml.store.WindowStoreUpgrade;
 import io.axual.utils.headers.cleaning.AxualHeaderCleaningInterceptor;
 import lombok.Builder;
 import lombok.Getter;
@@ -46,7 +48,9 @@ import org.apache.kafka.streams.StreamsConfig;
 import org.apache.kafka.streams.Topology;
 import org.apache.kafka.streams.TopologyConfig;
 
+import java.nio.file.Path;
 import java.time.Duration;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -151,6 +155,7 @@ public class KafkaStreamsRunner implements Runner {
         var optimize = streamsProps.getOrDefault(StreamsConfig.TOPOLOGY_OPTIMIZATION_CONFIG, StreamsConfig.OPTIMIZE);
         final var topologyGenerator = new TopologyGenerator(applicationId, (String) optimize, config.pythonContextConfig(), headersStoreFormat(streamsConfig));
         final var topology = topologyGenerator.create(streamsBuilder, config.definitions);
+        checkWindowStoreState(streamsConfig, applicationId, topologyGenerator.userStateStores());
         final var topologyDesc = topology.describe();
         final var ksmlTagEnricher = KsmlTagEnricher.from(topologyDesc);
 
@@ -162,6 +167,18 @@ public class KafkaStreamsRunner implements Runner {
         kafkaStreams = kafkaStreamsFactory.apply(topology, mapToProperties(streamsProps));
         kafkaStreams.setStateListener(this::logStreamsStateChange);
         kafkaStreams.setUncaughtExceptionHandler(ExecutionContext.INSTANCE.errorHandling()::uncaughtException);
+    }
+
+    /**
+     * Clears window store state that KSML 1.x wrote in a format this version can't read, before Kafka Streams opens it,
+     * so Kafka Streams restores it from the changelog. This happens once per application state directory.
+     *
+     * @param streamsConfig the validated Kafka Streams configuration, with the state directory
+     * @param applicationId the application id, which names the state directory of the application
+     * @param stores        the stores built for Python functions
+     */
+    static void checkWindowStoreState(StreamsConfig streamsConfig, String applicationId, Collection<? extends StateStoreDefinition> stores) {
+        WindowStoreUpgrade.prepare(Path.of(streamsConfig.getString(StreamsConfig.STATE_DIR_CONFIG), applicationId), stores);
     }
 
     /**
