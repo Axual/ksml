@@ -38,7 +38,9 @@ import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.StreamsConfig;
 import org.apache.kafka.streams.Topology;
 
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
@@ -51,6 +53,7 @@ public class TopologyGenerator {
     private final Properties optimization;
     private final PythonContextConfig pythonContextConfig;
     private final boolean headersStoreFormat;
+    private final List<StateStoreDefinition> userStateStores = new ArrayList<>();
 
     public TopologyGenerator(String applicationId) {
         this(applicationId, null, PythonContextConfig.builder().build());
@@ -75,6 +78,11 @@ public class TopologyGenerator {
                 ? pythonContextConfig
                 : PythonContextConfig.builder().build();
         this.headersStoreFormat = headersStoreFormat;
+    }
+
+    /** The stores that {@link #create} built for Python functions, rather than for DSL operations. */
+    public List<StateStoreDefinition> userStateStores() {
+        return List.copyOf(userStateStores);
     }
 
     public Topology create(StreamsBuilder streamsBuilder, Map<String, TopologyDefinition> definitions) {
@@ -179,6 +187,7 @@ public class TopologyGenerator {
         definition.stateStores().forEach((name, store) -> {
             if (!kafkaStreamsCreatedStores.contains(name)) {
                 context.createUserStateStore(store);
+                userStateStores.add(store);
             }
         });
 

@@ -25,6 +25,7 @@ import io.axual.ksml.execution.ExecutionErrorHandler;
 import io.axual.ksml.metric.KsmlTagEnricher;
 import io.axual.ksml.runner.config.ApplicationServerConfig;
 import io.axual.ksml.runner.exception.RunnerException;
+import io.axual.ksml.store.WindowStoreUpgrade;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.streams.CloseOptions;
@@ -35,6 +36,7 @@ import org.assertj.core.api.InstanceOfAssertFactories;
 import org.awaitility.Awaitility;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -44,6 +46,8 @@ import org.mockito.invocation.InvocationOnMock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.stubbing.Answer;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -87,6 +91,9 @@ import static org.mockito.Mockito.when;
 @Slf4j
 @ExtendWith(MockitoExtension.class)
 class KafkaStreamsRunnerTest {
+
+    @TempDir
+    Path stateDirectory;
 
     static {
         final var minimalConfig = Map.of(
@@ -328,7 +335,7 @@ class KafkaStreamsRunnerTest {
         final var config = KafkaStreamsRunner.Config.builder()
                 .definitions(Map.of())
                 .kafkaConfig(INPUT_CONFIG_WITHOUT_PATTERNS)
-                .storageDirectory("tmp")
+                .storageDirectory(stateDirectory.toString())
                 .build();
 
         var runner = new KafkaStreamsRunner(config, (_, _) -> mock(KafkaStreams.class), mock(KsmlTagEnricher.class));
@@ -496,7 +503,7 @@ class KafkaStreamsRunnerTest {
         final var config = KafkaStreamsRunner.Config.builder()
                 .definitions(Map.of())
                 .kafkaConfig(INPUT_CONFIG_WITHOUT_PATTERNS)
-                .storageDirectory("tmp")
+                .storageDirectory(stateDirectory.toString())
                 .build();
 
         var runner = new KafkaStreamsRunner(config, (_, _) -> mock(KafkaStreams.class), mock(KsmlTagEnricher.class));
@@ -532,7 +539,7 @@ class KafkaStreamsRunnerTest {
         final var config = KafkaStreamsRunner.Config.builder()
                 .definitions(Map.of())
                 .kafkaConfig(INPUT_CONFIG_WITHOUT_PATTERNS)
-                .storageDirectory("tmp")
+                .storageDirectory(stateDirectory.toString())
                 .build();
 
         var runner = new KafkaStreamsRunner(config, (_, _) -> mockStreams, mock(KsmlTagEnricher.class));
@@ -612,7 +619,7 @@ class KafkaStreamsRunnerTest {
         final var config = KafkaStreamsRunner.Config.builder()
                 .definitions(Map.of())
                 .kafkaConfig(INPUT_CONFIG_WITHOUT_PATTERNS)
-                .storageDirectory("tmp")
+                .storageDirectory(stateDirectory.toString())
                 .build();
 
         var runner = new KafkaStreamsRunner(config, (_, _) -> mockStreams, mock(KsmlTagEnricher.class));
@@ -694,7 +701,7 @@ class KafkaStreamsRunnerTest {
                 .definitions(Map.of())
                 .kafkaConfig(INPUT_CONFIG_WITHOUT_PATTERNS)
                 .appServer(appServerConfig)
-                .storageDirectory("tmp")
+                .storageDirectory(stateDirectory.toString())
                 .build();
 
         var runner = new KafkaStreamsRunner(config, mockStreamsSupplier, mock(KsmlTagEnricher.class));
@@ -777,6 +784,17 @@ class KafkaStreamsRunnerTest {
             capturedCreateProperties.add(properties);
             return mockKafkaStreams;
         }
+    }
+
+    @Test
+    @DisplayName("checks the window store state of KSML 1.x in the state directory of the application")
+    void checksWindowStoreStateOfApplication() {
+        final var props = new HashMap<String, Object>(INPUT_CONFIG_WITHOUT_PATTERNS);
+        props.put(StreamsConfig.STATE_DIR_CONFIG, stateDirectory.toString());
+
+        KafkaStreamsRunner.checkWindowStoreState(new StreamsConfig(props), "test-id", List.of());
+
+        assertThat(stateDirectory.resolve("test-id").resolve(WindowStoreUpgrade.MARKER_FILE)).exists();
     }
 
     static Stream<Arguments> storeFormatData() {
