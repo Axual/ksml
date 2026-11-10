@@ -13,6 +13,7 @@ KSML builds declared state stores with its own defaults: in memory, no changelog
 - **BREAKING** The shared store of a stream-stream left or outer join logs to a changelog topic by default, as in Kafka Streams. The two join stores, which KSML always requires, control this through `logging`. If they ask for different `logging` values, the topology is rejected with a clear error. The two join window stores keep logging always, as Kafka Streams does for stores the application provides, and `logging: false` on them logs a warning.
 - With `dsl.store.format: HEADERS` in the runner's Kafka config, persistent, timestamped, non-versioned declared stores are built in the headers-aware format. With the default setting (`DEFAULT`) nothing changes. In-memory stores, versioned stores and stores with `timestamped: false` are not affected.
 - Python functions can use headers-aware stores with the same API and results as timestamped stores. Reads return values, never headers. A write from Python stores the current record's headers with the value, or no headers when no record is being processed.
+- A window store that is timestamped (now the default) and used by Python functions is built as a timestamped window store, so Python gets the `*WithTimestamp` methods. Today KSML builds it as a plain window store, even with `timestamped: true` (deferred from AXPD-11068). Window store state written by KSML 1.x reads correctly after the upgrade, from local state and after a restore from the changelog. An upgrade test checks this. If the test shows that some 1.x state can't be read correctly, the migration guide says how to reset those stores, and this bullet becomes **BREAKING**.
 - Documentation and a migration section explain the new defaults, the extra changelog topics and ACLs, RocksDB state on disk, caching emission timing, and how to opt out.
 
 ## Capabilities
@@ -30,7 +31,7 @@ None. No existing spec covers state stores.
 
 - Code: `ksml` store definitions and parsers, `StoreUtil`, `BaseOperation` (stream join), `TopologyGenerator` / `TopologyBuildContext` (store format plumbing), the store proxies under `proxy/store` and the operation processors. `ksml-runner` passes `dsl.store.format` on. `ksml-test-runner` keeps the default format.
 - Runtime: declared stores now create changelog topics, so applications need topic-create rights or pre-created topics. They also keep RocksDB state under `state.dir`, and DSL results from cached stores are emitted on commit or cache flush instead of on every update.
-- Tests: tests that rely on the old defaults need explicit flags or new expectations, and more tests run RocksDB in `TopologyTestDriver`.
+- Tests: tests that rely on the old defaults need explicit flags or new expectations, and more tests run RocksDB in `TopologyTestDriver`. `ksml-integration-tests` gets an upgrade test that runs a KSML 1.x image and then this build on the same state and topics.
 - Docs: `docs/reference/state-store-reference.md`, `docs/reference/definition-reference.md`, `docs/tutorials/intermediate/state-stores.md`, `docs/tutorials/advanced/performance-optimization.md`, `docs/migration-to-2.0.0.md`, `docs/release-notes.md`.
 - Dependencies: none new. This uses the headers-aware store APIs that Kafka Streams 4.4.0 already provides.
 - Depends on AXPD-11068 (timestamped store Python API), which this branch is built on.

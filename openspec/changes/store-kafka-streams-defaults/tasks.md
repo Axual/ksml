@@ -37,15 +37,23 @@ Each implementation task follows TDD: first commit the failing test, then the fi
 - [x] 4.6 Add an interactive query test (through `ksml-query` or the Kafka Streams IQ types) that a headers-aware keyValue store written from Python keeps the record's headers and can be queried as a plain keyValue store. Verify it passes.
 - [x] 4.7 Document in `docs/reference/state-store-reference.md` (Python store API section) that headers-aware stores have the same Python API, that reads return values only, and that writes keep the current record's headers. Verify the docs build.
 
-## 5. Integration verification
+## 5. Window store builder and upgrade (design D7)
 
-- [x] 5.1 Run the full Maven build (`mvn clean verify`) for all modules. Verify it passes.
-- [x] 5.2 Run the ticket's Docker reproduction with the KSML runner: confirm that declared stores create changelog topics, survive a restart, and that with `dsl.store.format: HEADERS` the stores are headers-aware. Verify by inspecting topics and the logged topology.
-- [ ] 5.3 Run the parity cases C30, C32, C44a, C49, C50 and C50b from AXPD-12447 against this build. Verify they pass, or record each difference on the ticket.
-- [ ] 5.4 Run `openspec validate store-kafka-streams-defaults --strict`. Verify it reports no issues.
+- [ ] 5.1 Add failing tests: a window store without options, used by Python with the headers format off, is built as a timestamped window store and Python gets `fetchWithTimestamp` with the record's timestamp; a window store with `timestamped: false` stays a plain window store. Verify the tests fail.
+- [ ] 5.2 Change `StoreUtil.getWindowStateStoreBuilder` to use `Stores.timestampedWindowStoreBuilder` for timestamped stores without the headers format. Verify the 5.1 tests and the existing window store tests pass.
+- [ ] 5.3 Add an upgrade test in `ksml-integration-tests`: run a KSML 1.x image with persistent window stores (`timestamped: true` and `timestamped` unset) written from Python, stop it, then run this build with the same application id, topics and state directory, and check what Python reads; repeat without the local state (changelog restore). Record the result in design Open Questions.
+- [ ] 5.4 Choose D7 (a) or (b) with the user based on 5.3, and update the artifacts (`/opsx:update`). For (b), add failing tests and then the state cleanup. For (a), make the 5.3 test assert the documented behavior. Verify the 5.3 test passes.
+- [ ] 5.5 Document the window store change: in `docs/reference/state-store-reference.md`, remove "Without `HEADERS`, a window store under `stores` has the methods of a plain window store" and say that window stores used by Python have the timestamped methods unless `timestamped: false`; add the upgrade outcome (and the reset for (a)) to `docs/migration-to-2.0.0.md` and `docs/release-notes.md`. Verify the docs build.
+
+## 6. Integration verification
+
+- [ ] 6.1 Run the full Maven build (`mvn clean verify`) for all modules. Verify it passes.
+- [x] 6.2 Run the ticket's Docker reproduction with the KSML runner: confirm that declared stores create changelog topics, survive a restart, and that with `dsl.store.format: HEADERS` the stores are headers-aware. Verify by inspecting topics and the logged topology.
+- [ ] 6.3 Run the parity cases C30, C32, C44a, C49, C50 and C50b from AXPD-12447 against this build. Verify they pass, or record each difference on the ticket.
+- [ ] 6.4 Run `openspec validate store-kafka-streams-defaults --strict`. Verify it reports no issues.
 
 ## Workflow follow-up
 
-- Rebase on `main` once AXPD-11068 is merged, then re-run 5.1.
+- Rebase on `main` once AXPD-11068 is merged, then re-run 6.1.
 - Share the change with the ticket reporter for review before or alongside the PR.
 - Archive the change (`/opsx:archive`) in the ticket's PR after review.

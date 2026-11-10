@@ -52,7 +52,7 @@ Facts that shape the approach:
 - Headers support for in-memory or versioned stores (Kafka Streams has none).
 - Supporting `dsl.store.format` in `ksml-test-runner`: it has no Kafka config, so it uses `DEFAULT`.
 - Changing implicit table or globalTable stores, or stores of operations without a declared store.
-- Migrating existing state from one store format to another.
+- Migrating existing state when users switch `dsl.store.format`. The upgrade of 1.x window store state is covered by D7.
 
 ## Decisions
 
@@ -122,6 +122,23 @@ Values are the ones D1 resolved, so a store without `logging` counts as `true`. 
 - *Alternative: make `thisStore` and `otherStore` optional, so Kafka Streams creates the join stores itself.* Rejected for this change: it changes the parser, the JSON schema and the docs, which is beyond F13.
 - *Alternative: stop passing suppliers and let Kafka Streams build the join stores through `StreamJoined.withStoreName` and `DslStoreSuppliers`, so `logging: false` applies to all three stores.* Rejected: the stores get generated names instead of the declared ones, which renames the changelog topics of existing applications so they lose their join state on upgrade, and it needs the store validation and format handling reworked.
 
+### D7. Window stores used by Python are timestamped stores
+
+`StoreUtil.getWindowStateStoreBuilder` uses `Stores.windowStoreBuilder` for every window store without the headers format, so Python gets a `WindowStoreProxy` without the `*WithTimestamp` methods, even with `timestamped: true`. With this change, `timestamped && !useHeaders` uses `Stores.timestampedWindowStoreBuilder`, and `timestamped: false` keeps `windowStoreBuilder`. Kafka Streams wraps an in-memory supplier with a timestamped marker and a RocksDB supplier with its adapter, so both in-memory and persistent stores work.
+
+Existing state (Kafka Streams 4.4 source, not yet tested):
+
+| 1.x declaration | Local RocksDB state after the fix | Restore from the changelog |
+|---|---|---|
+| in memory (the 1.x default) | none | none (the 1.x default had no changelog) |
+| `persistent: true`, `timestamped` unset or false | migrated by Kafka Streams' plain-to-timestamped upgrade path | correct |
+| `persistent: true`, `timestamped: true` | misread: 1.x wrote plain value bytes into the timestamped column family, and the new store can't tell them apart | correct: the changelog holds plain values and record timestamps |
+
+Only the last row is at risk. The upgrade test (task 5.3) decides how to handle it:
+
+- *(a) Fallback:* the migration guide says how to reset these stores (delete the local state so it restores from the changelog, or use a new application id), and the proposal marks the change **BREAKING**.
+- *(b) Automatic:* KSML writes a format marker in each store directory and, before Kafka Streams starts, deletes unmarked 1.x local state of persistent timestamped window stores, so Kafka Streams restores it from the changelog.
+
 ## Risks / Trade-offs
 
 - [Existing applications suddenly create changelog topics and write RocksDB state] → Document it as **BREAKING** in the migration guide, with ACL needs, `state.dir` volume advice and the `persistent/logging: false` opt-out.
@@ -130,6 +147,7 @@ Values are the ones D1 resolved, so a store without `logging` counts as `true`. 
 - [More tests run RocksDB, so the build gets slower] → Measure in group 1. Tests that don't care about persistence set `persistent: false`.
 - [The adapters must override every store method the proxies call, or Kafka Streams' throwing defaults surface] → Unit tests per adapter, and an end-to-end test that runs the same Python calls against both formats (the spec's "same calls" scenario).
 - [Join logging conflict error on topologies that used to build] → It only happens when the two join stores have different `logging` values. The error message says how to fix it.
+- [1.x local state of persistent timestamped window stores is misread after D7] → The upgrade test checks it before the fix ships. The result picks D7 (a) or (b).
 
 ## Migration Plan
 
@@ -139,3 +157,4 @@ Values are the ones D1 resolved, so a store without `logging` counts as `true`. 
 ## Open Questions
 
 - ~~What the RocksDB cost in the test suite turns out to be.~~ Measured in task 1.5 on GraalVM: the `ksml` module tests take 49.8 s before and 54.6 s after (1047 vs 1057 tests). No tests need `persistent: false` for speed.
+- Does 1.x window store state read correctly after D7, from local state and after a changelog restore? Task 5.3 answers this. The result picks D7 (a) or (b), and the proposal, specs and tasks are updated to match.

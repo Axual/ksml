@@ -41,3 +41,14 @@ For a keyValue store declared without options, the `get` and `all` calls from Py
 #### Scenario: Get and all on a default store
 - **WHEN** a Python function puts two entries into a keyValue store declared without options, then calls `get` for one key and `all`
 - **THEN** `get` returns that entry's value and `all` returns both entries with their keys and values
+
+### Requirement: Window stores used by Python functions keep timestamps
+A Python function connected to a window store that is timestamped (the default) SHALL get the timestamped window store API, in both store formats. A window store with `timestamped: false` SHALL keep the plain window store API.
+
+#### Scenario: Timestamped window store without headers
+- **WHEN** `dsl.store.format` is absent and a Python function puts a value into a window store declared without options, then calls `fetchWithTimestamp` for that key and window
+- **THEN** the call returns the value and the timestamp of the record that was processed
+
+#### Scenario: Window store with timestamped false
+- **WHEN** a Python function is connected to a window store declared with `timestamped: false`
+- **THEN** the function gets the plain window store methods, without the `*WithTimestamp` methods
