@@ -140,11 +140,19 @@ class WindowStoreUpgradeIT {
         deleteRecursively(stateDirectory.resolve(applicationId()));
         final var restoredResult = runThisVersionAndGet(bootstrapServers, windowStart);
 
-        log.info("Window store upgrade from KSML {}: local state: {}, restored from changelog: {}",
-                ksml1Version, localStateResult, restoredResult);
+        // A second start of this version keeps the local state: the RocksDB databases are the same ones
+        final var storeDirectory = stateDirectory.resolve(applicationId()).resolve("0_0").resolve("window_timestamped");
+        final var databasesBefore = rocksDbIdentities(storeDirectory);
+        final var restartResult = runThisVersionAndGet(bootstrapServers, windowStart);
+        final var databasesAfter = rocksDbIdentities(storeDirectory);
+
+        log.info("Window store upgrade from KSML {}: local state: {}, restored from changelog: {}, after a restart: {}",
+                ksml1Version, localStateResult, restoredResult, restartResult);
         final var softly = new SoftAssertions();
         softly.assertThat(localStateResult).as("read from the local state of KSML " + ksml1Version).isEqualTo(EXPECTED);
         softly.assertThat(restoredResult).as("read after a restore from the changelog").isEqualTo(EXPECTED);
+        softly.assertThat(restartResult).as("read after a restart of this version").isEqualTo(EXPECTED);
+        softly.assertThat(databasesAfter).as("RocksDB databases after a restart of this version").isNotEmpty().isEqualTo(databasesBefore);
         softly.assertAll();
     }
 
@@ -243,6 +251,18 @@ class WindowStoreUpgradeIT {
             }
         }
         return null;
+    }
+
+    /** The IDENTITY files of the RocksDB databases of a store, which RocksDB creates with a new id for a new database. */
+    private static List<String> rocksDbIdentities(Path storeDirectory) throws IOException {
+        if (!Files.isDirectory(storeDirectory)) return List.of();
+        try (var paths = Files.walk(storeDirectory)) {
+            final var identities = new ArrayList<String>();
+            for (final var path : paths.filter(path -> path.getFileName().toString().equals("IDENTITY")).sorted().toList()) {
+                identities.add(storeDirectory.relativize(path) + "=" + Files.readString(path).trim());
+            }
+            return identities;
+        }
     }
 
     private static void deleteRecursively(Path directory) throws IOException {
