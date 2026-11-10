@@ -138,10 +138,14 @@ public abstract class AbstractStateStoreProxy<T extends StateStore> implements S
         if (isByteElements(container, object)) {
             final var elements = Value.asValue(object);
             // Only ints are bytes; the mapper would read a float or a bool element as an int. toStoreType makes the
-            // ClassCastException a TypeError, as for any value of another kind.
-            for (long index = 0; index < elements.getArraySize(); index++)
-                if (!"int".equals(PythonErrors.typeName(elements.getArrayElement(index))))
-                    throw new ClassCastException("bytes element is not an int");
+            // ClassCastException a TypeError, as for any value of another kind. Python bytes and bytearray hold only
+            // ints, so only a list or a tuple needs this check, which costs several polyglot calls per element.
+            final var kind = PythonErrors.typeName(elements);
+            if (!"bytes".equals(kind) && !"bytearray".equals(kind)) {
+                for (long index = 0; index < elements.getArraySize(); index++)
+                    if (!"int".equals(PythonErrors.typeName(elements.getArrayElement(index))))
+                        throw new ClassCastException("bytes element is not an int");
+            }
             return NATIVE_MAPPER.fromPython(type, elements);
         }
         return NATIVE_MAPPER.fromPython(object);

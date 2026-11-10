@@ -311,7 +311,7 @@ class StoreProxyDeclaredTypesTest {
     }
 
     @Test
-    @DisplayName("Bytes store: bytes, and lists or tuples of ints from -128 to 255, work; other values raise a Python error")
+    @DisplayName("Bytes store: bytes, bytearray, and lists or tuples of ints from -128 to 255, work; other values raise a Python error")
     void bytesStoreValues() {
         final KeyValueStore<Object, Object> delegate = mock(KeyValueStore.class);
         when(delegate.name()).thenReturn("blobs");
@@ -320,7 +320,8 @@ class StoreProxyDeclaredTypesTest {
         assertThat(run(proxy, "store.put(1, b'ab')")).isEqualTo("ok");
         assertThat(run(proxy, "store.put(1, [-128, 255])")).isEqualTo("ok");
         assertThat(run(proxy, "store.put(1, (1, 2))")).isEqualTo("ok");
-        verify(delegate, times(3)).put(any(), any());
+        assertThat(run(proxy, "store.put(1, bytearray(b'ab'))")).isEqualTo("ok");
+        verify(delegate, times(4)).put(any(), any());
 
         final var outOfRange = "ValueError: Store blobs: value has an int out of range for bytes (-128 to 255)";
         assertThat(run(proxy, "store.put(1, [300])")).isEqualTo(outOfRange);
@@ -339,7 +340,7 @@ class StoreProxyDeclaredTypesTest {
         assertThat(run(proxy, "store.put(1, (1, True))")).isEqualTo("TypeError: Store blobs: value must be bytes, got tuple");
         assertThat(run(proxy, "store.putAll([(1, [300])])"))
                 .isEqualTo("ValueError: Store blobs: putAll entry 0 value has an int out of range for bytes (-128 to 255)");
-        verify(delegate, times(3)).put(any(), any());
+        verify(delegate, times(4)).put(any(), any());
         verify(delegate, never()).putAll(anyList());
     }
 
