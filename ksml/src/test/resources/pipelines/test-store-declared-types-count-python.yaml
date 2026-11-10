@@ -1,0 +1,51 @@
+# $schema: https://raw.githubusercontent.com/Axual/ksml/refs/heads/main/docs/ksml-language-spec.json
+
+# Python writes to the store of a count (AXPD-11068). The store is declared inside the operation without keyType or
+# valueType, so its value type long comes from the count. A Python int still works, so the count can be reset with
+# put(key, 0); a float or a bool raises TypeError and writes nothing.
+streams:
+  declared_types_count_input:
+    topic: declared_types_count_input
+    keyType: string
+    valueType: string
+  declared_types_count_output:
+    topic: declared_types_count_output
+    keyType: string
+    valueType: string
+
+functions:
+  reset_count:
+    type: valueTransformer
+    code: |
+      def write(call):
+        try:
+          call()
+          return "ok"
+        except Exception as e:
+          return type(e).__name__
+
+      result = "count=" + str(value)
+      result += " fraction=" + write(lambda: count_store.put(key, 1.5))
+      result += " bool=" + write(lambda: count_store.put(key, True))
+      result += " zero=" + write(lambda: count_store.put(key, 0)) + "/" + str(count_store.get(key))
+    expression: result
+    resultType: string
+    stores:
+      - count_store
+
+pipelines:
+  count_pipeline:
+    from: declared_types_count_input
+    via:
+      - type: groupByKey
+      - type: count
+        store:
+          name: count_store
+          type: keyValue
+          persistent: false
+          caching: false
+          logging: false
+      - type: toStream
+      - type: transformValue
+        mapper: reset_count
+    to: declared_types_count_output

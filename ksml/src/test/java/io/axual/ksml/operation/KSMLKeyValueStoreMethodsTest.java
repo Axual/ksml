@@ -20,16 +20,19 @@ package io.axual.ksml.operation;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.testutil.KSMLDriver;
 import io.axual.ksml.testutil.KSMLTest;
 import io.axual.ksml.testutil.KSMLTestExtension;
 import io.axual.ksml.testutil.KSMLTopic;
 import org.apache.kafka.streams.TestInputTopic;
 import org.apache.kafka.streams.TestOutputTopic;
+import org.apache.kafka.streams.TopologyTestDriver;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.util.List;
 
+import static io.axual.ksml.testutil.StoreMetrics.openIterators;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
@@ -45,6 +48,9 @@ public class KSMLKeyValueStoreMethodsTest {
 
     @KSMLTopic(topic = "keyvalue_methods_output")
     TestOutputTopic<String, String> output;
+
+    @KSMLDriver
+    TopologyTestDriver driver;
 
     @KSMLTest(topology = "pipelines/test-keyvalue-store-methods-python.yaml")
     @DisplayName("Key-value store methods work from Python on in-memory, RocksDB and cached stores, plain and timestamped")
@@ -62,5 +68,10 @@ public class KSMLKeyValueStoreMethodsTest {
         assertThat(List.of(values.get(0).split("\\n"))).containsExactly(
                 "memory" + expected, "rocksdb" + expected, "cached" + expected,
                 "memory_ts" + expected, "rocksdb_ts" + expected, "cached_ts" + expected);
+        for (final var store : List.of("kv_memory", "kv_memory_copy", "kv_rocksdb", "kv_rocksdb_copy",
+                "kv_cached", "kv_cached_copy", "ts_memory", "ts_memory_copy", "ts_rocksdb", "ts_rocksdb_copy",
+                "ts_cached", "ts_cached_copy")) {
+            assertThat(openIterators(driver, store)).as(store).isZero();
+        }
     }
 }

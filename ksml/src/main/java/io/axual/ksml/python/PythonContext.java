@@ -61,8 +61,7 @@ public class PythonContext implements AutoCloseable {
             "io.axual.ksml.proxy.store.WindowStoreProxy",
             "io.axual.ksml.proxy.store.TimestampedWindowStoreProxy",
             "io.axual.ksml.proxy.store.TimestampedKeyValueStoreProxy",
-            "io.axual.ksml.proxy.store.VersionedKeyValueStoreProxy",
-            "io.axual.ksml.proxy.store.StoreIteratorProxy");
+            "io.axual.ksml.proxy.store.VersionedKeyValueStoreProxy");
     /** For value conversion and the test runner only - bypasses registerFunction(). */
     @Getter
     private final Context context;

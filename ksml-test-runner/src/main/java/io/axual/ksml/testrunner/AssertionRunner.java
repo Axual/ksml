@@ -22,6 +22,7 @@ package io.axual.ksml.testrunner;
 
 import io.axual.ksml.data.mapper.NativeDataObjectMapper;
 import io.axual.ksml.data.object.DataObject;
+import io.axual.ksml.definition.StateStoreDefinition;
 import io.axual.ksml.generator.StreamDataType;
 import io.axual.ksml.parser.UserTypeParser;
 import io.axual.ksml.python.PythonContext;
@@ -40,6 +41,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 
 /**
  * Executes Python assertion code against output records and state stores.
@@ -52,10 +54,18 @@ public class AssertionRunner {
 
     private final TopologyTestDriver driver;
     private final Map<String, StreamDefinition> streams;
+    private final Function<String, StateStoreDefinition> storeDefinitions;
 
     public AssertionRunner(TopologyTestDriver driver, Map<String, StreamDefinition> streams) {
+        this(driver, streams, storeName -> null);
+    }
+
+    /** Like the other constructor; store proxies convert keys and values to the types in storeDefinitions. */
+    public AssertionRunner(TopologyTestDriver driver, Map<String, StreamDefinition> streams,
+                           Function<String, StateStoreDefinition> storeDefinitions) {
         this.driver = driver;
         this.streams = streams;
+        this.storeDefinitions = storeDefinitions;
     }
 
     /**
@@ -114,7 +124,7 @@ public class AssertionRunner {
                         return TestResult.error(suiteName, testName,
                                 "State store '" + storeName + "' not found in topology");
                     }
-                    var proxy = ProxyUtil.wrapStateStore(store);
+                    var proxy = ProxyUtil.wrapStateStore(store, storeDefinitions.apply(storeName));
                     args.add(Pair.of(storeName, proxy));
                 }
             }

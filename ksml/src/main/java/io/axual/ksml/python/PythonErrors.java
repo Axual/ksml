@@ -57,6 +57,8 @@ public final class PythonErrors {
     public static String typeName(Object value) {
         final var context = currentContext();
         if (context == null) return value == null ? "null" : value.getClass().getSimpleName();
+        // Python None reaches Java as null, which Python would call ForeignNone
+        if (value == null) return "NoneType";
         return builtin(context, "type").execute(value).getMember("__name__").asString();
     }
 
