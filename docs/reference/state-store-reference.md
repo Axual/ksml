@@ -462,9 +462,9 @@ store.put(key, value)  # stored with the timestamp of the current record
 
 ### Timestamped Window Stores
 
-A windowed aggregation, such as `count` or `aggregate`, keeps its results in a timestamped window store. When a
-Python function lists this store in its `stores`, it gets the same methods as a
-[plain window store](#window-store-methods), with the same results:
+A windowed aggregation, such as `count` or `aggregate`, keeps its results in a timestamped window store, and so does a
+window store under `stores`, unless it sets `timestamped: false`. When a Python function lists such a store in its
+`stores`, it gets the same methods as a [plain window store](#window-store-methods), with the same results:
 
 - `store.fetch(key, time)` returns only the value
 - `store.fetch(...)`, `store.backwardFetch(...)`, `store.fetchAll(...)`, `store.backwardFetchAll(...)`, `store.all()`
@@ -494,8 +494,7 @@ uses them with the same methods, and gets the same results, as without headers:
 
 - A key-value store has the methods of a [timestamped key-value store](#timestamped-key-value-stores).
 - A window store has the methods of a [timestamped window store](#timestamped-window-stores), including the
-  `*WithTimestamp` methods. Without `HEADERS`, a window store under `stores` has the methods of a
-  [plain window store](#window-store-methods); the methods that both have return the same results.
+  `*WithTimestamp` methods.
 - A session store has the methods of a [session store](#session-store-methods).
 
 Reads never return headers. A write from Python stores the value with the headers of the record that is being
