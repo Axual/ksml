@@ -3,6 +3,10 @@ streams:
     topic: ksml_sensordata_avro
     keyType: string
     valueType: avro:SensorData
+  sensor_store_result:
+    topic: ksml_sensordata_store_result
+    keyType: string
+    valueType: string
 
 stores:
   last_sensor_data_store:
@@ -16,20 +20,21 @@ stores:
 
 functions:
   process_message:
-    type: forEach
+    type: valueTransformer
     code: |
+      # Returns what Python reads from the store; SensorData has its own "value" field
       last_value = last_sensor_data_store.get(key)
-      if last_value != None:
-        log.info("Found last value: {} = {}", key, last_value)
-        # log.info("last value color was {}", last_value["color"])
-        log.info("last value color was {}", last_value.get("color"))
+      result = "none" if last_value is None else last_value.get("city") + ":" + last_value["value"]
       last_sensor_data_store.put(key, value)
-      if value != None:
-        log.info("Stored new value: {} = {}", key, value)
+    expression: result
+    resultType: string
     stores:
       - last_sensor_data_store
 
 pipelines:
   process_message:
     from: sensor_source_avro
-    forEach: process_message
+    via:
+      - type: transformValue
+        mapper: process_message
+    to: sensor_store_result

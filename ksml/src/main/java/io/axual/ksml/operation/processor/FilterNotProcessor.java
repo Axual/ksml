@@ -36,7 +36,7 @@ public class FilterNotProcessor extends FixedKeyOperationProcessor {
     }
 
     @Override
-    public void process(FixedKeyRecord<Object, Object> rec) {
+    protected void processRecord(FixedKeyRecord<Object, Object> rec) {
         if (!action.test(stores, rec)) {
             context.forward(rec);
         }

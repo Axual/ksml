@@ -36,7 +36,7 @@ public class TransformKeyValueToValueListProcessor extends FixedKeyOperationProc
     }
 
     @Override
-    public void process(FixedKeyRecord<Object, Object> rec) {
+    protected void processRecord(FixedKeyRecord<Object, Object> rec) {
         var values = action.apply(stores, rec);
         if (values != null)
             for (var value : values) context.forward(rec.withValue(value));

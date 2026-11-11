@@ -58,7 +58,8 @@ public class FilterNotOperation extends StoreOperation {
                 name,
                 FilterNotProcessor::new,
                 (stores, rec) -> userPred.test(stores, flattenValue(rec.key()), flattenValue(rec.value())),
-                storeNames);
+                storeNames,
+                storeDefinitions(context, storeNames));
         final var named = namedOf();
         final var output = named != null
                 ? input.stream.processValues(supplier, named, storeNames)

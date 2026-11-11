@@ -20,23 +20,48 @@ package io.axual.ksml.proxy.store;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.exception.DataException;
 import io.axual.ksml.data.object.DataString;
 import io.axual.ksml.data.object.DataStruct;
 import io.axual.ksml.python.PythonContext;
 import io.axual.ksml.python.PythonContextConfig;
+import org.apache.kafka.common.serialization.StringSerializer;
+import org.apache.kafka.streams.KeyValue;
+import org.apache.kafka.streams.errors.InvalidStateStoreException;
 import org.apache.kafka.streams.processor.StateStore;
 import org.apache.kafka.streams.processor.StateStoreContext;
 import org.apache.kafka.streams.state.KeyValueIterator;
 import org.apache.kafka.streams.state.KeyValueStore;
+import org.assertj.core.api.SoftAssertions;
+import org.graalvm.polyglot.PolyglotException;
 import org.graalvm.polyglot.Value;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+import static io.axual.ksml.proxy.store.StoreProxyTestUtil.PYTHON_VALUES;
+import static io.axual.ksml.proxy.store.StoreProxyTestUtil.describe;
+import static io.axual.ksml.proxy.store.StoreProxyTestUtil.outcome;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.catchThrowable;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.atMostOnce;
+import static org.mockito.Mockito.clearInvocations;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -163,5 +188,282 @@ class KeyValueStoreProxyTest {
                     """);
             assertThat(deepcopyResult.asString()).isEqualTo("OK");
         }
+    }
+
+    // ==================== Methods called from Python ====================
+
+    private static FakeKeyValueIterator<Object> entries(String... keys) {
+        final var result = new ArrayList<KeyValue<Object, Object>>();
+        for (final var key : keys) result.add(KeyValue.pair(key, "value-" + key));
+        return new FakeKeyValueIterator<>(result);
+    }
+
+    /** Runs Python code with {@code store} bound to the proxy, and returns the result as a list of strings. */
+    private List<String> runPython(String code) {
+        try (var pythonContext = new PythonContext(PythonContextConfig.builder().build())) {
+            return StoreProxyTestUtil.runPython(pythonContext.context(), proxy(), code);
+        }
+    }
+
+    /** Runs Python code with {@code store} bound to the proxy, and expects it to raise an error. */
+    private PolyglotException runPythonExpectingError(String code) {
+        try (var pythonContext = new PythonContext(PythonContextConfig.builder().build())) {
+            pythonContext.context().getBindings("python").putMember("store", proxy());
+            return (PolyglotException) catchThrowable(() -> pythonContext.context().eval("python", code));
+        }
+    }
+
+    @Test
+    @DisplayName("range(from, to) returns {key, value} entries, and closes the Kafka iterator")
+    void rangeFromPython() {
+        final var kafkaIterator = entries("a", "b", "c");
+        when(delegate.range("a", "c")).thenReturn(kafkaIterator);
+        assertThat(runPython("""
+                [e["key"] + "=" + e["value"] for e in store.range("a", "c")]
+                """)).containsExactly("a=value-a", "b=value-b", "c=value-c");
+        assertThat(kafkaIterator.closeCount).isEqualTo(1);
+    }
+
+    @Test
+    @DisplayName("range with None bounds passes open bounds to the delegate")
+    void rangeWithOpenBoundsFromPython() {
+        when(delegate.range(null, "b")).thenReturn(entries("a", "b"));
+        when(delegate.range("b", null)).thenReturn(entries("b", "c"));
+        assertThat(runPython("""
+                [e["key"] for e in store.range(None, "b")] + [e["key"] for e in store.range("b", None)]
+                """)).containsExactly("a", "b", "b", "c");
+    }
+
+    @Test
+    @DisplayName("reverseRange(from, to) returns the reverse range, and closes the Kafka iterator")
+    void reverseRangeFromPython() {
+        final var kafkaIterator = entries("c", "b", "a");
+        when(delegate.reverseRange("a", "c")).thenReturn(kafkaIterator);
+        assertThat(runPython("""
+                [e["key"] for e in store.reverseRange("a", "c")]
+                """)).containsExactly("c", "b", "a");
+        assertThat(kafkaIterator.closeCount).isEqualTo(1);
+    }
+
+    @Test
+    @DisplayName("reverseAll() returns all entries in reverse order, and closes the Kafka iterator")
+    void reverseAllFromPython() {
+        final var kafkaIterator = entries("c", "b", "a");
+        when(delegate.reverseAll()).thenReturn(kafkaIterator);
+        assertThat(runPython("""
+                [e["key"] for e in store.reverseAll()]
+                """)).containsExactly("c", "b", "a");
+        assertThat(kafkaIterator.closeCount).isEqualTo(1);
+    }
+
+    @Test
+    @DisplayName("prefixScan(prefix) passes the prefix and a StringSerializer, and closes the Kafka iterator")
+    void prefixScanFromPython() {
+        final var kafkaIterator = entries("sensor1", "sensor2");
+        when(delegate.prefixScan(eq("se"), any(StringSerializer.class))).thenReturn(kafkaIterator);
+        assertThat(runPython("""
+                [e["key"] for e in store.prefixScan("se")]
+                """)).containsExactly("sensor1", "sensor2");
+        assertThat(kafkaIterator.closeCount).isEqualTo(1);
+    }
+
+    @Test
+    @DisplayName("prefixScan(\"\") reads all(), as Kafka's in-memory and caching stores fail on an empty prefix")
+    void prefixScanWithEmptyPrefix() {
+        final var kafkaIterator = entries("a", "b");
+        when(delegate.all()).thenReturn(kafkaIterator);
+        assertThat(runPython("""
+                [e["key"] for e in store.prefixScan("")]
+                """)).containsExactly("a", "b");
+        verify(delegate, never()).prefixScan(any(), any());
+        assertThat(kafkaIterator.closeCount).isEqualTo(1);
+    }
+
+    @Test
+    @DisplayName("putAll with (key, value) tuples writes all entries with one delegate putAll")
+    void putAllWithTuples() {
+        runPython("""
+                store.putAll([("a", "1"), ("b", "2")])
+                []
+                """);
+        verify(delegate).putAll(List.of(KeyValue.pair("a", "1"), KeyValue.pair("b", "2")));
+        verify(delegate, never()).put(any(), any());
+    }
+
+    @ParameterizedTest(name = "putAll with {0} writes all entries")
+    @CsvSource(delimiter = '|', textBlock = """
+            [key, value] lists          | [["a", "1"], ["b", "2"]]
+            {key, value} dicts          | [{"key": "a", "value": "1"}, {"key": "b", "value": "2"}]
+            tuples and dicts mixed      | [("a", "1"), {"key": "b", "value": "2"}]
+            a Python iterator           | iter([("a", "1"), ("b", "2")])
+            """)
+    void putAllWithEntryShapes(String shape, String entries) {
+        runPython("store.putAll(" + entries + ")\n[]\n");
+        verify(delegate).putAll(List.of(KeyValue.pair("a", "1"), KeyValue.pair("b", "2")));
+    }
+
+    @Test
+    @DisplayName("putAll ignores a timestamp field in a dict, so entries from a timestamped store can be copied")
+    void putAllIgnoresTimestampField() {
+        runPython("""
+                store.putAll([{"key": "a", "value": "1", "timestamp": 700}])
+                []
+                """);
+        verify(delegate).putAll(List.of(KeyValue.pair("a", "1")));
+    }
+
+    @Test
+    @DisplayName("putAll accepts a store iterator, so store.putAll(other.all()) copies a store")
+    void putAllWithStoreIterator() {
+        when(delegate.all()).thenReturn(entries("a", "b"));
+        runPython("""
+                store.putAll(store.all())
+                []
+                """);
+        verify(delegate).putAll(List.of(KeyValue.pair("a", "value-a"), KeyValue.pair("b", "value-b")));
+    }
+
+    @Test
+    @DisplayName("putAll passes a None value to the delegate, which deletes the key")
+    void putAllWithNoneValue() {
+        runPython("""
+                store.putAll([("a", None)])
+                []
+                """);
+        verify(delegate).putAll(Arrays.asList(KeyValue.pair("a", null)));
+    }
+
+    @Test
+    @DisplayName("putAll gives the delegate the same Java objects as put, or raises the same error, for every kind of Python value")
+    void putAllConvertsLikePut() {
+        final var softly = new SoftAssertions();
+        try (var pythonContext = new PythonContext(PythonContextConfig.builder().build())) {
+            pythonContext.context().getBindings("python").putMember("store", proxy());
+            for (final var value : PYTHON_VALUES) {
+                clearInvocations(delegate);
+                final var putOutcome = outcome(pythonContext.context(), "store.put(%1$s, %1$s)".formatted(value));
+                final var putAllOutcome = outcome(pythonContext.context(), "store.putAll([(%1$s, %1$s)])".formatted(value));
+                final ArgumentCaptor<Object> key = ArgumentCaptor.captor();
+                final ArgumentCaptor<Object> val = ArgumentCaptor.captor();
+                verify(delegate, atMostOnce()).put(key.capture(), val.capture());
+                final ArgumentCaptor<List<KeyValue<Object, Object>>> entries = ArgumentCaptor.captor();
+                verify(delegate, atMostOnce()).putAll(entries.capture());
+                softly.assertThat(putAllOutcome).as("outcome " + value).isEqualTo(putOutcome);
+                if (key.getAllValues().isEmpty() || entries.getAllValues().isEmpty()) continue;
+                final var entry = entries.getValue().get(0);
+                softly.assertThat(describe(entry.key)).as("key " + value).isEqualTo(describe(key.getValue()));
+                softly.assertThat(describe(entry.value)).as("value " + value).isEqualTo(describe(val.getValue()));
+            }
+        }
+        softly.assertAll();
+    }
+
+    /** Runs a Python call on {@code store} inside try/except Exception; returns "ok", or "ErrorType: message". */
+    private String pythonErrorOf(String call) {
+        try (var pythonContext = new PythonContext(PythonContextConfig.builder().build())) {
+            return StoreProxyTestUtil.pythonErrorOf(pythonContext.context(), proxy(), call);
+        }
+    }
+
+    @Test
+    @DisplayName("putAll with an entry that is not a pair or a dict raises TypeError naming its position, and writes nothing")
+    void putAllWithBadEntry() {
+        assertThat(pythonErrorOf("store.putAll([(\"a\", \"1\"), 42])"))
+                .startsWith("TypeError: ").contains("putAll entry 1");
+        verify(delegate, never()).putAll(anyList());
+        verify(delegate, never()).put(any(), any());
+    }
+
+    @Test
+    @DisplayName("putAll with a string entry raises TypeError instead of reading it as a pair")
+    void putAllWithStringEntry() {
+        assertThat(pythonErrorOf("store.putAll([\"ab\"])")).startsWith("TypeError: ").contains("putAll entry 0");
+        verify(delegate, never()).putAll(anyList());
+    }
+
+    @Test
+    @DisplayName("putAll with something that is not a list or an iterator raises TypeError")
+    void putAllWithNonIterable() {
+        assertThat(pythonErrorOf("store.putAll(42)")).startsWith("TypeError: ").contains("list or an iterator");
+        verify(delegate, never()).putAll(anyList());
+    }
+
+    @Test
+    @DisplayName("putAll with a tuple of three or a dict without a value raises ValueError naming its position")
+    void putAllWithIncompleteEntries() {
+        assertThat(pythonErrorOf("store.putAll([(\"a\", \"1\", \"2\")])"))
+                .startsWith("ValueError: ").contains("putAll entry 0");
+        assertThat(pythonErrorOf("store.putAll([{\"key\": \"a\"}])"))
+                .isEqualTo("ValueError: putAll entry 0 has no \"value\"");
+        assertThat(pythonErrorOf("store.putAll([{\"value\": \"1\"}])"))
+                .isEqualTo("ValueError: putAll entry 0 has no \"key\"");
+        verify(delegate, never()).putAll(anyList());
+    }
+
+    @Test
+    @DisplayName("prefixScan with a prefix that is not a string raises TypeError")
+    void prefixScanWithNonStringPrefix() {
+        assertThat(pythonErrorOf("store.prefixScan(42)")).startsWith("TypeError: ").contains("string prefix");
+        verify(delegate, never()).prefixScan(any(), any());
+    }
+
+    @Test
+    @DisplayName("caller error messages name the Python type, never the value, which can be user data")
+    void callerErrorMessagesHaveNoValues() {
+        final var softly = new SoftAssertions();
+        softly.assertThat(pythonErrorOf("store.putAll([\"secret\"])")).contains("got str").doesNotContain("secret");
+        softly.assertThat(pythonErrorOf("store.putAll(1234567)")).contains("got int").doesNotContain("1234567");
+        softly.assertThat(pythonErrorOf("store.putAll([(\"secret\", \"1\", \"2\")])")).contains("got 3").doesNotContain("secret");
+        softly.assertThat(pythonErrorOf("store.putAll([{\"key\": \"secret\"}])")).contains("has no \"value\"").doesNotContain("secret");
+        softly.assertThat(pythonErrorOf("store.prefixScan(1234567)")).contains("got int").doesNotContain("1234567");
+        softly.assertAll();
+    }
+
+    @Test
+    @DisplayName("an uncaught caller error reaches Java as a Python TypeError, not as a host exception")
+    void uncaughtCallerErrorIsAPythonError() {
+        final var error = runPythonExpectingError("""
+                store.putAll([42])
+                """);
+        assertThat(error.isGuestException()).isTrue();
+        assertThat(error.isHostException()).isFalse();
+        assertThat(error.getMessage()).startsWith("TypeError: ").contains("putAll entry 0");
+    }
+
+    @Test
+    @DisplayName("putAll with a dict raises a TypeError that points to d.items()")
+    void putAllWithDictRaisesTypeError() {
+        final var error = runPythonExpectingError("""
+                store.putAll({"a": "1"})
+                """);
+        assertThat(error.getMessage()).startsWith("TypeError: ").contains("putAll(d.items())");
+        verify(delegate, never()).putAll(any());
+    }
+
+    @Test
+    @DisplayName("a caller error from Java, without a Python context, throws a DataException with the message")
+    void callerErrorWithoutPythonContext() {
+        assertThatThrownBy(() -> proxy().prefixScan(42))
+                .isInstanceOf(DataException.class)
+                .hasMessageContaining("string prefix");
+        verify(delegate, never()).prefixScan(any(), any());
+    }
+
+    @Test
+    @DisplayName("a store error is not a caller error: it stays a Java exception, which except Exception does not catch")
+    void storeErrorStaysAJavaException() {
+        doThrow(new InvalidStateStoreException("store is closed")).when(delegate).putAll(anyList());
+        assertThat(runPython("""
+                def run():
+                    try:
+                        try:
+                            store.putAll([("a", "1")])
+                        except Exception:
+                            return "caught by except Exception"
+                    except BaseException as e:
+                        return "only except BaseException: " + str(e)
+                [run()]
+                """)).singleElement().asString()
+                .startsWith("only except BaseException: ").contains("store is closed");
     }
 }

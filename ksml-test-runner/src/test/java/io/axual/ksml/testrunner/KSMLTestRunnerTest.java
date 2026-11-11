@@ -77,6 +77,7 @@ class KSMLTestRunnerTest {
             "sample-filter-test-python-produce.yaml",
             "sample-filter-test-module-import.yaml",
             "sample-state-store-test.yaml",
+            "sample-long-store-test.yaml",
             "sample-timestamp-test.yaml",
             "processor-filtering-transforming-complete-test.yaml",
             "two-assert-blocks.yaml"
