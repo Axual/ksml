@@ -34,7 +34,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * Window stores that Python functions use are timestamped stores, unless they set {@code timestamped: false}
- * (AXPD-12445, design D7). Python then gets the *WithTimestamp methods, which return the record timestamp.
+ * (AXPD-12445). Python then gets the *WithTimestamp methods, which return the record timestamp.
  */
 @ExtendWith(KSMLTestExtension.class)
 @SuppressWarnings("java:S2187")

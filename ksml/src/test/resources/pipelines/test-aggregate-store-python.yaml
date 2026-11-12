@@ -1,7 +1,7 @@
 # $schema: https://raw.githubusercontent.com/Axual/ksml/refs/heads/main/docs/ksml-language-spec.json
 
-# Python reads the store of an aggregate with timestamped: false. Kafka Streams still makes this store timestamped
-# for the aggregate, so get() returns only the value. The stored value has its own "value" field.
+# Python reads the store of an aggregate with timestamped: false, and with the default options. Kafka Streams makes
+# every aggregate store timestamped, so get() returns only the value. The stored value has its own "value" field.
 streams:
   aggregate_store_input:
     topic: aggregate_store_input
@@ -29,6 +29,10 @@ stores:
     timestamped: false
     caching: false
     logging: false
+  total_default:
+    type: keyValue
+    keyType: string
+    valueType: json
 
 functions:
   init_total:
@@ -64,6 +68,18 @@ functions:
     stores:
       - total_rocksdb
 
+  check_default:
+    type: valueTransformer
+    code: |
+      current = total_default.get(key)
+      with_ts = total_default.getWithTimestamp(key)
+      result = ("default get=" + current["sensor"] + ":" + str(current["value"])
+                + " getWithTimestamp=" + str(with_ts["value"]["value"]) + "@" + str(with_ts["timestamp"]))
+    expression: result
+    resultType: string
+    stores:
+      - total_default
+
 pipelines:
   memory_pipeline:
     from: aggregate_store_input
@@ -89,4 +105,17 @@ pipelines:
       - type: toStream
       - type: transformValue
         mapper: check_rocksdb
+    to: aggregate_store_output
+
+  default_pipeline:
+    from: aggregate_store_input
+    via:
+      - type: groupByKey
+      - type: aggregate
+        store: total_default
+        initializer: init_total
+        aggregator: add_total
+      - type: toStream
+      - type: transformValue
+        mapper: check_default
     to: aggregate_store_output

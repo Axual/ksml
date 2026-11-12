@@ -38,12 +38,12 @@ import org.apache.kafka.streams.state.VersionedKeyValueStore;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
-import java.io.ByteArrayOutputStream;
-import java.io.PrintStream;
-import java.nio.charset.StandardCharsets;
 import java.util.concurrent.atomic.AtomicReference;
 
+import static io.axual.ksml.testutil.LogCapture.stderrOf;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
@@ -75,7 +75,7 @@ class StoreDefinitionDefaultsTest {
         assertThat(store.timestamped()).isTrue();
         assertThat(store.logging()).isTrue();
 
-        final var builder = StoreUtil.getStoreBuilder(store);
+        final var builder = StoreUtil.getStoreBuilder(store, false);
         assertThat(builder.loggingEnabled()).isTrue();
         final var built = builder.build();
         assertThat(built.persistent()).isTrue();
@@ -92,8 +92,8 @@ class StoreDefinitionDefaultsTest {
         assertThat(store.timestamped()).isTrue();
         assertThat(store.logging()).isTrue();
 
-        assertThat(StoreUtil.getStoreBuilder(store).loggingEnabled()).isTrue();
-        final var materialized = new MaterializedInternal<>(StoreUtil.materialize(store).materialized());
+        assertThat(StoreUtil.getStoreBuilder(store, false).loggingEnabled()).isTrue();
+        final var materialized = new MaterializedInternal<>(StoreUtil.materialize(store, false).materialized());
         assertThat(materialized.loggingEnabled()).isTrue();
         final var supplied = materialized.storeSupplier().get();
         assertThat(supplied.persistent()).isTrue();
@@ -109,7 +109,7 @@ class StoreDefinitionDefaultsTest {
         assertThat(store.persistent()).isTrue();
         assertThat(store.logging()).isTrue();
 
-        final var builder = StoreUtil.getStoreBuilder(store);
+        final var builder = StoreUtil.getStoreBuilder(store, false);
         assertThat(builder.loggingEnabled()).isTrue();
         assertThat(builder.build().persistent()).isTrue();
     }
@@ -124,7 +124,7 @@ class StoreDefinitionDefaultsTest {
         assertThat(store.timestamped()).isFalse();
         assertThat(store.logging()).isFalse();
 
-        final var builder = StoreUtil.getStoreBuilder(store);
+        final var builder = StoreUtil.getStoreBuilder(store, false);
         assertThat(builder.loggingEnabled()).isFalse();
         assertThat(builder.build().persistent()).isFalse();
     }
@@ -135,28 +135,11 @@ class StoreDefinitionDefaultsTest {
         final var store = new KeyValueStateStoreDefinitionParser(false, true).parser()
                 .parse(nodeOf("name: versioned_store\nkeyType: string\nvalueType: string\nversioned: true\nhistoryRetention: 1h"));
 
-        final var builder = StoreUtil.getStoreBuilder(store);
+        final var builder = StoreUtil.getStoreBuilder(store, false);
         assertThat(builder.loggingEnabled()).isTrue();
         final var built = builder.build();
         assertThat(built.persistent()).isTrue();
         assertThat(built).isInstanceOf(VersionedKeyValueStore.class);
-    }
-
-    private static String stderrOf(ThrowingRunnable action) throws Exception {
-        // slf4j-simple writes to System.err
-        final var originalErr = System.err;
-        final var captured = new ByteArrayOutputStream();
-        System.setErr(new PrintStream(captured, true, StandardCharsets.UTF_8));
-        try {
-            action.run();
-        } finally {
-            System.setErr(originalErr);
-        }
-        return captured.toString(StandardCharsets.UTF_8);
-    }
-
-    private interface ThrowingRunnable {
-        void run() throws Exception;
     }
 
     @Test
@@ -169,15 +152,25 @@ class StoreDefinitionDefaultsTest {
         final var log = stderrOf(() -> store.set(parser.parse(node)));
 
         assertThat(log).contains("WARN").contains("session_store").contains("timestamped");
-        assertThat(StoreUtil.getStoreBuilder(store.get()).build()).isNotNull();
+        assertThat(StoreUtil.getStoreBuilder(store.get(), false).build()).isNotNull();
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"", "\ntimestamped: false"})
+    @DisplayName("a session store without timestamped, or with timestamped: false, logs no warning")
+    void sessionStoreWithoutTimestampedDoesNotWarn(String timestamped) throws Exception {
+        final var node = nodeOf("name: session_store\nkeyType: string\nvalueType: string\nretention: 1m" + timestamped);
+        final var parser = new SessionStateStoreDefinitionParser(false, true).parser();
+
+        assertThat(stderrOf(() -> parser.parse(node))).doesNotContain("WARN");
     }
 
     @Test
-    @DisplayName("a session store without timestamped logs no warning")
-    void sessionStoreWithoutTimestampedDoesNotWarn() throws Exception {
-        final var node = nodeOf("name: session_store\nkeyType: string\nvalueType: string\nretention: 1m");
-        final var parser = new SessionStateStoreDefinitionParser(false, true).parser();
+    @DisplayName("a versioned keyValue store with persistent: false logs a warning naming the store")
+    void versionedInMemoryStoreWarns() throws Exception {
+        final var node = nodeOf("name: versioned_store\nkeyType: string\nvalueType: string\nversioned: true\nhistoryRetention: 1h\npersistent: false");
+        final var parser = new KeyValueStateStoreDefinitionParser(false, true).parser();
 
-        assertThat(stderrOf(() -> parser.parse(node))).doesNotContain("timestamped");
+        assertThat(stderrOf(() -> parser.parse(node))).contains("WARN").contains("versioned_store").contains("versioned");
     }
 }

@@ -430,7 +430,7 @@ runner:
     num.stream.threads: 8                    # Parallel processing threads (default: 1)
     
     # State Store Caching
-    cache.max.bytes.buffering: 104857600     # 100MB total cache (default: 10MB)
+    statestore.cache.max.bytes: 104857600    # 100MB total cache (default: 10MB)
     commit.interval.ms: 30000                # Commit frequency in ms (default: 30000)
     
     # Topology Optimization
@@ -459,7 +459,7 @@ runner:
 **Key Configuration Details:**
 
 - **num.stream.threads**: Controls parallelism. Set based on CPU cores and partition count
-- **cache.max.bytes.buffering** (`statestore.cache.max.bytes` in newer Kafka Streams versions): The total size of the store caches. Stores that operations materialize are cached by default; set `caching: false` on a store to turn it off
+- **statestore.cache.max.bytes**: The total size of the store caches. Stores that operations materialize are cached by default; set `caching: false` on a store to turn it off
 - **topology.optimization**: KSML defaults to `StreamsConfig.OPTIMIZE` for performance
 - **commit.interval.ms**: Balance between throughput and latency. Higher values = better throughput
 - **processing.guarantee**: `exactly_once_v2` provides stronger guarantees but lower performance

@@ -113,11 +113,11 @@ KSML requires both `thisStore` and `otherStore` on a stream-stream join (the par
 |---|---|---|
 | true (the default) | true (the default) | on |
 | false | false | off |
-| different values | | `TopologyException` naming both stores |
+| different values | | on |
 
 - A join store with `logging: false` logs a warning at build time: Kafka Streams keeps that store's changelog, and only the shared store's changelog is turned off.
 
-Values are the ones D1 resolved, so a store without `logging` counts as `true`. The conflict check applies to inner joins too, so the rule is the same for every stream-stream join. Changelog and store names stay Kafka Streams' own (for example `<thisStore>-outer-shared-join-store` and `<app>-<store>-changelog`). Tests assert on the produced changelog topics, not on hard-coded names that KSML doesn't control.
+Values are the ones D1 resolved, so a store without `logging` counts as `true`. Different values are accepted: they worked in 1.x, an inner join has no shared store so its `logging` has no effect, and keeping the changelog is the safe choice. Changelog and store names stay Kafka Streams' own (for example `<thisStore>-outer-shared-join-store` and `<app>-<store>-changelog`). Tests assert on the produced changelog topics, not on hard-coded names that KSML doesn't control.
 
 - *Alternative: make `thisStore` and `otherStore` optional, so Kafka Streams creates the join stores itself.* Rejected for this change: it changes the parser, the JSON schema and the docs, which is beyond F13.
 - *Alternative: stop passing suppliers and let Kafka Streams build the join stores through `StreamJoined.withStoreName` and `DslStoreSuppliers`, so `logging: false` applies to all three stores.* Rejected: the stores get generated names instead of the declared ones, which renames the changelog topics of existing applications so they lose their join state on upgrade, and it needs the store validation and format handling reworked.
@@ -142,7 +142,7 @@ Decision: clean up 1.x local state once. Before Kafka Streams starts, `KafkaStre
 - logs a WARN when the store has `logging: false`, because its data can't be restored
 - deletes the task's `.checkpoint` when it deleted a store there, because Kafka Streams would otherwise load the old offsets and skip the restore; the other stores of that task are then restored from their changelogs too
 
-Then it writes the marker, creating the directory if needed. Kafka Streams restores the deleted stores from their changelogs. The marker is one file per application state directory, so it survives Kafka Streams deleting and recreating task directories. Kafka Streams ignores unknown files there; only `KafkaStreams.cleanUp()`, which KSML doesn't call, warns about them.
+Then it writes the marker, creating the directory if needed. Without persistent, timestamped window stores for Python, `prepare` does nothing: no 1.x state can need a cleanup, and Kafka Streams also leaves the state directory alone when a topology has no persistent stores. Kafka Streams restores the deleted stores from their changelogs. The marker is one file per application state directory, so it survives Kafka Streams deleting and recreating task directories. Kafka Streams ignores unknown files there; only `KafkaStreams.cleanUp()`, which KSML doesn't call, warns about them.
 
 Not touched: window stores that DSL operations materialize (1.x already built them as timestamped), and stores with `timestamped: false` (built the same way in 1.x and now).
 
@@ -156,7 +156,6 @@ Not touched: window stores that DSL operations materialize (1.x already built th
 - [Switching `dsl.store.format` on an application with existing state] → Kafka Streams' headers stores can open plain or timestamped data through their migrating RocksDB stores. Whether that holds for every type is not something KSML guarantees: the migration guide advises a reset or a new application id, and says that switching back from HEADERS is unsupported.
 - [More tests run RocksDB, so the build gets slower] → Measure in group 1. Tests that don't care about persistence set `persistent: false`.
 - [The adapters must override every store method the proxies call, or Kafka Streams' throwing defaults surface] → Unit tests per adapter, and an end-to-end test that runs the same Python calls against both formats (the spec's "same calls" scenario).
-- [Join logging conflict error on topologies that used to build] → It only happens when the two join stores have different `logging` values. The error message says how to fix it.
 - [The first start after the upgrade restores these window stores from the changelog] → It happens once, it's logged, and the migration guide mentions it.
 
 ## Migration Plan

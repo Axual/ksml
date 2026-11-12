@@ -500,23 +500,22 @@ public abstract class BaseOperation implements StreamOperation {
     }
 
     /**
-     * Kafka Streams always logs join stores that it builds from given suppliers, and applies the logging of
-     * {@link StreamJoined} only to the shared store of a left or outer join. So the logging of the join stores decides
-     * the logging of that shared store, and both stores must agree on it.
+     * Kafka Streams always logs join stores built from given suppliers, and applies the {@link StreamJoined} logging
+     * only to the shared store of a left or outer join. That store is logged unless both join stores turn logging off.
      */
     private static boolean streamJoinedLogging(WindowStateStoreDefinition thisStore, WindowStateStoreDefinition otherStore) {
-        if (thisStore != null && otherStore != null && thisStore.logging() != otherStore.logging()) {
-            throw new TopologyException("The join stores '" + thisStore.name() + "' and '" + otherStore.name()
-                    + "' should have the same 'logging' value, because Kafka Streams has one logging setting for the shared store of a join");
-        }
         warnIfJoinStoreLoggingDisabled(thisStore);
         warnIfJoinStoreLoggingDisabled(otherStore);
-        return (thisStore == null || thisStore.logging()) && (otherStore == null || otherStore.logging());
+        return !(loggingDisabled(thisStore) && loggingDisabled(otherStore));
+    }
+
+    private static boolean loggingDisabled(WindowStateStoreDefinition store) {
+        return store != null && !store.logging();
     }
 
     private static void warnIfJoinStoreLoggingDisabled(WindowStateStoreDefinition store) {
-        if (store != null && !store.logging()) {
-            log.warn("Join store '{}' sets 'logging: false'. Kafka Streams still logs this store to a changelog topic; only the changelog of the shared store of a left or outer join is turned off", store.name());
+        if (loggingDisabled(store)) {
+            log.warn("Join store '{}' sets 'logging: false', but Kafka Streams still logs it; only the shared store of a left or outer join is not logged", store.name());
         }
     }
 

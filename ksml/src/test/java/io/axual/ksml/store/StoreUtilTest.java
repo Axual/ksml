@@ -102,7 +102,7 @@ class StoreUtilTest {
     @DisplayName("builds a store builder for each key/value store variant")
     @MethodSource("keyValueStoreVariants")
     void buildsKeyValueStore(String name, KeyValueStateStoreDefinition definition) {
-        assertThat(StoreUtil.getStoreBuilder(definition)).isNotNull();
+        assertThat(StoreUtil.getStoreBuilder(definition, false)).isNotNull();
     }
 
     // --- getStoreBuilder: session & window -------------------------------------------------------
@@ -110,33 +110,33 @@ class StoreUtilTest {
     @Test
     @DisplayName("builds a store builder for persistent and in-memory session stores")
     void buildsSessionStore() {
-        assertThat(StoreUtil.getStoreBuilder(sessionStore(true, true, true))).isNotNull();
-        assertThat(StoreUtil.getStoreBuilder(sessionStore(false, false, false))).isNotNull();
+        assertThat(StoreUtil.getStoreBuilder(sessionStore(true, true, true), false)).isNotNull();
+        assertThat(StoreUtil.getStoreBuilder(sessionStore(false, false, false), false)).isNotNull();
     }
 
     @Test
     @DisplayName("builds a store builder for persistent, timestamped and in-memory window stores")
     void buildsWindowStore() {
-        assertThat(StoreUtil.getStoreBuilder(windowStore(true, false, false, Duration.ofSeconds(60), Duration.ofSeconds(10)))).isNotNull();
-        assertThat(StoreUtil.getStoreBuilder(windowStore(true, true, false, Duration.ofSeconds(60), Duration.ofSeconds(10)))).isNotNull();
-        assertThat(StoreUtil.getStoreBuilder(windowStore(false, false, false, Duration.ofSeconds(60), Duration.ofSeconds(10)))).isNotNull();
+        assertThat(StoreUtil.getStoreBuilder(windowStore(true, false, false, Duration.ofSeconds(60), Duration.ofSeconds(10)), false)).isNotNull();
+        assertThat(StoreUtil.getStoreBuilder(windowStore(true, true, false, Duration.ofSeconds(60), Duration.ofSeconds(10)), false)).isNotNull();
+        assertThat(StoreUtil.getStoreBuilder(windowStore(false, false, false, Duration.ofSeconds(60), Duration.ofSeconds(10)), false)).isNotNull();
     }
 
     @Test
     @DisplayName("builds timestamped window stores for Python, unless the store sets timestamped: false")
     void buildsTimestampedWindowStoreForProcessors() {
-        assertThat(StoreUtil.getStoreBuilder(windowStore(true, true, false, Duration.ofSeconds(60), Duration.ofSeconds(10))).build()).isInstanceOf(TimestampedWindowStore.class);
-        assertThat(StoreUtil.getStoreBuilder(windowStore(false, true, false, Duration.ofSeconds(60), Duration.ofSeconds(10))).build()).isInstanceOf(TimestampedWindowStore.class);
+        assertThat(StoreUtil.getStoreBuilder(windowStore(true, true, false, Duration.ofSeconds(60), Duration.ofSeconds(10)), false).build()).isInstanceOf(TimestampedWindowStore.class);
+        assertThat(StoreUtil.getStoreBuilder(windowStore(false, true, false, Duration.ofSeconds(60), Duration.ofSeconds(10)), false).build()).isInstanceOf(TimestampedWindowStore.class);
         assertThat(StoreUtil.getStoreBuilder(defaultWindowStore(), false).build()).isInstanceOf(TimestampedWindowStore.class);
-        assertThat(StoreUtil.getStoreBuilder(windowStore(true, false, false, Duration.ofSeconds(60), Duration.ofSeconds(10))).build()).isNotInstanceOf(TimestampedWindowStore.class);
-        assertThat(StoreUtil.getStoreBuilder(windowStore(false, false, false, Duration.ofSeconds(60), Duration.ofSeconds(10))).build()).isNotInstanceOf(TimestampedWindowStore.class);
+        assertThat(StoreUtil.getStoreBuilder(windowStore(true, false, false, Duration.ofSeconds(60), Duration.ofSeconds(10)), false).build()).isNotInstanceOf(TimestampedWindowStore.class);
+        assertThat(StoreUtil.getStoreBuilder(windowStore(false, false, false, Duration.ofSeconds(60), Duration.ofSeconds(10)), false).build()).isNotInstanceOf(TimestampedWindowStore.class);
     }
 
     @Test
     @DisplayName("getStoreBuilder rejects an unrecognised store definition type")
     void rejectsUnknownStoreType() {
         final var unknown = mock(StateStoreDefinition.class);
-        assertThatThrownBy(() -> StoreUtil.getStoreBuilder(unknown))
+        assertThatThrownBy(() -> StoreUtil.getStoreBuilder(unknown, false))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("Unknown store type");
     }
@@ -146,19 +146,19 @@ class StoreUtilTest {
     @Test
     @DisplayName("materialize produces a materialized key/value store")
     void materializesKeyValueStore() {
-        assertThat(StoreUtil.materialize(keyValueStore(false, false, false, false, false)).materialized()).isNotNull();
+        assertThat(StoreUtil.materialize(keyValueStore(false, false, false, false, false), false).materialized()).isNotNull();
     }
 
     @Test
     @DisplayName("materialize produces a materialized session store")
     void materializesSessionStore() {
-        assertThat(StoreUtil.materialize(sessionStore(true, false, false)).materialized()).isNotNull();
+        assertThat(StoreUtil.materialize(sessionStore(true, false, false), false).materialized()).isNotNull();
     }
 
     @Test
     @DisplayName("materialize produces a materialized window store")
     void materializesWindowStore() {
-        assertThat(StoreUtil.materialize(windowStore(true, false, false, Duration.ofSeconds(60), Duration.ofSeconds(10))).materialized()).isNotNull();
+        assertThat(StoreUtil.materialize(windowStore(true, false, false, Duration.ofSeconds(60), Duration.ofSeconds(10)), false).materialized()).isNotNull();
     }
 
     // --- caching defaults ------------------------------------------------------------------------
@@ -180,22 +180,22 @@ class StoreUtilTest {
     @Test
     @DisplayName("a store without caching is cached when a DSL operation materializes it")
     void materializedStoreIsCachedByDefault() {
-        final var materialized = new MaterializedInternal<>(StoreUtil.materialize(keyValueStoreWithCaching(null)).materialized());
+        final var materialized = new MaterializedInternal<>(StoreUtil.materialize(keyValueStoreWithCaching(null), false).materialized());
         assertThat(materialized.cachingEnabled()).isTrue();
     }
 
     @Test
     @DisplayName("a store without caching is not cached when built for Python functions")
     void processorStoreIsNotCachedByDefault() {
-        assertThat(isCached(StoreUtil.getStoreBuilder(keyValueStoreWithCaching(null)).build())).isFalse();
+        assertThat(isCached(StoreUtil.getStoreBuilder(keyValueStoreWithCaching(null), false).build())).isFalse();
     }
 
     @Test
     @DisplayName("an explicit caching value wins for both materialized and processor stores")
     void explicitCachingWins() {
-        final var materialized = new MaterializedInternal<>(StoreUtil.materialize(keyValueStoreWithCaching(false)).materialized());
+        final var materialized = new MaterializedInternal<>(StoreUtil.materialize(keyValueStoreWithCaching(false), false).materialized());
         assertThat(materialized.cachingEnabled()).isFalse();
-        assertThat(isCached(StoreUtil.getStoreBuilder(keyValueStoreWithCaching(true)).build())).isTrue();
+        assertThat(isCached(StoreUtil.getStoreBuilder(keyValueStoreWithCaching(true), false).build())).isTrue();
     }
 
     // --- headers store format --------------------------------------------------------------------
@@ -281,7 +281,7 @@ class StoreUtilTest {
     @DisplayName("validatedWindowStore accepts a store matching the join window settings")
     void validatesMatchingWindowStore() {
         final var store = windowStore(false, false, true, Duration.ofSeconds(2), Duration.ofSeconds(2));
-        assertThat(StoreUtil.validatedWindowStore(store, joinWindows())).isNotNull();
+        assertThat(StoreUtil.validatedWindowStore(store, joinWindows(), false)).isNotNull();
     }
 
     @Test
@@ -289,7 +289,7 @@ class StoreUtilTest {
     void rejectsWindowStoreWithoutRetainDuplicates() {
         final var store = windowStore(false, false, false, Duration.ofSeconds(2), Duration.ofSeconds(2));
         final var windows = joinWindows();
-        assertThatThrownBy(() -> StoreUtil.validatedWindowStore(store, windows))
+        assertThatThrownBy(() -> StoreUtil.validatedWindowStore(store, windows, false))
                 .isInstanceOf(TopologyException.class)
                 .hasMessageContaining("retainDuplicates");
     }
@@ -300,7 +300,7 @@ class StoreUtilTest {
         // windowSize (3s) differs from the join window size (2s); retention stays >= windowSize.
         final var store = windowStore(false, false, true, Duration.ofSeconds(4), Duration.ofSeconds(3));
         final var windows = joinWindows();
-        assertThatThrownBy(() -> StoreUtil.validatedWindowStore(store, windows))
+        assertThatThrownBy(() -> StoreUtil.validatedWindowStore(store, windows, false))
                 .isInstanceOf(TopologyException.class)
                 .hasMessageContaining("windowSize");
     }
@@ -310,7 +310,7 @@ class StoreUtilTest {
     void rejectsWindowStoreWithWrongRetention() {
         final var store = windowStore(false, false, true, Duration.ofSeconds(10), Duration.ofSeconds(2));
         final var windows = joinWindows();
-        assertThatThrownBy(() -> StoreUtil.validatedWindowStore(store, windows))
+        assertThatThrownBy(() -> StoreUtil.validatedWindowStore(store, windows, false))
                 .isInstanceOf(TopologyException.class)
                 .hasMessageContaining("retention");
     }

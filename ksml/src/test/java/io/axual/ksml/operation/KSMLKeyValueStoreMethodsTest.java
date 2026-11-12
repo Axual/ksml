@@ -79,7 +79,6 @@ public class KSMLKeyValueStoreMethodsTest {
     @KSMLTest(topology = "pipelines/test-keyvalue-store-methods-python.yaml", headersStoreFormat = true)
     @DisplayName("Key-value store methods work from Python on in-memory, RocksDB and cached stores, plain and timestamped, also with the headers store format")
     void testKeyValueStoreMethodsWithHeadersStoreFormat() {
-        // Persistent stores are headers-aware here; Python gets the same results as without headers (AXPD-12445)
         testKeyValueStoreMethods();
         assertThat(driver.getAllStateStores().values()).anyMatch(store -> store instanceof TimestampedKeyValueStoreWithHeaders<?, ?>);
     }

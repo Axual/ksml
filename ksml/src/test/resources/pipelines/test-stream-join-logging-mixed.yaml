@@ -1,6 +1,6 @@
 # $schema: https://raw.githubusercontent.com/Axual/ksml/refs/heads/main/docs/ksml-language-spec.json
 
-# An outer join whose declared stores ask for different logging: building the topology fails.
+# An outer join whose declared stores ask for different logging: the shared store keeps its changelog.
 streams:
   test_input1:
     topic: input1

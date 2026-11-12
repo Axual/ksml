@@ -1,6 +1,7 @@
 # $schema: https://raw.githubusercontent.com/Axual/ksml/refs/heads/main/docs/ksml-language-spec.json
 
-# Python reads the store of a windowed aggregate with timestamped: false, on an in-memory and a RocksDB store.
+# Python reads the store of a windowed aggregate with timestamped: false, on an in-memory and a RocksDB store, and
+# with the default options.
 streams:
   windowed_aggregate_store_input:
     topic: windowed_aggregate_store_input
@@ -32,6 +33,12 @@ stores:
     timestamped: false
     caching: false
     logging: false
+  window_total_default:
+    type: window
+    keyType: string
+    valueType: json
+    windowSize: 1m
+    retention: 1h
 
 functions:
   init_total:
@@ -66,6 +73,18 @@ functions:
     resultType: string
     stores:
       - window_total_rocksdb
+
+  check_default:
+    type: valueTransformer
+    code: |
+      current = window_total_default.fetch(key["key"], key["start"])
+      with_ts = window_total_default.fetchWithTimestamp(key["key"], key["start"])
+      result = ("default fetch=" + current["sensor"] + ":" + str(current["value"])
+                + " fetchWithTimestamp=" + str(with_ts["value"]["value"]) + "@" + str(with_ts["timestamp"]))
+    expression: result
+    resultType: string
+    stores:
+      - window_total_default
 
 pipelines:
   memory_pipeline:
@@ -102,6 +121,25 @@ pipelines:
       - type: toStream
       - type: transformValue
         mapper: check_rocksdb
+      - type: convertKey
+        into: string
+    to: windowed_aggregate_store_output
+
+  default_pipeline:
+    from: windowed_aggregate_store_input
+    via:
+      - type: groupByKey
+      - type: windowByTime
+        windowType: tumbling
+        duration: 1m
+        grace: 0s
+      - type: aggregate
+        store: window_total_default
+        initializer: init_total
+        aggregator: add_total
+      - type: toStream
+      - type: transformValue
+        mapper: check_default
       - type: convertKey
         into: string
     to: windowed_aggregate_store_output

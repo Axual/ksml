@@ -80,12 +80,13 @@ public class TopologyGenerator {
         this.headersStoreFormat = headersStoreFormat;
     }
 
-    /** The stores that {@link #create} built for Python functions, rather than for DSL operations. */
+    /** The stores that the last {@link #create} built for Python functions, rather than for DSL operations. */
     public List<StateStoreDefinition> userStateStores() {
         return List.copyOf(userStateStores);
     }
 
     public Topology create(StreamsBuilder streamsBuilder, Map<String, TopologyDefinition> definitions) {
+        userStateStores.clear();
         if (definitions.isEmpty()) return null;
 
         final var stores = new TreeMap<String, StateStoreDefinition>();

@@ -43,7 +43,7 @@ public class SessionStateStoreDefinitionParser extends DefinitionParser<SessionS
     protected StructsParser<SessionStateStoreDefinition> parser() {
         final var nameField = FieldParsers.optional(FieldParsers.stringField(KSMLDSL.Stores.NAME, false, "The name of the session store. If this field is not defined, then the name is derived from the context."));
         final var persistentField = FieldParsers.optional(FieldParsers.booleanField(KSMLDSL.Stores.PERSISTENT, "\"true\" if this session store needs to be stored on disk, \"false\" otherwise. Defaults to \"true\""));
-        final var timestampedField = FieldParsers.optional(FieldParsers.booleanField(KSMLDSL.Stores.TIMESTAMPED, "Has no effect: session stores are not timestamped. Setting it logs a warning"));
+        final var timestampedField = FieldParsers.optional(FieldParsers.booleanField(KSMLDSL.Stores.TIMESTAMPED, "Has no effect: session stores are not timestamped. \"true\" logs a warning"));
         final var retentionField = FieldParsers.optional(FieldParsers.durationField(KSMLDSL.Stores.RETENTION, "The duration for which elements in the session store are retained"));
         final var keyTypeField = FieldParsers.userTypeField(KSMLDSL.Stores.KEY_TYPE, "The key type of the session store", false);
         final var valueTypeField = FieldParsers.userTypeField(KSMLDSL.Stores.VALUE_TYPE, "The value type of the session store", false);
@@ -89,10 +89,10 @@ public class SessionStateStoreDefinitionParser extends DefinitionParser<SessionS
                 });
     }
 
-    // Kafka Streams has no timestamped session store, so the setting has no effect
+    // Kafka Streams has no timestamped session store. false is fine: users set it to keep the 1.x behavior
     private static void warnIfTimestamped(String name, Boolean timestamped) {
-        if (timestamped != null) {
-            log.warn("Session state store \"{}\" sets \"timestamped\", which has no effect on session stores. Remove the setting", name);
+        if (Boolean.TRUE.equals(timestamped)) {
+            log.warn("Session state store '{}' sets 'timestamped: true', which has no effect on session stores", name);
         }
     }
 

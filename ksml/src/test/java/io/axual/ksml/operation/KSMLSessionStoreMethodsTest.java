@@ -92,7 +92,6 @@ public class KSMLSessionStoreMethodsTest {
     @KSMLTest(topology = "pipelines/test-session-store-methods-python.yaml", modulesDirectory = "pipelines", headersStoreFormat = true)
     @DisplayName("Session store methods work from Python on in-memory and RocksDB stores, and close their iterators, also with the headers store format")
     void testSessionStoreMethodsWithHeadersStoreFormat() {
-        // Persistent stores are headers-aware here; Python gets the same results as without headers (AXPD-12445)
         testSessionStoreMethods();
         assertThat(driver.getAllStateStores().values()).anyMatch(store -> store instanceof SessionStoreWithHeaders<?, ?>);
     }
