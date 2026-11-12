@@ -117,8 +117,10 @@ public final class FieldParsers {
      */
     public static void checkKnownFields(ParseNode node, StructsParser<?> parser) {
         if (node == null || !node.isObject()) return;
-        final var known = parser.knownFields(node);
-        if (known == null) return;
+        final var knownFields = parser.knownFields(node);
+        // Empty when the parser allows any field
+        if (knownFields.isEmpty()) return;
+        final var known = knownFields.get();
         final var unknown = node.fieldNames().stream().filter(name -> !known.contains(name)).sorted().toList();
         if (unknown.isEmpty()) return;
         final var unknownText = unknown.stream().map(name -> "\"" + name + "\"").collect(Collectors.joining(", "));

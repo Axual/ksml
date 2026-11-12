@@ -31,6 +31,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
@@ -104,15 +105,15 @@ public class ChoiceParser<T> extends BaseParser<T> implements StructsParser<T>, 
      * field of another variant is not accepted.
      */
     @Override
-    public Set<String> knownFields(ParseNode node) {
+    public Optional<Set<String>> knownFields(ParseNode node) {
         final var variant = parsers.get(chosenValue(node));
         // An invalid type is reported by parse(), not as an unknown field
-        if (variant == null) return null;
-        final var variantFields = variant.knownFields(node);
-        if (variantFields == null) return null;
-        final var result = new HashSet<>(variantFields);
-        result.add(childName);
-        return result;
+        if (variant == null) return Optional.empty();
+        return variant.knownFields(node).map(variantFields -> {
+            final var result = new HashSet<>(variantFields);
+            result.add(childName);
+            return result;
+        });
     }
 
     // The value of the type field, the default when it is missing, or null when it is not a string

@@ -27,6 +27,7 @@ import io.axual.ksml.execution.FatalError;
 
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -44,15 +45,15 @@ public interface StructsParser<T> extends ParserWithSchemas<T> {
      * its schemas.
      *
      * @param node the object to parse
-     * @return the known field names, or {@code null} when any field is allowed
+     * @return the known field names, or empty when any field is allowed
      */
-    default Set<String> knownFields(ParseNode node) {
+    default Optional<Set<String>> knownFields(ParseNode node) {
         final var result = new HashSet<String>();
         for (final var schema : schemas()) {
-            if (schema.additionalFieldsAllowed()) return null;
+            if (schema.additionalFieldsAllowed()) return Optional.empty();
             schema.fields().forEach(field -> result.add(field.name()));
         }
-        return result;
+        return Optional.of(result);
     }
 
     static <T> StructsParser<T> of(final Function<ParseNode, T> parseFunc, StructSchema schema) {
@@ -109,7 +110,7 @@ public interface StructsParser<T> extends ParserWithSchemas<T> {
             }
 
             @Override
-            public Set<String> knownFields(ParseNode node) {
+            public Optional<Set<String>> knownFields(ParseNode node) {
                 return delegate().knownFields(node);
             }
         };

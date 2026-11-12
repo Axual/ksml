@@ -245,14 +245,16 @@ which keys are actually present. So a separate check rejects keys that the parse
 does not know. It uses the schema side of the parsers, so there is no second list of allowed
 fields to maintain:
 
-- **`StructsParser.knownFields(ParseNode node)`** returns the field names of all the parser's
-  `schemas()`, or `null` when a schema allows additional fields (for example
-  `StructSchema.SCHEMALESS`, used by `IgnoreParser`), which means "any field is allowed".
+- **`StructsParser.knownFields(ParseNode node)`** returns an `Optional` with the field names of
+  all the parser's `schemas()`. It is empty when a schema allows additional fields (for example
+  `StructSchema.SCHEMALESS`, used by `IgnoreParser`), which means "any field is allowed". An
+  empty `Optional` is not the same as an empty set: an empty set would mean "no field is
+  allowed".
 - **`ChoiceParser`** (the `type:` field on operations, functions and stores) overrides it: it
   returns the `type` field plus the known fields of the *chosen* variant only, so a field of
   another type is rejected. The chosen variant can itself be a choice (`windowByTime` picks its
   variant with `windowType`), so the call goes on to the variant. For an invalid `type`, it
-  returns `null`, and `parse()` reports the invalid type instead.
+  returns an empty `Optional`, and `parse()` reports the invalid type instead.
 - **`DefinitionParser`** and **`StructsParser.lazy`** pass the call on to their delegate.
 - **`FieldParsers.checkKnownFields(ParseNode, StructsParser<?>)`** does the check: for an object
   node, it compares the keys with `knownFields`, and throws a `ParseException` that names the
@@ -316,10 +318,10 @@ classDiagram
         <<interface>>
         +schemas() List~StructSchema~
         +schema() DataSchema
-        +knownFields(ParseNode) Set~String~
+        +knownFields(ParseNode) Optional~Set~String~~
     }
     class ChoiceParser~T~ {
-        +knownFields(ParseNode) Set~String~
+        +knownFields(ParseNode) Optional~Set~String~~
     }
     class ListWithSchemaParser~T~ {
         +schema() DataSchema

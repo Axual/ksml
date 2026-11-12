@@ -23,6 +23,7 @@ package io.axual.ksml.parser;
 import io.axual.ksml.data.schema.StructSchema;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 public abstract class DefinitionParser<T> implements StructsParser<T> {
@@ -41,7 +42,7 @@ public abstract class DefinitionParser<T> implements StructsParser<T> {
     }
 
     @Override
-    public final Set<String> knownFields(ParseNode node) {
+    public final Optional<Set<String>> knownFields(ParseNode node) {
         return lazyParser.knownFields(node);
     }
 }
