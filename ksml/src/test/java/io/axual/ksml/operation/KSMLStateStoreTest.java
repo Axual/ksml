@@ -26,8 +26,10 @@ import io.axual.ksml.testutil.KSMLDriver;
 import io.axual.ksml.testutil.KSMLTest;
 import io.axual.ksml.testutil.KSMLTestExtension;
 import io.axual.ksml.testutil.KSMLTopic;
+import io.axual.ksml.testutil.KSMLTopologyTest;
 import org.apache.avro.generic.GenericRecord;
 import org.apache.kafka.streams.TestInputTopic;
+import org.apache.kafka.streams.TestOutputTopic;
 import org.apache.kafka.streams.TopologyTestDriver;
 import org.apache.kafka.streams.state.KeyValueStore;
 import org.apache.kafka.streams.state.ValueAndTimestamp;
@@ -47,11 +49,16 @@ public class KSMLStateStoreTest {
     @KSMLTopic(topic = "ksml_sensordata_avro", valueSerde = KSMLTopic.SerdeType.AVRO)
     TestInputTopic<String, GenericRecord> sensorIn;
 
+    @KSMLTopic(topic = "ksml_sensordata_store_result")
+    TestOutputTopic<String, String> storeResultOut;
+
     @KSMLDriver
     TopologyTestDriver topologyTestDriver;
 
-    @KSMLTest(topology = "pipelines/test-state-store.yaml", schemaDirectory = "schemas")
-    @DisplayName("Test messages are stored in a key/value store")
+    // The second file has timestamped: true; the Python code and results must stay the same
+    @KSMLTopologyTest(topologies = {"pipelines/test-state-store.yaml", "pipelines/test-state-store-default-timestamped.yaml"},
+            schemaDirectory = "schemas")
+    @DisplayName("Test messages are stored in a key/value store, plain and timestamped")
     void testJoin() {
 
         // given that we get events with a higher reading in matching cities
@@ -75,6 +82,9 @@ public class KSMLStateStoreTest {
                 .unit("%")
                 .value("70")
                 .build().toRecord());
+
+        // Python get() returns the stored value, also on a timestamped store
+        assertThat(storeResultOut.readValuesToList()).containsExactly("none", "none", "Amsterdam:80");
 
         // the last value for sensor1 is present in the store named "last_sensor_data_store"
         KeyValueStore<Object, Object> lastSensorDataStore = topologyTestDriver.getKeyValueStore("last_sensor_data_store");

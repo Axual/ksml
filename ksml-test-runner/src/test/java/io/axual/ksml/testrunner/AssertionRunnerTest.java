@@ -40,6 +40,7 @@ import org.junit.jupiter.api.condition.EnabledIf;
 import java.util.List;
 import java.util.Map;
 
+import static io.axual.ksml.testutil.StoreMetrics.openIterators;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
@@ -50,7 +51,7 @@ class AssertionRunnerTest {
 
     private static final String INPUT_TOPIC = "input-topic";
     private static final String OUTPUT_TOPIC = "output-topic";
-    private static final String STORE_NAME = "test-store";
+    private static final String STORE_NAME = "test_store";
     private static final String OUTPUT_STREAM = "output";
     private static final String SUITE = "assertion-runner-test";
 
@@ -244,6 +245,23 @@ class AssertionRunnerTest {
         var result = runner.runAssertions(List.of(block1, block2), SUITE, "all-pass");
 
         assertEquals(TestResult.Status.PASS, result.status());
+    }
+
+    @Test
+    void storeIteratorsLeftOpenByAssertionCodeAreClosed() {
+        produceMessages("k1", "v1", "k2", "v2");
+
+        var runner = new AssertionRunner(driver, streams);
+        var block = new AssertBlock(null, List.of(STORE_NAME), """
+                for e in test_store.all():
+                    break
+                assert next(test_store.all())["key"] == "k1"
+                """);
+
+        var result = runner.runAssertions(List.of(block), SUITE, "iterator-early-exit");
+
+        assertEquals(TestResult.Status.PASS, result.status(), result.message());
+        assertEquals(0L, openIterators(driver, STORE_NAME));
     }
 
     @Test

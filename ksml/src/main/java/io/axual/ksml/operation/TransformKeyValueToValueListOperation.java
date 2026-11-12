@@ -65,7 +65,8 @@ public class TransformKeyValueToValueListOperation extends BaseOperation {
                 name,
                 TransformKeyValueToValueListProcessor::new,
                 (stores, rec) -> userMap.apply(stores, flattenValue(rec.key()), flattenValue(rec.value())),
-                storeNames);
+                storeNames,
+                storeDefinitions(context, storeNames));
         final var named = namedOf();
         final var output = named != null
                 ? input.stream.processValues(supplier, named, storeNames)

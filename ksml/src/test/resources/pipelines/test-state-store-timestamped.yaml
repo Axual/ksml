@@ -24,8 +24,8 @@ functions:
       import time
 
     code: |
-      # for a timestamped store, the return is a dict with keys "timestamp" and "value"
-      last_value = last_sensor_data_store.get(key)
+      # getWithTimestamp returns a dict with keys "timestamp" and "value"; get would return only the value
+      last_value = last_sensor_data_store.getWithTimestamp(key)
       if last_value != None:
         log.warn("Found last value: {}", last_value["value"])
         log.info("last value color was {}", last_value["value"]["color"])

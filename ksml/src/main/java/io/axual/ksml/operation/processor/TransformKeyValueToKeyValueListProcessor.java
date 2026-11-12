@@ -37,7 +37,7 @@ public class TransformKeyValueToKeyValueListProcessor extends OperationProcessor
     }
 
     @Override
-    public void process(Record<Object, Object> rec) {
+    protected void processRecord(Record<Object, Object> rec) {
         var keyValues = action.apply(stores, rec);
         if (keyValues != null)
             for (var kv : keyValues) context.forward(rec.withKey(kv.key).withValue(kv.value));

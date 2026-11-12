@@ -1,0 +1,60 @@
+# $schema: https://raw.githubusercontent.com/Axual/ksml/refs/heads/main/docs/ksml-language-spec.json
+
+# This example keeps the last reading of each sensor in a store, and reads the sensors of the same type and owner
+# with prefixScan and a for loop
+
+streams:
+  sensor_source:
+    topic: sensor_ownership_data
+    keyType: string
+    valueType: json
+    offsetResetPolicy: latest
+
+  sensor_summaries:
+    topic: owner_sensor_summary
+    keyType: string
+    valueType: json
+
+stores:
+  last_sensor_values:
+    type: keyValue
+    keyType: string
+    valueType: json
+    persistent: true
+    logging: true
+
+functions:
+  summarize_sensors:
+    type: valueTransformer
+    stores:
+      - last_sensor_values
+    code: |
+      if key is None or value is None or "_" not in key:
+        return None
+      last_sensor_values.put(key, value)
+
+      # Sensor ids look like "temperature_alice_01", so the sensors of the same type and owner share a key prefix
+      prefix = key[:key.rindex("_") + 1]
+      count = 0
+      total = 0.0
+      for entry in last_sensor_values.prefixScan(prefix):
+        count += 1
+        total += entry["value"]["value"]
+      return {"sensors": count, "average": round(total / count, 2)}
+    resultType: json
+
+pipelines:
+  summarize_by_type_and_owner:
+    from: sensor_source
+    via:
+      - type: transformValue
+        mapper: summarize_sensors
+      - type: filter
+        if:
+          expression: value is not None
+      - type: peek
+        forEach:
+          code: |
+            log.info("ITERATE STORE - Sensor: {}, sensors of this type and owner: {}, average: {}",
+                     key, value["sensors"], value["average"])
+    to: sensor_summaries

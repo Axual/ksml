@@ -1,0 +1,31 @@
+streams:
+  input:
+    topic: in
+    keyType: string
+    valueType: json
+  output:
+    topic: out
+    keyType: string
+    valueType: json
+
+stores:
+  count_store:
+    type: keyValue
+    keyType: string
+    valueType: long
+    persistent: true
+    loging: true
+
+pipelines:
+  main:
+    from: input
+    via:
+      - type: groupByKey
+      - type: count
+        store: count_store
+      - type: toStream
+      - type: mapValues
+        mapper:
+          resultType: json
+          expression: '{"count": value}'
+    to: output

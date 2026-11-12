@@ -1,0 +1,56 @@
+streams:
+  input:
+    topic: in
+    keyType: string
+    valueType: json
+  output:
+    topic: out
+    keyType: string
+    valueType: json
+
+stores:
+  peek_calls:
+    type: keyValue
+    keyType: string
+    valueType: string
+    persistent: false
+    logging: false
+  foreach_calls:
+    type: keyValue
+    keyType: string
+    valueType: string
+    persistent: false
+    logging: false
+
+functions:
+  record_peek:
+    type: forEach
+    stores:
+      - peek_calls
+    globalCode: |
+      peek_counter = 0
+    code: |
+      global peek_counter
+      peek_counter += 1
+      peek_calls.put(str(peek_counter).zfill(3), ("null" if key is None else key) + "=" + ("null" if value is None else str(value["amount"])))
+  record_foreach:
+    type: forEach
+    stores:
+      - foreach_calls
+    globalCode: |
+      foreach_counter = 0
+    code: |
+      global foreach_counter
+      foreach_counter += 1
+      foreach_calls.put(str(foreach_counter).zfill(3), ("null" if key is None else key) + "=" + ("null" if value is None else str(value["amount"])))
+
+pipelines:
+  peek:
+    from: input
+    via:
+      - type: peek
+        forEach: record_peek
+    to: output
+  for_each:
+    from: input
+    forEach: record_foreach

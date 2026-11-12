@@ -1,0 +1,105 @@
+# $schema: https://raw.githubusercontent.com/Axual/ksml/refs/heads/main/docs/ksml-language-spec.json
+
+# Python reads the store of a windowed aggregate without timestamped: true, on an in-memory and a RocksDB store.
+streams:
+  windowed_aggregate_store_input:
+    topic: windowed_aggregate_store_input
+    keyType: string
+    valueType: string
+  windowed_aggregate_store_output:
+    topic: windowed_aggregate_store_output
+    keyType: string
+    valueType: string
+
+stores:
+  window_total_memory:
+    type: window
+    keyType: string
+    valueType: json
+    windowSize: 1m
+    retention: 1h
+    persistent: false
+    caching: false
+    logging: false
+  window_total_rocksdb:
+    type: window
+    keyType: string
+    valueType: json
+    windowSize: 1m
+    retention: 1h
+    persistent: true
+    caching: false
+    logging: false
+
+functions:
+  init_total:
+    type: initializer
+    expression: '{"sensor": "", "value": 0}'
+    resultType: json
+  add_total:
+    type: aggregator
+    expression: '{"sensor": key, "value": aggregatedValue["value"] + int(value)}'
+    resultType: json
+
+  check_memory:
+    type: valueTransformer
+    code: |
+      current = window_total_memory.fetch(key["key"], key["start"])
+      with_ts = window_total_memory.fetchWithTimestamp(key["key"], key["start"])
+      result = ("memory fetch=" + current["sensor"] + ":" + str(current["value"])
+                + " fetchWithTimestamp=" + str(with_ts["value"]["value"]) + "@" + str(with_ts["timestamp"]))
+    expression: result
+    resultType: string
+    stores:
+      - window_total_memory
+
+  check_rocksdb:
+    type: valueTransformer
+    code: |
+      current = window_total_rocksdb.fetch(key["key"], key["start"])
+      with_ts = window_total_rocksdb.fetchWithTimestamp(key["key"], key["start"])
+      result = ("rocksdb fetch=" + current["sensor"] + ":" + str(current["value"])
+                + " fetchWithTimestamp=" + str(with_ts["value"]["value"]) + "@" + str(with_ts["timestamp"]))
+    expression: result
+    resultType: string
+    stores:
+      - window_total_rocksdb
+
+pipelines:
+  memory_pipeline:
+    from: windowed_aggregate_store_input
+    via:
+      - type: groupByKey
+      - type: windowByTime
+        windowType: tumbling
+        duration: 1m
+        grace: 0s
+      - type: aggregate
+        store: window_total_memory
+        initializer: init_total
+        aggregator: add_total
+      - type: toStream
+      - type: transformValue
+        mapper: check_memory
+      - type: convertKey
+        into: string
+    to: windowed_aggregate_store_output
+
+  rocksdb_pipeline:
+    from: windowed_aggregate_store_input
+    via:
+      - type: groupByKey
+      - type: windowByTime
+        windowType: tumbling
+        duration: 1m
+        grace: 0s
+      - type: aggregate
+        store: window_total_rocksdb
+        initializer: init_total
+        aggregator: add_total
+      - type: toStream
+      - type: transformValue
+        mapper: check_rocksdb
+      - type: convertKey
+        into: string
+    to: windowed_aggregate_store_output
