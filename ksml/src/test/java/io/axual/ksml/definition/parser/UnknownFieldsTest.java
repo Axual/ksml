@@ -41,6 +41,7 @@ import java.nio.file.Path;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.catchThrowable;
 
 /**
  * A field that the parser does not know must stop parsing with an error that names the field, instead
@@ -57,6 +58,15 @@ class UnknownFieldsTest {
         final var binaryNotation = new BinaryNotation(new NotationContext(new DataObjectFlattener(), new DataTypeFlattener()), null);
         ExecutionContext.INSTANCE.notationLibrary().register(UserType.DEFAULT_NOTATION, binaryNotation);
         ExecutionContext.INSTANCE.notationLibrary().register(BinaryNotation.NOTATION_NAME, binaryNotation);
+    }
+
+    // The messages of an exception and all its causes
+    private static String causeMessages(Throwable thrown) {
+        final var result = new StringBuilder();
+        for (var cause = thrown; cause != null; cause = cause.getCause()) {
+            result.append(cause.getMessage()).append('\n');
+        }
+        return result.toString();
     }
 
     private static void parse(String file) throws Exception {
@@ -79,14 +89,32 @@ class UnknownFieldsTest {
             "top-level-misspelled-section.yaml,    pipeline",
             "filter-field-of-other-operation.yaml, duration",
             "inline-topic-unknown-field.yaml,      valuetype",
-            "inline-function-unknown-field.yaml,   resultTyp"
+            "inline-function-unknown-field.yaml,   resultTyp",
+            "print-unknown-field.yaml,             labl"
     })
     @DisplayName("An unknown field is rejected and named in the error")
     void unknownFieldIsRejected(String file, String unknownFields) {
-        final var thrown = assertThatThrownBy(() -> parse(file));
+        final var thrown = assertThatThrownBy(() -> parse(file)).hasStackTraceContaining("Unknown field");
         for (final var field : unknownFields.split(";")) {
             thrown.hasStackTraceContaining("\"" + field + "\"");
         }
+    }
+
+    @Test
+    @DisplayName("An invalid operation type is reported as such, not as unknown fields")
+    void invalidOperationTypeKeepsItsError() {
+        final var thrown = catchThrowable(() -> parse("invalid-operation-type.yaml"));
+
+        assertThat(causeMessages(thrown))
+                .contains("Unknown operation")
+                .doesNotContain("Unknown field");
+    }
+
+    @Test
+    @DisplayName("A branch inside a branch is reported as not supported")
+    void nestedBranchIsNotSupported() {
+        assertThatThrownBy(() -> parse("nested-branch.yaml"))
+                .hasStackTraceContaining("A branch inside a branch is not supported yet");
     }
 
     @Test

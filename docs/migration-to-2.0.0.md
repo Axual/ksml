@@ -127,6 +127,17 @@ KSML parse error: Error in input node processor->stores->count_store: Unknown fi
 
 For an operation, function or store with a `type`, only the fields of that type are allowed. For example, `duration` on a `filter` step is now an error, because only the window operations have that field.
 
+A example case is a `type` line on an inline function, such as a function written directly under `if:` or `valueJoiner:`. Only functions under `functions:` have a `type` field; for an inline function, the operation already sets it. On the 1.x line the line was ignored. Now KSML stops with an error like `Unknown field "type", known fields: code, expression, globalCode, name, parameters, resultType`. Remove the line:
+
+```yaml
+      - type: join
+        table: customer_profiles
+        valueJoiner:
+          type: valueJoiner    # remove this line
+          expression: '{"order": value1, "customer": value2}'
+          resultType: json
+```
+
 The published language schema (`ksml --schema`) already marked these fields as not allowed, so a definition that validates against the schema is not affected. The schema now also lists the optional top-level fields `name`, `version` and `description`.
 
 What you need to do: start KSML once with each definition, or validate it against the language schema, and fix or remove the fields it reports.

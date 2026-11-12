@@ -20,11 +20,9 @@ package io.axual.ksml.definition.parser;
  * =========================LICENSE_END==================================
  */
 
-import tools.jackson.databind.JsonNode;
 import io.axual.ksml.definition.PipelineDefinition;
 import io.axual.ksml.generator.TopologyResources;
-import io.axual.ksml.generator.YAMLObjectMapper;
-import io.axual.ksml.parser.ParseNode;
+import io.axual.ksml.parser.ParseTestSupport;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -41,19 +39,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 class PipelineDefinitionParserTest {
     private final TopologyResources resources = new TopologyResources("test");
 
-    private static ParseNode nodeOf(String yaml) {
-        final var root = YAMLObjectMapper.INSTANCE.readValue(yaml, JsonNode.class);
-        return ParseNode.fromRoot(root, "test");
-    }
-
     @Test
-    @DisplayName("a pipeline with no explicit name and no sink operation gets its short (map-key) name, not null")
-    void namelessSinkLessPipelineGetsDerivedShortName() {
+    @DisplayName("A pipeline with no explicit name and no sink operation gets its short (map-key) name, not null")
+    void namelessSinkLessPipelineGetsDerivedShortName() throws Exception {
         final var parser = new PipelineDefinitionParser(resources, false);
         parser.defaultShortName("my_pipeline");
         parser.defaultLongName("test_pipelines_my_pipeline");
 
-        final var definition = parser.parser().parse(nodeOf("{}"));
+        final var definition = parser.parser().parse(ParseTestSupport.nodeOf("{}"));
 
         assertThat(definition).isInstanceOf(PipelineDefinition.class);
         assertThat(definition.name()).isEqualTo("my_pipeline");

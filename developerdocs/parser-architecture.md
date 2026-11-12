@@ -1,11 +1,25 @@
-# How KSML parses a definition
+# Parser Architecture: `parse()`, `schema()`, and `DataSchema`
 
-This chapter explains, in broad lines, how a KSML definition file is turned into Java objects. It uses the simplest useful definition as an example.
+This note has two parts. The overview explains, in broad lines, how a KSML definition file is turned into Java objects. The numbered sections after it explain the core parsing abstractions in `io.axual.ksml.parser` (and friends):
+what `parse()` and `schema()`/`schemas()` are for, where they come from, why some parsers
+have one and not the other, and how a single top-level call — `TopologyDefinitionParser`
+parsing a KSML YAML file — uses both capabilities together to (a) parse a definition and
+(b) produce the JSON Schema used to validate and document the KSML language.
+
+## Overview: how KSML parses a definition
+
+The overview uses the simplest useful definition as an example.
 
 ```yaml
 streams:
-  input:  { topic: in_topic,  keyType: string, valueType: string }
-  output: { topic: out_topic, keyType: string, valueType: string }
+  input:
+    topic: in_topic
+    keyType: string
+    valueType: string
+  output:
+    topic: out_topic
+    keyType: string
+    valueType: string
 
 pipelines:
   copy:
@@ -13,11 +27,11 @@ pipelines:
     to: output
 ```
 
-## 1. YAML becomes a tree
+### Step 1: YAML becomes a tree
 
 Jackson reads the file into a tree of nodes. Duplicate keys are rejected at this step. Each node is wrapped in a `ParseNode`, which also remembers its path, for example `pipelines->copy->to`. Error messages use that path.
 
-## 2. One parser per level
+### Step 2: One parser per level
 
 The parsers are nested the same way as the YAML:
 
@@ -31,13 +45,13 @@ TopologyDefinitionParser            the whole file
 
 Each parser gets the node for its level and returns a Java object, for example `StreamDefinition`, `PipelineDefinition` or `TopologyDefinition`.
 
-## 3. A parser only asks for the fields it knows
+### Step 3: A parser only asks for the fields it knows
 
 An object parser, such as `PipelineDefinitionParser`, is built from small field parsers: one for `from`, one for `to`, one for `via`, one for `as`, and so on. Each field parser does one thing: "get my key from this object and parse its value". If the key is missing, an optional field returns `null`.
 
 When all field parsers are done, their results go into one constructor, for example `new PipelineDefinition(...)`.
 
-## 4. How the parts of a pipeline are filled in
+### Step 4: How the parts of a pipeline are filled in
 
 Streams are parsed first and collected. Then each pipeline is parsed:
 
@@ -45,11 +59,11 @@ Streams are parsed first and collected. Then each pipeline is parsed:
 - **`to: output`** works the same way.
 - **`via`** (the list of steps) is missing in the example, so it becomes an empty list. Each step in `via` is parsed by a parser that first reads `type:` (for example `filter`). It then hands the step to the parser for that operation.
 
-## 5. Every parser also describes its own shape
+### Step 5: Every parser also describes its own shape
 
 Besides parsing, each parser knows its fields. The published language schema (`ksml --schema`) is built from this. The schema says that no other fields are allowed.
 
-## 6. Unknown fields are rejected
+### Step 6: Unknown fields are rejected
 
 The field parsers never look at which keys are actually in the YAML; they only ask for the keys they know. So a separate check is needed to catch typos. Before KSML 2.0 there was no such check: with `copy: { from: input, to: output, tu: x }`, nobody asked for `tu`, and it was silently ignored.
 
@@ -59,7 +73,7 @@ Now, wherever an object is handed to its parser, KSML compares the object's keys
 Error in input node ns->pipelines->copy: Unknown field "tu", known fields: as, branch, forEach, from, name, print, to, toTopicNameExtractor, via
 ```
 
-## Where the field knowledge lives
+### Where the field knowledge lives
 
 There is no central list of allowed fields. Each parser knows only its own level, and the full picture comes from nesting the parsers.
 
@@ -70,22 +84,7 @@ Inside one parser, the field list is written once: the field parsers that are pa
 
 So "which fields to ask for" and "which fields are allowed" come from the same declaration. The unknown-field check uses the schema side, so it does not add a new list that must be kept up to date.
 
-A few hand-written parsers keep reading and schema apart, so they can drift:
-
-- **`TopologyDefinitionParser` (the top level):** reads `name`, `version` and `description` with its own field parsers, and adds them to its schema by hand.
-- **`ChoiceParser`:** adds the `type` field to the schema by hand.
-- **`ReduceOperationParser` and `JoinTargetDefinitionParser`:** look at some keys only to decide what to do.
-
-Because of the check, such a drift is visible: a field that is read but missing from the schema is rejected as unknown. The tests that load all test definitions and examples catch that. This is how the missing top-level `name`, `version` and `description` were found and fixed.
-
-
-# Parser Architecture: `parse()`, `schema()`, and `DataSchema`
-
-This chapter explains the core parsing abstractions in `io.axual.ksml.parser` (and friends):
-what `parse()` and `schema()`/`schemas()` are for, where they come from, why some parsers
-have one and not the other, and how a single top-level call — `TopologyDefinitionParser`
-parsing a KSML YAML file — uses both capabilities together to (a) parse a definition and
-(b) produce the JSON Schema used to validate and document the KSML language.
+A few hand-written parsers keep reading and schema apart. See [Rejecting unknown fields](#rejecting-unknown-fields) for which ones, and for how the check makes such a drift visible.
 
 ## 1. The three abstractions, at a glance
 
@@ -282,6 +281,9 @@ A few hand-written parsers keep reading and schema apart, so they need care:
 - **`ReduceOperationParser`** and **`JoinTargetDefinitionParser`** look at some keys only to
   decide which variant applies. Without a `type:` field, the known fields are the union of the
   variants, so a field of a sibling variant is not rejected there.
+- **`BranchDefinitionParser`**, for a branch inside a branch (not supported yet): its
+  `knownFields` allows any field, so that `parse()` can report "A branch inside a branch is not
+  supported yet" instead of unknown fields.
 
 A field that a parser reads but leaves out of its schema is rejected as unknown, and the tests
 that parse all test definitions and examples catch that.
