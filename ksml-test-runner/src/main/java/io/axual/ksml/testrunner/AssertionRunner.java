@@ -22,12 +22,14 @@ package io.axual.ksml.testrunner;
 
 import io.axual.ksml.data.mapper.NativeDataObjectMapper;
 import io.axual.ksml.data.object.DataObject;
+import io.axual.ksml.definition.StateStoreDefinition;
 import io.axual.ksml.generator.StreamDataType;
 import io.axual.ksml.parser.UserTypeParser;
 import io.axual.ksml.python.PythonContext;
 import io.axual.ksml.python.PythonContextConfig;
 import io.axual.ksml.python.PythonNativeMapper;
 import io.axual.ksml.proxy.store.ProxyUtil;
+import io.axual.ksml.proxy.store.StoreIteratorProxy;
 import io.axual.ksml.util.Pair;
 import lombok.extern.slf4j.Slf4j;
 
@@ -39,6 +41,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 
 /**
  * Executes Python assertion code against output records and state stores.
@@ -51,10 +54,18 @@ public class AssertionRunner {
 
     private final TopologyTestDriver driver;
     private final Map<String, StreamDefinition> streams;
+    private final Function<String, StateStoreDefinition> storeDefinitions;
 
     public AssertionRunner(TopologyTestDriver driver, Map<String, StreamDefinition> streams) {
+        this(driver, streams, storeName -> null);
+    }
+
+    /** Like the other constructor; store proxies convert keys and values to the types in storeDefinitions. */
+    public AssertionRunner(TopologyTestDriver driver, Map<String, StreamDefinition> streams,
+                           Function<String, StateStoreDefinition> storeDefinitions) {
         this.driver = driver;
         this.streams = streams;
+        this.storeDefinitions = storeDefinitions;
     }
 
     /**
@@ -113,7 +124,7 @@ public class AssertionRunner {
                         return TestResult.error(suiteName, testName,
                                 "State store '" + storeName + "' not found in topology");
                     }
-                    var proxy = ProxyUtil.wrapStateStore(store);
+                    var proxy = ProxyUtil.wrapStateStore(store, storeDefinitions.apply(storeName));
                     args.add(Pair.of(storeName, proxy));
                 }
             }
@@ -131,6 +142,8 @@ public class AssertionRunner {
 
     private TestResult executeAssertionCode(PythonContext pythonContext, AssertBlock block,
                                              String suiteName, String testName) {
+        // Run as a function call, so KSML closes the store iterators the assertion code leaves open
+        final int iteratorMark = StoreIteratorProxy.beginCall();
         try {
             pythonContext.registerFunction(
                     "def _run_assertions():\n" +
@@ -147,6 +160,8 @@ public class AssertionRunner {
                 return TestResult.fail(suiteName, testName, msg);
             }
             return TestResult.error(suiteName, testName, e.getMessage());
+        } finally {
+            StoreIteratorProxy.endCall(iteratorMark);
         }
         return TestResult.pass(suiteName, testName);
     }

@@ -1,0 +1,125 @@
+# $schema: https://raw.githubusercontent.com/Axual/ksml/refs/heads/main/docs/ksml-language-spec.json
+
+# Python iteration (for, list(), next(), contextlib.closing, hasNext() without close()) over in-memory and RocksDB stores.
+streams:
+  iterator_input:
+    topic: store_iterator_input
+    keyType: string
+    valueType: string
+  iterator_output:
+    topic: store_iterator_output
+    keyType: string
+    valueType: string
+
+stores:
+  kv_memory:
+    type: keyValue
+    keyType: string
+    valueType: string
+    persistent: false
+    caching: false
+    logging: false
+  kv_rocksdb:
+    type: keyValue
+    keyType: string
+    valueType: string
+    persistent: true
+    caching: false
+    logging: false
+  window_memory:
+    type: window
+    keyType: string
+    valueType: string
+    retention: 1h
+    windowSize: 1m
+    persistent: false
+    caching: false
+    logging: false
+  window_rocksdb:
+    type: window
+    keyType: string
+    valueType: string
+    retention: 1h
+    windowSize: 1m
+    persistent: true
+    caching: false
+    logging: false
+  session_memory:
+    type: session
+    keyType: string
+    valueType: string
+    retention: 1h
+    persistent: false
+    caching: false
+    logging: false
+  session_rocksdb:
+    type: session
+    keyType: string
+    valueType: string
+    retention: 1h
+    persistent: true
+    caching: false
+    logging: false
+
+functions:
+  iterate_stores:
+    type: valueTransformer
+    globalCode: |
+      import contextlib
+      from test_store_iterator_checks import read_has_next
+
+      def styles(name, make, describe):
+        # Each style gets a new iterator from make(); describe() turns one entry into text
+        for_loop = ",".join(describe(e) for e in make())
+        as_list = ",".join(describe(e) for e in list(make()))
+        with contextlib.closing(make()) as it:
+          first = describe(next(it))
+        with contextlib.closing(make()) as it:
+          closing = ",".join(describe(e) for e in it)
+        return (name + " for=" + for_loop + " list=" + as_list + " next=" + first + " closing=" + closing
+                + " hasNext=" + read_has_next(make(), describe))
+
+      def kv_entry(e):
+        return e["key"] + ":" + e["value"]
+
+      def windowed_entry(e):
+        return e["key"]["key"] + "@" + str(e["key"]["start"]) + ":" + e["value"]
+
+      def window_fetch_entry(e):
+        return str(e["key"]) + ":" + e["value"]
+    code: |
+      kv_memory.put(key, value)
+      kv_rocksdb.put(key, value)
+      window_memory.put(key, value, 0)
+      window_rocksdb.put(key, value, 0)
+      # Session times above the int range, like real epoch millis
+      session_key = {"key": key, "start": 3000000000, "end": 3000000001}
+      session_memory.put(session_key, value)
+      session_rocksdb.put(session_key, value)
+
+      lines = []
+      for store_name, store in [("kv_memory", kv_memory), ("kv_rocksdb", kv_rocksdb)]:
+        lines.append(styles(store_name + ".all", store.all, kv_entry))
+      for store_name, store in [("window_memory", window_memory), ("window_rocksdb", window_rocksdb)]:
+        lines.append(styles(store_name + ".all", store.all, windowed_entry))
+        lines.append(styles(store_name + ".fetch", lambda s=store: s.fetch(key, 0, 60000), window_fetch_entry))
+      for store_name, store in [("session_memory", session_memory), ("session_rocksdb", session_rocksdb)]:
+        lines.append(styles(store_name + ".fetch", lambda s=store: s.fetch(key), windowed_entry))
+      result = "\n".join(lines)
+    expression: result
+    resultType: string
+    stores:
+      - kv_memory
+      - kv_rocksdb
+      - window_memory
+      - window_rocksdb
+      - session_memory
+      - session_rocksdb
+
+pipelines:
+  iterate_stores_pipeline:
+    from: iterator_input
+    via:
+      - type: transformValue
+        mapper: iterate_stores
+    to: iterator_output

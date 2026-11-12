@@ -20,7 +20,14 @@ Before you upgrade, check each item below:
 * If Python code calls a `streamPartitioner` function by position, pass `headers` before `numPartitions`, or call it by name.
 * Rename any `as` name that is also a name under `streams`, `tables` or `globalTables`.
 * Add `toTable` before any `join` or `leftJoin` with `foreignKeyExtractor` that has a stream as input.
+* Do not keep a store iterator in a global variable for a later function call.
+* If Python code reads `get(key)["value"]` or `["timestamp"]` on a store with `timestamped: true`, or on the store of a `count`, `aggregate`, `reduce` or non-versioned table, use `getWithTimestamp(key)` instead. The same applies to the results of `delete` and `putIfAbsent`, and to `fetch(key, time)` on the store of a windowed aggregation (use `fetchWithTimestamp`).
+* If Python code calls `put` or `remove` on a session store, check that each session key is a dict with `key`, `start` and `end`, with `int` times. A session key that is not valid now raises an error instead of being ignored.
 * If you build your own code on top of the KSML libraries, update the Jackson package names.
+* If you use `KeyValueIteratorProxy` or `WindowStoreIteratorProxy`, use `StoreIteratorProxy` instead, and create store proxies with `ProxyUtil.wrapStateStore`.
+* If you extend `OperationProcessor` or `FixedKeyOperationProcessor`, implement `processRecord` instead of `process`.
+* If you create a `TimestampedKeyValueStoreProxy` or `TimestampedWindowStoreProxy` yourself, pass a `LongSupplier` that gives the timestamp of the record that is being processed.
+* If you call `TimestampedWindowStoreProxy.put(key, ValueAndTimestamp, windowStart)`, call `put(key, value, windowStart, timestamp)` instead. A `ValueAndTimestamp` still compiles as the value, but is then stored inside another `ValueAndTimestamp`.
 
 ## Apicurio Registry 3
 
@@ -177,6 +184,69 @@ The result of the join is then a table that is updated when an order or its cust
 After `toStream`, a record can have a `null` value when the customer is deleted or the order gets another customer. Make the next steps accept `None`, or add a `filter` that drops these records.
 
 The new steps add Kafka topics to your application: `toTable` adds a state store with a changelog topic, and the foreign-key join adds a subscription store with a changelog topic and two internal topics for subscription registrations and responses. If topics are created by hand or need ACLs in your cluster, set them up before the upgrade.
+
+## Store iterators are closed when the function returns
+
+KSML now closes a store iterator when all entries are read, or when the KSML function (the function in your definition) that created it returns. An iterator that is kept, for example in a global variable, raises an error when a later call uses it:
+
+```
+Store iterator was closed when the function that created it returned
+```
+
+On the 1.x line, KSML never closed such an iterator, so a later call could still read from it, and the store kept its resources open.
+
+What you need to do: create a new iterator in each call.
+
+```python
+# Before (KSML 1.x): the iterator is kept in a global and read over several calls
+if it is None:
+  it = store.all()
+while it.hasNext():
+  ...
+
+# After (KSML 2.0.0)
+for entry in store.all():
+  ...
+```
+
+## Timestamped stores return the value
+
+In KSML 1.x, Python code that used a timestamped key-value store got a dict with `value` and `timestamp` from `get`, `delete` and `putIfAbsent`. In KSML 2.0.0 these methods return only the value, as on a plain key-value store. A timestamped store now has the same methods as a plain key-value store, so the same Python code works on both.
+
+This affects:
+
+* stores with `timestamped: true`
+* the stores of `count`, `aggregate`, `reduce` and tables (not versioned tables), also without `timestamped: true`, because Kafka Streams always makes these stores timestamped
+
+Search your Python code for `["value"]` and `["timestamp"]` on store results. Old code does not always fail: if the stored value has its own `value` field, `store.get(key)["value"]` now reads that field, without an error.
+
+To read the timestamp, use `getWithTimestamp`:
+
+```python
+# Before (KSML 1.x)
+last = store.get(key)
+color = last["value"]["color"]
+
+# After (KSML 2.0.0)
+last = store.getWithTimestamp(key)
+color = last["value"]["color"]
+```
+
+There is no `deleteWithTimestamp`. If you need the old timestamp, call `getWithTimestamp` before `delete`.
+
+The same applies to the store of a windowed aggregation that a Python function uses: `fetch(key, time)` returns only the value, as on a plain window store. Use `fetchWithTimestamp(key, time)` to read the timestamp. See [Timestamped Window Stores](reference/state-store-reference.md#timestamped-window-stores).
+
+`put(key, value)` without a timestamp now works on a timestamped store, and uses the timestamp of the record that is being processed. `put(key, value, timestamp)` still works. See [Timestamped Key-Value Stores](reference/state-store-reference.md#timestamped-key-value-stores).
+
+## Session store keys are checked
+
+In KSML 1.x, session store `put` and `remove` silently ignored a session key that they could not read: a key that was not a dict, missed a field, or had `start` and `end` times in the int range. Nothing was written, and no error was raised. A session with one record (`start` equal to `end`) failed with a Java error that Python could not catch.
+
+In KSML 2.0.0, any `int` time from 0 works and `start` may equal `end`. A session key that is not valid raises `TypeError` or `ValueError`, which `except Exception` catches. See [Session Store Methods](reference/state-store-reference.md#session-store-methods).
+
+What you need to do: if a Python function writes or removes sessions, check that each session key is a dict with `key`, `start` and `end`, with `int` times, `start` not negative and not after `end`. Code that passed other keys wrote nothing before, so fixing it can change what your application stores.
+
+Keys and values of stores are now also converted to the store's `keyType` and `valueType`. Code that worked before keeps working; see [Keys and Values](reference/state-store-reference.md#keys-and-values).
 
 ## Avro logical types
 
