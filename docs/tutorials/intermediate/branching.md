@@ -247,7 +247,7 @@ graph TB
 
 ### Nested Branching
 
-A `branch` inside a branch is not supported yet: KSML stops at start-up with an "Unknown field" error. To split messages again inside a branch, save the branch result with `as`, and branch again in a second pipeline:
+A `branch` inside a branch is not supported yet: KSML stops at start-up with the error "A branch inside a branch is not supported yet". To split messages again inside a branch, save the branch result with `as`, and branch again in a second pipeline:
 
 ```yaml
 pipelines:

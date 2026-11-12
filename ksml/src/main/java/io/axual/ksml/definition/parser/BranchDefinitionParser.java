@@ -20,14 +20,21 @@ package io.axual.ksml.definition.parser;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.data.schema.StructSchema;
+import io.axual.ksml.exception.ParseException;
 import io.axual.ksml.parser.FieldParsers;
 import io.axual.ksml.definition.BranchDefinition;
 import io.axual.ksml.dsl.KSMLDSL;
 import io.axual.ksml.generator.TopologyResources;
 import io.axual.ksml.parser.DefinitionParser;
 import io.axual.ksml.parser.NamedObjectParser;
+import io.axual.ksml.parser.ParseNode;
 import io.axual.ksml.parser.StructsParser;
 import io.axual.ksml.parser.TopologyResourceFields;
+
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 
 public class BranchDefinitionParser extends DefinitionParser<BranchDefinition> implements NamedObjectParser {
     private final TopologyResourceFields resourceFields;
@@ -53,13 +60,37 @@ public class BranchDefinitionParser extends DefinitionParser<BranchDefinition> i
                 pipelineParser,
                 (predicate, pipeline, tags) -> new BranchDefinition(predicate, pipeline)
         );
-        return FieldParsers.structsParser(
+        return nestedBranchNotSupported(FieldParsers.structsParser(
                 BranchDefinition.class,
                 "",
                 "Defines a branch without sub-pipeline in a BranchOperation",
                 predParser,
                 (predicate, tags) -> new BranchDefinition(predicate, null)
-        );
+        ));
+    }
+
+    /**
+     * The parser without sub-pipeline is only used for a branch inside a branch, which is not supported
+     * yet. Report that clearly, instead of reporting its fields as unknown.
+     */
+    private static StructsParser<BranchDefinition> nestedBranchNotSupported(StructsParser<BranchDefinition> parser) {
+        return new StructsParser<>() {
+            @Override
+            public BranchDefinition parse(ParseNode node) {
+                throw new ParseException(node, "A branch inside a branch is not supported yet. End the outer branch with \"as\" instead, and branch again in a second pipeline");
+            }
+
+            @Override
+            public List<StructSchema> schemas() {
+                return parser.schemas();
+            }
+
+            // Skip the unknown-field check, so the error above is reported
+            @Override
+            public Optional<Set<String>> knownFields(ParseNode node) {
+                return Optional.empty();
+            }
+        };
     }
 
     @Override
