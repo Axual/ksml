@@ -289,7 +289,7 @@ Define data generators for testing and simulation:
 ```yaml
 producers:
   test_producer:
-    target: test_topic
+    to: test_topic
     generator: generate_test_data
     interval: 1000
 ```
