@@ -1,0 +1,54 @@
+# Same as c21, with every function guarding against None
+tables:
+  users:
+    topic: t_users
+    keyType: string
+    valueType: json
+
+streams:
+  out_count:
+    topic: out_count
+    keyType: string
+    valueType: long
+  out_sum:
+    topic: out_sum
+    keyType: string
+    valueType: long
+
+stores:
+  sum_store:
+    type: keyValue
+    keyType: string
+    valueType: long
+
+pipelines:
+  count_per_region:
+    from: users
+    via:
+      - type: groupBy
+        mapper:
+          resultType: tuple(string, json)
+          expression: '(value["region"], value) if value is not None else (None, None)'
+      - type: count
+      - type: toStream
+    to: out_count
+  sum_per_region:
+    from: users
+    via:
+      - type: groupBy
+        mapper:
+          resultType: tuple(string, json)
+          expression: '(value["region"], value) if value is not None else (None, None)'
+      - type: aggregate
+        store: sum_store
+        initializer:
+          resultType: long
+          expression: 0
+        adder:
+          resultType: long
+          expression: 'aggregatedValue if value is None else aggregatedValue + value["amount"]'
+        subtractor:
+          resultType: long
+          expression: 'aggregatedValue if value is None else aggregatedValue - value["amount"]'
+      - type: toStream
+    to: out_sum

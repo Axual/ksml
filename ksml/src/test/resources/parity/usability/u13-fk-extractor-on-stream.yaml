@@ -1,0 +1,30 @@
+# A foreignKeyExtractor on a stream-table join. Kafka Streams has foreign-key joins only between two tables (F04).
+streams:
+  input:
+    topic: in
+    keyType: string
+    valueType: json
+  output:
+    topic: out
+    keyType: string
+    valueType: json
+
+tables:
+  customers:
+    topic: customers
+    keyType: string
+    valueType: json
+
+pipelines:
+  main:
+    from: input
+    via:
+      - type: join
+        table: customers
+        foreignKeyExtractor:
+          resultType: string
+          expression: value.get("customer")
+        valueJoiner:
+          resultType: json
+          expression: value1
+    to: output

@@ -1,0 +1,22 @@
+streams:
+  input:
+    topic: in
+    keyType: string
+    valueType: json
+  output:
+    topic: out
+    keyType: string
+    valueType: long
+
+pipelines:
+  main:
+    from: input
+    via:
+      - type: selectKey
+        mapper:
+          resultType: string
+          expression: 'value.get("user") if value is not None else None'
+      - type: groupByKey
+      - type: count
+      - type: toStream
+    to: output

@@ -1,0 +1,47 @@
+streams:
+  orders:
+    topic: s_in
+    keyType: string
+    valueType: json
+  out_join:
+    topic: out_join
+    keyType: string
+    valueType: json
+  out_left:
+    topic: out_left
+    keyType: string
+    valueType: json
+
+globalTables:
+  customers:
+    topic: g_customers
+    keyType: string
+    valueType: json
+
+functions:
+  customer_of:
+    type: keyValueMapper
+    resultType: string
+    expression: value.get("customer") if value is not None else None
+  joiner:
+    type: valueJoiner
+    resultType: json
+    expression: '{"key": key, "amount": value1["amount"] if value1 is not None else None, "name": value2["name"] if value2 is not None else None}'
+
+pipelines:
+  inner:
+    from: orders
+    via:
+      - type: join
+        globalTable: customers
+        mapper: customer_of
+        valueJoiner: joiner
+    to: out_join
+  left:
+    from: orders
+    via:
+      - type: leftJoin
+        globalTable: customers
+        mapper: customer_of
+        valueJoiner: joiner
+    to: out_left

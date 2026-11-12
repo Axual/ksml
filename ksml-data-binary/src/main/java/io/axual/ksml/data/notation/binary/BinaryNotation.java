@@ -87,7 +87,7 @@ public class BinaryNotation extends BaseNotation {
         // If the data type is a simple type, then handle here
         if (type instanceof SimpleType simpleType) {
             if (simpleType.containerClass() == Null.class) return new NullSerde();
-            if (simpleType.containerClass() == Byte.class) return new ByteSerde();
+            if (simpleType.containerClass() == Byte.class) return new BinarySerde(new ByteSerde());
             return new BinarySerde((Serde<Object>) Serdes.serdeFrom(simpleType.containerClass()));
         }
 

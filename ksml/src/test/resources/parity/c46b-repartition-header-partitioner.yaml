@@ -1,0 +1,33 @@
+# Kafka 4.4 (KIP-1321): repartition with a partitioner that reads a header
+streams:
+  input:
+    topic: in
+    keyType: string
+    valueType: json
+  output:
+    topic: out
+    keyType: string
+    valueType: json
+
+functions:
+  by_region_header:
+    type: streamPartitioner
+    code: |
+      region = None
+      for header in headers:
+        if header["key"] == "region":
+          region = header["value"]
+    expression: '[] if region == "drop" else ([0] if region == "eu" else ([1] if region == "us" else [2]))'
+    resultType: "[integer]"
+
+pipelines:
+  main:
+    from: input
+    via:
+      - type: repartition
+        numberOfPartitions: 3
+        partitioner: by_region_header
+      - type: peek
+        forEach:
+          code: 'log.info("after repartition {} {}", key, value)'
+    to: output

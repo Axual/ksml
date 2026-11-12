@@ -1,0 +1,42 @@
+streams:
+  input:
+    topic: in
+    keyType: string
+    valueType: json
+  output:
+    topic: out
+    keyType: string
+    valueType: long
+
+stores:
+  hop_store:
+    type: window
+    keyType: string
+    valueType: long
+    windowSize: 10s
+    retention: 1h
+
+pipelines:
+  main:
+    from: input
+    via:
+      - type: groupByKey
+      - type: windowByTime
+        windowType: hopping
+        duration: 10s
+        advanceBy: 5s
+        grace: 0s
+      - type: aggregate
+        store: hop_store
+        initializer:
+          resultType: long
+          expression: 0
+        aggregator:
+          resultType: long
+          expression: aggregatedValue + value["amount"]
+      - type: toStream
+      - type: mapKey
+        mapper:
+          resultType: string
+          expression: 'key["key"] + "@" + str(key["start"]) + "/" + str(key["end"])'
+    to: output

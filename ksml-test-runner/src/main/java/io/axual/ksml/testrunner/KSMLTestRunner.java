@@ -182,7 +182,8 @@ public class KSMLTestRunner {
                 var producer = new TestDataProducer(driver, suite.streams());
                 producer.produce(testCase.produce());
 
-                var assertionRunner = new AssertionRunner(driver, suite.streams());
+                // The generator registered every store, also those declared inside operations, in the definition
+                var assertionRunner = new AssertionRunner(driver, suite.streams(), topologyDefinition::stateStore);
                 return assertionRunner.runAssertions(testCase.assertions(), suiteName, displayLabel);
             }
 

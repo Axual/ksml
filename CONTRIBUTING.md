@@ -10,6 +10,7 @@ Please also make sure to read and follow our [Code of Conduct](CODE_OF_CONDUCT.m
 2. Ensure your code follows the [Google Java Style Guide](https://google.github.io/styleguide/javaguide.html).
 2. Document your code clearly and thoroughly.
 3. Maintain at least 60% test coverage. Include a unit or integration test that reproduces any bug you're fixing.
+   A new or changed operation also needs a [parity case](developerdocs/parity-tests.md).
 4. Keep changes focused and concise. Submit separate pull requests for unrelated changes, but you may combine minor bug fixes and tests.
 6. Update the [`README.md`](README.md) when you introduce interface changes (e.g., new environment variables, file paths, etc.).
 7. Submit a pull request from your fork to the main repository.
@@ -101,6 +102,18 @@ mvn clean test
   - `@ExtendWith(KSMLTestExtension.class)`
   - `@KSMLTopic(topic = "xxx")`
   - `@KSMLTest(topology = "pipelines/xxx.yaml")`
+
+### Parity Tests (KSML compared with Kafka Streams)
+
+The parity tests in `ksml/src/test/java/io/axual/ksml/parity/` give the same input to a KSML definition and to the same topology written in plain Kafka Streams, and compare the output. They run in every `mvn test`. To run only them:
+
+```shell
+mvn test -pl ksml -am -Dtest='*ParityTest' -Dsurefire.failIfNoSpecifiedTests=false
+```
+
+When your change fixes or changes a known difference, its test fails with "known difference Fxx is gone" or "known difference Fxx changed". Then remove the `knownDifference` marker, or update its number, in the same pull request.
+
+The same cases also run on real Kafka brokers with Docker Compose. CI does this every night. See [Parity tests](developerdocs/parity-tests.md) for how to run them, read the report and add a case.
 
 ### Checking Coverage Locally (same numbers as SonarCloud)
 

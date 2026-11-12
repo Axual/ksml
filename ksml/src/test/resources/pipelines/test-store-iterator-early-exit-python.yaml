@@ -1,0 +1,90 @@
+# $schema: https://raw.githubusercontent.com/Axual/ksml/refs/heads/main/docs/ksml-language-spec.json
+
+# Python leaves store iterators open with return, break, an exception and next(). KSML closes them when the function returns.
+# Iterators that Python closes itself with close() are not closed again.
+streams:
+  early_exit_input:
+    topic: store_iterator_early_exit_input
+    keyType: string
+    valueType: string
+  early_exit_output:
+    topic: store_iterator_early_exit_output
+    keyType: string
+    valueType: string
+
+stores:
+  early_exit_memory:
+    type: keyValue
+    keyType: string
+    valueType: string
+    persistent: false
+    caching: false
+    logging: false
+  early_exit_rocksdb:
+    type: keyValue
+    keyType: string
+    valueType: string
+    persistent: true
+    caching: false
+    logging: false
+
+functions:
+  exit_early:
+    type: valueTransformer
+    globalCode: |
+      def with_return(store):
+        for e in store.all():
+          return e["key"]
+
+      def with_break(store):
+        found = None
+        for e in store.all():
+          found = e["key"]
+          break
+        return found
+
+      def with_exception(store):
+        try:
+          for e in store.all():
+            raise ValueError(e["key"])
+        except ValueError as error:
+          return str(error)
+
+      def with_next(store):
+        return next(store.all())["key"]
+
+      def with_close(store):
+        # The old style: a hasNext()/next() loop, then close()
+        it = store.all()
+        keys = []
+        while it.hasNext():
+          keys.append(it.next()["key"])
+        it.close()
+        return ",".join(keys)
+
+      def with_close_early(store):
+        it = store.all()
+        first = it.next()["key"]
+        it.close()
+        return first
+    code: |
+      lines = []
+      for name, store in [("memory", early_exit_memory), ("rocksdb", early_exit_rocksdb)]:
+        store.put(key, value)
+        lines.append(name + " return=" + with_return(store) + " break=" + with_break(store)
+                     + " exception=" + with_exception(store) + " next=" + with_next(store)
+                     + " close=" + with_close(store) + " closeEarly=" + with_close_early(store))
+      result = "\n".join(lines)
+    expression: result
+    resultType: string
+    stores:
+      - early_exit_memory
+      - early_exit_rocksdb
+
+pipelines:
+  early_exit_pipeline:
+    from: early_exit_input
+    via:
+      - type: transformValue
+        mapper: exit_early
+    to: early_exit_output

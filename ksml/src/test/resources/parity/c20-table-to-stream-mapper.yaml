@@ -1,0 +1,21 @@
+tables:
+  input:
+    topic: t_in
+    keyType: string
+    valueType: json
+
+streams:
+  output:
+    topic: out
+    keyType: string
+    valueType: json
+
+pipelines:
+  main:
+    from: input
+    via:
+      - type: toStream
+        mapper:
+          resultType: string
+          expression: key + "-x"
+    to: output

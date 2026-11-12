@@ -1,0 +1,26 @@
+streams:
+  input:
+    topic: in
+    keyType: string
+    valueType: json
+  output:
+    topic: out
+    keyType: string
+    valueType: json
+
+functions:
+  by_region:
+    type: streamPartitioner
+    expression: '0 if value["region"] == "eu" else (1 if value["region"] == "us" else 2)'
+
+pipelines:
+  main:
+    from: input
+    via:
+      - type: repartition
+        numberOfPartitions: 3
+        partitioner: by_region
+      - type: peek
+        forEach:
+          code: 'log.info("after repartition {} {}", key, value)'
+    to: output
