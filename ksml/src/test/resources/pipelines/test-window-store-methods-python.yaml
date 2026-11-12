@@ -1,8 +1,9 @@
 # $schema: https://raw.githubusercontent.com/Axual/ksml/refs/heads/main/docs/ksml-language-spec.json
 
 # Regression test for window stores under stores (AXPD-11068): a Python function puts each record in an in-memory and a
-# RocksDB window store, and on the last record calls every window store method. Each iterator is read with a for
-# loop and with a hasNext() loop without close(). The result of each store is returned as one line of text.
+# RocksDB window store, timestamped (the default) and plain, and on the last record calls every window store method.
+# Each iterator is read with a for loop and with a hasNext() loop without close(). The result of each store is returned
+# as one line of text.
 streams:
   window_methods_input:
     topic: window_methods_input
@@ -30,6 +31,26 @@ stores:
     retention: 1h
     windowSize: 1m
     persistent: true
+    caching: false
+    logging: false
+  window_memory_plain:
+    type: window
+    keyType: string
+    valueType: string
+    retention: 1h
+    windowSize: 1m
+    persistent: false
+    timestamped: false
+    caching: false
+    logging: false
+  window_rocksdb_plain:
+    type: window
+    keyType: string
+    valueType: string
+    retention: 1h
+    windowSize: 1m
+    persistent: true
+    timestamped: false
     caching: false
     logging: false
 
@@ -68,14 +89,18 @@ functions:
       # before them, in the same RocksDB segment as BASE. Value "4" goes to a window after the time ranges above, and
       # in the next RocksDB segment: with 1h retention a segment covers 30 minutes.
       window_start = BASE + {"1": 0, "2": 0, "3": 60000, "5": 0, "6": -60000, "4": 1800000}[value]
-      window_memory.put(key, value, window_start)
-      window_rocksdb.put(key, value, window_start)
-      result = check("memory", window_memory) + "\n" + check("rocksdb", window_rocksdb) if value == "4" else ""
+      stores = [("memory", window_memory), ("rocksdb", window_rocksdb),
+                ("memory_plain", window_memory_plain), ("rocksdb_plain", window_rocksdb_plain)]
+      for _, store in stores:
+        store.put(key, value, window_start)
+      result = "\n".join(check(name, store) for name, store in stores) if value == "4" else ""
     expression: result
     resultType: string
     stores:
       - window_memory
       - window_rocksdb
+      - window_memory_plain
+      - window_rocksdb_plain
 
 pipelines:
   window_methods_pipeline:

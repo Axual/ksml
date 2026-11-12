@@ -55,15 +55,8 @@ public class StoreUtil {
      * and are duplicated here to provide less cryptic error messages.
      * @param store a {@link WindowStateStoreDefinition}.
      * @param joinWindows the {@link JoinWindows} settings.
+     * @param headersStoreFormat whether to use the headers-aware format, when the store supports it.
      * @return a validated window store.
-     */
-    public static WindowBytesStoreSupplier validatedWindowStore(WindowStateStoreDefinition store, JoinWindows joinWindows) {
-        return validatedWindowStore(store, joinWindows, false);
-    }
-
-    /**
-     * Like {@link #validatedWindowStore(WindowStateStoreDefinition, JoinWindows)}, in the headers-aware format when
-     * {@code headersStoreFormat} is set and the store supports it.
      */
     public static WindowBytesStoreSupplier validatedWindowStore(WindowStateStoreDefinition store, JoinWindows joinWindows, boolean headersStoreFormat) {
         final var result = getWindowStoreSupplier(store, headersStoreFormat);
@@ -126,15 +119,7 @@ public class StoreUtil {
                 : Stores.persistentVersionedKeyValueStore(store.name(), store.historyRetention(), store.segmentInterval());
     }
 
-    @SuppressWarnings("java:S1452") // wildcard is unavoidable: KV/Session/Window store builders have unrelated type parameters
-    public static StoreBuilder<?> getStoreBuilder(StateStoreDefinition store) {
-        return getStoreBuilder(store, false);
-    }
-
-    /**
-     * Like {@link #getStoreBuilder(StateStoreDefinition)}, in the headers-aware format when
-     * {@code headersStoreFormat} is set and the store supports it.
-     */
+    /** Builds the store for Python functions, in the headers-aware format when {@code headersStoreFormat} is set and the store supports it. */
     @SuppressWarnings("java:S1452") // wildcard is unavoidable: KV/Session/Window store builders have unrelated type parameters
     public static StoreBuilder<?> getStoreBuilder(StateStoreDefinition store, boolean headersStoreFormat) {
         if (store instanceof KeyValueStateStoreDefinition kvStore) {
@@ -223,27 +208,15 @@ public class StoreUtil {
                                                              Serde<Object> keySerde, Serde<V> valueSerde) {
     }
 
-    public static <V> MaterializedStore<V, KeyValueStore<Bytes, byte[]>> materialize(KeyValueStateStoreDefinition store) {
-        return materialize(store, false);
-    }
-
     public static <V> MaterializedStore<V, KeyValueStore<Bytes, byte[]>> materialize(KeyValueStateStoreDefinition store, boolean headersStoreFormat) {
         Materialized<Object, V, KeyValueStore<Bytes, byte[]>> mat = Materialized.as(getKeyValueStoreSupplier(store, headersStoreFormat));
         return materialize(mat, store);
-    }
-
-    public static <V> MaterializedStore<V, SessionStore<Bytes, byte[]>> materialize(SessionStateStoreDefinition store) {
-        return materialize(store, false);
     }
 
     public static <V> MaterializedStore<V, SessionStore<Bytes, byte[]>> materialize(SessionStateStoreDefinition store, boolean headersStoreFormat) {
         Materialized<Object, V, SessionStore<Bytes, byte[]>> mat = Materialized.as(getSessionStoreSupplier(store, headersStoreFormat));
         if (store.retention() != null) mat = mat.withRetention(store.retention());
         return materialize(mat, store);
-    }
-
-    public static <V> MaterializedStore<V, WindowStore<Bytes, byte[]>> materialize(WindowStateStoreDefinition store) {
-        return materialize(store, false);
     }
 
     public static <V> MaterializedStore<V, WindowStore<Bytes, byte[]>> materialize(WindowStateStoreDefinition store, boolean headersStoreFormat) {

@@ -100,31 +100,37 @@ public class KSMLAggregateStoreTest {
     }
 
     @KSMLTest(topology = "pipelines/test-aggregate-store-python.yaml")
-    @DisplayName("get() on the store of an aggregate returns only the value, also with timestamped: false")
+    @DisplayName("get() on the store of an aggregate returns only the value, with timestamped: false and with the defaults")
     void testPythonGetOnAggregateStore() {
         aggregateStoreInput.pipeInput("a", "1", 1000L);
         aggregateStoreInput.pipeInput("a", "2", 2000L);
 
         // get() returns the stored record, which has its own "value" field.
         // With timestamped: false, only the in-memory store keeps the timestamp; RocksDB returns -1.
+        // The default store is timestamped RocksDB, so it keeps the timestamp.
         assertThat(aggregateStoreOutput.readValuesToList()).containsExactlyInAnyOrder(
                 "memory get=a:1 getWithTimestamp=1@1000",
                 "rocksdb get=a:1 getWithTimestamp=1@-1",
+                "default get=a:1 getWithTimestamp=1@1000",
                 "memory get=a:3 getWithTimestamp=3@2000",
-                "rocksdb get=a:3 getWithTimestamp=3@-1");
+                "rocksdb get=a:3 getWithTimestamp=3@-1",
+                "default get=a:3 getWithTimestamp=3@2000");
     }
 
     @KSMLTest(topology = "pipelines/test-windowed-aggregate-store-python.yaml")
-    @DisplayName("fetch() on the store of a windowed aggregate returns only the value, also with timestamped: false")
+    @DisplayName("fetch() on the store of a windowed aggregate returns only the value, with timestamped: false and with the defaults")
     void testPythonFetchOnWindowedAggregateStore() {
         windowedAggregateStoreInput.pipeInput("a", "1", 1000L);
         windowedAggregateStoreInput.pipeInput("a", "2", 2000L);
 
         // With timestamped: false, only the in-memory store keeps the timestamp; RocksDB returns -1.
+        // The default store is timestamped RocksDB, so it keeps the timestamp.
         assertThat(windowedAggregateStoreOutput.readValuesToList()).containsExactlyInAnyOrder(
                 "memory fetch=a:1 fetchWithTimestamp=1@1000",
                 "rocksdb fetch=a:1 fetchWithTimestamp=1@-1",
+                "default fetch=a:1 fetchWithTimestamp=1@1000",
                 "memory fetch=a:3 fetchWithTimestamp=3@2000",
-                "rocksdb fetch=a:3 fetchWithTimestamp=3@-1");
+                "rocksdb fetch=a:3 fetchWithTimestamp=3@-1",
+                "default fetch=a:3 fetchWithTimestamp=3@2000");
     }
 }

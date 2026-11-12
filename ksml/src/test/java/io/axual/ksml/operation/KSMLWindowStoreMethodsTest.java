@@ -37,7 +37,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * Regression test for window stores under stores (AXPD-11068): Python calls every window store method on an in-memory and a
- * RocksDB store, reads each iterator with a for loop and with a hasNext() loop, and leaves no iterator open.
+ * RocksDB store, timestamped and plain, reads each iterator with a for loop and with a hasNext() loop, and leaves no
+ * iterator open.
  */
 @ExtendWith(KSMLTestExtension.class)
 @SuppressWarnings("java:S2187")
@@ -53,7 +54,7 @@ public class KSMLWindowStoreMethodsTest {
     TopologyTestDriver driver;
 
     @KSMLTest(topology = "pipelines/test-window-store-methods-python.yaml", modulesDirectory = "pipelines")
-    @DisplayName("Window store methods work from Python on in-memory and RocksDB stores, and close their iterators")
+    @DisplayName("Window store methods work from Python on in-memory and RocksDB stores, timestamped and plain, and close their iterators")
     void testWindowStoreMethods() {
         // Record timestamps near the window times (BASE = 3000000000 in the pipeline), so the windows are within the
         // store retention. The pipeline shows window times minus BASE.
@@ -79,12 +80,16 @@ public class KSMLWindowStoreMethodsTest {
         final var rocksdbTimeRange = "a@0:1,a@60000:3,b@0:2,c@0:5";
         final var memoryAll = "a@-60000:6," + memoryTimeRange + ",a@1800000:4";
         final var rocksdbAll = "a@-60000:6," + rocksdbTimeRange + ",a@1800000:4";
+        // Plain stores (timestamped: false) give the same results as timestamped ones
         assertThat(lines).containsExactly(
                 "memory" + single + iterators(memoryKeyRange, memoryTimeRange, memoryAll),
-                "rocksdb" + single + iterators(rocksdbKeyRange, rocksdbTimeRange, rocksdbAll));
+                "rocksdb" + single + iterators(rocksdbKeyRange, rocksdbTimeRange, rocksdbAll),
+                "memory_plain" + single + iterators(memoryKeyRange, memoryTimeRange, memoryAll),
+                "rocksdb_plain" + single + iterators(rocksdbKeyRange, rocksdbTimeRange, rocksdbAll));
 
-        assertThat(openIterators(driver, "window_memory")).isZero();
-        assertThat(openIterators(driver, "window_rocksdb")).isZero();
+        for (final var store : List.of("window_memory", "window_rocksdb", "window_memory_plain", "window_rocksdb_plain")) {
+            assertThat(openIterators(driver, store)).as(store).isZero();
+        }
     }
 
     private static String iterators(String keyRange, String timeRange, String all) {
@@ -100,7 +105,6 @@ public class KSMLWindowStoreMethodsTest {
     @KSMLTest(topology = "pipelines/test-window-store-methods-python.yaml", modulesDirectory = "pipelines", headersStoreFormat = true)
     @DisplayName("Window store methods work from Python on in-memory and RocksDB stores, and close their iterators, also with the headers store format")
     void testWindowStoreMethodsWithHeadersStoreFormat() {
-        // Persistent stores are headers-aware here; Python gets the same results as without headers (AXPD-12445)
         testWindowStoreMethods();
         assertThat(driver.getAllStateStores().values()).anyMatch(store -> store instanceof TimestampedWindowStoreWithHeaders<?, ?>);
     }

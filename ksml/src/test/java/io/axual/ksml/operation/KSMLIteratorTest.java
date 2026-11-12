@@ -114,7 +114,6 @@ public class KSMLIteratorTest {
     @KSMLTest(topology = "pipelines/test-store-iterator-python.yaml", modulesDirectory = "pipelines", headersStoreFormat = true)
     @DisplayName("store iterators work with Python for, list(), next(), contextlib.closing and hasNext(), and are closed, also with the headers store format")
     void testPythonIterationWithHeadersStoreFormat() {
-        // Persistent stores are headers-aware here; Python gets the same results as without headers (AXPD-12445)
         testPythonIteration();
         assertThat(driver.getAllStateStores().values()).anyMatch(store -> store instanceof TimestampedKeyValueStoreWithHeaders<?, ?> || store instanceof TimestampedWindowStoreWithHeaders<?, ?> || store instanceof SessionStoreWithHeaders<?, ?>);
     }
@@ -122,7 +121,6 @@ public class KSMLIteratorTest {
     @KSMLTest(topology = "pipelines/test-store-iterator-early-exit-python.yaml", headersStoreFormat = true)
     @DisplayName("store iterators left open are closed when the function returns, and close() closes only once, also with the headers store format")
     void testEarlyExitClosesIteratorsWithHeadersStoreFormat() {
-        // Persistent stores are headers-aware here; Python gets the same results as without headers (AXPD-12445)
         testEarlyExitClosesIterators();
         assertThat(driver.getAllStateStores().values()).anyMatch(store -> store instanceof TimestampedKeyValueStoreWithHeaders<?, ?> || store instanceof TimestampedWindowStoreWithHeaders<?, ?> || store instanceof SessionStoreWithHeaders<?, ?>);
     }

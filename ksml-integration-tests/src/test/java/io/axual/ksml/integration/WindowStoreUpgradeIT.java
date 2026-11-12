@@ -27,6 +27,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.admin.AdminClient;
 import org.apache.kafka.clients.admin.AdminClientConfig;
 import org.apache.kafka.clients.admin.NewTopic;
+import org.apache.kafka.clients.admin.OffsetSpec;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.clients.producer.KafkaProducer;
@@ -36,6 +37,7 @@ import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.assertj.core.api.SoftAssertions;
+import org.awaitility.Awaitility;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -55,13 +57,14 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutionException;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * Window store state written by KSML 1.x reads correctly after the upgrade, from local state and after a restore
- * from the changelog (AXPD-12445, design D7). KSML 1.x runs as a container and writes two window stores from Python;
+ * from the changelog. KSML 1.x runs as a container and writes two window stores from Python;
  * this version then runs on the same state directory and topics and reads them back from Python, once with the local
  * state and once without it.
  * <p>
@@ -126,8 +129,7 @@ class WindowStoreUpgradeIT {
             }
             produce(bootstrapServers, records);
             waitForPuts(records.size());
-            // Several commits (commit.interval.ms is 1000)
-            Thread.sleep(5_000);
+            waitForState(bootstrapServers, ksml1Version, stateDirectory, records.size());
             produceGet(bootstrapServers, windowStart);
             assertThat(readGetResult()).as("read by KSML " + ksml1Version).isEqualTo(EXPECTED);
             ksml1.getDockerClient().stopContainerCmd(ksml1.getContainerId()).withTimeout(60).exec();
@@ -240,6 +242,30 @@ class WindowStoreUpgradeIT {
             puts += outputConsumer.poll(Duration.ofMillis(1000)).count();
         }
         assertThat(puts).as("records processed by KSML 1.x").isEqualTo(count);
+    }
+
+    /**
+     * Waits until KSML 1.x has written every put to the changelogs of both stores. KSML 1.1.0 also writes its local
+     * state and a checkpoint on commit; KSML 1.3.2 does not write them before it stops.
+     */
+    private void waitForState(String bootstrapServers, String ksml1Version, Path stateDirectory, int puts) {
+        final var checkpoint = stateDirectory.resolve(applicationId()).resolve("0_0").resolve(".checkpoint");
+        try (var admin = AdminClient.create(Map.of(AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers))) {
+            Awaitility.await().atMost(PROCESSING_TIMEOUT).pollInterval(Duration.ofSeconds(1)).until(() ->
+                    changelogEndOffset(admin, "window_timestamped") >= puts
+                            && changelogEndOffset(admin, "window_unset") >= puts
+                            && (!ksml1Version.equals("1.1.0") || Files.exists(checkpoint)));
+        }
+    }
+
+    /** The end offset of the changelog of a store, or 0 while the changelog topic does not exist. */
+    private long changelogEndOffset(AdminClient admin, String store) throws InterruptedException {
+        final var partition = new TopicPartition(applicationId() + "-" + store + "-changelog", 0);
+        try {
+            return admin.listOffsets(Map.of(partition, OffsetSpec.latest())).all().get().get(partition).offset();
+        } catch (ExecutionException e) {
+            return 0;
+        }
     }
 
     /** Reads the output topic up to the next result of a get, skipping the results of puts; {@code null} on timeout. */

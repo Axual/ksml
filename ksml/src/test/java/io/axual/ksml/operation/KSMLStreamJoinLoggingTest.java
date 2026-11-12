@@ -39,21 +39,18 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import tools.jackson.databind.JsonNode;
 
-import java.io.ByteArrayOutputStream;
-import java.io.PrintStream;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 
+import static io.axual.ksml.testutil.LogCapture.stderrOf;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
  * Kafka Streams always logs the window stores of a stream-stream join that the application provides, which KSML always
- * does. The {@code logging} of the join stores controls the shared store of a left or outer join: on by default, off
- * when both stores set {@code logging: false}. Stores that ask for different logging are rejected (AXPD-12445).
+ * does. The {@code logging} of the join stores controls the shared store of a left or outer join: on unless both
+ * stores set {@code logging: false}.
  */
 @ExtendWith(KSMLTestExtension.class)
 @SuppressWarnings("java:S2187")
@@ -108,12 +105,19 @@ public class KSMLStreamJoinLoggingTest {
     }
 
     @Test
-    @DisplayName("an outer join whose declared stores ask for different logging fails with an error naming both stores")
-    void conflictingLoggingIsRejected() {
-        assertThatThrownBy(() -> buildTopology("pipelines/test-stream-join-logging-conflict.yaml"))
-                .hasMessageContaining("this_store")
-                .hasMessageContaining("other_store")
-                .hasMessageContaining("logging");
+    @DisplayName("with logging: false on one store, the shared store keeps its changelog, and that store gets a warning")
+    void mixedLoggingKeepsSharedChangelog() throws Exception {
+        final var topology = new AtomicReference<Topology>();
+        final var log = stderrOf(() -> topology.set(buildTopology("pipelines/test-stream-join-logging-mixed.yaml")));
+
+        assertThat(log).contains("WARN").contains("other_store").doesNotContain("this_store");
+        try (var driver = new TopologyTestDriver(topology.get())) {
+            driver.createInputTopic("input1", new StringSerializer(), new StringSerializer()).pipeInput("a", "left", 1000L);
+            driver.createInputTopic("input2", new StringSerializer(), new StringSerializer()).pipeInput("b", "right", 1000L);
+
+            assertThat(driver.producedTopicNames())
+                    .anyMatch(topic -> topic.contains("outer-shared-join") && topic.endsWith("-changelog"));
+        }
     }
 
     private static Topology buildTopology(String resource) throws Exception {
@@ -124,20 +128,4 @@ public class KSMLStreamJoinLoggingTest {
         return generator.create(new StreamsBuilder(), Map.of("definition", definition));
     }
 
-    private static String stderrOf(ThrowingRunnable action) throws Exception {
-        // slf4j-simple writes to System.err
-        final var originalErr = System.err;
-        final var captured = new ByteArrayOutputStream();
-        System.setErr(new PrintStream(captured, true, StandardCharsets.UTF_8));
-        try {
-            action.run();
-        } finally {
-            System.setErr(originalErr);
-        }
-        return captured.toString(StandardCharsets.UTF_8);
-    }
-
-    private interface ThrowingRunnable {
-        void run() throws Exception;
-    }
 }

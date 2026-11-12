@@ -28,20 +28,17 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.PrintStream;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
 import java.util.List;
 
+import static io.axual.ksml.testutil.LogCapture.stderrOf;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * The one-time cleanup of window store state that KSML 1.x wrote in a format this version can't read
- * (AXPD-12445, design D7).
+ * The one-time cleanup of window store state that KSML 1.x wrote in a format this version can't read.
  */
 class WindowStoreUpgradeTest {
     private static final UserType UNKNOWN = UserType.UNKNOWN;
@@ -129,6 +126,19 @@ class WindowStoreUpgradeTest {
     }
 
     @Test
+    @DisplayName("leaves the state directory alone without persistent timestamped window stores")
+    void ignoresApplicationWithoutWindowStores() {
+        final var stores = List.<StateStoreDefinition>of(
+                windowStore("window_plain", true, false, true),
+                windowStore("window_memory", false, true, true));
+
+        WindowStoreUpgrade.prepare(applicationDirectory(), stores);
+        WindowStoreUpgrade.prepare(applicationDirectory(), List.of());
+
+        assertThat(applicationDirectory()).doesNotExist();
+    }
+
+    @Test
     @DisplayName("logs which stores it deletes, and warns for a store without changelog")
     void logsDeletedStores() throws Exception {
         createStore("0_0", "window_timestamped");
@@ -144,20 +154,4 @@ class WindowStoreUpgradeTest {
         assertThat(log.lines().filter(line -> line.contains("WARN") && line.contains("window_unlogged"))).hasSize(1);
     }
 
-    private static String stderrOf(ThrowingRunnable action) throws Exception {
-        // slf4j-simple writes to System.err
-        final var originalErr = System.err;
-        final var captured = new ByteArrayOutputStream();
-        System.setErr(new PrintStream(captured, true, StandardCharsets.UTF_8));
-        try {
-            action.run();
-        } finally {
-            System.setErr(originalErr);
-        }
-        return captured.toString(StandardCharsets.UTF_8);
-    }
-
-    private interface ThrowingRunnable {
-        void run() throws Exception;
-    }
 }

@@ -78,13 +78,7 @@ public class TopologyBuildContext {
     private final Map<String, StreamWrapper> streamWrappersByTopic = new HashMap<>();
 
     public TopologyBuildContext(StreamsBuilder builder, TopologyResources resources) {
-        this(builder, resources, PythonContextConfig.builder().build());
-    }
-
-    public TopologyBuildContext(StreamsBuilder builder,
-                                TopologyResources resources,
-                                PythonContextConfig pcConfig) {
-        this(builder, resources, pcConfig, false);
+        this(builder, resources, PythonContextConfig.builder().build(), false);
     }
 
     public TopologyBuildContext(StreamsBuilder builder,

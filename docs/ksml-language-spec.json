@@ -3803,7 +3803,7 @@
           "description" : "*(optional)* The duration for which elements in the session store are retained"
         },
         "timestamped" : {
-          "description" : "*(optional)* Has no effect: session stores are not timestamped. Setting it logs a warning",
+          "description" : "*(optional)* Has no effect: session stores are not timestamped. \"true\" logs a warning",
           "type" : "boolean"
         },
         "type" : {
@@ -3848,7 +3848,7 @@
           "description" : "*(optional)* The duration for which elements in the session store are retained"
         },
         "timestamped" : {
-          "description" : "*(optional)* Has no effect: session stores are not timestamped. Setting it logs a warning",
+          "description" : "*(optional)* Has no effect: session stores are not timestamped. \"true\" logs a warning",
           "type" : "boolean"
         },
         "type" : {

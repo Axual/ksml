@@ -68,7 +68,7 @@ Define directly within operations for custom configurations:
 | `persistent` | Boolean | No | `true` | If `true`, uses RocksDB (disk); if `false`, uses in-memory storage |
 | `caching` | Boolean | No | See below | If `true`, improves read performance but delays updates |
 | `logging` | Boolean | No | `true` | If `true`, creates changelog topic for fault tolerance (in addition to local storage) |
-| `timestamped` | Boolean | No | `true` | If `true`, stores timestamp with each entry. Has no effect on session stores: setting it there logs a warning |
+| `timestamped` | Boolean | No | `true` | If `true`, stores timestamp with each entry. Has no effect on session stores: `true` there logs a warning |
 
 These defaults are the same as in Kafka Streams. Set an option to `false` to turn it off. Without `caching`, the
 default depends on how the store is used, again as in Kafka Streams:
@@ -278,6 +278,11 @@ pipelines:
           windowSize: 30m         # Must be 2 × timeDifference
           retention: 35m          # 2 × timeDifference + grace
           retainDuplicates: true
+        otherStore:
+          type: window
+          windowSize: 30m
+          retention: 35m
+          retainDuplicates: true
 ```
 
 **Changelog topics of stream-stream joins:** A stream-stream join has two window stores, `thisStore` and
@@ -285,10 +290,10 @@ pipelines:
 Kafka Streams always gives the two window stores a changelog topic, also with `logging: false`. The `logging` setting
 of the two window stores decides whether the shared store gets a changelog topic:
 
-- Both without `logging`, or both `logging: true`: the shared store has a changelog topic. This is the default.
-- Both `logging: false`: the shared store has no changelog topic. KSML logs a warning for each window store, because
-  their own changelog topics stay.
-- Different values: KSML stops with an error that names both stores. Set `logging` to the same value on both.
+- Both `logging: false`: the shared store has no changelog topic.
+- Otherwise (the default): the shared store has a changelog topic.
+
+KSML logs a warning for each window store with `logging: false`, because its own changelog topic stays.
 
 ### Retention Guidelines
 

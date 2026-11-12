@@ -155,7 +155,7 @@ public class KafkaStreamsRunner implements Runner {
         var optimize = streamsProps.getOrDefault(StreamsConfig.TOPOLOGY_OPTIMIZATION_CONFIG, StreamsConfig.OPTIMIZE);
         final var topologyGenerator = new TopologyGenerator(applicationId, (String) optimize, config.pythonContextConfig(), headersStoreFormat(streamsConfig));
         final var topology = topologyGenerator.create(streamsBuilder, config.definitions);
-        checkWindowStoreState(streamsConfig, applicationId, topologyGenerator.userStateStores());
+        clearKsml1WindowStoreState(streamsConfig, applicationId, topologyGenerator.userStateStores());
         final var topologyDesc = topology.describe();
         final var ksmlTagEnricher = KsmlTagEnricher.from(topologyDesc);
 
@@ -177,7 +177,7 @@ public class KafkaStreamsRunner implements Runner {
      * @param applicationId the application id, which names the state directory of the application
      * @param stores        the stores built for Python functions
      */
-    static void checkWindowStoreState(StreamsConfig streamsConfig, String applicationId, Collection<? extends StateStoreDefinition> stores) {
+    static void clearKsml1WindowStoreState(StreamsConfig streamsConfig, String applicationId, Collection<? extends StateStoreDefinition> stores) {
         WindowStoreUpgrade.prepare(Path.of(streamsConfig.getString(StreamsConfig.STATE_DIR_CONFIG), applicationId), stores);
     }
 

@@ -26,7 +26,9 @@ import io.axual.ksml.dsl.KSMLDSL;
 import io.axual.ksml.parser.DefinitionParser;
 import io.axual.ksml.parser.NamedObjectParser;
 import io.axual.ksml.parser.StructsParser;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 public class KeyValueStateStoreDefinitionParser extends DefinitionParser<KeyValueStateStoreDefinition> implements NamedObjectParser {
     private final boolean requireStoreType;
     private final boolean requireKeyValueType;
@@ -72,6 +74,7 @@ public class KeyValueStateStoreDefinitionParser extends DefinitionParser<KeyValu
                 loggingField,
                 (name, persistent, timestamped, versioned, history, segment, keyType, valueType, caching, logging, tags) -> {
                     name = FieldParsers.validateName("KeyValue state store", name, defaultShortName);
+                    warnIfVersionedInMemory(name, persistent, versioned);
                     return new KeyValueStateStoreDefinition(name, persistent, timestamped, versioned, history, segment, keyType, valueType, caching, logging);
                 });
 
@@ -90,8 +93,16 @@ public class KeyValueStateStoreDefinitionParser extends DefinitionParser<KeyValu
                 loggingField,
                 (name, persistent, timestamped, versioned, history, segment, caching, logging, tags) -> {
                     name = FieldParsers.validateName("KeyValue state store", name, defaultShortName);
+                    warnIfVersionedInMemory(name, persistent, versioned);
                     return new KeyValueStateStoreDefinition(name, persistent, timestamped, versioned, history, segment, null, null, caching, logging);
                 });
+    }
+
+    // Kafka Streams has no in-memory versioned store, so the store is not versioned
+    private static void warnIfVersionedInMemory(String name, Boolean persistent, Boolean versioned) {
+        if (Boolean.TRUE.equals(versioned) && Boolean.FALSE.equals(persistent)) {
+            log.warn("KeyValue state store '{}' sets 'versioned: true' and 'persistent: false', so it is not versioned", name);
+        }
     }
 
     @Override
