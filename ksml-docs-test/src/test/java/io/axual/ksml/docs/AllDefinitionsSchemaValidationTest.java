@@ -49,6 +49,7 @@ import tools.jackson.databind.JsonNode;
  * a ksml-runner.yaml, and not in an unknown-keys directory) under:
  * - ksml/src/test/resources
  * - ksml-integration-tests/src/test/resources/docs-examples
+ * - examples (except the runner configs ksml-runner.yaml and ksml-data-generator.yaml)
  *
  * The KSML JSON schema is generated dynamically using the same TopologyDefinitionParser
  * and JsonSchemaMapper that KSML uses when invoked with the --schema flag, so the test
@@ -68,9 +69,13 @@ class AllDefinitionsSchemaValidationTest {
 
         final var ksmlTestResourcesDir = projectRoot.resolve("ksml/src/test/resources");
         final var integrationTestsDir = projectRoot.resolve("ksml-integration-tests/src/test/resources/docs-examples");
+        final var examplesDir = projectRoot.resolve("examples");
 
         return Stream.of(walkForDefinitionYaml(ksmlTestResourcesDir),
-                        walkForDefinitionYaml(integrationTestsDir))
+                        walkForDefinitionYaml(integrationTestsDir),
+                        walkForDefinitionYaml(examplesDir)
+                                .filter(path -> !path.startsWith(examplesDir.resolve("target")))
+                                .filter(path -> !path.getFileName().toString().equals("ksml-data-generator.yaml")))
                 .flatMap(s -> s)
                 .sorted();
     }

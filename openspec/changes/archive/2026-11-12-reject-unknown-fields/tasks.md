@@ -15,13 +15,13 @@
 
 ## 3. Fallout
 
-- [ ] 3.1 Check that every file in `examples/` parses, and fix the ones that do not
-- [ ] 3.2 Check the full definitions shown as YAML in `docs/**/*.md`, and fix the ones with unknown fields
-- [ ] 3.3 Regenerate `docs/ksml-language-spec.*` (the three top-level fields)
+- [x] 3.1 Check that every file in `examples/` parses, and fix the ones that do not
+- [x] 3.2 Check the full definitions shown as YAML in `docs/**/*.md`, and fix the ones with unknown fields
+- [x] 3.3 Regenerate `docs/ksml-language-spec.*` (the three top-level fields)
 
 ## 4. Docs and verification
 
-- [ ] 4.1 `docs/migration-to-2.0.0.md`: extend "Stricter runner config validation" to cover definitions, with an example error
-- [ ] 4.2 `docs/release-notes.md`: add an entry
-- [ ] 4.3 Run all ITs with `mvn verify -pl ksml-integration-tests -Pintegration-tests` (after `mvn install` of the changed modules)
-- [ ] 4.4 Manual check with Docker: a store with `loging: true` and a `windowByTime` with `grase: 5s` each stop KSML at start-up with the error
+- [x] 4.1 `docs/migration-to-2.0.0.md`: extend "Stricter runner config validation" to cover definitions, with an example error
+- [x] 4.2 `docs/release-notes.md`: add an entry
+- [x] 4.3 Run all ITs with `mvn verify -pl ksml-integration-tests -Pintegration-tests` (after `mvn install` of the changed modules)
+- [x] 4.4 Manual check with Docker: a store with `loging: true` and a `windowByTime` with `grase: 5s` each stop KSML at start-up with the error

@@ -61,6 +61,8 @@ Major dependency upgrades. This release moves KSML to Jackson 3, Apicurio Regist
 * Fixed `aggregate` after `cogroup` and `windowBySession`, which always failed at startup with "Merger is expected to take at least 3 parameters".
 * Fixed: when Kafka Streams fails, for example after an error in a Python function, KSML now exits with code 1. Before, it kept running without processing, so Docker or Kubernetes did not restart it.
 * Fixed: on SIGTERM, KSML now commits and closes Kafka Streams before it exits, so records are not processed twice after a restart. See [Stopping KSML](reference/configuration-reference.md#stopping-ksml).
+* Breaking change: an unknown or misspelled field in a KSML definition now stops KSML at startup with an error that names the field. Before, it was silently ignored, so a typo like `loging: true` on a store quietly turned off the changelog topic. See [Upgrading to 2.0.0](migration-to-2.0.0.md#stricter-validation-of-runner-config-and-definitions).
+* The language schema now lists the optional top-level fields `name`, `version` and `description` of a definition.
 
 ## 1.3.0 (2026-06-23)
 
