@@ -38,6 +38,7 @@ import java.util.Map;
  * Serde for KSML union types. It maintains a list of member Serdes and tries them
  * in order for serialization and deserialization, accepting the first compatible
  * type. Null values are always supported and mapped to DataNull for deserialization.
+ * KSML wraps it in a {@link TombstoneSerde}, so a tombstone is read as null and DataNull is written as empty bytes.
  */
 public class UnionSerde implements Serde<Object> {
     private record MemberSerde(DataType type, Serializer<Object> serializer, Deserializer<Object> deserializer) {

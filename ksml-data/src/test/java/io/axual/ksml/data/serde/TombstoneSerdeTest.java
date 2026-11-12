@@ -102,6 +102,15 @@ class TombstoneSerdeTest {
     }
 
     @Test
+    @DisplayName("nullIfTombstone makes a typed null null, and returns DataNull and other data as is")
+    void nullIfTombstone() {
+        assertThat(TombstoneSerde.nullIfTombstone(new DataString())).isNull();
+        assertThat(TombstoneSerde.nullIfTombstone(DataNull.INSTANCE)).isSameAs(DataNull.INSTANCE);
+        final var value = new DataString("a");
+        assertThat(TombstoneSerde.nullIfTombstone(value)).isSameAs(value);
+    }
+
+    @Test
     @DisplayName("Other data is serialized by the notation")
     void otherDataGoesToTheNotationSerializer() {
         assertThat(serde.serializer().serialize(TOPIC, "ab")).isEqualTo("ab".getBytes(StandardCharsets.UTF_8));

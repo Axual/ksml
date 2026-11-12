@@ -59,6 +59,13 @@ public class TombstoneSerde implements Serde<Object> {
         return data != DataNull.INSTANCE && DataObject.isNone(data);
     }
 
+    /**
+     * Returns null if the data is written as a tombstone (see {@link #isTombstone}), else the data itself.
+     */
+    public static <T> T nullIfTombstone(T data) {
+        return isTombstone(data) ? null : data;
+    }
+
     @Override
     public Serializer<Object> serializer() {
         return new TombstoneSerializer(serde.serializer());
@@ -78,13 +85,13 @@ public class TombstoneSerde implements Serde<Object> {
         @Override
         public byte[] serialize(String topic, Object data) {
             if (data == DataNull.INSTANCE) return EMPTY;
-            return isTombstone(data) ? null : serializer.serialize(topic, data);
+            return DataObject.isNone(data) ? null : serializer.serialize(topic, data);
         }
 
         @Override
         public byte[] serialize(String topic, Headers headers, Object data) {
             if (data == DataNull.INSTANCE) return EMPTY;
-            return isTombstone(data) ? null : serializer.serialize(topic, headers, data);
+            return DataObject.isNone(data) ? null : serializer.serialize(topic, headers, data);
         }
 
         @Override

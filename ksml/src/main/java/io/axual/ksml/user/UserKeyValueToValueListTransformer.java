@@ -34,6 +34,8 @@ import org.apache.kafka.streams.kstream.ValueMapperWithKey;
 
 import java.util.ArrayList;
 
+import static io.axual.ksml.data.object.DataObject.nullIfNone;
+
 public class UserKeyValueToValueListTransformer extends Invoker implements ValueMapperWithKey<Object, Object, Iterable<Object>> {
     private static final DataType EXPECTED_RESULT_TYPE = new ListType(DataType.UNKNOWN);
     private static final NativeDataObjectMapper NATIVE_MAPPER = new DataObjectFlattener();

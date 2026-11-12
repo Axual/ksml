@@ -32,6 +32,7 @@ import org.apache.kafka.streams.kstream.ValueJoiner;
 import org.apache.kafka.streams.kstream.ValueJoinerWithKey;
 import org.apache.kafka.streams.kstream.ValueJoinerWithStreamAndMappedKey;
 
+import static io.axual.ksml.data.object.DataObject.nullIfNone;
 import static io.axual.ksml.definition.DefinitionConstants.PARAM_MAPPED_KEY;
 
 public class UserValueJoiner extends Invoker implements ValueJoiner<Object, Object, Object>, ValueJoinerWithKey<Object, Object, Object, Object>, ValueJoinerWithStreamAndMappedKey<Object, Object, Object, Object, Object> {

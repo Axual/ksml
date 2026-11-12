@@ -24,6 +24,7 @@ Before you upgrade, check each item below:
 * If Python code reads `get(key)["value"]` or `["timestamp"]` on a store with `timestamped: true`, or on the store of a `count`, `aggregate`, `reduce` or non-versioned table, use `getWithTimestamp(key)` instead. The same applies to the results of `delete` and `putIfAbsent`, and to `fetch(key, time)` on the store of a windowed aggregation (use `fetchWithTimestamp`).
 * If Python code calls `put` or `remove` on a session store, check that each session key is a dict with `key`, `start` and `end`, with `int` times. A session key that is not valid now raises an error instead of being ignored.
 * Check `reduce` and `aggregate` functions that handle `None`, and functions that return `None`: tombstones are now handled like in Kafka Streams.
+* Check consumers of topics that get empty `json` or union keys or values, and `valueJoiner`s that read such a table: an empty key or value is no longer a `null` key or a tombstone.
 * If you build your own code on top of the KSML libraries, update the Jackson package names.
 * If you use `KeyValueIteratorProxy` or `WindowStoreIteratorProxy`, use `StoreIteratorProxy` instead, and create store proxies with `ProxyUtil.wrapStateStore`.
 * If you extend `OperationProcessor` or `FixedKeyOperationProcessor`, implement `processRecord` instead of `process`.
@@ -263,11 +264,15 @@ KSML 2.0.0 handles tombstones like Kafka Streams. This changes the result of som
 * `count`, `reduce` and `aggregate` skip a tombstone, so a `reducer` or `aggregator` is not called for it, and code in it that handles `None` does not run for a tombstone any more.
 * On a table, `filter` and `filterNot` do not call the `predicate` for a tombstone. The delete is passed on.
 * A function that returns `None` gives a tombstone. From a `reducer` or `aggregator`, it deletes the key from the store. As a value, a later `count`, `reduce` or `aggregate` skips it.
-* A key mapper that returns `None` gives a real `null` key.
 * `groupBy`, `groupByKey`, `count`, `reduce` and `aggregate` skip a record with a `null` key, like Kafka Streams. That is a `null` key read from a topic, of any key type, or from a `groupBy` mapper that returns `None`. A table, `toTable` and a `join` with a table skip it too, and a `leftJoin` with a table calls the `valueJoiner` with `None` for `value2`. Before, such a record could stop the application with a `NullPointerException`.
 * A join between tables writes a tombstone when the joined row is deleted. Consumers of the output topic get these tombstones.
 
-An empty value (zero bytes) is not a tombstone. With `valueType: json` (without a schema) or a union type, it still reaches your functions as `None`, also after a `groupBy` or another step that uses an internal topic. If such a record is written to a topic without a change, the value stays empty. A `convertValue` to another type, like `string` or `avro`, makes it a tombstone. On the 1.x line it was written as a tombstone. But if a function returns that `None`, the result is now a tombstone.
+An empty key or value (zero bytes) is not a `null` key or a tombstone. With `json` (without a schema) or a union type, your functions get it as `None`, also after a step that uses an internal topic. But `groupByKey`, `count`, `reduce` and `aggregate` do not skip it. What KSML does with it:
+
+* Passed on to a topic without a change: it stays empty. On 1.x it was written as a `null` key or a tombstone.
+* On a table: the row stays, with the value `None`. On 1.x the row was removed. So a `join` with the table now calls the `valueJoiner` with `None` for `value2`.
+* After a `convertValue` to another type, like `string` or `avro`: it is a tombstone.
+* Returned by a function, like a `groupBy` mapper: it is `None`, so a `null` key or a tombstone.
 
 [Tombstones and `None`](reference/function-reference.md#tombstones-and-none) and [Tombstones in joins](reference/operation-reference.md#tombstones-in-joins) list the details.
 
@@ -277,6 +282,8 @@ What you need to do:
 * If a function returns `None` and a later step should still see the record, return a value instead.
 * If a `groupBy` mapper returns `None` for some records, return a real key instead, or the records are skipped.
 * If a pipeline writes a join between tables to a topic, check that the consumers of that topic accept tombstones.
+* If a pipeline passes on empty `json` or union keys or values to a topic, check that the consumers accept them. They got `null` keys or tombstones before.
+* If a `json` or union table can get empty values, check that functions that read the table, like a `valueJoiner`, accept `None`.
 * State built by 1.x is not recomputed: counts that include tombstones and joined rows that were not deleted stay as they are. If they must be correct, reset the application and process the input again.
 
 ## Avro logical types

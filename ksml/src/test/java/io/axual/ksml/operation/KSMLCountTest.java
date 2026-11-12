@@ -124,4 +124,16 @@ class KSMLCountTest {
         assertThat(result.getFirst().key).isEqualToIgnoringWhitespace("{\"id\":1}");
         assertThat(result.getFirst().value).isEqualTo(1L);
     }
+
+    @KSMLTest(topology = "pipelines/test-count-null-key.yaml")
+    void testCountCountsEmptyKeys() {
+        // given records with an empty key (zero bytes), on a topic with a json key
+        inputTopic.pipeInput("", "x");
+        inputTopic.pipeInput("", "y");
+
+        // an empty key is not a null key, so the records are counted and written with an empty key
+        assertThat(outputTopic.readKeyValuesToList()).containsExactly(
+                new KeyValue<>("", 1L),
+                new KeyValue<>("", 2L));
+    }
 }

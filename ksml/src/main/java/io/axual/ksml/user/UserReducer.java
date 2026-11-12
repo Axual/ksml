@@ -28,6 +28,8 @@ import io.axual.ksml.metric.MetricTags;
 import io.axual.ksml.python.Invoker;
 import org.apache.kafka.streams.kstream.Reducer;
 
+import static io.axual.ksml.data.object.DataObject.nullIfNone;
+
 public class UserReducer extends Invoker implements Reducer<Object> {
     private static final NativeDataObjectMapper NATIVE_MAPPER = new DataObjectFlattener();
 

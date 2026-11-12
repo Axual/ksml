@@ -637,17 +637,21 @@ The stream or table to join with can be defined under `streams` or `tables`, or 
 
 A tombstone is a record with a `null` value: a delete. Joins handle tombstones and `None` like Kafka Streams:
 
-| Join                        | Tombstone or `None`                                       | Result                                                                                         |
-|-----------------------------|-----------------------------------------------------------|------------------------------------------------------------------------------------------------|
-| Two streams                 | Tombstone on either stream                                | The record is skipped, also in `leftJoin` and `outerJoin`                                      |
-| Stream with a table         | Tombstone on the stream                                   | The record is skipped                                                                          |
-| Stream with a table         | Tombstone on the table                                    | Later stream records find no row: `join` skips them, `leftJoin` gets `None` for `value2`       |
-| Stream with a global table  | Tombstone on the stream                                   | The record is skipped                                                                          |
-| Stream with a global table  | The `mapper` returns `None`                               | Nothing to look up: `join` skips the record, `leftJoin` gets `None` for `value2`               |
-| Two tables                  | Tombstone on one side                                     | `join` deletes the joined row. `leftJoin` deletes it for a tombstone on the left, and gets `None` for `value2` for one on the right. `outerJoin` gets `None` for the deleted side, and deletes the row when both sides are gone |
-| Foreign-key join            | Tombstone on the input table                              | The joined row is deleted. The `foreignKeyExtractor` is not called                             |
-| Foreign-key join            | Tombstone on the joined table                             | `join` deletes the joined rows, `leftJoin` gets `None` for `value2`                            |
-| Foreign-key join            | The `foreignKeyExtractor` returns `None`                  | `join` leaves the row out, `leftJoin` joins it with `None`                                     |
+| Join                       | Tombstone, empty value or `None`           | Result                                                                                   |
+|----------------------------|--------------------------------------------|------------------------------------------------------------------------------------------|
+| Two streams                | Tombstone on either stream                 | The record is skipped, also in `leftJoin` and `outerJoin`                                |
+| Stream with a table        | Tombstone on the stream                    | The record is skipped                                                                    |
+| Stream with a table        | Tombstone on the table                     | Later stream records find no row: `join` skips them, `leftJoin` gets `None` for `value2` |
+| Stream with a table        | Empty value on the table (`json` or union) | The row stays, with the value `None`: `join` and `leftJoin` get `None` for `value2`      |
+| Stream with a global table | Tombstone on the stream                    | The record is skipped                                                                    |
+| Stream with a global table | The `mapper` returns `None`                | Nothing to look up: `join` skips the record, `leftJoin` gets `None` for `value2`         |
+| Two tables (`join`)        | Tombstone on one side                      | The joined row is deleted                                                                |
+| Two tables (`leftJoin`)    | Tombstone on the left                      | The joined row is deleted                                                                |
+| Two tables (`leftJoin`)    | Tombstone on the right                     | `value2` is `None`                                                                       |
+| Two tables (`outerJoin`)   | Tombstone on one side                      | The deleted side is `None`. The row is deleted when both sides are gone                  |
+| Foreign-key join           | Tombstone on the input table               | The joined row is deleted. The `foreignKeyExtractor` is not called                       |
+| Foreign-key join           | Tombstone on the joined table              | `join` deletes the joined rows, `leftJoin` gets `None` for `value2`                      |
+| Foreign-key join           | The `foreignKeyExtractor` returns `None`   | `join` leaves the row out, `leftJoin` joins it with `None`                               |
 
 A `valueJoiner` that returns `None` gives a tombstone. See [Tombstones and `None`](function-reference.md#tombstones-and-none).
 

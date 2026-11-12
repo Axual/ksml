@@ -251,18 +251,23 @@ A tombstone is a record with a key but no value. It means "delete this key". In 
 
 An empty value (zero bytes) is not a tombstone. With `valueType: json` (without a schema) or a union type, it reaches
 your functions as `None`, but it is a value: `count`, `reduce` and `aggregate` do not skip it, also after a `groupBy`.
-With `valueType: string` it is an empty string. Other types, like `long`, `avro` or `json` with a schema, can not read
-an empty value and give an error. A `convertValue` of an empty value to such a type gives a tombstone.
+On a table it is a row with the value `None`, so a `join` with the table calls the `valueJoiner` with `None`. With
+`valueType: string` it is an empty string. Other types, like `long`, `avro` or `json` with a schema, can not read an
+empty value and give an error. A `convertValue` of an empty value to such a type gives a tombstone.
+
+An empty key works the same way. With `keyType: json` (without a schema) or a union type, it reaches your functions as
+`None`, but it is not a `null` key: `groupByKey`, `count`, `reduce` and `aggregate` do not skip it, and it is written
+as an empty key. A function that returns it, like a `groupBy` mapper, gives a `null` key.
 
 ### Functions that are not called for a tombstone
 
-| Function              | Operation                                   | What happens with a tombstone                                                                                 |
-|-----------------------|---------------------------------------------|---------------------------------------------------------------------------------------------------------------|
-| `reducer`             | `reduce` after `groupBy` or `groupByKey`    | The record is skipped                                                                                         |
-| `aggregator`          | `aggregate` after `groupBy` or `groupByKey` | The record is skipped                                                                                         |
-| `foreignKeyExtractor` | foreign-key `join` and `leftJoin`           | The joined row is deleted                                                                                     |
-| `valueJoiner`         | a join of a stream with a stream, table or global table | The stream record is skipped                                                                      |
-| `valueJoiner`         | `join` of two tables                        | The joined row is deleted. For `leftJoin` and `outerJoin`, see [Tombstones in joins](operation-reference.md#tombstones-in-joins) |
+| Function              | Operation                                               | What happens with a tombstone                                                                                                    |
+|-----------------------|---------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------|
+| `reducer`             | `reduce` after `groupBy` or `groupByKey`                | The record is skipped                                                                                                            |
+| `aggregator`          | `aggregate` after `groupBy` or `groupByKey`             | The record is skipped                                                                                                            |
+| `foreignKeyExtractor` | foreign-key `join` and `leftJoin`                       | The joined row is deleted                                                                                                        |
+| `valueJoiner`         | a join of a stream with a stream, table or global table | The stream record is skipped                                                                                                     |
+| `valueJoiner`         | `join` of two tables                                    | The joined row is deleted. For `leftJoin` and `outerJoin`, see [Tombstones in joins](operation-reference.md#tombstones-in-joins) |
 
 `count` also skips tombstones. On a table, `filter` and `filterNot` do not call the `predicate` for a tombstone: the
 delete is passed on. Other functions, like a `predicate` or a `valueTransformer` on a stream, still get `None` for a

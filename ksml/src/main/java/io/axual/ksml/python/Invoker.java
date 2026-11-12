@@ -31,7 +31,6 @@ import io.axual.ksml.metric.MetricTags;
 import io.axual.ksml.metric.Metrics;
 import io.axual.ksml.type.UserType;
 import io.axual.ksml.user.UserFunction;
-import org.apache.kafka.streams.KeyValue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -100,15 +99,6 @@ public abstract class Invoker {
         Arrays.fill(result, requiredArguments.length, argumentCount - 1, DataNull.INSTANCE);
         result[argumentCount - 1] = optionalArgument.get();
         return result;
-    }
-
-    // Kafka Streams needs a real null, not DataNull or a typed null
-    protected static <T> T nullIfNone(T value) {
-        return DataObject.nullIfNone(value);
-    }
-
-    protected static KeyValue<Object, Object> nullIfNone(KeyValue<Object, Object> keyValue) {
-        return new KeyValue<>(nullIfNone(keyValue.key), nullIfNone(keyValue.value));
     }
 
     protected void verifyNoResult() {

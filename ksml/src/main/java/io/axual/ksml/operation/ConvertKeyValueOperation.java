@@ -20,7 +20,6 @@ package io.axual.ksml.operation;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.serde.TombstoneSerde;
 import io.axual.ksml.generator.TopologyBuildContext;
 import io.axual.ksml.stream.KStreamWrapper;
 import io.axual.ksml.stream.StreamWrapper;
@@ -28,6 +27,8 @@ import io.axual.ksml.type.UserType;
 import org.apache.kafka.streams.KeyValue;
 import org.apache.kafka.streams.kstream.KeyValueMapper;
 import org.apache.kafka.streams.kstream.Named;
+
+import static io.axual.ksml.data.serde.TombstoneSerde.nullIfTombstone;
 
 public class ConvertKeyValueOperation extends BaseOperation {
     private final UserType targetKeyType;
@@ -57,10 +58,8 @@ public class ConvertKeyValueOperation extends BaseOperation {
                     ? mapper.convert(v.userType().notation(), flattenValue(value), vr.userType())
                     : null;
 
-            // An empty key or value can become a typed null, which is written as null, so it must be null here too
-            return new KeyValue<>(
-                    TombstoneSerde.isTombstone(convertedKey) ? null : convertedKey,
-                    TombstoneSerde.isTombstone(convertedValue) ? null : convertedValue);
+            // A converted empty key or value can be a typed null: make it null, like the serde does
+            return new KeyValue<>(nullIfTombstone(convertedKey), nullIfTombstone(convertedValue));
         };
 
         // Inject the mapper into the topology

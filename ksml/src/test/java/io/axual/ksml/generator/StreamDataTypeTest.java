@@ -65,7 +65,7 @@ class StreamDataTypeTest {
     }
 
     @Test
-    @DisplayName("A tombstone stays a tombstone on a JSON Schema topic, which writes null as a value by itself")
+    @DisplayName("A tombstone stays null on a JSON Schema topic")
     void tombstoneOnJsonSchemaTopic() {
         final var serde = new StreamDataType(new UserType(JsonSchemaNotation.NOTATION_NAME, new StructType(ORDER_SCHEMA)), false).serde();
 

@@ -78,10 +78,8 @@ class ConvertOperationTest extends OperationTestBase {
     @DisplayName("convertValue keeps a tombstone null")
     @SuppressWarnings("unchecked")
     void convertValueKeepsTombstone() {
-        final KStream<Object, Object> stream = mock(KStream.class);
-        new ConvertValueOperation(operationConfig("convertValue"), UNKNOWN_TYPE).apply(new KStreamWrapper(stream, key(), value()), mockContext());
         final ArgumentCaptor<ValueMapper<Object, Object>> converter = ArgumentCaptor.forClass(ValueMapper.class);
-        verify(stream).mapValues(converter.capture(), any(Named.class));
+        verify(applyOnMockStream(new ConvertValueOperation(operationConfig("convertValue"), UNKNOWN_TYPE))).mapValues(converter.capture(), any(Named.class));
         assertThat(converter.getValue().apply(null)).isNull();
     }
 
@@ -89,10 +87,8 @@ class ConvertOperationTest extends OperationTestBase {
     @DisplayName("convertKey keeps a null key null")
     @SuppressWarnings("unchecked")
     void convertKeyKeepsNullKey() {
-        final KStream<Object, Object> stream = mock(KStream.class);
-        new ConvertKeyOperation(operationConfig("convertKey"), UNKNOWN_TYPE).apply(new KStreamWrapper(stream, key(), value()), mockContext());
         final ArgumentCaptor<KeyValueMapper<Object, Object, Object>> converter = ArgumentCaptor.forClass(KeyValueMapper.class);
-        verify(stream).selectKey(converter.capture(), any(Named.class));
+        verify(applyOnMockStream(new ConvertKeyOperation(operationConfig("convertKey"), UNKNOWN_TYPE))).selectKey(converter.capture(), any(Named.class));
         assertThat(converter.getValue().apply(null, null)).isNull();
     }
 
@@ -100,10 +96,15 @@ class ConvertOperationTest extends OperationTestBase {
     @DisplayName("convertKeyValue keeps a null key and a tombstone null")
     @SuppressWarnings("unchecked")
     void convertKeyValueKeepsNulls() {
-        final KStream<Object, Object> stream = mock(KStream.class);
-        new ConvertKeyValueOperation(operationConfig("convertKeyValue"), UNKNOWN_TYPE, UNKNOWN_TYPE).apply(new KStreamWrapper(stream, key(), value()), mockContext());
         final ArgumentCaptor<KeyValueMapper<Object, Object, KeyValue<Object, Object>>> converter = ArgumentCaptor.forClass(KeyValueMapper.class);
-        verify(stream).map(converter.capture(), any(Named.class));
+        verify(applyOnMockStream(new ConvertKeyValueOperation(operationConfig("convertKeyValue"), UNKNOWN_TYPE, UNKNOWN_TYPE))).map(converter.capture(), any(Named.class));
         assertThat(converter.getValue().apply(null, null)).isEqualTo(new KeyValue<>(null, null));
+    }
+
+    @SuppressWarnings("unchecked")
+    private static KStream<Object, Object> applyOnMockStream(StreamOperation operation) {
+        final KStream<Object, Object> stream = mock(KStream.class);
+        operation.apply(new KStreamWrapper(stream, key(), value()), mockContext());
+        return stream;
     }
 }

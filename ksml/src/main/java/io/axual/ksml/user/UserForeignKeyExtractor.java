@@ -30,6 +30,8 @@ import io.axual.ksml.python.Invoker;
 
 import java.util.function.UnaryOperator;
 
+import static io.axual.ksml.data.object.DataObject.nullIfNone;
+
 public class UserForeignKeyExtractor extends Invoker implements UnaryOperator<Object> {
     private static final DataType EXPECTED_RESULT_TYPE = DataType.UNKNOWN;
     private static final NativeDataObjectMapper NATIVE_MAPPER = new DataObjectFlattener();

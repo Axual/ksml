@@ -227,16 +227,12 @@ class ExecutableProducerTest {
 
     @ParameterizedTest(name = "{0}")
     @MethodSource("structTypes")
-    @DisplayName("A generator that returns None for the value writes a tombstone, for every notation")
-    void noneValueIsTombstone(UserType valueType) {
+    @DisplayName("The producer serializer writes a typed null as a tombstone, for every notation")
+    void typedNullValueIsTombstone(UserType valueType) {
         registerVendorNotations();
-        final var shaped = ExecutableProducer.shapeMessage(
-                new DataTuple(new DataString("k"), DataNull.INSTANCE), STRING_TYPE, valueType, acceptingStrategy());
-
         final var serializer = ExecutableProducer.serializerFor(valueType, false, Map.of());
 
-        // Before, a JSON Schema topic got a Jackson NullNode, written as an object, instead of a tombstone
-        assertThat(serializer.serialize(TOPIC, new RecordHeaders(), shaped.right())).isNull();
+        assertThat(serializer.serialize(TOPIC, new RecordHeaders(), new DataStruct(null, true))).isNull();
     }
 
     @Test

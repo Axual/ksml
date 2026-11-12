@@ -20,13 +20,14 @@ package io.axual.ksml.operation;
  * =========================LICENSE_END==================================
  */
 
-import io.axual.ksml.data.serde.TombstoneSerde;
 import io.axual.ksml.generator.TopologyBuildContext;
 import io.axual.ksml.stream.KStreamWrapper;
 import io.axual.ksml.stream.StreamWrapper;
 import io.axual.ksml.type.UserType;
 import org.apache.kafka.streams.kstream.KeyValueMapper;
 import org.apache.kafka.streams.kstream.Named;
+
+import static io.axual.ksml.data.serde.TombstoneSerde.nullIfTombstone;
 
 public class ConvertKeyOperation extends BaseOperation {
     private final UserType targetKeyType;
@@ -48,9 +49,8 @@ public class ConvertKeyOperation extends BaseOperation {
             // A null key must stay null, else Kafka Streams does not skip it
             if (key == null) return null;
             final var keyAsData = flattenValue(key);
-            final var result = mapper.convert(k.userType().notation(), keyAsData, kr.userType());
-            // An empty key can become a typed null, which is written as a null key, so it must be null here too
-            return TombstoneSerde.isTombstone(result) ? null : result;
+            // A converted empty key can be a typed null: make it null, like the serde does
+            return nullIfTombstone(mapper.convert(k.userType().notation(), keyAsData, kr.userType()));
         };
 
         // Inject the mapper into the topology
