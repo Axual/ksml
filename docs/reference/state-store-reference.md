@@ -484,9 +484,6 @@ case, the `*WithTimestamp` methods can return `-1` as the timestamp: always with
 once the entry has left the cache (for example after a restart). Do not pass this timestamp to `put`.
 A negative timestamp in `put` raises a `ValueError`, as on a timestamped key-value store.
 
-A window store under `stores:` that only Python functions use is a plain window store, also with `timestamped: true`.
-It has no `*WithTimestamp` methods.
-
 ### Headers-Aware Stores
 
 With [`dsl.store.format: HEADERS`](#store-format), persistent stores keep the record headers with each value. Python
