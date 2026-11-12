@@ -142,7 +142,6 @@ mode does not fail a test. When that difference is gone, the report shows
 |---|---|---|
 | F01 | A tombstone is not `null` inside Kafka Streams. Counts are wrong, functions get `None` and stop the app, joins write data instead of a delete | C12, C14, C15, C15b, C21, C33, C35, C36e |
 | F05 | The KTable `aggregate` subtractor has the wrong parameter type | C21b |
-| F06 | A store with default options is in memory and has no changelog, so it loses its state on restart | C44a (Docker only) |
 | F07 | A global table join throws when the key mapper returns `None` | C34 |
 | F08 | The stream-stream `outerJoin` passes no key to the joiner | C32, C42 |
 | F09 | `toStream` with a `mapper` fails on a windowed table | C24b |
@@ -165,6 +164,8 @@ Fixed so far, and now guarded by their cases:
 - `foreignKeyExtractor` on a stream join is rejected at startup (F04). The unit tests
   `JoinWithTableOperationTest` and `LeftJoinWithTableOperationTest` guard this. C36c
   checks the documented way, `toTable` before the join.
+- A store with default options is persistent and has a changelog, so it keeps its state
+  after a restart (F06, C44a in Docker mode).
 
 ## Add a case
 
