@@ -1,0 +1,34 @@
+# A tombstone on one side of a table-table join deletes the joined row, instead of calling the
+# valueJoiner with None.
+
+tables:
+  left_table:
+    topic: left_topic
+    keyType: string
+    valueType: json
+  right_table:
+    topic: right_topic
+    keyType: string
+    valueType: json
+
+streams:
+  output_stream:
+    topic: output_topic
+    keyType: string
+    valueType: json
+
+functions:
+  json_joiner:
+    type: valueJoiner
+    expression: '{"left": value1["v"] if value1 is not None else None, "right": value2["v"] if value2 is not None else None}'
+    resultType: json
+
+pipelines:
+  join_pipeline:
+    from: left_table
+    via:
+      - type: join
+        table: right_table
+        valueJoiner: json_joiner
+      - type: toStream
+    to: output_stream

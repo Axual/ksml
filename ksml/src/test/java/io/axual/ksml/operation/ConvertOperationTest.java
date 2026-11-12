@@ -21,13 +21,17 @@ package io.axual.ksml.operation;
  */
 
 import io.axual.ksml.stream.KStreamWrapper;
+import org.apache.kafka.streams.KeyValue;
 import org.apache.kafka.streams.kstream.KStream;
+import org.apache.kafka.streams.kstream.KeyValueMapper;
 import org.apache.kafka.streams.kstream.Named;
 import org.apache.kafka.streams.kstream.ValueMapper;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.mockito.ArgumentCaptor;
 
 import java.util.function.Consumer;
 import java.util.stream.Stream;
@@ -68,5 +72,39 @@ class ConvertOperationTest extends OperationTestBase {
                         new ConvertKeyValueOperation(operationConfig("convertKeyValue"), UNKNOWN_TYPE, UNKNOWN_TYPE),
                         (Consumer<KStream<Object, Object>>) s -> verify(s).map(any(), any(Named.class)))
         );
+    }
+
+    @Test
+    @DisplayName("convertValue keeps a tombstone null")
+    @SuppressWarnings("unchecked")
+    void convertValueKeepsTombstone() {
+        final ArgumentCaptor<ValueMapper<Object, Object>> converter = ArgumentCaptor.forClass(ValueMapper.class);
+        verify(applyOnMockStream(new ConvertValueOperation(operationConfig("convertValue"), UNKNOWN_TYPE))).mapValues(converter.capture(), any(Named.class));
+        assertThat(converter.getValue().apply(null)).isNull();
+    }
+
+    @Test
+    @DisplayName("convertKey keeps a null key null")
+    @SuppressWarnings("unchecked")
+    void convertKeyKeepsNullKey() {
+        final ArgumentCaptor<KeyValueMapper<Object, Object, Object>> converter = ArgumentCaptor.forClass(KeyValueMapper.class);
+        verify(applyOnMockStream(new ConvertKeyOperation(operationConfig("convertKey"), UNKNOWN_TYPE))).selectKey(converter.capture(), any(Named.class));
+        assertThat(converter.getValue().apply(null, null)).isNull();
+    }
+
+    @Test
+    @DisplayName("convertKeyValue keeps a null key and a tombstone null")
+    @SuppressWarnings("unchecked")
+    void convertKeyValueKeepsNulls() {
+        final ArgumentCaptor<KeyValueMapper<Object, Object, KeyValue<Object, Object>>> converter = ArgumentCaptor.forClass(KeyValueMapper.class);
+        verify(applyOnMockStream(new ConvertKeyValueOperation(operationConfig("convertKeyValue"), UNKNOWN_TYPE, UNKNOWN_TYPE))).map(converter.capture(), any(Named.class));
+        assertThat(converter.getValue().apply(null, null)).isEqualTo(new KeyValue<>(null, null));
+    }
+
+    @SuppressWarnings("unchecked")
+    private static KStream<Object, Object> applyOnMockStream(StreamOperation operation) {
+        final KStream<Object, Object> stream = mock(KStream.class);
+        operation.apply(new KStreamWrapper(stream, key(), value()), mockContext());
+        return stream;
     }
 }

@@ -1,0 +1,24 @@
+# A tombstone on the table deletes the row, so the count of its old group goes down.
+
+tables:
+  users:
+    topic: json_input_topic
+    keyType: string
+    valueType: json
+streams:
+  counts:
+    topic: output_topic
+    keyType: string
+    valueType: long
+
+pipelines:
+  count_per_region:
+    from: users
+    via:
+      - type: groupBy
+        mapper:
+          expression: (value["region"], value)
+          resultType: tuple(string, json)
+      - type: count
+      - type: toStream
+    to: counts

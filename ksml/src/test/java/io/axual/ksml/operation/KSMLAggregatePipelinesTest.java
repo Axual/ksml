@@ -45,6 +45,48 @@ public class KSMLAggregatePipelinesTest {
     @KSMLTopic(topic = "output_topic", valueSerde = KSMLTopic.SerdeType.LONG)
     TestOutputTopic<String, Long> outputTopic;
 
+    @KSMLTopic(topic = "orders_topic")
+    TestInputTopic<String, String> ordersTopic;
+
+    @KSMLTopic(topic = "count_topic", valueSerde = KSMLTopic.SerdeType.LONG)
+    TestOutputTopic<String, Long> countTopic;
+
+    @KSMLTopologyTest(topologies = "pipelines/test-aggregate-tombstone.yaml")
+    @DisplayName("aggregate should skip tombstones, like Kafka Streams")
+    void testAggregateSkipsTombstones() {
+        // given a tombstone between three orders, on a json topic
+        ordersTopic.pipeInput("a", "{\"amount\": 1}");
+        ordersTopic.pipeInput("a", "{\"amount\": 2}");
+        ordersTopic.pipeInput("a", (String) null);
+        ordersTopic.pipeInput("a", "{\"amount\": 4}");
+
+        // the aggregator should not be called for the tombstone
+        assertThat(outputTopic.readKeyValuesToList()).containsExactly(
+                new KeyValue<>("a", 1L),
+                new KeyValue<>("a", 3L),
+                new KeyValue<>("a", 7L));
+    }
+
+    @KSMLTopologyTest(topologies = "pipelines/test-aggregate-none.yaml")
+    @DisplayName("an aggregator that returns None should delete the key, like Kafka Streams")
+    void testAggregatorNoneDeletesKey() {
+        // given that the aggregator returns None for an amount of 0
+        ordersTopic.pipeInput("a", "{\"amount\": 1}");
+        ordersTopic.pipeInput("a", "{\"amount\": 2}");
+        ordersTopic.pipeInput("a", "{\"amount\": 0}");
+
+        // the None deletes the key from the store
+        final KeyValueStore<String, Object> store = testDriver.getKeyValueStore("sum_store");
+        assertThat(store.get("a")).isNull();
+
+        // and the next step gets a tombstone, so the count of the results skips it
+        ordersTopic.pipeInput("a", "{\"amount\": 5}");
+        assertThat(countTopic.readKeyValuesToList()).containsExactly(
+                new KeyValue<>("a", 1L),
+                new KeyValue<>("a", 2L),
+                new KeyValue<>("a", 3L));
+    }
+
     @KSMLTopologyTest(topologies = {"pipelines/test-aggregate-store.yaml", "pipelines/test-aggregate-inline.yaml"})
     @DisplayName("aggregate should work with a named or inline keyValue store")
     void testAggregate() {

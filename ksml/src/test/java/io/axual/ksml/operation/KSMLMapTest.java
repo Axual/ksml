@@ -48,6 +48,12 @@ public class KSMLMapTest {
     @KSMLTopic(topic = "output_topic")
     TestOutputTopic<String, String> outputTopic;
 
+    @KSMLTopic(topic = "json_input_topic")
+    TestInputTopic<String, String> jsonInputTopic;
+
+    @KSMLTopic(topic = "count_topic", valueSerde = KSMLTopic.SerdeType.LONG)
+    TestOutputTopic<String, Long> countTopic;
+
     List<GenericRecord> inputs = List.of(
             SensorData.builder().city("AMS").type(HUMIDITY).unit("%").value("80").build().toRecord(),
             SensorData.builder().city("UTR").type(HUMIDITY).unit("%").value("75").build().toRecord(),
@@ -84,6 +90,17 @@ public class KSMLMapTest {
         assertThat(keyValues.get(3).key).isEqualTo("UTR");
         assertThat(keyValues.get(3).value).isEqualTo("TEMPERATURE 27");
     }
+
+    @KSMLTest(topology = "pipelines/test-map-none-value.yaml")
+    void testMapNoneValueIsTombstone() {
+        // given that the mapper returns (key, None) for an amount of 0
+        jsonInputTopic.pipeInput("a", "{\"amount\": 1}");
+        jsonInputTopic.pipeInput("a", "{\"amount\": 0}");
+        jsonInputTopic.pipeInput("a", "{\"amount\": 2}");
+
+        // the None value is a tombstone, so the count skips it
+        assertThat(countTopic.readKeyValuesToList()).containsExactly(
+                new KeyValue<>("a", 1L),
+                new KeyValue<>("a", 2L));
+    }
 }
-
-

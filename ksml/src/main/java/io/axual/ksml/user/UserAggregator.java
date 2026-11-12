@@ -29,6 +29,8 @@ import io.axual.ksml.metric.MetricTags;
 import io.axual.ksml.python.Invoker;
 import org.apache.kafka.streams.kstream.Aggregator;
 
+import static io.axual.ksml.data.object.DataObject.nullIfNone;
+
 public class UserAggregator extends Invoker implements Aggregator<Object, Object, Object> {
     private static final NativeDataObjectMapper NATIVE_MAPPER = new DataObjectFlattener();
 
@@ -40,6 +42,6 @@ public class UserAggregator extends Invoker implements Aggregator<Object, Object
 
     @Override
     public DataObject apply(Object key, Object value, Object aggregatedValue) {
-        return timeExecutionOf(() -> function.call(NATIVE_MAPPER.toDataObject(key), NATIVE_MAPPER.toDataObject(value), NATIVE_MAPPER.toDataObject(aggregatedValue)));
+        return timeExecutionOf(() -> nullIfNone(function.call(NATIVE_MAPPER.toDataObject(key), NATIVE_MAPPER.toDataObject(value), NATIVE_MAPPER.toDataObject(aggregatedValue))));
     }
 }

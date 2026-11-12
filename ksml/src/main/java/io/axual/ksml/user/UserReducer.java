@@ -28,6 +28,8 @@ import io.axual.ksml.metric.MetricTags;
 import io.axual.ksml.python.Invoker;
 import org.apache.kafka.streams.kstream.Reducer;
 
+import static io.axual.ksml.data.object.DataObject.nullIfNone;
+
 public class UserReducer extends Invoker implements Reducer<Object> {
     private static final NativeDataObjectMapper NATIVE_MAPPER = new DataObjectFlattener();
 
@@ -40,6 +42,6 @@ public class UserReducer extends Invoker implements Reducer<Object> {
 
     @Override
     public DataObject apply(Object value1, Object value2) {
-        return timeExecutionOf(() -> function.call(NATIVE_MAPPER.toDataObject(value1), NATIVE_MAPPER.toDataObject(value2)));
+        return timeExecutionOf(() -> nullIfNone(function.call(NATIVE_MAPPER.toDataObject(value1), NATIVE_MAPPER.toDataObject(value2))));
     }
 }

@@ -28,6 +28,8 @@ import org.apache.kafka.streams.KeyValue;
 import org.apache.kafka.streams.kstream.KeyValueMapper;
 import org.apache.kafka.streams.kstream.Named;
 
+import static io.axual.ksml.data.serde.TombstoneSerde.nullIfTombstone;
+
 public class ConvertKeyValueOperation extends BaseOperation {
     private final UserType targetKeyType;
     private final UserType targetValueType;
@@ -48,13 +50,16 @@ public class ConvertKeyValueOperation extends BaseOperation {
 
         // Set up the mapping function to convert the key and value
         KeyValueMapper<Object, Object, KeyValue<Object, Object>> converter = (key, value) -> {
-            var keyAsData = flattenValue(key);
-            var convertedKey = mapper.convert(k.userType().notation(), keyAsData, kr.userType());
+            // A null key or a tombstone must stay null, else Kafka Streams sees a key or a value
+            var convertedKey = key != null
+                    ? mapper.convert(k.userType().notation(), flattenValue(key), kr.userType())
+                    : null;
+            var convertedValue = value != null
+                    ? mapper.convert(v.userType().notation(), flattenValue(value), vr.userType())
+                    : null;
 
-            var valueAsData = flattenValue(value);
-            var convertedValue = mapper.convert(v.userType().notation(), valueAsData, vr.userType());
-
-            return new KeyValue<>(convertedKey, convertedValue);
+            // A converted empty key or value can be a typed null: make it null, like the serde does
+            return new KeyValue<>(nullIfTombstone(convertedKey), nullIfTombstone(convertedValue));
         };
 
         // Inject the mapper into the topology

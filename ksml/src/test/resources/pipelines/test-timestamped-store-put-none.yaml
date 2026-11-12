@@ -1,0 +1,95 @@
+# $schema: https://raw.githubusercontent.com/Axual/ksml/refs/heads/main/docs/ksml-language-spec.json
+
+# Python calls put and putIfAbsent with a None value and a timestamp on timestamped key-value stores, and reads
+# the result with the *WithTimestamp methods. A None value deletes the key, so the reads do not see it.
+streams:
+  put_none_input:
+    topic: put_none_input
+    keyType: string
+    valueType: string
+  put_none_output:
+    topic: put_none_output
+    keyType: string
+    valueType: string
+
+stores:
+  string_memory:
+    type: keyValue
+    timestamped: true
+    keyType: string
+    valueType: string
+    persistent: false
+    caching: false
+    logging: false
+  string_rocksdb:
+    type: keyValue
+    timestamped: true
+    keyType: string
+    valueType: string
+    persistent: true
+    caching: false
+    logging: false
+  json_memory:
+    type: keyValue
+    timestamped: true
+    keyType: string
+    valueType: json
+    persistent: false
+    caching: false
+    logging: false
+  json_rocksdb:
+    type: keyValue
+    timestamped: true
+    keyType: string
+    valueType: json
+    persistent: true
+    caching: false
+    logging: false
+
+functions:
+  put_none:
+    type: valueTransformer
+    globalCode: |
+      def stamped(entries):
+        return ",".join(e["key"] + ":" + str(e["value"]) + "@" + str(e["timestamp"]) for e in entries)
+
+      def check(name, store, a, b):
+        store.put("a", a, 500)
+        store.put("b", b, 600)
+        # put with None and a timestamp deletes the key
+        store.put("a", None, 700)
+        line = name
+        line += " getWithTimestamp=" + str(store.getWithTimestamp("a"))
+        line += " get=" + str(store.get("a"))
+        # putIfAbsent with None on a missing key writes nothing
+        line += " putIfAbsentMissing=" + str(store.putIfAbsent("c", None, 800))
+        line += " c=" + str(store.getWithTimestamp("c"))
+        # putIfAbsent with None on an existing key keeps the value
+        line += " putIfAbsentExisting=" + str(store.putIfAbsent("b", None, 900))
+        line += " b=" + stamped([dict(store.getWithTimestamp("b"), key="b")])
+        line += " allWithTimestamp=" + stamped(store.allWithTimestamp())
+        line += " rangeWithTimestamp=" + stamped(store.rangeWithTimestamp("a", "c"))
+        line += " prefixScanWithTimestamp=" + stamped(store.prefixScanWithTimestamp(""))
+        return line
+    code: |
+      result = "\n".join([
+        check("string_memory", string_memory, "1", "2"),
+        check("string_rocksdb", string_rocksdb, "1", "2"),
+        check("json_memory", json_memory, {"v": 1}, {"v": 2}),
+        check("json_rocksdb", json_rocksdb, {"v": 1}, {"v": 2}),
+      ])
+    expression: result
+    resultType: string
+    stores:
+      - string_memory
+      - string_rocksdb
+      - json_memory
+      - json_rocksdb
+
+pipelines:
+  put_none_pipeline:
+    from: put_none_input
+    via:
+      - type: transformValue
+        mapper: put_none
+    to: put_none_output

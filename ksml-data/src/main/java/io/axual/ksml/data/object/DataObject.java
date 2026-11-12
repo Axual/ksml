@@ -92,4 +92,25 @@ public interface DataObject extends DataEquals {
      * Returns a string representation according to the provided {@link Printer} mode.
      */
     String toString(Printer printer);
+
+    /**
+     * Returns true for null, {@link DataNull} and a typed null, like a null struct.
+     */
+    static boolean isNone(Object value) {
+        return switch (value) {
+            case null -> true;
+            case DataPrimitive<?> primitive -> primitive.value() == null;
+            case DataList list -> list.isNull();
+            case DataMap map -> map.isNull();
+            case DataStruct struct -> struct.isNull();
+            default -> false;
+        };
+    }
+
+    /**
+     * Returns null if the value is None (see {@link #isNone}), else the value itself.
+     */
+    static <T> T nullIfNone(T value) {
+        return isNone(value) ? null : value;
+    }
 }

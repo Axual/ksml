@@ -32,6 +32,7 @@ import org.apache.kafka.streams.kstream.ValueJoiner;
 import org.apache.kafka.streams.kstream.ValueJoinerWithKey;
 import org.apache.kafka.streams.kstream.ValueJoinerWithStreamAndMappedKey;
 
+import static io.axual.ksml.data.object.DataObject.nullIfNone;
 import static io.axual.ksml.definition.DefinitionConstants.PARAM_MAPPED_KEY;
 
 public class UserValueJoiner extends Invoker implements ValueJoiner<Object, Object, Object>, ValueJoinerWithKey<Object, Object, Object, Object>, ValueJoinerWithStreamAndMappedKey<Object, Object, Object, Object, Object> {
@@ -55,12 +56,12 @@ public class UserValueJoiner extends Invoker implements ValueJoiner<Object, Obje
 
     @Override
     public DataObject apply(Object key, Object value1, Object value2) {
-        return timeExecutionOf(() -> function.call(NATIVE_MAPPER.toDataObject(key), NATIVE_MAPPER.toDataObject(value1), NATIVE_MAPPER.toDataObject(value2)));
+        return timeExecutionOf(() -> nullIfNone(function.call(NATIVE_MAPPER.toDataObject(key), NATIVE_MAPPER.toDataObject(value1), NATIVE_MAPPER.toDataObject(value2))));
     }
 
     @Override
     public DataObject apply(Object streamKey, Object mappedKey, Object streamValue, Object tableValue) {
-        return timeExecutionOf(() -> function.call(withOptionalArgument(argumentCount, () -> NATIVE_MAPPER.toDataObject(mappedKey),
-                NATIVE_MAPPER.toDataObject(streamKey), NATIVE_MAPPER.toDataObject(streamValue), NATIVE_MAPPER.toDataObject(tableValue))));
+        return timeExecutionOf(() -> nullIfNone(function.call(withOptionalArgument(argumentCount, () -> NATIVE_MAPPER.toDataObject(mappedKey),
+                NATIVE_MAPPER.toDataObject(streamKey), NATIVE_MAPPER.toDataObject(streamValue), NATIVE_MAPPER.toDataObject(tableValue)))));
     }
 }

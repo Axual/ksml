@@ -30,6 +30,8 @@ import io.axual.ksml.python.Invoker;
 import io.axual.ksml.store.StateStores;
 import org.apache.kafka.streams.kstream.KeyValueMapper;
 
+import static io.axual.ksml.data.object.DataObject.nullIfNone;
+
 public class UserKeyTransformer extends Invoker implements KeyValueMapper<Object, Object, Object> {
     public static final DataType EXPECTED_RESULT_TYPE = DataType.UNKNOWN;
     private static final NativeDataObjectMapper NATIVE_MAPPER = new DataObjectFlattener();
@@ -47,6 +49,6 @@ public class UserKeyTransformer extends Invoker implements KeyValueMapper<Object
     }
 
     public DataObject apply(StateStores stores, Object key, Object value) {
-        return timeExecutionOf(() -> function.call(stores, NATIVE_MAPPER.toDataObject(key), NATIVE_MAPPER.toDataObject(value)));
+        return timeExecutionOf(() -> nullIfNone(function.call(stores, NATIVE_MAPPER.toDataObject(key), NATIVE_MAPPER.toDataObject(value))));
     }
 }

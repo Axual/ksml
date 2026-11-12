@@ -144,19 +144,20 @@ public class UserFunction {
         return call(null, parameters);
     }
 
+    /** Returns the (key, value) result as a KeyValue. A None key or value becomes null, as Kafka Streams needs. */
     public KeyValue<Object, Object> convertToKeyValue(DataObject result, DataType keyType, DataType valueType) {
         if (result instanceof DataList list &&
                 list.size() == 2 &&
                 keyType.isAssignableFrom(list.get(0).type()).isAssignable() &&
                 valueType.isAssignableFrom(list.get(1).type()).isAssignable()) {
-            return new KeyValue<>(list.get(0), list.get(1));
+            return new KeyValue<>(DataObject.nullIfNone(list.get(0)), DataObject.nullIfNone(list.get(1)));
         }
 
         if (result instanceof DataTuple tuple &&
                 tuple.elements().size() == 2 &&
                 keyType.isAssignableFrom(tuple.elements().get(0).type()).isAssignable() &&
                 valueType.isAssignableFrom(tuple.elements().get(1).type()).isAssignable()) {
-            return new KeyValue<>(tuple.elements().get(0), tuple.elements().get(1));
+            return new KeyValue<>(DataObject.nullIfNone(tuple.elements().get(0)), DataObject.nullIfNone(tuple.elements().get(1)));
         }
 
         throw new TopologyException("Function %s.%s - Expected (key, value) from function {} but got: %s".formatted(namespace, name, (result != null ? result : "null")));

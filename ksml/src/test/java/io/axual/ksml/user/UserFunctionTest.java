@@ -21,6 +21,7 @@ package io.axual.ksml.user;
  */
 
 import io.axual.ksml.data.object.DataList;
+import io.axual.ksml.data.object.DataNull;
 import io.axual.ksml.data.object.DataString;
 import io.axual.ksml.data.object.DataTuple;
 import io.axual.ksml.data.type.DataType;
@@ -126,6 +127,23 @@ class UserFunctionTest {
 
         assertThat(keyValue.key).isEqualTo(new DataString("k"));
         assertThat(keyValue.value).isEqualTo(new DataString("v"));
+    }
+
+    @Test
+    @DisplayName("convertToKeyValue makes a None key or value null, for a DataTuple and a DataList")
+    void convertToKeyValueMakesNoneNull() {
+        final var function = function(params(0), List.of());
+        final var list = new DataList(DataType.UNKNOWN);
+        list.add(new DataString());
+        list.add(DataNull.INSTANCE);
+
+        final var fromTuple = function.convertToKeyValue(new DataTuple(new DataString(), DataNull.INSTANCE), DataType.UNKNOWN, DataType.UNKNOWN);
+        final var fromList = function.convertToKeyValue(list, DataType.UNKNOWN, DataType.UNKNOWN);
+
+        assertThat(fromTuple.key).isNull();
+        assertThat(fromTuple.value).isNull();
+        assertThat(fromList.key).isNull();
+        assertThat(fromList.value).isNull();
     }
 
     @Test

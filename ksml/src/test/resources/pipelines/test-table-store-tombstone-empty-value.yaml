@@ -1,0 +1,58 @@
+# $schema: https://raw.githubusercontent.com/Axual/ksml/refs/heads/main/docs/ksml-language-spec.json
+
+# A json stream becomes a table with a named store. A trigger record makes Python read that store with the
+# *WithTimestamp methods, to show how a tombstone and an empty value end up in the store of a table.
+streams:
+  table_json_input:
+    topic: table_json_input
+    keyType: string
+    valueType: json
+  table_trigger:
+    topic: table_trigger
+    keyType: string
+    valueType: string
+  table_store_output:
+    topic: table_store_output
+    keyType: string
+    valueType: string
+
+stores:
+  json_table_store:
+    type: keyValue
+    keyType: string
+    valueType: json
+    persistent: false
+    caching: false
+    logging: false
+
+functions:
+  read_table_store:
+    type: valueTransformer
+    code: |
+      def stamped(entries):
+        return ",".join(e["key"] + ":" + str(e["value"]) + "@" + str(e["timestamp"]) for e in entries)
+
+      line = ""
+      for k in ["value", "empty", "deleted", "emptyThenValue"]:
+        line += k + "=" + str(json_table_store.getWithTimestamp(k)) + " "
+      line += "allWithTimestamp=" + stamped(json_table_store.allWithTimestamp())
+      line += " all=" + ",".join(e["key"] + ":" + str(e["value"]) for e in json_table_store.all())
+    expression: line
+    resultType: string
+    stores:
+      - json_table_store
+
+pipelines:
+  to_table_pipeline:
+    from: table_json_input
+    via:
+      - type: toTable
+        store: json_table_store
+    as: json_table
+
+  read_pipeline:
+    from: table_trigger
+    via:
+      - type: transformValue
+        mapper: read_table_store
+    to: table_store_output

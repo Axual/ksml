@@ -20,13 +20,18 @@ package io.axual.ksml.operation;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.testutil.KSMLDriver;
 import io.axual.ksml.testutil.KSMLTest;
 import io.axual.ksml.testutil.KSMLTestExtension;
 import io.axual.ksml.testutil.KSMLTopic;
 import org.apache.kafka.streams.KeyValue;
 import org.apache.kafka.streams.TestInputTopic;
 import org.apache.kafka.streams.TestOutputTopic;
+import org.apache.kafka.streams.TopologyTestDriver;
+import org.apache.kafka.streams.state.KeyValueStore;
 import org.junit.jupiter.api.extension.ExtendWith;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 
 import java.util.List;
 
@@ -36,11 +41,19 @@ import static org.assertj.core.api.Assertions.assertThat;
 @SuppressWarnings("java:S2187")
 public class KSMLReduceTest {
 
+    private static final ObjectMapper MAPPER = new ObjectMapper();
+
     @KSMLTopic(topic = "inMessages")
     TestInputTopic<String, String> inMessages;
 
     @KSMLTopic(topic = "outMessages")
     TestOutputTopic<String, String> outMessages;
+
+    @KSMLTopic(topic = "count_topic", valueSerde = KSMLTopic.SerdeType.LONG)
+    TestOutputTopic<String, Long> countTopic;
+
+    @KSMLDriver
+    TopologyTestDriver testDriver;
 
     @KSMLTest(topology = "pipelines/test-reduce.yaml")
     void testReduce() {
@@ -62,5 +75,40 @@ public class KSMLReduceTest {
                 new KeyValue<>("key2", "foo"),
                 new KeyValue<>("key2", "foobar")
         );
+    }
+
+    @KSMLTest(topology = "pipelines/test-reduce-tombstone.yaml")
+    void testReduceSkipsTombstones() {
+        // given a tombstone between three orders, on a json topic
+        inMessages.pipeInput("a", "{\"amount\": 1}");
+        inMessages.pipeInput("a", "{\"amount\": 2}");
+        inMessages.pipeInput("a", (String) null);
+        inMessages.pipeInput("a", "{\"amount\": 4}");
+
+        // the reducer should not be called for the tombstone, like in Kafka Streams
+        final List<JsonNode> sums = outMessages.readValuesToList().stream().map(MAPPER::readTree).toList();
+        assertThat(sums).containsExactly(
+                MAPPER.readTree("{\"amount\": 1}"),
+                MAPPER.readTree("{\"amount\": 3}"),
+                MAPPER.readTree("{\"amount\": 7}"));
+    }
+
+    @KSMLTest(topology = "pipelines/test-reduce-none.yaml")
+    void testReducerNoneDeletesKey() {
+        // given that the reducer returns None for an amount of 0
+        inMessages.pipeInput("a", "{\"amount\": 1}");
+        inMessages.pipeInput("a", "{\"amount\": 2}");
+        inMessages.pipeInput("a", "{\"amount\": 0}");
+
+        // the None deletes the key from the store
+        final KeyValueStore<String, Object> store = testDriver.getKeyValueStore("sum_store");
+        assertThat(store.get("a")).isNull();
+
+        // and the next step gets a tombstone, so the count of the results skips it
+        inMessages.pipeInput("a", "{\"amount\": 5}");
+        assertThat(countTopic.readKeyValuesToList()).containsExactly(
+                new KeyValue<>("a", 1L),
+                new KeyValue<>("a", 2L),
+                new KeyValue<>("a", 3L));
     }
 }

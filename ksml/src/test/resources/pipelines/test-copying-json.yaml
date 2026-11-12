@@ -1,0 +1,16 @@
+# Copies a json stream, so the output shows how an empty value and a tombstone are written.
+
+streams:
+  json_input:
+    topic: json_input_topic
+    keyType: string
+    valueType: json
+  json_output:
+    topic: json_output_topic
+    keyType: string
+    valueType: json
+
+pipelines:
+  main:
+    from: json_input
+    to: json_output

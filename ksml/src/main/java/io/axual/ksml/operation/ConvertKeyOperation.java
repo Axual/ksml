@@ -27,6 +27,8 @@ import io.axual.ksml.type.UserType;
 import org.apache.kafka.streams.kstream.KeyValueMapper;
 import org.apache.kafka.streams.kstream.Named;
 
+import static io.axual.ksml.data.serde.TombstoneSerde.nullIfTombstone;
+
 public class ConvertKeyOperation extends BaseOperation {
     private final UserType targetKeyType;
 
@@ -44,8 +46,11 @@ public class ConvertKeyOperation extends BaseOperation {
 
         // Set up the mapping function to convert the value
         final KeyValueMapper<Object, Object, Object> converter = (key, value) -> {
+            // A null key must stay null, else Kafka Streams does not skip it
+            if (key == null) return null;
             final var keyAsData = flattenValue(key);
-            return mapper.convert(k.userType().notation(), keyAsData, kr.userType());
+            // A converted empty key can be a typed null: make it null, like the serde does
+            return nullIfTombstone(mapper.convert(k.userType().notation(), keyAsData, kr.userType()));
         };
 
         // Inject the mapper into the topology

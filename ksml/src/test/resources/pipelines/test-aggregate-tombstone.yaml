@@ -1,0 +1,27 @@
+streams:
+  orders:
+    topic: orders_topic
+    keyType: string
+    valueType: json
+  sums:
+    topic: output_topic
+    keyType: string
+    valueType: long
+
+pipelines:
+  sum_orders:
+    from: orders
+    via:
+      - type: groupByKey
+      - type: aggregate
+        store:
+          name: sum_store
+          type: keyValue
+        initializer:
+          expression: 0
+          resultType: long
+        aggregator:
+          expression: aggregatedValue + value["amount"]
+          resultType: long
+      - type: toStream
+    to: sums

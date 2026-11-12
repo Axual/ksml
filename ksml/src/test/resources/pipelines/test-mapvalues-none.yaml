@@ -1,0 +1,24 @@
+# A None from mapValues is a tombstone, so the count after it skips it.
+
+streams:
+  orders:
+    topic: json_input_topic
+    keyType: string
+    valueType: json
+  counts:
+    topic: count_topic
+    keyType: string
+    valueType: long
+
+pipelines:
+  count_orders:
+    from: orders
+    via:
+      - type: mapValues
+        mapper:
+          expression: value if value["amount"] > 0 else None
+          resultType: json
+      - type: groupByKey
+      - type: count
+      - type: toStream
+    to: counts
