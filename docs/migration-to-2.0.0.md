@@ -15,6 +15,7 @@ Before you upgrade, check each item below:
 * Replace any `apicurio.registry.auto-register.if-exists: RETURN` with a valid v3 value such as `FIND_OR_CREATE_VERSION`.
 * Remove `apicurio.registry.as-confluent`, and replace `Legacy4ByteIdHandler` with `Default4ByteIdHandler` if you set `apicurio.registry.id-handler` yourself.
 * Fix any typo'd keys in your runner config, because unknown keys now fail at startup again.
+* Fix any unknown or misspelled fields in your KSML definitions, because they now fail at startup too.
 * If you read an Avro `decimal` field in Python, change the code to expect a string instead of bytes.
 * If a `streamPartitioner` or `valueJoiner` function uses a global variable called `headers` or `mappedKey`, rename it.
 * If Python code calls a `streamPartitioner` function by position, pass `headers` before `numPartitions`, or call it by name.
@@ -108,13 +109,40 @@ If you deliberately want the header-based id format instead, set `apicurio.regis
 
 KSML keeps defaulting `apicurio.registry.find-latest` to `true`, so that with auto-register disabled and a pre-registered schema, the serializer resolves the artifact by its coordinates instead of by its content. This is the same default that was introduced in KSML 1.3.0, and it keeps working on Apicurio v3. You do not need to change anything for this. If you had set `find-latest` yourself, KSML still respects your value.
 
-## Stricter runner config validation
+## Stricter validation of runner config and definitions
+
+### Runner config
 
 KSML validates your runner config again like it did on the 1.x line: an unknown or misspelled key now makes KSML stop at startup with an error, instead of being silently ignored.
 
 Jackson 3 changed its default so that unknown keys are ignored. KSML re-enables the strict check on purpose, so a typo such as `schemaRegsitry` fails fast instead of quietly disabling a setting.
 
 What you need to do: make sure your `ksml-runner.yaml` has no leftover or misspelled keys before you upgrade.
+
+### KSML definitions
+
+KSML definitions are now checked the same way. On the 1.x line a field that KSML did not know was silently ignored, so a typo quietly changed the behavior: `loging: true` on a store gave no changelog topic, and `grase: 5s` on `windowByTime` gave no grace period. KSML now stops at startup and names the field, where it is, and the fields that are allowed there:
+
+```
+KSML parse error: Error in input node processor->stores->count_store: Unknown field "loging", known fields: caching, historyRetention, keyType, logging, name, persistent, segmentInterval, timestamped, type, valueType, versioned
+```
+
+For an operation, function or store with a `type`, only the fields of that type are allowed. For example, `duration` on a `filter` step is now an error, because only the window operations have that field.
+
+A example case is a `type` line on an inline function, such as a function written directly under `if:` or `valueJoiner:`. Only functions under `functions:` have a `type` field; for an inline function, the operation already sets it. On the 1.x line the line was ignored. Now KSML stops with an error like `Unknown field "type", known fields: code, expression, globalCode, name, parameters, resultType`. Remove the line:
+
+```yaml
+      - type: join
+        table: customer_profiles
+        valueJoiner:
+          type: valueJoiner    # remove this line
+          expression: '{"order": value1, "customer": value2}'
+          resultType: json
+```
+
+The published language schema (`ksml --schema`) already marked these fields as not allowed, so a definition that validates against the schema is not affected. The schema now also lists the optional top-level fields `name`, `version` and `description`.
+
+What you need to do: start KSML once with each definition, or validate it against the language schema, and fix or remove the fields it reports.
 
 ## Duplicate keys in KSML definitions are now an error
 

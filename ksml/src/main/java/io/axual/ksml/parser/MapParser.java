@@ -48,6 +48,7 @@ public class MapParser<V> implements Parser<Map<String, V>> {
                         nop.defaultShortName(child.name());
                         nop.defaultLongName(child.longName());
                     }
+                    if (valueParser instanceof StructsParser<?> structsParser) FieldParsers.checkKnownFields(child, structsParser);
                     result.put(child.name(), valueParser.parse(child));
                 } catch (RuntimeException e) {
                     throw new ParseException(node, "Error in " + childTagValuePrefix + " \"" + child.name() + "\"", e);

@@ -1,0 +1,27 @@
+# Test definition for unknown-field validation, see UnknownFieldsTest
+# A branch inside a branch is not supported yet
+streams:
+  input_stream:
+    topic: input
+    keyType: string
+    valueType: string
+  expensive_electronics:
+    topic: expensive_electronics
+    keyType: string
+    valueType: string
+  affordable_electronics:
+    topic: affordable_electronics
+    keyType: string
+    valueType: string
+
+pipelines:
+  nested_example:
+    from: input_stream
+    branch:
+      - if:
+          expression: value == "electronics"
+        branch:
+          - if:
+              expression: key == "expensive"
+            to: expensive_electronics
+          - to: affordable_electronics

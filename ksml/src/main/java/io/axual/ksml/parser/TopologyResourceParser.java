@@ -83,6 +83,7 @@ public class TopologyResourceParser<T, F extends T> extends DefinitionParser<Top
                 final var childNode = node.get(childName);
                 if (childNode != null) {
                     final var name = childNode.longName();
+                    FieldParsers.checkKnownFields(childNode, inlineParser);
                     return new TopologyResource<>(name, inlineParser.parse(childNode), childNode.tags());
                 }
 

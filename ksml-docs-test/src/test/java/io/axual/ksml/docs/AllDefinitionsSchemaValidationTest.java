@@ -46,9 +46,10 @@ import tools.jackson.databind.JsonNode;
 
 /**
  * JSON Schema validation test for all KSML definition YAML files (any *.yaml that is not
- * a ksml-runner.yaml) under:
+ * a ksml-runner.yaml, and not in an unknown-keys directory) under:
  * - ksml/src/test/resources
  * - ksml-integration-tests/src/test/resources/docs-examples
+ * - examples (except the runner configs ksml-runner.yaml and ksml-data-generator.yaml)
  *
  * The parity usability probes are skipped: they contain typical user mistakes on purpose.
  *
@@ -72,9 +73,13 @@ class AllDefinitionsSchemaValidationTest {
 
         final var ksmlTestResourcesDir = projectRoot.resolve("ksml/src/test/resources");
         final var integrationTestsDir = projectRoot.resolve("ksml-integration-tests/src/test/resources/docs-examples");
+        final var examplesDir = projectRoot.resolve("examples");
 
         return Stream.of(walkForDefinitionYaml(ksmlTestResourcesDir),
-                        walkForDefinitionYaml(integrationTestsDir))
+                        walkForDefinitionYaml(integrationTestsDir),
+                        walkForDefinitionYaml(examplesDir)
+                                .filter(path -> !path.startsWith(examplesDir.resolve("target")))
+                                .filter(path -> !path.getFileName().toString().equals("ksml-data-generator.yaml")))
                 .flatMap(s -> s)
                 .sorted();
     }
@@ -96,6 +101,8 @@ class AllDefinitionsSchemaValidationTest {
                 .filter(Files::isRegularFile)
                 .filter(path -> path.toString().endsWith(".yaml"))
                 .filter(path -> !path.getFileName().toString().equals("ksml-runner.yaml"))
+                // These definitions contain unknown fields on purpose, see UnknownFieldsTest
+                .filter(path -> !path.getParent().endsWith("unknown-keys"))
                 .filter(path -> !dir.relativize(path).startsWith(PARITY_USABILITY_PROBES));
     }
 

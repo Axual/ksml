@@ -1,0 +1,19 @@
+# Test definition for unknown-field validation, see UnknownFieldsTest
+streams:
+  clicks:
+    topic: clicks_in
+    keyType: string
+    valueType: string
+  counts:
+    topic: counts_out
+    keyType: string
+    valueType: long
+
+pipelines:
+  filtered:
+    from: clicks
+    via:
+      - type: fliter      # should be "filter": reported as an unknown operation type, not as unknown fields
+        if:
+          expression: key is not None
+    to: counts
