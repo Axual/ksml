@@ -177,10 +177,12 @@ public class ProcessorContextProxy implements AbstractProxy {
 
     /** Converts a Python key or value to the type the receiving operation takes, as transformer results are. */
     private static Object toType(Object object, UserType type, String role, String targetName) {
-        final DataObject result;
+        DataObject result;
         try {
-            final var dataObject = DATA_OBJECT_MAPPER.toDataObject(type.dataType(), object);
-            result = CONVERTER.convert(DEFAULT_NOTATION, dataObject, type);
+            result = DATA_OBJECT_MAPPER.toDataObject(type.dataType(), object);
+            // As for function results, only a value that does not fit yet gets the notations' converters
+            if (type.dataType().isAssignableFrom(result).isNotAssignable())
+                result = CONVERTER.convert(DEFAULT_NOTATION, result, type);
         } catch (RuntimeException e) {
             throw PythonErrors.typeError("forward " + role + " for " + targetName + " must be " + type + ", got " + PythonErrors.typeName(object));
         }
