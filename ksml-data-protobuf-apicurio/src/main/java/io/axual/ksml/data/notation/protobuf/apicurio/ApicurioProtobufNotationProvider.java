@@ -24,10 +24,12 @@ import io.apicurio.registry.resolver.client.RegistryClientFacade;
 import io.axual.ksml.data.notation.Notation;
 import io.axual.ksml.data.notation.NotationContext;
 import io.axual.ksml.data.notation.apicurio.ApicurioConfigChecks;
+import io.axual.ksml.data.notation.apicurio.ApicurioRegistryClientFactory;
 import io.axual.ksml.data.notation.protobuf.ProtobufDataObjectMapper;
 import io.axual.ksml.data.notation.protobuf.ProtobufNotation;
 import io.axual.ksml.data.notation.vendor.VendorNotationContext;
 import io.axual.ksml.data.notation.vendor.VendorNotationProvider;
+import io.axual.ksml.data.util.MapUtil;
 import lombok.Getter;
 
 public class ApicurioProtobufNotationProvider extends VendorNotationProvider {
@@ -48,11 +50,12 @@ public class ApicurioProtobufNotationProvider extends VendorNotationProvider {
     public Notation createNotation(NotationContext context) {
         if (context == null) context = new NotationContext();
         ApicurioConfigChecks.rejectV2Configs(context.serdeConfigs());
+        final var srClient = registryClient != null ? registryClient : ApicurioRegistryClientFactory.create(MapUtil.stringKeys(context.serdeConfigs()));
         return new ProtobufNotation(
                 new VendorNotationContext(
                         vendorName(),
                         context,
-                        new ApicurioProtobufSerdeSupplier(registryClient),
+                        new ApicurioProtobufSerdeSupplier(srClient),
                         new ProtobufDataObjectMapper(new ApicurioProtobufFileElementDescriptorMapper(), context.nativeDataObjectMapper(), context.typeSchemaMapper())),
                 new ApicurioProtobufSchemaParser(context.nativeDataObjectMapper(), context.typeSchemaMapper()));
     }

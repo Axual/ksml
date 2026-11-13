@@ -59,7 +59,8 @@ public class FunctionDefinition extends AbstractDefinition {
         this.expression = source.expression() != null ? source.expression().toArray(EMPTY_STRING_ARRAY) : null;
         this.code = source.code().toArray(EMPTY_STRING_ARRAY);
         this.globalCode = source.globalCode().toArray(EMPTY_STRING_ARRAY);
-        this.injectedParameters = injectedParameters != null ? injectedParameters : new ArrayList<>();
+        this.injectedParameters =
+                injectedParameters != null ? new ArrayList<>(injectedParameters):new ArrayList<>();
         this.storeNames = storeNames != null ? storeNames : EMPTY_STRING_LIST;
     }
 

@@ -134,8 +134,7 @@ public class PythonContext implements AutoCloseable {
         Source script = Source.create(PYTHON, pyCode);
         try {
             context.eval(script);
-        } catch (
-                Exception e) {
+        } catch (Exception e) {
             log.error("Error loading Python code", e);
         }
         return context.getPolyglotBindings().getMember(callerName);

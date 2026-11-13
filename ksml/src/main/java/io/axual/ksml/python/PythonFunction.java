@@ -56,7 +56,7 @@ public class PythonFunction extends UserFunction {
     private final Value function;
 
     private PythonFunction(PythonContext context, String namespace, String type, String name, FunctionDefinition definition) {
-        super(namespace, name, definition.parameters(), definition.resultType(), injectedVariableNames(definition), definition.storeNames());
+        super(namespace, name, definition.parameters(), definition.resultType(), definition.injectedParameters(), definition.storeNames());
         converter = context.converter();
         this.context = context.context();
         dataObjectMapper = new PythonDataObjectMapper(true, this.context);
@@ -90,10 +90,6 @@ public class PythonFunction extends UserFunction {
         return new PythonFunction(context, namespace, "condition", name, definition);
     }
 
-    private static List<String> injectedVariableNames(FunctionDefinition definition) {
-        return definition.injectedParameters().stream().map(InjectedParameter::name).toList();
-    }
-
     private static String[] getFunctionCode(String[] code, String spaces) {
         return Arrays.stream(code).map(line -> spaces + line).toArray(String[]::new);
     }
@@ -119,7 +115,7 @@ public class PythonFunction extends UserFunction {
 
         // Only the variables that the caller injects are set in Python
         for (final var variable : injections.keySet()) {
-            if (!injectedVariableNames.contains(variable))
+            if (!hasInjectedParameter(variable))
                 throw new ExecutionException("Python function %s.%s - can not inject unknown variable '%s'".formatted(namespace, name, variable));
         }
         var arguments = convertParameters(injections, parameters);
@@ -190,24 +186,14 @@ public class PythonFunction extends UserFunction {
         final var assignStores = definition.storeNames().stream()
                 .map(storeName -> "  " + storeName + " = stores[\"" + storeName + "\"]\n")
                 .collect(Collectors.joining());
-        // The injected variables are globals, declared as None until a call injects them
-        final var includeGlobals = !injectedVariableNames.isEmpty() ? "  global " + String.join(", ", injectedVariableNames) + "\n" : "";
-        final var declareGlobals = injectedVariableNames.stream()
-                .map(variable -> variable + " = None\n")
-                .collect(Collectors.joining());
         // The Python classes that wrap injected objects, defined with the function that uses them
         final var proxyCode = definition.injectedParameters().stream()
                 .map(InjectedParameter::proxyClassCode)
                 .filter(Objects::nonNull)
                 .distinct()
                 .collect(Collectors.joining("\n"));
-        // Code to wrap injected objects that Python sees through a Python class; the injected dict is a new Python
-        // dict for every call, so it can be changed in place
-        final var wrapInjections = definition.injectedParameters().stream()
-                .filter(ip -> ip.proxyClassName() != null)
-                .map(ip -> "  if _ksml_injected.get(\"" + ip.name() + "\") is not None:\n" +
-                        "    _ksml_injected[\"" + ip.name() + "\"] = " + ip.proxyClassName() + "(_ksml_injected[\"" + ip.name() + "\"])\n")
-                .collect(Collectors.joining());
+        // Code to read the injected parameters, including the stores, as local variables of the function
+        final var injectedParams = initializeInjectedParams(injectedParameters);
         // Code to initialize optional parameters with default values
         final var initializeOptionalParams = Arrays.stream(definition.parameters())
                 .filter(ParameterDefinition::isOptional)
@@ -224,7 +210,7 @@ public class PythonFunction extends UserFunction {
 
         // Compose the function (if any) and the return statement together
         final var functionAndExpression = "def " + name + "(" + String.join(",", defParams) + "):\n" +
-                includeGlobals +
+                injectedParams +
                 initFunctionLocalVariables(2, loggerName(namespace, type, name)) +
                 assignStores +
                 initializeOptionalParams +
@@ -238,23 +224,23 @@ public class PythonFunction extends UserFunction {
         // another one is busy, for example a filter after a punctuator calls context.forward, and must not leave its
         // values to the outer call. Its own names start with _ksml_, so they do not hide a function or parameter.
         final var pyCallerCode = "def " + name + "_caller(_ksml_injected," + String.join(",", defParams) + "):\n" +
-                wrapInjections +
-                "  _ksml_previous = {variable: globals()[variable] for variable in _ksml_injected}\n" +
-                "  globals().update(_ksml_injected)\n" +
+                "  global _ksml_injected_parameters\n" +
+                "  _ksml_previous = _ksml_injected_parameters\n" +
+                "  _ksml_injected_parameters = _ksml_injected\n" +
                 "  try:\n" +
                 "    return " + name + "(" + String.join(",", callParams) + ")\n" +
                 "  finally:\n" +
-                "    globals().update(_ksml_previous)\n";
+                "    _ksml_injected_parameters = _ksml_previous\n";
 
         // Python code template - no longer needs convert_to_python/convert_from_python
         // as Java-side PythonTypeConverter handles all collection conversion
         final var pythonCodeTemplate =
                 """
                         import polyglot
-                        
+                        _ksml_injected_parameters = {}
+
+                        # Python classes for injected parameters go here (fourth argument)
                         %4$s
-                        # Python classes for injected variables go here (fifth argument)
-                        %5$s
                         
                         # global Python code goes here (first argument)
                         %1$s
@@ -267,7 +253,20 @@ public class PythonFunction extends UserFunction {
                         %3$s
                         """;
 
-        return pythonCodeTemplate.formatted(globalCode, functionAndExpression, pyCallerCode, declareGlobals, proxyCode);
+        return pythonCodeTemplate.formatted(globalCode, functionAndExpression, pyCallerCode, proxyCode);
+    }
+
+    private String initializeInjectedParams(List<InjectedParameter> params) {
+        final var result = new StringBuilder();
+        for (final var param : params) {
+            final var value = "_ksml_injected_parameters.get(\"" + param.name() + "\")";
+            result.append("  ").append(param.name()).append(" = ");
+            if (param.proxyClassName() != null)
+                result.append(param.proxyClassName()).append("(").append(value).append(") if ").append(value).append(" is not None else None\n");
+            else
+                result.append(value).append("\n");
+        }
+        return result.toString();
     }
 
     private String loggerName(String namespace, String type, String name) {

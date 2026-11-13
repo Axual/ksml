@@ -145,7 +145,7 @@ class PythonFunctionTest {
     @Test
     void injectedVariablesDefaultToNoneAndUnknownNamesAreRejected() {
         final var stringType = new UserType(UserType.DEFAULT_NOTATION, DataString.DATATYPE);
-        final var definition = FunctionDefinition.as(KSMLDSL.Functions.TYPE_GENERIC, "injected", new ParameterDefinition[0], PythonSource.of(null, null, "str(context)"), stringType, java.util.List.of(io.axual.ksml.proxy.context.ProcessorContextProxy.INJECT_CONTEXT), null);
+        final var definition = FunctionDefinition.as(KSMLDSL.Functions.TYPE_GENERIC, "injected", new ParameterDefinition[0], PythonSource.of(null, null, "str(context)"), stringType, java.util.List.of(io.axual.ksml.proxy.context.ProcessorContextProxy.PYTHON_PROXY), null);
         final var function = PythonFunction.forFunction(context, "test", "injected", definition);
 
         assertThat(function.call()).isEqualTo(new DataString("None"));
@@ -158,7 +158,7 @@ class PythonFunctionTest {
                 .isInstanceOf(io.axual.ksml.exception.ExecutionException.class)
                 .hasMessageContaining("can not inject unknown variable 'unknown'");
         // A function only gets the variables it declares
-        assertThatThrownBy(() -> storesFunction.call(java.util.Map.of(io.axual.ksml.proxy.context.ProcessorContextProxy.INJECT_CONTEXT.name(), 1)))
+        assertThatThrownBy(() -> storesFunction.call(java.util.Map.of(io.axual.ksml.proxy.context.ProcessorContextProxy.PYTHON_PROXY.name(), 1)))
                 .isInstanceOf(io.axual.ksml.exception.ExecutionException.class)
                 .hasMessageContaining("can not inject unknown variable 'context'");
         assertThat(function.withStores(new io.axual.ksml.store.StateStores())).isEmpty();

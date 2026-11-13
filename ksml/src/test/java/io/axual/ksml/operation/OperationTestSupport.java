@@ -327,7 +327,7 @@ final class OperationTestSupport {
         final var context = mock(TopologyBuildContext.class);
         when(context.createUserFunction(any())).thenAnswer(invocation -> {
             final FunctionDefinition definition = invocation.getArgument(0);
-            return new UserFunction("test", definition.name(), definition.parameters(), definition.resultType(), definition.injectedParameters().stream().map(io.axual.ksml.definition.InjectedParameter::name).toList(), definition.storeNames());
+            return new UserFunction("test", definition.name(), definition.parameters(), definition.resultType(), definition.injectedParameters(), definition.storeNames());
         });
         when(context.getStreamWrapper(any(StreamDefinition.class))).thenReturn(kStream());
         when(context.getStreamWrapper(any(TableDefinition.class))).thenReturn(kTable());

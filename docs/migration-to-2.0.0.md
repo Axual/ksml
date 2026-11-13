@@ -108,6 +108,27 @@ If you deliberately want the header-based id format instead, set `apicurio.regis
 
 KSML keeps defaulting `apicurio.registry.find-latest` to `true`, so that with auto-register disabled and a pre-registered schema, the serializer resolves the artifact by its coordinates instead of by its content. This is the same default that was introduced in KSML 1.3.0, and it keeps working on Apicurio v3. You do not need to change anything for this. If you had set `find-latest` yourself, KSML still respects your value.
 
+### TLS and mutual TLS settings
+
+Apicurio v3 has its own TLS settings. The Apicurio v2 `apicurio.registry.request.ssl.*` keys are ignored, so move the trust store to the v3 keys:
+
+```yaml
+apicurio.registry.tls.truststore.location: /path/to/truststore.jks
+apicurio.registry.tls.truststore.password: my-secret
+apicurio.registry.tls.truststore.type: JKS   # JKS, PKCS12 or PEM
+```
+
+Apicurio v3 serdes have no setting for a client certificate. For a registry that requires mutual TLS, KSML adds these keys:
+
+```yaml
+apicurio.registry.tls.keystore.type: JKS     # JKS (default), PKCS12 or PEM
+apicurio.registry.tls.keystore.location: /path/to/keystore.jks
+apicurio.registry.tls.keystore.password: my-secret   # also unlocks the private key
+# For PEM, instead of the location and password:
+# apicurio.registry.tls.keystore.certificate: /path/to/client.crt   # file path or PEM content
+# apicurio.registry.tls.keystore.key: /path/to/client.key           # file path or PEM content
+```
+
 ## Stricter runner config validation
 
 KSML validates your runner config again like it did on the 1.x line: an unknown or misspelled key now makes KSML stop at startup with an error, instead of being silently ignored.

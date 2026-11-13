@@ -59,9 +59,9 @@ public class ProcessorContextProxy implements AbstractProxy {
     private static final DataObjectConverter CONVERTER = new DataObjectConverter();
     private static final HeaderDataObjectMapper HEADER_MAPPER = new HeaderDataObjectMapper();
 
-    private static final String CONTEXT_VARIABLE = "context";
+    private static final String PROXY_NAME = "context";
     // The Python class that wraps this proxy as {@code context}
-    private static final String PROCESSOR_CONTEXT_CLASS = "KSMLProcessorContext";
+    private static final String PROXY_CLASS_NAME = "KSMLProcessorContext";
     private static final String PROXY_CLASS_CODE = """
             # GraalPy passes no keyword arguments to Java methods, so this class takes them and calls the
             # ProcessorContextProxy by position. It only offers the methods below.
@@ -91,8 +91,8 @@ public class ProcessorContextProxy implements AbstractProxy {
             
               def taskId(self):
                 return self._proxy.taskId()
-            """.formatted(PROCESSOR_CONTEXT_CLASS);
-    public static final InjectedParameter INJECT_CONTEXT = new InjectedParameter(CONTEXT_VARIABLE, PROCESSOR_CONTEXT_CLASS, PROXY_CLASS_CODE);
+            """.formatted(PROXY_CLASS_NAME);
+    public static final InjectedParameter PYTHON_PROXY = new InjectedParameter(PROXY_NAME, PROXY_CLASS_NAME, PROXY_CLASS_CODE);
     private final ProcessorContext<Object, Object> context;
     private final long defaultTimestamp;
     private final Target next;

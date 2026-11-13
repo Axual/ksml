@@ -26,6 +26,7 @@ import io.axual.ksml.data.object.DataNull;
 import io.axual.ksml.data.object.DataObject;
 import io.axual.ksml.data.object.DataTuple;
 import io.axual.ksml.data.type.DataType;
+import io.axual.ksml.definition.InjectedParameter;
 import io.axual.ksml.definition.ParameterDefinition;
 import io.axual.ksml.exception.ExecutionException;
 import io.axual.ksml.exception.TopologyException;
@@ -51,14 +52,14 @@ public class UserFunction {
     public final ParameterDefinition[] parameters;
     public final int fixedParameterCount;
     public final UserType resultType;
-    public final List<String> injectedVariableNames = new LinkedList<>();
+    public final List<InjectedParameter> injectedParameters = new LinkedList<>();
     public final String[] storeNames;
 
-    public UserFunction(String namespace, String name, ParameterDefinition[] parameters, UserType resultType, List<String> injectedVariableNames, List<String> storeNames) {
-        this(namespace, name, parameters, resultType, injectedVariableNames, storeNames != null ? storeNames.toArray(TEMPLATE) : TEMPLATE);
+    public UserFunction(String namespace, String name, ParameterDefinition[] parameters, UserType resultType, List<InjectedParameter> injectedParams, List<String> storeNames) {
+        this(namespace, name, parameters, resultType, injectedParams, storeNames != null ? storeNames.toArray(TEMPLATE) : TEMPLATE);
     }
 
-    public UserFunction(String namespace, String name, ParameterDefinition[] parameters, UserType resultType, List<String> injectedVariableNames, String[] storeNames) {
+    public UserFunction(String namespace, String name, ParameterDefinition[] parameters, UserType resultType, List<InjectedParameter> injectedParams, String[] storeNames) {
         if (namespace == null) {
             throw new TopologyException("Function namespace can not be null");
         }
@@ -71,11 +72,11 @@ public class UserFunction {
         this.fixedParameterCount = getFixedParameterCount(parameters);
         this.resultType = resultType;
         if (storeNames != null && storeNames.length > 0)
-            this.injectedVariableNames.add(INJECT_STORES);
-        if (injectedVariableNames != null)
-            injectedVariableNames.stream()
-                    .filter(variable -> !this.injectedVariableNames.contains(variable))
-                    .forEach(this.injectedVariableNames::add);
+            this.injectedParameters.add(new InjectedParameter(INJECT_STORES));
+        if (injectedParams != null)
+            injectedParams.stream()
+                    .filter(param -> !hasInjectedParameter(param.name()))
+                    .forEach(this.injectedParameters::add);
         this.storeNames = storeNames != null ? storeNames : TEMPLATE;
         log.info("Registered function '{}'", this);
     }
@@ -85,7 +86,14 @@ public class UserFunction {
      * or the function does not use state stores.
      */
     public Map<String, Object> withStores(StateStores stores) {
-        return stores != null && injectedVariableNames.contains(INJECT_STORES) ? Map.of(INJECT_STORES, stores) : Map.of();
+        return stores != null && hasInjectedParameter(INJECT_STORES) ? Map.of(INJECT_STORES, stores) : Map.of();
+    }
+
+    /**
+     * Whether the function declares an injected parameter with this name.
+     */
+    public boolean hasInjectedParameter(String name) {
+        return injectedParameters.stream().anyMatch(param -> param.name().equals(name));
     }
 
     @Override
@@ -155,7 +163,7 @@ public class UserFunction {
      * Call the user-defined function and return the result.
      *
      * @param injections variables to make available to the function's code, by name, such as {@link #INJECT_STORES}
-     *                   and {@link io.axual.ksml.proxy.context.ProcessorContextProxy#INJECT_CONTEXT}; a name that is not given gets its default value.
+     *                   and {@link io.axual.ksml.proxy.context.ProcessorContextProxy#PYTHON_PROXY}; a name that is not given gets its default value.
      * @param parameters parameters for the function.
      * @return the result of the call.
      */

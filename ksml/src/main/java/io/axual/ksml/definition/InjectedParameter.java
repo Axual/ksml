@@ -24,8 +24,12 @@ package io.axual.ksml.definition;
 // Specification. Therefore, it does not have the Definition suffix in the name. It does belong
 // in this package because it is a crucial element during the generation of Python code for
 // parameters that do not implement the DataObject interface.
-public record InjectedParameter(
-        String name,
-        String proxyClassName,
-        String proxyClassCode) {
+public record InjectedParameter(String name, String proxyClassName, String proxyClassCode) {
+    public InjectedParameter(String name) {
+        this(name, null);
+    }
+
+    public InjectedParameter(String name, String proxyClassName) {
+        this(name, proxyClassName, null);
+    }
 }
