@@ -65,6 +65,7 @@ public class PipelineOperationParser extends ChoiceParser<StreamOperation> {
         result.put(KSMLDSL.Operations.MERGE, new MergeOperationParser(resources));
         result.put(KSMLDSL.Operations.OUTER_JOIN, new OuterJoinOperationParser(resources));
         result.put(KSMLDSL.Operations.PEEK, new PeekOperationParser(resources));
+        result.put(KSMLDSL.Operations.PUNCTUATE, new PunctuateOperationParser(resources));
         result.put(KSMLDSL.Operations.REDUCE, new ReduceOperationParser(resources));
         result.put(KSMLDSL.Operations.REPARTITION, new RepartitionOperationParser(resources));
         result.put(KSMLDSL.Operations.SUPPRESS, new SuppressOperationParser(resources));

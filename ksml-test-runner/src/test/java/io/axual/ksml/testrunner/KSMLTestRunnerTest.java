@@ -54,7 +54,9 @@ class KSMLTestRunnerTest {
             "bare-vendor-avro.yaml",
             "generator-bad-field-type-test.yaml",
             "produce-block-neither-messages-nor-generator.yaml",
-            "produce-block-both-messages-and-generator.yaml"
+            "produce-block-both-messages-and-generator.yaml",
+            "advance-wall-clock-invalid.yaml",
+            "advance-wall-clock-negative.yaml"
     })
     void invalidDefinitionsReturnError(String testFile) {
         var runner = new KSMLTestRunner();
@@ -80,7 +82,8 @@ class KSMLTestRunnerTest {
             "sample-long-store-test.yaml",
             "sample-timestamp-test.yaml",
             "processor-filtering-transforming-complete-test.yaml",
-            "two-assert-blocks.yaml"
+            "two-assert-blocks.yaml",
+            "sample-punctuate-test.yaml"
     })
     void validTestsReturnPass(String testFile) {
         var runner = new KSMLTestRunner();

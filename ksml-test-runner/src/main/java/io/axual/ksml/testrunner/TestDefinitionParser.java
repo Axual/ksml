@@ -20,6 +20,7 @@ package io.axual.ksml.testrunner;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.parser.DurationParser;
 import lombok.extern.slf4j.Slf4j;
 import tools.jackson.core.JacksonException;
 import tools.jackson.core.StreamReadFeature;
@@ -30,6 +31,7 @@ import tools.jackson.dataformat.yaml.YAMLMapper;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -278,12 +280,37 @@ public class TestDefinitionParser {
             var messages = parseMessages(blockNode.get(KSMLTestDSL.Produce.MESSAGES));
             var generator = f.mapField(KSMLTestDSL.Produce.GENERATOR);
             var count = f.optionalLong(KSMLTestDSL.Produce.COUNT).orElse(null);
+            var advanceWallClockTime = parseAdvanceWallClockTime(blockNode, to, testKey, testFile);
 
-            var block = new ProduceBlock(to, messages, generator, count);
+            var block = new ProduceBlock(to, messages, generator, count, advanceWallClockTime);
             block.validate();
             blocks.add(block);
         }
         return blocks;
+    }
+
+    /**
+     * Parse the optional wall-clock time step of a produce block: a KSML duration, not negative.
+     * @return the duration, or null when the block has none.
+     */
+    private Duration parseAdvanceWallClockTime(JsonNode blockNode, String to, String testKey, Path testFile) {
+        var node = blockNode.get(KSMLTestDSL.Produce.ADVANCE_WALL_CLOCK_TIME);
+        if (node == null || node.isNull()) return null;
+        var error = "Invalid '" + KSMLTestDSL.Produce.ADVANCE_WALL_CLOCK_TIME + "' in produce block to '" + to
+                + "' in test '" + testKey + "' (" + testFile + "): ";
+        if (!node.isString() && !node.isIntegralNumber()) {
+            throw new TestDefinitionException(error + "expected a duration such as '1m', got " + node);
+        }
+        Duration result;
+        try {
+            result = DurationParser.parseDuration(node.asString(), false);
+        } catch (RuntimeException e) {
+            throw new TestDefinitionException(error + e.getMessage());
+        }
+        if (result.isNegative()) {
+            throw new TestDefinitionException(error + "must not be negative, got " + node.asString());
+        }
+        return result;
     }
 
     /**

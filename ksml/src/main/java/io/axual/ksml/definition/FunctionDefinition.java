@@ -88,6 +88,10 @@ public class FunctionDefinition extends AbstractDefinition {
         return new FunctionDefinition(type, name, parameters, PythonSource.of(globalCode, code, expression != null && !Arrays.equals(EMPTY_STRING_ARRAY, expression) ? expression : defaultExpression), resultType, storeNames);
     }
 
+    public FunctionDefinition withStoreNames(List<String> storeNames) {
+        return new FunctionDefinition(type, name, parameters, PythonSource.of(globalCode, code, expression), resultType, storeNames);
+    }
+
     public FunctionDefinition validateNoResultTypeDefined() {
         if (resultType != null)
             throw functionResultError("Function type '" + type + "' can not return a result");

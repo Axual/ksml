@@ -67,7 +67,8 @@ class ExampleTopologyTest {
             "examples/16-example-transform-metadata.yaml",
             "examples/17-example-inspect-with-metrics.yaml",
             "examples/18-example-timestamp-extractor.yaml",
-            "examples/19-example-performance-measurement.yaml"
+            "examples/19-example-performance-measurement.yaml",
+            "examples/21-example-punctuate.yaml"
     }, schemaDirectory = "examples")
     @DisplayName("Example topology parses and generates a valid Kafka Streams topology")
     void exampleTopologyIsValid() {

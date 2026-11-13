@@ -314,6 +314,7 @@ Below is a table with all 21 function types in KSML.
 | [keyValueMapper](#keyvaluemapper)                                       | Convert key and value into a single output value | groupBy, join, leftJoin                     |
 | [keyValuePrinter](#keyvalueprinter)                                     | Output key and value                             | print                                       |
 | [metadataTransformer](#metadatatransformer)                             | Convert Kafka headers and timestamps             | transformMetadata                           |
+| [punctuator](#punctuator)                                               | Run on a schedule and emit records               | punctuate                                   |
 | [valueJoiner](#valuejoiner)                                             | Combine data from multiple streams               | join, leftJoin, outerJoin                   |
 |                                                                         |                                                  |                                             |
 | **Stream Related Functions**                                            |                                                  |                                             |
@@ -932,6 +933,78 @@ When running this example, you'll see enriched events with additional headers:
 - `ENRICHED EVENT | evt_0002 | DELETE /api/health | Status: 400 | Headers processed`
 - Log messages showing: "Enriched event evt_0001 with 3 additional headers"
 
+### punctuator
+
+Runs on a schedule, set by a [`punctuate`](operation-reference.md#punctuate) operation, and emits records with
+`context.forward`. Use it to emit or clean up state at regular times, also when no records arrive.
+
+#### Parameters
+
+| Parameter | Type    | Description                                                                 |
+|-----------|---------|-----------------------------------------------------------------------------|
+| timestamp | long    | The punctuation time, in milliseconds since the epoch                       |
+| context   | context | The punctuation context, used to forward records (see the methods below)    |
+
+#### Return Value
+
+None. A punctuator emits records with `context.forward`. A returned value is ignored, and KSML logs a warning the
+first time it happens. A punctuator can not declare a `resultType`.
+
+#### Context methods
+
+The `context` offers these methods, which follow Kafka Streams' `ProcessorContext`. Other `ProcessorContext`
+methods, such as `schedule`, `getStateStore` and `appConfigs`, are not available.
+
+| Method                                                       | Description                                                                                                                                                                                  |
+|--------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `forward(key, value, timestamp=None, headers=None, to=None)` | Sends a record to the next operation, or to the operation named by `to`. Records are sent in call order. A `None` value is sent as a tombstone. See below for `timestamp`, `headers` and `to` |
+| `commit()`                                                   | Asks Kafka Streams to commit the task at its next opportunity. Kafka Streams already commits every `commit.interval.ms`, so only use this when you need a commit sooner                      |
+| `currentSystemTimeMs()`                                      | The current system time of the task, in milliseconds                                                                                                                                         |
+| `currentStreamTimeMs()`                                      | The current stream time of the task, in milliseconds                                                                                                                                         |
+| `applicationId()`                                            | The application id                                                                                                                                                                           |
+| `taskId()`                                                   | The id of the stream task, for example `"0_2"`                                                                                                                                               |
+
+The arguments of `forward`:
+
+- `key` and `value` must fit the key and value types of the operation that receives the record: the stream at the
+  `punctuate` operation, or the input of the operation named by `to`. They are converted like the result of other
+  functions. A key or value that does not fit raises a `TypeError`, and the record is not sent.
+- `timestamp` is the record timestamp in milliseconds. Without it, the record gets the punctuation `timestamp`.
+- `headers` is a list of dicts with a `key` and a `value`, the same format as in a
+  [metadataTransformer](#metadatatransformer). Without it, the record has no headers.
+- `to` is the `name` of an operation further down the same pipeline. The record skips the operations in between.
+  See [`punctuate`](operation-reference.md#punctuate) for which operations can be a target.
+
+The `context` can only be used during the call that received it. Keeping it, for example in a global variable, and
+calling it later raises a `RuntimeError`.
+
+#### State stores and timestamps
+
+A punctuator can use the stores listed in its own `stores` and in the `stores` of the `punctuate` operation, with
+the same methods as other functions. A write to a timestamped store without a timestamp uses the punctuation
+`timestamp`. To clear entries, collect their keys while iterating and delete them after the loop, as in the example
+below.
+
+#### Example
+
+```yaml
+functions:
+  emit_totals:
+    type: punctuator
+    stores:
+      - totals
+    code: |
+      keys = []
+      with totals.all() as entries:
+        for e in entries:
+          context.forward(e["key"], e["value"], headers=[{"key": "task", "value": context.taskId()}])
+          keys.append(e["key"])
+      for k in keys:
+        totals.delete(k)
+```
+
+A punctuator runs on the stream thread, so no records are processed while it runs. Keep it short.
+
 ### streamPartitioner
 
 Determines which partition a record should be sent to when writing to a Kafka topic. This allows custom partitioning logic based on record content, ensuring related records go to the same partition for ordered processing.
@@ -1240,6 +1313,7 @@ relationship helps you leverage Kafka Streams documentation and concepts:
 |---------------------|------------------------------------------------|------------------------------------|
 | foreignKeyExtractor | `Function<V,FK>`                               | Extract foreign key for joins      |
 | keyValueMapper      | `KeyValueMapper<K,V,VR>`                       | Convert key-value to single output |
+| punctuator          | `Punctuator`                                   | Run on a schedule and emit records |
 | valueJoiner         | `ValueJoiner`, `ValueJoinerWithKey` or `ValueJoinerWithStreamAndMappedKey`, by join type | Join values from two streams       |
 
 #### Stream Related Functions

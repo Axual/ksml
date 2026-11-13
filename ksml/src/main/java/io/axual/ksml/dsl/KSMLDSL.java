@@ -58,6 +58,7 @@ public class KSMLDSL {
         public static final String TYPE_MERGER = "merger";
         public static final String TYPE_METADATATRANSFORMER = "metadataTransformer";
         public static final String TYPE_PREDICATE = "predicate";
+        public static final String TYPE_PUNCTUATOR = "punctuator";
         public static final String TYPE_REDUCER = "reducer";
         public static final String TYPE_STREAMPARTITIONER = "streamPartitioner";
         public static final String TYPE_TIMESTAMPEXTRACTOR = "timestampExtractor";
@@ -192,6 +193,18 @@ public class KSMLDSL {
         @NoArgsConstructor(access = AccessLevel.PRIVATE)
         public static class Peek {
             public static final String FOR_EACH = "forEach";
+        }
+
+        public static final String PUNCTUATE = "punctuate";
+
+        @NoArgsConstructor(access = AccessLevel.PRIVATE)
+        public static class Punctuate {
+            public static final String INTERVAL = "interval";
+            public static final String PUNCTUATION_TYPE = "punctuationType";
+            public static final String PUNCTUATION_TYPE_WALL_CLOCK_TIME = "wallClockTime";
+            public static final String PUNCTUATION_TYPE_STREAM_TIME = "streamTime";
+            public static final String PUNCTUATOR = "punctuator";
+            public static final String STORES = "stores";
         }
 
         public static final String PRINT = "print";

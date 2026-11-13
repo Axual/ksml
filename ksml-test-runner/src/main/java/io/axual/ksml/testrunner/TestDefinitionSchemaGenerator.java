@@ -31,6 +31,7 @@ import java.lang.reflect.Type;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 
@@ -155,6 +156,14 @@ public class TestDefinitionSchemaGenerator {
         if (rawType == Long.class || rawType == long.class
                 || rawType == Integer.class || rawType == int.class) {
             return MAPPER.createObjectNode().put("type", "integer");
+        }
+        if (rawType == Duration.class) {
+            // A KSML duration: a number of milliseconds, or a string such as "30s" or "1m"
+            var schema = MAPPER.createObjectNode();
+            var anyOf = schema.putArray("anyOf");
+            anyOf.addObject().put("type", "integer");
+            anyOf.addObject().put("type", "string");
+            return schema;
         }
         if (rawType == Boolean.class || rawType == boolean.class) {
             return MAPPER.createObjectNode().put("type", "boolean");

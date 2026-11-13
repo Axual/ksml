@@ -28,7 +28,11 @@ public class DualStoreOperationConfig extends OperationConfig {
     public final StateStoreDefinition otherStore;
 
     public DualStoreOperationConfig(String name, MetricTags context, StateStoreDefinition thisStore, StateStoreDefinition otherStore) {
-        super(name, context);
+        this(name, null, context, thisStore, otherStore);
+    }
+
+    public DualStoreOperationConfig(String name, String definedName, MetricTags context, StateStoreDefinition thisStore, StateStoreDefinition otherStore) {
+        super(name, definedName, context);
         this.thisStore = thisStore;
         this.otherStore = otherStore;
     }

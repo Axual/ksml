@@ -179,7 +179,8 @@ public final class FieldParsers {
                     if (value == null)
                         throw new ParseException(node, "Empty value not allowed for enum " + schema.name());
                     if (ListUtil.find(schema.symbols(), symbol -> symbol.name().equals(value)) == null)
-                        throw new ParseException(node, "Illegal value for enum " + schema.name() + ": " + value);
+                        throw new ParseException(node, "Illegal value for enum " + schema.name() + ": " + value
+                                + ", valid values are: " + String.join(", ", schema.symbols().stream().map(EnumSchema.Symbol::name).toList()));
                     return value;
                 },
                 schema);

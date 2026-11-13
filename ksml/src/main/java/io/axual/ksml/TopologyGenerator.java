@@ -30,7 +30,7 @@ import io.axual.ksml.generator.TopologyBuildContext;
 import io.axual.ksml.generator.TopologyDefinition;
 import io.axual.ksml.operation.DualStoreOperation;
 import io.axual.ksml.operation.StoreOperation;
-import io.axual.ksml.operation.StreamOperation;
+import io.axual.ksml.operation.OperationChain;
 import io.axual.ksml.python.PythonContextConfig;
 import io.axual.ksml.stream.StreamWrapper;
 import lombok.extern.slf4j.Slf4j;
@@ -180,11 +180,10 @@ public class TopologyGenerator {
                 StreamWrapper cursor = context.getStreamWrapper(pipeline.source());
                 tsBuilder.append("%n  %s".formatted(cursor));
                 // For each operation, advance the cursor by applying the operation
-                for (StreamOperation operation : pipeline.chain()) {
+                cursor = OperationChain.apply(cursor, pipeline.chain(), context, (operation, result) -> {
                     tsBuilder.append("%n    ==> %s".formatted(operation));
-                    cursor = cursor.apply(operation, context);
-                    tsBuilder.append("%n  %s".formatted(cursor));
-                }
+                    tsBuilder.append("%n  %s".formatted(result));
+                });
                 // Finally, at the end, apply the sink operation
                 if (pipeline.sink() != null) {
                     tsBuilder.append("%n    ==> %s".formatted(pipeline.sink()));

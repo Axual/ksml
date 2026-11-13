@@ -125,6 +125,14 @@ class ErrorHandlingTest {
     }
 
     @Test
+    @DisplayName("a process handler accepts a missing record, as Kafka Streams passes for an error in a punctuation")
+    void processingWithoutRecord() {
+        errorHandling.setProcessHandler(handler(true, true, CONTINUE_ON_FAIL));
+        assertThat(errorHandling.handle(context, (Record<?, ?>) null, new RuntimeException("boom")).result())
+                .isEqualTo(ProcessingExceptionHandler.Result.RESUME);
+    }
+
+    @Test
     @DisplayName("a stop-on-fail process handler returns FAIL")
     void processingStopOnFail() {
         errorHandling.setProcessHandler(handler(false, false, STOP_ON_FAIL));

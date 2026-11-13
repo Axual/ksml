@@ -39,6 +39,11 @@ public final class PythonErrors {
         return raise("TypeError", message, null);
     }
 
+    /** Raises a Python {@code RuntimeError}: the call is not possible in the current state. */
+    public static RuntimeException runtimeError(String message) {
+        return raise("RuntimeError", message, null);
+    }
+
     /** Raises a Python {@code ValueError}: the argument has the right kind, but wrong content. */
     public static RuntimeException valueError(String message) {
         return raise("ValueError", message, null);

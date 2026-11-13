@@ -89,6 +89,10 @@ public class TestDataProducer {
                     count, block.to(), stream.topic());
             produceGeneratedMessages(block, stream, count);
         }
+        if (block.advanceWallClockTime() != null) {
+            log.debug("Advancing wall-clock time by {} after produce block to stream '{}'", block.advanceWallClockTime(), block.to());
+            driver.advanceWallClockTime(block.advanceWallClockTime());
+        }
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})

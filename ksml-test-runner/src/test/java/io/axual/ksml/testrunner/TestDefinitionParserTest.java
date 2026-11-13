@@ -237,4 +237,30 @@ class TestDefinitionParserTest {
         assertEquals("string", inputEntry.keyType());
         assertEquals("avro:SensorData", inputEntry.valueType());
     }
+
+    @Test
+    void parsesAdvanceWallClockTime() throws IOException {
+        var suite = parser.parse(resource("sample-punctuate-test.yaml"));
+        var blocks = suite.tests().get("interleaved_time_steps").produce();
+        assertEquals(java.time.Duration.ofMinutes(1), blocks.get(0).advanceWallClockTime());
+        assertNull(blocks.get(1).advanceWallClockTime());
+        // A block with only a time step has no messages
+        assertTrue(blocks.get(2).messages().isEmpty());
+        assertEquals(java.time.Duration.ofSeconds(60), blocks.get(2).advanceWallClockTime());
+    }
+
+    @Test
+    void rejectsNegativeAdvanceWallClockTime() {
+        var path = resource("advance-wall-clock-negative.yaml");
+        var e = assertThrows(TestDefinitionException.class, () -> parser.parse(path));
+        assertTrue(e.getMessage().contains("Invalid 'advanceWallClockTime' in produce block to 'input' in test 'bad_time_step'"), e.getMessage());
+        assertTrue(e.getMessage().contains("must not be negative"), e.getMessage());
+    }
+
+    @Test
+    void rejectsInvalidAdvanceWallClockTime() {
+        var path = resource("advance-wall-clock-invalid.yaml");
+        var e = assertThrows(TestDefinitionException.class, () -> parser.parse(path));
+        assertTrue(e.getMessage().contains("Invalid 'advanceWallClockTime' in produce block to 'input' in test 'bad_time_step'"), e.getMessage());
+    }
 }
