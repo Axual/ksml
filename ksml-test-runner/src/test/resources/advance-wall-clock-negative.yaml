@@ -1,0 +1,22 @@
+name: "Produce block with an negative advanceWallClockTime"
+definition: pipelines/test-passthrough.yaml
+
+streams:
+  input:
+    topic: input_topic
+    keyType: string
+    valueType: string
+  output:
+    topic: output_topic
+    keyType: string
+    valueType: string
+
+tests:
+  bad_time_step:
+    produce:
+      - to: input
+        advanceWallClockTime: -1m
+    assert:
+      - on: output
+        code: |
+          assert len(records) == 0

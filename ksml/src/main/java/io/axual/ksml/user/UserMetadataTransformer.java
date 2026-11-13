@@ -44,7 +44,7 @@ public class UserMetadataTransformer extends Invoker {
     }
 
     public RecordMetadata apply(StateStores stores, Object key, Object value, RecordMetadata metadata) {
-        final var resultMeta = function.call(stores, NATIVE_MAPPER.toDataObject(key), NATIVE_MAPPER.toDataObject(value), META_MAPPER.toDataObject(metadata));
+        final var resultMeta = function.call(UserFunction.withStores(stores), NATIVE_MAPPER.toDataObject(key), NATIVE_MAPPER.toDataObject(value), META_MAPPER.toDataObject(metadata));
         return timeExecutionOf(() -> META_MAPPER.fromDataObject(resultMeta));
     }
 }

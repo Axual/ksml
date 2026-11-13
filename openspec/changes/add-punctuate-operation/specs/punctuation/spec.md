@@ -57,7 +57,7 @@ With `punctuationType: streamTime`, the punctuator SHALL be called with the firs
 - **THEN** KSML SHALL reject the definition at startup with an error listing the valid values
 
 ### Requirement: Punctuator function type
-KSML SHALL provide a function type `punctuator`, usable inline or by name from `functions:`, with `globalCode` and custom parameters like other function types. It SHALL be called with two parameters: `timestamp`, the punctuation time in milliseconds since the epoch, and `context`, the punctuation context. It SHALL NOT return a result; records are emitted with `context.forward`.
+KSML SHALL provide a function type `punctuator`, usable inline or by name from `functions:`, with `globalCode` and custom parameters like other function types. It SHALL be called with one parameter, `timestamp`, the punctuation time in milliseconds since the epoch, and SHALL have the punctuation context available as the variable `context`, in the same way as the state stores are available by their names. It SHALL NOT return a result; records are emitted with `context.forward`.
 
 #### Scenario: Named punctuator
 - **WHEN** `functions:` defines `emit_totals` with `type: punctuator` and a `punctuate` operation sets `punctuator: emit_totals`

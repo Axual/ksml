@@ -31,7 +31,6 @@ import io.axual.ksml.exception.ExecutionException;
 import io.axual.ksml.exception.TopologyException;
 import io.axual.ksml.execution.FatalError;
 import io.axual.ksml.proxy.store.StoreIteratorProxy;
-import io.axual.ksml.store.StateStores;
 import io.axual.ksml.user.UserFunction;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.streams.processor.StateStore;
@@ -41,14 +40,27 @@ import org.graalvm.polyglot.Value;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
 
 import static io.axual.ksml.type.UserType.DEFAULT_NOTATION;
+import static io.axual.ksml.user.UserFunction.INJECT_CONTEXT;
+import static io.axual.ksml.user.UserFunction.INJECT_STORES;
 
 @Slf4j
 public class PythonFunction extends UserFunction {
     private static final Map<String, StateStore> EMPTY_STORES = new HashMap<>();
+    // The variables a call can inject, with their values when a call does not inject them. Every call sets all of
+    // them, so a function never sees the value of an earlier call.
+    private static final Map<String, Object> INJECTION_DEFAULTS = new LinkedHashMap<>();
+    // Python classes that wrap an injected object before the function sees it
+    private static final Map<String, String> INJECTION_WRAPPERS = Map.of(INJECT_CONTEXT, PythonContext.PROCESSOR_CONTEXT_CLASS);
+
+    static {
+        INJECTION_DEFAULTS.put(INJECT_STORES, EMPTY_STORES);
+        INJECTION_DEFAULTS.put(INJECT_CONTEXT, null);
+    }
     private static final PythonNativeMapper NATIVE_MAPPER = new PythonNativeMapper();
     private static final String QUOTE = "\"";
     private final DataObjectConverter converter;
@@ -92,7 +104,7 @@ public class PythonFunction extends UserFunction {
     }
 
     @Override
-    public DataObject call(StateStores stores, DataObject... parameters) {
+    public DataObject call(Map<String, Object> injections, DataObject... parameters) {
         // Validate that the defined parameter list matches the amount of passed in parameters
         if (this.fixedParameterCount > parameters.length) {
             throw new TopologyException("Function %s.%s - parameter list does not match function spec: minimally expected %d, got %d".formatted(namespace, name, this.parameters.length, parameters.length));
@@ -110,9 +122,13 @@ public class PythonFunction extends UserFunction {
             }
         }
 
-        // Check all parameters and copy them into the interpreter as prefixed globals
-        var globalVars = new HashMap<String, Object>();
-        globalVars.put("stores", stores != null ? stores : EMPTY_STORES);
+        // Set every injectable variable, to the injected value or to its default
+        final var globalVars = new HashMap<>(INJECTION_DEFAULTS);
+        injections.forEach((variable, value) -> {
+            if (!INJECTION_DEFAULTS.containsKey(variable))
+                throw new ExecutionException("Python function %s.%s - can not inject unknown variable '%s'".formatted(namespace, name, variable));
+            globalVars.put(variable, value != null ? value : INJECTION_DEFAULTS.get(variable));
+        });
         var arguments = convertParameters(globalVars, parameters);
 
         final int iteratorMark = StoreIteratorProxy.beginCall();
@@ -176,14 +192,15 @@ public class PythonFunction extends UserFunction {
         final var assignStores = definition.storeNames().stream()
                 .map(storeName -> "  " + storeName + " = stores[\"" + storeName + "\"]\n")
                 .collect(Collectors.joining());
-        // Code to copy / initialize all global variables
-        final var includeGlobals = """
-                  global stores
-                """;
+        // Code to copy / initialize the injected variables, which are globals
+        final var includeGlobals = "  global " + String.join(", ", INJECTION_DEFAULTS.keySet()) + "\n";
         // globalVars is now pre-converted to Python dict by PythonTypeConverter in Java
-        final var initializeGlobals = """
-                  stores = globalVars["stores"]
-                """;
+        final var initializeGlobals = INJECTION_DEFAULTS.keySet().stream()
+                .map(variable -> "  " + variable + " = " + injectedValue(variable) + "\n")
+                .collect(Collectors.joining());
+        final var declareGlobals = INJECTION_DEFAULTS.keySet().stream()
+                .map(variable -> variable + " = None\n")
+                .collect(Collectors.joining());
         // Code to initialize optional parameters with default values
         final var initializeOptionalParams = Arrays.stream(definition.parameters())
                 .filter(ParameterDefinition::isOptional)
@@ -210,10 +227,17 @@ public class PythonFunction extends UserFunction {
         // Prepare the actual caller for the code
         // Parameters are now pre-converted to Python types by PythonTypeConverter in Java
         // Return value is passed as-is; PythonDataObjectMapper handles GraalVM Value conversion
+        // The caller restores the injected variables when it returns: a call can run while another one is busy, for
+        // example a filter after a punctuator calls context.forward, and must not leave its values to the outer call
+        final var injectedVariables = String.join(", ", INJECTION_DEFAULTS.keySet());
         final var pyCallerCode = "def " + name + "_caller(globalVars," + String.join(",", defParams) + "):\n" +
                 includeGlobals +
+                "  previous = (" + injectedVariables + ",)\n" +
                 initializeGlobals +
-                "  return " + name + "(" + String.join(",", callParams) + ")\n";
+                "  try:\n" +
+                "    return " + name + "(" + String.join(",", callParams) + ")\n" +
+                "  finally:\n" +
+                "    " + injectedVariables + ", = previous\n";
 
         // Python code template - no longer needs convert_to_python/convert_from_python
         // as Java-side PythonTypeConverter handles all collection conversion
@@ -221,8 +245,7 @@ public class PythonFunction extends UserFunction {
                 """
                         import polyglot
                         
-                        stores = None
-                        
+                        %4$s
                         # global Python code goes here (first argument)
                         %1$s
                         
@@ -234,7 +257,14 @@ public class PythonFunction extends UserFunction {
                         %3$s
                         """;
 
-        return pythonCodeTemplate.formatted(globalCode, functionAndExpression, pyCallerCode);
+        return pythonCodeTemplate.formatted(globalCode, functionAndExpression, pyCallerCode, declareGlobals);
+    }
+
+    /** The Python expression for an injected variable: the injected object, wrapped when it has a wrapper class. */
+    private static String injectedValue(String variable) {
+        final var value = "globalVars[\"" + variable + "\"]";
+        final var wrapper = INJECTION_WRAPPERS.get(variable);
+        return wrapper != null ? wrapper + "(" + value + ") if " + value + " is not None else None" : value;
     }
 
     private static String[] getFunctionCode(String[] code, String spaces) {

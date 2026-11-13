@@ -31,16 +31,20 @@ import io.axual.ksml.exception.ExecutionException;
 import io.axual.ksml.exception.TopologyException;
 import io.axual.ksml.store.StateStores;
 import io.axual.ksml.type.UserType;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.streams.KeyValue;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
+@Slf4j
 public class UserFunction {
-    private static final Logger LOG = LoggerFactory.getLogger(UserFunction.class);
-    private static final String[] TEMPLATE = new String[]{};
+    /** Injects the state stores of the call; the function's code reads each store by its name. */
+    public static final String INJECT_STORES = "stores";
+    /** Injects the Kafka Streams context of the call, such as the punctuation context. */
+    public static final String INJECT_CONTEXT = "context";
+    private static final String[] TEMPLATE = {};
     public final String name;
     public final String namespace;
     public final ParameterDefinition[] parameters;
@@ -65,7 +69,7 @@ public class UserFunction {
         this.fixedParameterCount = getFixedParameterCount(parameters);
         this.resultType = resultType;
         this.storeNames = storeNames != null ? storeNames : TEMPLATE;
-        LOG.info("Registered function '{}'", this);
+        log.info("Registered function '{}'", this);
     }
 
     @Override
@@ -115,17 +119,17 @@ public class UserFunction {
 
     protected void logCall(DataObject[] parameters, Object result) {
         // Log the called function in debug
-        if (LOG.isDebugEnabled()) {
+        if (log.isDebugEnabled()) {
             // Check all parameters and copy them into the interpreter as prefixed globals
             StringBuilder paramsAndValues = new StringBuilder();
             for (int index = 0; index < parameters.length; index++) {
-                paramsAndValues.append(!paramsAndValues.isEmpty() ? ", " : "");
+                paramsAndValues.append(paramsAndValues.isEmpty() ? "" : ", ");
                 paramsAndValues.append(this.parameters[index].name()).append("=").append(parameters[index] != null ? parameters[index].toString(DataObject.Printer.EXTERNAL_ALL_SCHEMA) : "null");
             }
             if (result != null) {
-                LOG.debug("User function {}.{}({}) returned {}", namespace, name, paramsAndValues, result);
+                log.debug("User function {}.{}({}) returned {}", namespace, name, paramsAndValues, result);
             } else {
-                LOG.debug("User function {}.{}({}) called", namespace, name, paramsAndValues);
+                log.debug("User function {}.{}({}) called", namespace, name, paramsAndValues);
             }
         }
     }
@@ -133,15 +137,22 @@ public class UserFunction {
     /**
      * Call the user-defined function and return the result.
      *
+     * @param injections variables to make available to the function's code, by name, such as {@link #INJECT_STORES}
+     *                   and {@link #INJECT_CONTEXT}; a name that is not given gets its default value.
      * @param parameters parameters for the function.
      * @return the result of the call.
      */
-    public DataObject call(StateStores stores, DataObject... parameters) {
+    public DataObject call(Map<String, Object> injections, DataObject... parameters) {
         throw new ExecutionException("Can not call the call() method of the UserFunction %s.%s directly. Override this class and the call() method.".formatted(namespace, name));
     }
 
     public final DataObject call(DataObject... parameters) {
-        return call(null, parameters);
+        return call(Map.of(), parameters);
+    }
+
+    /** The injections for a call that has access to these state stores, or to none when {@code stores} is null. */
+    public static Map<String, Object> withStores(StateStores stores) {
+        return stores != null ? Map.of(INJECT_STORES, stores) : Map.of();
     }
 
     /** Returns the (key, value) result as a KeyValue. A None key or value becomes null, as Kafka Streams needs. */

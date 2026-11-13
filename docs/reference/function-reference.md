@@ -940,10 +940,13 @@ Runs on a schedule, set by a [`punctuate`](operation-reference.md#punctuate) ope
 
 #### Parameters
 
-| Parameter | Type    | Description                                                                 |
-|-----------|---------|-----------------------------------------------------------------------------|
-| timestamp | long    | The punctuation time, in milliseconds since the epoch                       |
-| context   | context | The punctuation context, used to forward records (see the methods below)    |
+| Parameter | Type | Description                                           |
+|-----------|------|-------------------------------------------------------|
+| timestamp | long | The punctuation time, in milliseconds since the epoch |
+
+The punctuation context is available in the code as the variable `context`, like the state stores are available by
+their names. It is used to forward records (see the methods below). Do not use `context` as the name of a global
+variable or a store in a punctuator: KSML sets it on every call.
 
 #### Return Value
 

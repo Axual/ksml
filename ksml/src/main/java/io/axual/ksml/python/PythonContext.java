@@ -56,6 +56,7 @@ public class PythonContext implements AutoCloseable {
             "io.axual.ksml.proxy.metric.CounterBridge",
             "io.axual.ksml.proxy.metric.MeterBridge",
             "io.axual.ksml.proxy.metric.TimerBridge",
+            "io.axual.ksml.proxy.context.ProcessorContextProxy",
             "io.axual.ksml.proxy.store.KeyValueStoreProxy",
             "io.axual.ksml.proxy.store.SessionStoreProxy",
             "io.axual.ksml.proxy.store.WindowStoreProxy",
@@ -137,8 +138,12 @@ public class PythonContext implements AutoCloseable {
         return context.getPolyglotBindings().getMember(callerName);
     }
 
+    /** The Python class that wraps a {@link io.axual.ksml.proxy.context.ProcessorContextProxy} as {@code context}. */
+    public static final String PROCESSOR_CONTEXT_CLASS = "KSMLProcessorContext";
+
     /**
-     * Register global code that is used to initialize the loggerBridge and metricsBridge variables.
+     * Register global code that is used to initialize the loggerBridge and metricsBridge variables, and the Python
+     * class that wraps the processor context.
      */
     public void registerGlobalCode() {
         // The following code registers a global variables "loggerBridge" and "metricsBridge" inside the Python
@@ -155,7 +160,36 @@ public class PythonContext implements AutoCloseable {
                   loggerBridge = lb
                   global metrics
                   metrics = mb
-                """;
+                
+                # GraalPy passes no keyword arguments to Java methods, so this class takes them and calls the
+                # ProcessorContextProxy by position. It only offers the methods below.
+                class %1$s:
+                  __slots__ = ("_proxy",)
+                
+                  def __init__(self, proxy):
+                    object.__setattr__(self, "_proxy", proxy)
+                
+                  def __setattr__(self, name, value):
+                    raise AttributeError("The context is read-only")
+                
+                  def forward(self, key, value, timestamp=None, headers=None, to=None):
+                    self._proxy.forward(key, value, timestamp, headers, to)
+                
+                  def commit(self):
+                    self._proxy.commit()
+                
+                  def currentSystemTimeMs(self):
+                    return self._proxy.currentSystemTimeMs()
+                
+                  def currentStreamTimeMs(self):
+                    return self._proxy.currentStreamTimeMs()
+                
+                  def applicationId(self):
+                    return self._proxy.applicationId()
+                
+                  def taskId(self):
+                    return self._proxy.taskId()
+                """.formatted(PROCESSOR_CONTEXT_CLASS);
         final var register = registerFunction(pyCode, "register_ksml_bridges");
         if (register == null) {
             throw new ExecutionException("Could not register global code for loggerBridge:\n" + pyCode);

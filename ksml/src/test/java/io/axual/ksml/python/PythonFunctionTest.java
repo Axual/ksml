@@ -34,6 +34,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class PythonFunctionTest {
     @BeforeAll
@@ -139,5 +140,17 @@ class PythonFunctionTest {
         assertThat(resultNullKeyValue).isInstanceOf(DataString.class);
         assertThat(((DataString) resultNullKeyValue).value()).isEqualTo(expectedResultNullKeyValue);
 
+    }
+
+    @Test
+    void injectedVariablesDefaultToNoneAndUnknownNamesAreRejected() {
+        final var stringType = new UserType(UserType.DEFAULT_NOTATION, DataString.DATATYPE);
+        final var definition = FunctionDefinition.as(KSMLDSL.Functions.TYPE_GENERIC, "injected", new ParameterDefinition[0], PythonSource.of(null, null, "str(context)"), stringType, null);
+        final var function = PythonFunction.forFunction(context, "test", "injected", definition);
+
+        assertThat(function.call()).isEqualTo(new DataString("None"));
+        assertThatThrownBy(() -> function.call(java.util.Map.of("unknown", 1)))
+                .isInstanceOf(io.axual.ksml.exception.ExecutionException.class)
+                .hasMessageContaining("can not inject unknown variable 'unknown'");
     }
 }

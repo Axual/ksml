@@ -21,10 +21,10 @@ package io.axual.ksml.user;
  */
 
 import io.axual.ksml.data.object.DataObject;
-import io.axual.ksml.store.StateStores;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static io.axual.ksml.user.UserTestSupport.params;
@@ -40,7 +40,7 @@ class UserForeachActionTest {
         final var invoked = new AtomicBoolean(false);
         final var function = new UserFunction("ns", "fn", params(2), null, (String[]) null) {
             @Override
-            public DataObject call(StateStores stores, DataObject... parameters) {
+            public DataObject call(Map<String, Object> injections, DataObject... parameters) {
                 invoked.set(true);
                 return null;
             }

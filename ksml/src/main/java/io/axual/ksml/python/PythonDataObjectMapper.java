@@ -25,7 +25,6 @@ import io.axual.ksml.data.object.DataNull;
 import io.axual.ksml.data.object.DataObject;
 import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.data.type.UnionType;
-import io.axual.ksml.proxy.base.DataProxy;
 import io.axual.ksml.util.ExecutionUtil;
 import org.graalvm.polyglot.Context;
 import org.graalvm.polyglot.Value;
@@ -83,7 +82,6 @@ public class PythonDataObjectMapper extends NativeDataObjectMapperWithSchema {
 
     @Override
     public Value fromDataObject(DataObject object) {
-        if (object instanceof DataProxy dataProxy) return Value.asValue(dataProxy.proxy());
         final var nativeValue = super.fromDataObject(object);
         return context != null
                 ? NATIVE_MAPPER.toRealPythonValue(context, nativeValue)

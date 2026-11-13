@@ -43,7 +43,6 @@ import io.axual.ksml.definition.ParameterDefinition;
 import io.axual.ksml.definition.ProducerDefinition;
 import io.axual.ksml.execution.ExecutionContext;
 import io.axual.ksml.metric.MetricTags;
-import io.axual.ksml.store.StateStores;
 import io.axual.ksml.type.UserType;
 import io.axual.ksml.user.UserFunction;
 import io.axual.ksml.user.UserGenerator;
@@ -260,7 +259,7 @@ class ExecutableProducerTest {
         final var generatorResultType = new UserType(UserGenerator.EXPECTED_RESULT_TYPE);
         return new UserFunction("ns", "gen", new ParameterDefinition[0], generatorResultType, List.of()) {
             @Override
-            public DataObject call(StateStores stores, DataObject... parameters) {
+            public DataObject call(Map<String, Object> injections, DataObject... parameters) {
                 return result;
             }
         };
@@ -312,7 +311,7 @@ class ExecutableProducerTest {
         };
         return new UserFunction("ns", "partitioner", params, resultType, List.of()) {
             @Override
-            public DataObject call(StateStores stores, DataObject... parameters) {
+            public DataObject call(Map<String, Object> injections, DataObject... parameters) {
                 return result;
             }
         };
@@ -364,7 +363,7 @@ class ExecutableProducerTest {
         };
         final var partitioner = new UserFunction("ns", "partitioner", params, new UserType(UserStreamPartitioner.EXPECTED_RESULT_TYPE), List.of()) {
             @Override
-            public DataObject call(StateStores stores, DataObject... parameters) {
+            public DataObject call(Map<String, Object> injections, DataObject... parameters) {
                 seenHeaders.set(parameters[3]);
                 return new DataInteger(1);
             }

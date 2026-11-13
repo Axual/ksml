@@ -50,7 +50,6 @@ public class DefinitionConstants {
     public static final String PARAM_RECORD = "record";
     public static final String PARAM_PREVIOUS_TIMESTAMP = "previousTimestamp";
     public static final String PARAM_TIMESTAMP = "timestamp";
-    public static final String PARAM_CONTEXT = "context";
     public static final DataType CONSUMER_RECORD_TYPE = new StructType(CONSUMER_RECORD_SCHEMA);
 
     private DefinitionConstants() {
@@ -93,9 +92,9 @@ public class DefinitionConstants {
     protected static final ParameterDefinition[] TWO_VALUE_PARAMETERS = new ParameterDefinition[]{
             new ParameterDefinition(PARAM_VALUE1, DataType.UNKNOWN),
             new ParameterDefinition(PARAM_VALUE2, DataType.UNKNOWN)};
+    // The punctuation context is not a parameter: it is injected as the variable "context"
     protected static final ParameterDefinition[] PUNCTUATOR_PARAMETERS = new ParameterDefinition[]{
-            new ParameterDefinition(PARAM_TIMESTAMP, DataLong.DATATYPE),
-            new ParameterDefinition(PARAM_CONTEXT, DataType.UNKNOWN)};
+            new ParameterDefinition(PARAM_TIMESTAMP, DataLong.DATATYPE)};
     protected static final ParameterDefinition[] TIMESTAMP_EXTRACTOR_PARAMETERS = new ParameterDefinition[]{
             new ParameterDefinition(PARAM_RECORD, CONSUMER_RECORD_TYPE),
             new ParameterDefinition(PARAM_PREVIOUS_TIMESTAMP, DataLong.DATATYPE)};
