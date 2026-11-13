@@ -75,7 +75,7 @@ The two types behave very differently: wall-clock runs without input, stream tim
 
 **D6 — A `context` proxy with an allow-list of methods.**
 A new `ProcessorContextProxy` in `io.axual.ksml.proxy.context` wraps the `ProcessorContext`. Only the methods listed below are reachable from Python, so anything else is invisible.
-*Implementation note:* GraalPy does not pass Python keyword arguments to Java methods, so `@HostAccess.Export` methods can not offer `forward(..., timestamp=..., to=...)`. The proxy is a GraalVM `ProxyObject` with a fixed member map, like `StoreIteratorProxy`; `forward` is a small Python lambda, created once per Python context, that passes the keyword arguments on by position. The proxy reaches the function as an injected variable (see D7).
+*Implementation note:* like every proxy, `ProcessorContextProxy` is listed in the allowed classes of `PythonContext`, and only its `@HostAccess.Export` methods are reachable from Python. GraalPy does not pass Python keyword arguments to Java methods, so Python code does not see the proxy directly: `PythonContext` defines a Python class `KSMLProcessorContext` in its global code, with the same methods, that takes `forward(..., timestamp=None, headers=None, to=None)` and calls the proxy by position. The exported `forward` takes polyglot `Value`s, so the key and value convert exactly like a function result. The proxy reaches the function as an injected variable, wrapped in that class (see D7).
 
 | Python method | Maps to | Notes |
 |---|---|---|

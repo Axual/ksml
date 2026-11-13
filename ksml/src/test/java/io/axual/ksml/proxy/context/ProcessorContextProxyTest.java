@@ -172,7 +172,9 @@ class ProcessorContextProxyTest {
     @Test
     @DisplayName("forward raises TypeError when the key does not fit")
     void forwardWrongKeyType() {
-        assertThat(python(proxy(), "context.forward(1.5, 10)")).startsWith("TypeError: forward key for the next operation must be");
+        final var longKeys = new ProcessorContextProxy.Target("main", LONG, LONG);
+        assertThat(python(new ProcessorContextProxy(context, PUNCTUATION_TIME, longKeys, Map.of()), "context.forward('k', 10)"))
+                .startsWith("TypeError: forward key for the next operation must be");
     }
 
     @Test
@@ -255,5 +257,13 @@ class ProcessorContextProxyTest {
         assertThatThrownBy(() -> proxy.forward("a", "ten", null, null, null)).isInstanceOf(DataException.class);
         proxy.invalidate();
         assertThatThrownBy(proxy::taskId).isInstanceOf(DataException.class).hasMessageContaining("no longer valid");
+    }
+
+    @Test
+    @DisplayName("forward converts a Python float with a fraction to a double value")
+    void forwardDouble() {
+        final var doubles = new ProcessorContextProxy.Target("main", STRING, new UserType(io.axual.ksml.data.object.DataDouble.DATATYPE));
+        assertThat(python(new ProcessorContextProxy(context, PUNCTUATION_TIME, doubles, Map.of()), "context.forward('a', 1.5)")).isEqualTo("None");
+        assertThat(forwarded("main").value()).isEqualTo(new io.axual.ksml.data.object.DataDouble(1.5));
     }
 }

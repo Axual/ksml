@@ -108,8 +108,10 @@ public class PythonNativeMapper {
                 final var result = polyglotExpectedNumberToNative(expected, object);
                 if (result != null) return result;
             }
-            // Return a long by default
-            return object.asLong();
+            // Without a numeric expected type, read an int as a long and a float as a double. An int too
+            // large for a long fits in a double too, but would lose precision, so asLong() rejects it.
+            if (object.fitsInLong() || object.fitsInBigInteger()) return object.asLong();
+            return object.asDouble();
         } catch (ClassCastException | UnsupportedOperationException e) {
             throw new DataException("Python value " + object + " does not fit in expected type "
                     + (expected != null ? expected : DataLong.DATATYPE), e);
@@ -126,7 +128,9 @@ public class PythonNativeMapper {
         if (expected == DataShort.DATATYPE) return object.asShort();
         if (expected == DataInteger.DATATYPE) return object.asInt();
         if (expected == DataLong.DATATYPE) return object.asLong();
-        if (expected == DataFloat.DATATYPE) return object.asFloat();
+        // asFloat() rejects any double that a float can not hold exactly, such as 3.14
+        if (expected == DataFloat.DATATYPE)
+            return object.fitsInFloat() ? object.asFloat() : NumericRangeChecker.convertDoubleToFloat(object.asDouble());
         if (expected == DataDouble.DATATYPE) return object.asDouble();
         return null;
     }

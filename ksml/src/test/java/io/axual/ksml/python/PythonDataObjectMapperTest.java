@@ -44,6 +44,7 @@ import io.axual.ksml.data.object.DataStruct;
 import io.axual.ksml.data.object.DataTuple;
 import io.axual.ksml.data.schema.DataSchema;
 import io.axual.ksml.data.schema.StructSchema;
+import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.data.type.ListType;
 import io.axual.ksml.data.type.MapType;
 import io.axual.ksml.data.type.StructType;
@@ -148,11 +149,68 @@ class PythonDataObjectMapperTest {
     @Test
     @DisplayName("toDataObject - Float")
     void toDataObjectFloat() {
-        Value val = context.eval("python", "3.0");
-        // Using 3.0 instead of 3.14 to ensure it fits exactly in a float and avoid GraalVM coercion errors
+        Value val = context.eval("python", "3.14");
         DataObject result = mapper.toDataObject(DataFloat.DATATYPE, val);
         assertThat(result).isInstanceOf(DataFloat.class);
-        assertThat(((DataFloat) result).value()).isCloseTo(3.0f, org.assertj.core.data.Offset.offset(0.001f));
+        assertThat(((DataFloat) result).value()).isCloseTo(3.14f, org.assertj.core.data.Offset.offset(0.001f));
+    }
+
+    @Test
+    @DisplayName("toDataObject - a Python float with a fraction converts to the expected double")
+    void toDataObjectDouble() {
+        assertThat(mapper.toDataObject(DataDouble.DATATYPE, context.eval("python", "1.5"))).isEqualTo(new DataDouble(1.5));
+        // A Python int is a valid double too
+        assertThat(mapper.toDataObject(DataDouble.DATATYPE, context.eval("python", "2"))).isEqualTo(new DataDouble(2.0));
+    }
+
+    @Test
+    @DisplayName("toDataObject - without an expected type, a Python float becomes a double and an int a long")
+    void toDataObjectNumberWithoutExpectedType() {
+        assertThat(mapper.toDataObject(null, context.eval("python", "1.5"))).isEqualTo(new DataDouble(1.5));
+        assertThat(mapper.toDataObject(DataType.UNKNOWN, context.eval("python", "1.5"))).isEqualTo(new DataDouble(1.5));
+        assertThat(mapper.toDataObject(null, context.eval("python", "7"))).isEqualTo(new DataLong(7L));
+    }
+
+    @Test
+    @DisplayName("toDataObject - floats inside a list convert to the list's value type")
+    void toDataObjectListOfFloats() {
+        final var result = mapper.toDataObject(new ListType(DataDouble.DATATYPE), context.eval("python", "[1.5, 2]"));
+        assertThat(result).isInstanceOf(DataList.class);
+        assertThat(((DataList) result).get(0)).isEqualTo(new DataDouble(1.5));
+        assertThat(((DataList) result).get(1)).isEqualTo(new DataDouble(2.0));
+    }
+
+    @Test
+    @DisplayName("toDataObject - a tuple converts each element to its expected type, also None and floats")
+    void toDataObjectTupleWithExpectedTypes() {
+        final var expected = new TupleType(DataString.DATATYPE, DataDouble.DATATYPE);
+        final var result = mapper.toDataObject(expected, context.eval("python", "(None, 1.5)"));
+        assertThat(result).isInstanceOf(DataTuple.class);
+        assertThat(expected.isAssignableFrom(result).isAssignable()).isTrue();
+        assertThat(((DataTuple) result).elements().get(1)).isEqualTo(new DataDouble(1.5));
+    }
+
+    @Test
+    @DisplayName("toDataObject - a float in a union converts to the matching member")
+    void toDataObjectFloatInUnion() {
+        final var union = new UnionType(new UnionType.Member(DataNull.DATATYPE), new UnionType.Member(DataDouble.DATATYPE));
+        assertThat(mapper.toDataObject(union, context.eval("python", "1.5"))).isEqualTo(new DataDouble(1.5));
+    }
+
+    @Test
+    @DisplayName("toDataObject - numbers that do not fit fail loudly")
+    void toDataObjectNumberThatDoesNotFit() {
+        final var fraction = context.eval("python", "1.5");
+        assertThatCode(() -> mapper.toDataObject(DataLong.DATATYPE, fraction))
+                .isInstanceOf(DataException.class)
+                .hasMessageContaining("1.5");
+        // An int too large for a long is not silently turned into a double
+        final var hugeInt = context.eval("python", "2**70");
+        assertThatCode(() -> mapper.toDataObject(null, hugeInt))
+                .isInstanceOf(DataException.class)
+                .hasMessageContaining("1180591620717411303424");
+        final var hugeFloat = context.eval("python", "1e300");
+        assertThatCode(() -> mapper.toDataObject(DataFloat.DATATYPE, hugeFloat)).isInstanceOf(DataException.class);
     }
 
     @Test
@@ -218,15 +276,13 @@ class PythonDataObjectMapperTest {
     }
 
     @Test
-    @DisplayName("PythonDataObjectMapper.toDataObject(DataByte, Value(300)) is caught by the Native narrowing check")
-    void toDataObject_overflowCaughtAtNarrowingLayer() {
-        // The PythonDataObjectMapper path discards the expected type when calling fromPython, so a
-        // Python int 300 → Long(300) survives that step but is then rejected by
-        // NativeDataObjectMapper's narrowing check when constructing a DataByte.
+    @DisplayName("PythonDataObjectMapper.toDataObject(DataByte, Value(300)) fails when reading the Python value")
+    void toDataObject_overflowCaughtWhenReadingPythonValue() {
+        // The expected type is passed on to fromPython, so the Python int 300 is rejected when it is read as a byte
         Value val = context.eval("python", "300");
         assertThatCode(() -> mapper.toDataObject(DataByte.DATATYPE, val))
                 .isInstanceOf(DataException.class)
-                .hasMessageContaining("exceeds BYTE range");
+                .hasMessageContaining("300 does not fit in expected type byte");
     }
 
     @Test

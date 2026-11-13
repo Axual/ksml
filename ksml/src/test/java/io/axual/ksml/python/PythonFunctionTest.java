@@ -153,4 +153,12 @@ class PythonFunctionTest {
                 .isInstanceOf(io.axual.ksml.exception.ExecutionException.class)
                 .hasMessageContaining("can not inject unknown variable 'unknown'");
     }
+
+    @Test
+    void returnsFloatsWithAFraction() {
+        final var doubleType = new UserType(UserType.DEFAULT_NOTATION, io.axual.ksml.data.object.DataDouble.DATATYPE);
+        final var definition = FunctionDefinition.as(KSMLDSL.Functions.TYPE_GENERIC, "half", new ParameterDefinition[0], PythonSource.of(null, null, "1.5"), doubleType, null);
+        final var function = PythonFunction.forFunction(context, "test", "half", definition);
+        assertThat(function.call()).isEqualTo(new io.axual.ksml.data.object.DataDouble(1.5));
+    }
 }
