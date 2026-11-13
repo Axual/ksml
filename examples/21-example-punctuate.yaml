@@ -51,10 +51,14 @@ pipelines:
   sum_sensor_values:
     from: sensor_source_avro
     via:
+      # STATE sensors report "on" or "off", which cannot be summed
+      - type: filter
+        if:
+          expression: value is not None and value["type"] != "STATE"
       # The punctuator forwards doubles, so the stream at the punctuate operation must carry doubles too
       - type: transformValue
         mapper:
-          expression: float(value["value"]) if value is not None else None
+          expression: float(value["value"])
           resultType: double
       - type: peek
         forEach: add_to_total

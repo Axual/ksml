@@ -33,7 +33,7 @@
 - [x] 5.1 Add `examples/21-example-punctuate.yaml` that sums values per key in a store and emits and clears the totals every minute, and add it to `ExampleTopologyTest`; verify that the example test passes
 - [x] 5.2 Add an entry to `docs/release-notes.md`
 - [x] 5.3 Run `mvn clean install` for the whole project, including the coverage gates, and verify that it passes
-- [ ] 5.4 Run the example with `docker compose` and the locally built image, and verify in the output topic that totals are emitted every minute also when no new records arrive
+- [x] 5.4 Run the example with `docker compose` and the locally built image, and verify in the output topic that totals are emitted every minute also when no new records arrive
 
 ## Workflow follow-up
 
