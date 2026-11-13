@@ -84,8 +84,8 @@ class UserPunctuatorTest {
     }
 
     private static UserPunctuator punctuator(String... code) {
-        final var function = FunctionDefinition.as(KSMLDSL.Functions.TYPE_PUNCTUATOR, "emit", new ParameterDefinition[0], PythonSource.of(new String[0], code, new String[0]), null, null);
-        final var definition = new PunctuatorDefinition(function);
+        final var function = FunctionDefinition.as(KSMLDSL.Functions.TYPE_PUNCTUATOR, "emit", new ParameterDefinition[0], PythonSource.of(new String[0], code, new String[0]), null, null, null);
+        final var definition = new PunctuatorDefinition(function).withInjectedParameter(ProcessorContextProxy.INJECT_CONTEXT);
         return new UserPunctuator(PythonFunction.forFunction(pythonContext, "test", "emit", definition), tags());
     }
 
@@ -97,7 +97,7 @@ class UserPunctuatorTest {
     @DisplayName("the punctuator gets the timestamp and the context, and forwards records in call order")
     void forwards() {
         final var punctuator = punctuator("context.forward('a', timestamp)", "context.forward('b', timestamp + 1)");
-        punctuator.apply(null, 1000L, proxy());
+        punctuator.apply(null, proxy(), 1000L);
         @SuppressWarnings("unchecked") final ArgumentCaptor<Record<Object, Object>> captor = ArgumentCaptor.forClass(Record.class);
         verify(context, times(2)).forward(captor.capture(), eq("main"));
         assertThat(captor.getAllValues()).extracting(Record::key, Record::value)
@@ -111,8 +111,8 @@ class UserPunctuatorTest {
     @DisplayName("a returned value is not forwarded, and a warning is logged once")
     void returnedValue() {
         final var punctuator = punctuator("return ('a', 1)");
-        punctuator.apply(null, 1000L, proxy());
-        punctuator.apply(null, 2000L, proxy());
+        punctuator.apply(null, proxy(), 1000L);
+        punctuator.apply(null, proxy(), 2000L);
         assertThat(punctuator.warnedAboutResult()).isTrue();
         verifyNoInteractions(context);
     }
@@ -122,7 +122,7 @@ class UserPunctuatorTest {
     void raises() {
         final var punctuator = punctuator("context.forward('a', 1)", "raise ValueError('boom')");
         final var proxy = proxy();
-        assertThatThrownBy(() -> punctuator.apply(null, 1000L, proxy))
+        assertThatThrownBy(() -> punctuator.apply(null, proxy, 1000L))
                 .isInstanceOf(RuntimeException.class)
                 .hasMessageContaining("ValueError: boom");
         verify(context).forward(any(Record.class), eq("main"));
@@ -131,7 +131,7 @@ class UserPunctuatorTest {
     @Test
     @DisplayName("a function with more than two required parameters can not be a punctuator")
     void tooManyParameters() {
-        final var function = new UserFunction("ns", "fn", UserTestSupport.params(3), null, (String[]) null);
+        final var function = new UserFunction("ns", "fn", UserTestSupport.params(3), null, null, (String[]) null);
         final var tags = tags();
         assertThatThrownBy(() -> new UserPunctuator(function, tags)).isInstanceOf(TopologyException.class);
     }

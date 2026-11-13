@@ -35,28 +35,30 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.streams.KeyValue;
 
 import java.util.Arrays;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
 @Slf4j
 public class UserFunction {
-    /** Injects the state stores of the call; the function's code reads each store by its name. */
+    /**
+     * Injects the state stores of the call; the function's code reads each store by its name.
+     */
     public static final String INJECT_STORES = "stores";
-    /** Injects the Kafka Streams context of the call, such as the punctuation context. */
-    public static final String INJECT_CONTEXT = "context";
     private static final String[] TEMPLATE = {};
     public final String name;
     public final String namespace;
     public final ParameterDefinition[] parameters;
     public final int fixedParameterCount;
     public final UserType resultType;
+    public final List<String> injectedVariableNames = new LinkedList<>();
     public final String[] storeNames;
 
-    public UserFunction(String namespace, String name, ParameterDefinition[] parameters, UserType resultType, List<String> storeNames) {
-        this(namespace, name, parameters, resultType, storeNames != null ? storeNames.toArray(TEMPLATE) : TEMPLATE);
+    public UserFunction(String namespace, String name, ParameterDefinition[] parameters, UserType resultType, List<String> injectedVariableNames, List<String> storeNames) {
+        this(namespace, name, parameters, resultType, injectedVariableNames, storeNames != null ? storeNames.toArray(TEMPLATE) : TEMPLATE);
     }
 
-    public UserFunction(String namespace, String name, ParameterDefinition[] parameters, UserType resultType, String[] storeNames) {
+    public UserFunction(String namespace, String name, ParameterDefinition[] parameters, UserType resultType, List<String> injectedVariableNames, String[] storeNames) {
         if (namespace == null) {
             throw new TopologyException("Function namespace can not be null");
         }
@@ -68,8 +70,22 @@ public class UserFunction {
         this.parameters = parameters;
         this.fixedParameterCount = getFixedParameterCount(parameters);
         this.resultType = resultType;
+        if (storeNames != null && storeNames.length > 0)
+            this.injectedVariableNames.add(INJECT_STORES);
+        if (injectedVariableNames != null)
+            injectedVariableNames.stream()
+                    .filter(variable -> !this.injectedVariableNames.contains(variable))
+                    .forEach(this.injectedVariableNames::add);
         this.storeNames = storeNames != null ? storeNames : TEMPLATE;
         log.info("Registered function '{}'", this);
+    }
+
+    /**
+     * The injections for a call that has access to these state stores. They are left out when {@code stores} is null
+     * or the function does not use state stores.
+     */
+    public Map<String, Object> withStores(StateStores stores) {
+        return stores != null && injectedVariableNames.contains(INJECT_STORES) ? Map.of(INJECT_STORES, stores) : Map.of();
     }
 
     @Override
@@ -104,7 +120,8 @@ public class UserFunction {
     }
 
     protected void checkType(DataType expected, DataObject value) {
-        if (value instanceof DataNull) return;
+        if (value instanceof DataNull)
+            return;
         if (expected != null && value != null) {
             final var assignable = expected.isAssignableFrom(value.type());
             if (assignable.isNotAssignable()) {
@@ -138,7 +155,7 @@ public class UserFunction {
      * Call the user-defined function and return the result.
      *
      * @param injections variables to make available to the function's code, by name, such as {@link #INJECT_STORES}
-     *                   and {@link #INJECT_CONTEXT}; a name that is not given gets its default value.
+     *                   and {@link io.axual.ksml.proxy.context.ProcessorContextProxy#INJECT_CONTEXT}; a name that is not given gets its default value.
      * @param parameters parameters for the function.
      * @return the result of the call.
      */
@@ -150,12 +167,9 @@ public class UserFunction {
         return call(Map.of(), parameters);
     }
 
-    /** The injections for a call that has access to these state stores, or to none when {@code stores} is null. */
-    public static Map<String, Object> withStores(StateStores stores) {
-        return stores != null ? Map.of(INJECT_STORES, stores) : Map.of();
-    }
-
-    /** Returns the (key, value) result as a KeyValue. A None key or value becomes null, as Kafka Streams needs. */
+    /**
+     * Returns the (key, value) result as a KeyValue. A None key or value becomes null, as Kafka Streams needs.
+     */
     public KeyValue<Object, Object> convertToKeyValue(DataObject result, DataType keyType, DataType valueType) {
         if (result instanceof DataList list &&
                 list.size() == 2 &&

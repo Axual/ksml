@@ -31,8 +31,11 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.util.HashMap;
 
+import static io.axual.ksml.proxy.context.ProcessorContextProxy.INJECT_CONTEXT;
+
 @Slf4j
 public class UserPunctuator extends Invoker {
+
     private boolean warnedAboutResult = false;
 
     public UserPunctuator(UserFunction function, MetricTags tags) {
@@ -44,9 +47,9 @@ public class UserPunctuator extends Invoker {
      * Calls the punctuator with the timestamp, and with the stores and the context as variables. It emits records with
      * {@code context.forward}; a returned value is ignored.
      */
-    public void apply(StateStores stores, long timestamp, ProcessorContextProxy context) {
-        final var injections = new HashMap<String, Object>(UserFunction.withStores(stores));
-        injections.put(UserFunction.INJECT_CONTEXT, context);
+    public void apply(StateStores stores, ProcessorContextProxy context, long timestamp) {
+        final var injections = new HashMap<>(function.withStores(stores));
+        injections.put(INJECT_CONTEXT.name(), context);
         final var result = timeExecutionOf(() -> function.call(injections, new DataLong(timestamp)));
         if (result != null && !(result instanceof DataNull) && !warnedAboutResult) {
             warnedAboutResult = true;
@@ -54,7 +57,9 @@ public class UserPunctuator extends Invoker {
         }
     }
 
-    /** Whether the warning about a returned value was logged. */
+    /**
+     * Whether the warning about a returned value was logged.
+     */
     boolean warnedAboutResult() {
         return warnedAboutResult;
     }

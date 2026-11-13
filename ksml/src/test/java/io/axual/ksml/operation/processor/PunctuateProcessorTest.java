@@ -76,7 +76,7 @@ class PunctuateProcessorTest {
     @Test
     @DisplayName("init schedules the punctuator once, and close cancels it")
     void scheduleAndCancel() {
-        final var processor = processor(NEXT, (stores, timestamp, proxy) -> {
+        final var processor = processor(NEXT, (stores, proxy, timestamp) -> {
         });
         init(processor);
         processor.close();
@@ -86,7 +86,7 @@ class PunctuateProcessorTest {
     @Test
     @DisplayName("input records are forwarded unchanged, to the next operation only")
     void passThroughToNext() {
-        final var processor = processor(NEXT, (stores, timestamp, proxy) -> {
+        final var processor = processor(NEXT, (stores, proxy, timestamp) -> {
         });
         init(processor);
         final var rec = new Record<Object, Object>("k", "v", 5L);
@@ -97,7 +97,7 @@ class PunctuateProcessorTest {
     @Test
     @DisplayName("without a named next operation, input records go to all children")
     void passThroughToAll() {
-        final var processor = processor(new ProcessorContextProxy.Target(null, NEXT.keyType(), NEXT.valueType()), (stores, timestamp, proxy) -> {
+        final var processor = processor(new ProcessorContextProxy.Target(null, NEXT.keyType(), NEXT.valueType()), (stores, proxy, timestamp) -> {
         });
         init(processor);
         final var rec = new Record<Object, Object>("k", "v", 5L);
@@ -108,7 +108,7 @@ class PunctuateProcessorTest {
     @Test
     @DisplayName("each punctuation gets a new context with the punctuation timestamp, which is invalid after the call")
     void contextPerCall() {
-        final var processor = processor(NEXT, (stores, timestamp, proxy) -> {
+        final var processor = processor(NEXT, (stores, proxy, timestamp) -> {
             proxy.forward("a", timestamp, null, null, null);
             proxies.add(proxy);
         });
@@ -125,7 +125,7 @@ class PunctuateProcessorTest {
     @Test
     @DisplayName("an error in the punctuator names the operation and the timestamp, and the context is still invalidated")
     void errorWrapped() {
-        final var processor = processor(NEXT, (stores, timestamp, proxy) -> {
+        final var processor = processor(NEXT, (stores, proxy, timestamp) -> {
             proxies.add(proxy);
             throw new IllegalStateException("boom");
         });

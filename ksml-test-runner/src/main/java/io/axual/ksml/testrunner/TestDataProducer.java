@@ -128,7 +128,7 @@ public class TestDataProducer {
         var resultType = new UserType(new ListType(new UserTupleType(UserType.UNKNOWN, UserType.UNKNOWN)));
         var functionDef = FunctionDefinition.as(
                 "generator", generatorName, List.of(),
-                PythonSource.of(globalCode, code, expression), resultType, null);
+                PythonSource.of(globalCode, code, expression), resultType, null, null);
 
         // Create a PythonContext and register the generator function
         try (var pythonContext = new PythonContext(PythonContextConfig.builder().build())) {

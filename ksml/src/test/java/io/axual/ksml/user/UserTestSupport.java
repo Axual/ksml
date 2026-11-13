@@ -61,7 +61,7 @@ final class UserTestSupport {
     }
 
     static UserFunction functionReturning(UserType resultType, ParameterDefinition[] params, DataObject result) {
-        return new UserFunction("ns", "fn", params, resultType, (String[]) null) {
+        return new UserFunction("ns", "fn", params, resultType, null, (String[]) null) {
             @Override
             public DataObject call(Map<String, Object> injections, DataObject... parameters) {
                 return result;
@@ -69,13 +69,15 @@ final class UserTestSupport {
         };
     }
 
-    /** Returns a fixed result and keeps the arguments of the last call. */
+    /**
+     * Returns a fixed result and keeps the arguments of the last call.
+     */
     static final class RecordingFunction extends UserFunction {
         private final DataObject result;
         DataObject[] lastArguments;
 
         RecordingFunction(UserType resultType, ParameterDefinition[] params, DataObject result) {
-            super("ns", "fn", params, resultType, (String[]) null);
+            super("ns", "fn", params, resultType, null, (String[]) null);
             this.result = result;
         }
 

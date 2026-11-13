@@ -26,6 +26,7 @@ import io.axual.ksml.data.mapper.HeaderDataObjectMapper;
 import io.axual.ksml.data.object.DataNull;
 import io.axual.ksml.data.object.DataObject;
 import io.axual.ksml.definition.DefinitionConstants;
+import io.axual.ksml.definition.InjectedParameter;
 import io.axual.ksml.proxy.base.AbstractProxy;
 import io.axual.ksml.proxy.store.ProxyUtil;
 import io.axual.ksml.python.PythonDataObjectMapper;
@@ -48,7 +49,7 @@ import static io.axual.ksml.type.UserType.DEFAULT_NOTATION;
  * Python view of a Kafka Streams {@link ProcessorContext}, injected into a function as {@code context}. Only the
  * methods annotated with {@link HostAccess.Export} are visible from Python, so for example {@code schedule},
  * {@code getStateStore} and {@code appConfigs} raise an AttributeError. Python code sees the proxy through the class
- * {@link io.axual.ksml.python.PythonContext#PROCESSOR_CONTEXT_CLASS}, which adds keyword arguments to {@code forward}.
+ * {@code KSMLProcessorContext}, which adds keyword arguments to {@code forward}.
  * <p>
  * The proxy is only usable until {@link #invalidate()} is called, when the function call that received it returns.
  */
@@ -58,22 +59,45 @@ public class ProcessorContextProxy implements AbstractProxy {
     private static final DataObjectConverter CONVERTER = new DataObjectConverter();
     private static final HeaderDataObjectMapper HEADER_MAPPER = new HeaderDataObjectMapper();
 
-    /**
-     * An operation that {@code forward} can send records to.
-     *
-     * @param childName the Kafka Streams child name to forward to, or {@code null} to forward to all children
-     * @param keyType   the key type the receiving operation takes
-     * @param valueType the value type the receiving operation takes
-     */
-    public record Target(String childName, UserType keyType, UserType valueType) {
-    }
-
+    private static final String CONTEXT_VARIABLE = "context";
+    // The Python class that wraps this proxy as {@code context}
+    private static final String PROCESSOR_CONTEXT_CLASS = "KSMLProcessorContext";
+    private static final String PROXY_CLASS_CODE = """
+            # GraalPy passes no keyword arguments to Java methods, so this class takes them and calls the
+            # ProcessorContextProxy by position. It only offers the methods below.
+            class %1$s:
+              __slots__ = ("_proxy",)
+            
+              def __init__(self, proxy):
+                object.__setattr__(self, "_proxy", proxy)
+            
+              def __setattr__(self, name, value):
+                raise AttributeError("The context is read-only")
+            
+              def forward(self, key, value, timestamp=None, headers=None, to=None):
+                self._proxy.forward(key, value, timestamp, headers, to)
+            
+              def commit(self):
+                self._proxy.commit()
+            
+              def currentSystemTimeMs(self):
+                return self._proxy.currentSystemTimeMs()
+            
+              def currentStreamTimeMs(self):
+                return self._proxy.currentStreamTimeMs()
+            
+              def applicationId(self):
+                return self._proxy.applicationId()
+            
+              def taskId(self):
+                return self._proxy.taskId()
+            """.formatted(PROCESSOR_CONTEXT_CLASS);
+    public static final InjectedParameter INJECT_CONTEXT = new InjectedParameter(CONTEXT_VARIABLE, PROCESSOR_CONTEXT_CLASS, PROXY_CLASS_CODE);
     private final ProcessorContext<Object, Object> context;
     private final long defaultTimestamp;
     private final Target next;
     private final Map<String, Target> namedTargets;
     private boolean valid = true;
-
     /**
      * Creates a context proxy.
      *
@@ -89,7 +113,44 @@ public class ProcessorContextProxy implements AbstractProxy {
         this.namedTargets = new TreeMap<>(namedTargets);
     }
 
-    /** Makes every later call fail, so a context kept by Python after the function call does nothing. */
+    private static Object noneToNull(Object object) {
+        return object instanceof Value pythonValue && pythonValue.isNull() ? null : object;
+    }
+
+    /**
+     * Converts a Python key or value to the type the receiving operation takes, as transformer results are.
+     */
+    private static Object toType(Object object, UserType type, String role, String targetName) {
+        DataObject result;
+        try {
+            result = DATA_OBJECT_MAPPER.toDataObject(type.dataType(), object);
+            // As for function results, only a value that does not fit yet gets the notations' converters
+            if (type.dataType().isAssignableFrom(result).isNotAssignable())
+                result = CONVERTER.convert(DEFAULT_NOTATION, result, type);
+        } catch (
+                RuntimeException e) {
+            throw PythonErrors.typeError("forward " + role + " for " + targetName + " must be " + type + ", got " + PythonErrors.typeName(object));
+        }
+        if (!(result instanceof DataNull) && type.dataType().isAssignableFrom(result.type()).isNotAssignable())
+            throw PythonErrors.typeError("forward " + role + " for " + targetName + " must be " + type + ", got " + result.type());
+        // A None key or value must be a real null in Kafka Streams
+        return DataObject.nullIfNone(result);
+    }
+
+    private static Headers toHeaders(Object headers) {
+        if (headers == null)
+            return new RecordHeaders();
+        try {
+            return HEADER_MAPPER.fromDataObject(DATA_OBJECT_MAPPER.toDataObject(DefinitionConstants.HEADERS_TYPE, headers));
+        } catch (
+                RuntimeException e) {
+            throw PythonErrors.typeError("forward headers must be a list of dicts with a key and a value: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Makes every later call fail, so a context kept by Python after the function call does nothing.
+     */
     public void invalidate() {
         valid = false;
     }
@@ -104,7 +165,9 @@ public class ProcessorContextProxy implements AbstractProxy {
         forward((Object) key, value, timestamp, headers, to);
     }
 
-    /** Like the exported {@code forward}; also takes Java values, and {@code null} for Python {@code None}. */
+    /**
+     * Like the exported {@code forward}; also takes Java values, and {@code null} for Python {@code None}.
+     */
     public void forward(Object key, Object value, Object timestamp, Object headers, Object to) {
         checkValid();
         key = noneToNull(key);
@@ -120,11 +183,15 @@ public class ProcessorContextProxy implements AbstractProxy {
                 toType(value, target.valueType(), "value", targetName),
                 toTimestamp(timestamp),
                 toHeaders(headers));
-        if (target.childName() != null) context.forward(record, target.childName());
-        else context.forward(record);
+        if (target.childName() != null)
+            context.forward(record, target.childName());
+        else
+            context.forward(record);
     }
 
-    /** Asks Kafka Streams to commit the task at its next opportunity. */
+    /**
+     * Asks Kafka Streams to commit the task at its next opportunity.
+     */
     @HostAccess.Export
     public void commit() {
         checkValid();
@@ -149,15 +216,13 @@ public class ProcessorContextProxy implements AbstractProxy {
         return context.applicationId();
     }
 
-    /** The task id, for example {@code "0_2"}. */
+    /**
+     * The task id, for example {@code "0_2"}.
+     */
     @HostAccess.Export
     public String taskId() {
         checkValid();
         return context.taskId().toString();
-    }
-
-    private static Object noneToNull(Object object) {
-        return object instanceof Value pythonValue && pythonValue.isNull() ? null : object;
     }
 
     private void checkValid() {
@@ -165,39 +230,27 @@ public class ProcessorContextProxy implements AbstractProxy {
             throw PythonErrors.runtimeError("The context is no longer valid: it can only be used during the function call that received it");
     }
 
-    /** Returns the name of a forward target, after checking that it is one. */
+    /**
+     * Returns the name of a forward target, after checking that it is one.
+     */
     private String targetName(Object to) {
         if (NATIVE_MAPPER.fromPython(to) instanceof String name) {
-            if (namedTargets.containsKey(name)) return name;
+            if (namedTargets.containsKey(name))
+                return name;
             throw PythonErrors.valueError("forward can not send to '" + name + "', valid names are: "
                     + (namedTargets.isEmpty() ? "none" : String.join(", ", namedTargets.keySet())));
         }
         throw PythonErrors.typeError("forward to must be an operation name, got " + PythonErrors.typeName(to));
     }
 
-    /** Converts a Python key or value to the type the receiving operation takes, as transformer results are. */
-    private static Object toType(Object object, UserType type, String role, String targetName) {
-        DataObject result;
-        try {
-            result = DATA_OBJECT_MAPPER.toDataObject(type.dataType(), object);
-            // As for function results, only a value that does not fit yet gets the notations' converters
-            if (type.dataType().isAssignableFrom(result).isNotAssignable())
-                result = CONVERTER.convert(DEFAULT_NOTATION, result, type);
-        } catch (RuntimeException e) {
-            throw PythonErrors.typeError("forward " + role + " for " + targetName + " must be " + type + ", got " + PythonErrors.typeName(object));
-        }
-        if (!(result instanceof DataNull) && type.dataType().isAssignableFrom(result.type()).isNotAssignable())
-            throw PythonErrors.typeError("forward " + role + " for " + targetName + " must be " + type + ", got " + result.type());
-        // A None key or value must be a real null in Kafka Streams
-        return DataObject.nullIfNone(result);
-    }
-
     private long toTimestamp(Object timestamp) {
-        if (timestamp == null) return defaultTimestamp;
+        if (timestamp == null)
+            return defaultTimestamp;
         final Object value;
         try {
             value = NATIVE_MAPPER.fromPython(timestamp);
-        } catch (DataException e) {
+        } catch (
+                DataException e) {
             // An int that does not fit in a long
             throw PythonErrors.valueError("forward timestamp is out of range", e);
         }
@@ -206,12 +259,16 @@ public class ProcessorContextProxy implements AbstractProxy {
         throw PythonErrors.typeError("forward timestamp must be an int, got " + PythonErrors.typeName(timestamp));
     }
 
-    private static Headers toHeaders(Object headers) {
-        if (headers == null) return new RecordHeaders();
-        try {
-            return HEADER_MAPPER.fromDataObject(DATA_OBJECT_MAPPER.toDataObject(DefinitionConstants.HEADERS_TYPE, headers));
-        } catch (RuntimeException e) {
-            throw PythonErrors.typeError("forward headers must be a list of dicts with a key and a value: " + e.getMessage());
-        }
+    /**
+     * An operation that {@code forward} can send records to.
+     *
+     * @param childName the Kafka Streams child name to forward to, or {@code null} to forward to all children
+     * @param keyType   the key type the receiving operation takes
+     * @param valueType the value type the receiving operation takes
+     */
+    public record Target(
+            String childName,
+            UserType keyType,
+            UserType valueType) {
     }
 }

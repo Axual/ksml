@@ -31,14 +31,13 @@ import io.axual.ksml.metric.MetricTags;
 import io.axual.ksml.metric.Metrics;
 import io.axual.ksml.type.UserType;
 import io.axual.ksml.user.UserFunction;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.Arrays;
 import java.util.function.Supplier;
 
+@Slf4j
 public abstract class Invoker {
-    private static final Logger LOG = LoggerFactory.getLogger(Invoker.class);
     protected final UserFunction function;
     private final Timer timer;
 
@@ -107,7 +106,7 @@ public abstract class Invoker {
 
     private void verifyNoResultInternal(UserType type) {
         if (type != null && type.dataType() != DataNull.DATATYPE) {
-            LOG.warn("Function {} used as {}: Function return value of type {} will be ignored", function.name, getClass().getSimpleName(), type);
+            log.warn("Function {} used as {}: Function return value of type {} will be ignored", function.name, getClass().getSimpleName(), type);
         }
     }
 

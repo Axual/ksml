@@ -161,7 +161,7 @@ class UserValueJoinerTest {
 
     private static ParameterDefinition[] valueJoinerParameters(ParameterDefinition... customParameters) {
         final var function = FunctionDefinition.as("generic", "fn", List.of(customParameters),
-                PythonSource.of((String) null, (String) null, (String) null), UNKNOWN, List.of());
+                PythonSource.of((String) null, (String) null, (String) null), UNKNOWN, List.of(), List.of());
         return new ValueJoinerDefinition(function).parameters();
     }
 }

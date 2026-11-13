@@ -46,6 +46,8 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 
+import static io.axual.ksml.proxy.context.ProcessorContextProxy.INJECT_CONTEXT;
+
 /**
  * Calls a punctuator on a schedule; records pass through unchanged. The punctuator can forward records to the next
  * operation, or to a named operation further down the same pipeline: {@link OperationChain} asks for a side path
@@ -90,7 +92,7 @@ public class PunctuateOperation extends BaseOperation {
         final var v = input.valueType().flatten();
         final var allStoreNames = new LinkedHashSet<>(punctuator.storeNames());
         allStoreNames.addAll(storeNames);
-        final var function = punctuator.withStoreNames(List.copyOf(allStoreNames));
+        final var function = punctuator.withInjectedParameter(INJECT_CONTEXT).withStoreNames(List.copyOf(allStoreNames));
         final var userFunction = userFunctionOf(context, PUNCTUATOR_NAME, function, DataType.UNKNOWN, superOf(DataLong.DATATYPE));
         final var userPunctuator = new UserPunctuator(userFunction, tags);
         final var stores = allStoreNames.toArray(String[]::new);

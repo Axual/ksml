@@ -43,10 +43,9 @@ import java.util.List;
 @Slf4j
 public class PythonContext implements AutoCloseable {
 
+    static final String PYTHON = "python";
     private static final LoggerBridge LOGGER_BRIDGE = new LoggerBridge();
     private static final MetricsBridge METRICS_BRIDGE = new MetricsBridge(Metrics.registry());
-    static final String PYTHON = "python";
-
     // With HostAccess.EXPLICIT, only classes with @HostAccess.Export annotations are accessible
     // Java collections (ArrayList, HashMap, TreeMap) are no longer needed since PythonTypeConverter
     // converts them to Python-native types before passing to Python code
@@ -63,7 +62,9 @@ public class PythonContext implements AutoCloseable {
             "io.axual.ksml.proxy.store.TimestampedWindowStoreProxy",
             "io.axual.ksml.proxy.store.TimestampedKeyValueStoreProxy",
             "io.axual.ksml.proxy.store.VersionedKeyValueStoreProxy");
-    /** For value conversion and the test runner only - bypasses registerFunction(). */
+    /**
+     * For value conversion and the test runner only - bypasses registerFunction().
+     */
     @Getter
     private final Context context;
     @Getter
@@ -115,7 +116,8 @@ public class PythonContext implements AutoCloseable {
             }
 
             registerGlobalCode();
-        } catch (Exception e) {
+        } catch (
+                Exception e) {
             log.error("Error setting up a new Python context", e);
             throw new ExecutionException("Could not setup a new Python context", e);
         }
@@ -132,14 +134,12 @@ public class PythonContext implements AutoCloseable {
         Source script = Source.create(PYTHON, pyCode);
         try {
             context.eval(script);
-        } catch (Exception e) {
+        } catch (
+                Exception e) {
             log.error("Error loading Python code", e);
         }
         return context.getPolyglotBindings().getMember(callerName);
     }
-
-    /** The Python class that wraps a {@link io.axual.ksml.proxy.context.ProcessorContextProxy} as {@code context}. */
-    public static final String PROCESSOR_CONTEXT_CLASS = "KSMLProcessorContext";
 
     /**
      * Register global code that is used to initialize the loggerBridge and metricsBridge variables, and the Python
@@ -160,36 +160,7 @@ public class PythonContext implements AutoCloseable {
                   loggerBridge = lb
                   global metrics
                   metrics = mb
-                
-                # GraalPy passes no keyword arguments to Java methods, so this class takes them and calls the
-                # ProcessorContextProxy by position. It only offers the methods below.
-                class %1$s:
-                  __slots__ = ("_proxy",)
-                
-                  def __init__(self, proxy):
-                    object.__setattr__(self, "_proxy", proxy)
-                
-                  def __setattr__(self, name, value):
-                    raise AttributeError("The context is read-only")
-                
-                  def forward(self, key, value, timestamp=None, headers=None, to=None):
-                    self._proxy.forward(key, value, timestamp, headers, to)
-                
-                  def commit(self):
-                    self._proxy.commit()
-                
-                  def currentSystemTimeMs(self):
-                    return self._proxy.currentSystemTimeMs()
-                
-                  def currentStreamTimeMs(self):
-                    return self._proxy.currentStreamTimeMs()
-                
-                  def applicationId(self):
-                    return self._proxy.applicationId()
-                
-                  def taskId(self):
-                    return self._proxy.taskId()
-                """.formatted(PROCESSOR_CONTEXT_CLASS);
+                """;
         final var register = registerFunction(pyCode, "register_ksml_bridges");
         if (register == null) {
             throw new ExecutionException("Could not register global code for loggerBridge:\n" + pyCode);
@@ -299,18 +270,19 @@ public class PythonContext implements AutoCloseable {
         try {
             String absolutePath = modulePath.toAbsolutePath().toString();
             String pythonCode = String.format(
-                """
-                    import sys
-                    if '%s' not in sys.path:
-                        sys.path.insert(0, '%s')
-                    """,
+                    """
+                            import sys
+                            if '%s' not in sys.path:
+                                sys.path.insert(0, '%s')
+                            """,
                     absolutePath.replace("\\", "\\\\").replace("'", "\\'"),
                     absolutePath.replace("\\", "\\\\").replace("'", "\\'")
             );
 
             context.eval(PYTHON, pythonCode);
             log.info("Added Python module path to sys.path: {}", absolutePath);
-        } catch (Exception e) {
+        } catch (
+                Exception e) {
             log.error("Failed to add module path to sys.path: {}", modulePath, e);
             throw new ExecutionException("Could not configure Python module path", e);
         }
@@ -323,7 +295,8 @@ public class PythonContext implements AutoCloseable {
         try {
             var result = context.eval(PYTHON, "import sys; sys.path");
             log.debug("Python sys.path: {}", result);
-        } catch (Exception e) {
+        } catch (
+                Exception e) {
             log.warn("Could not read Python sys.path", e);
         }
     }

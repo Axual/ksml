@@ -26,6 +26,7 @@ import io.axual.ksml.data.object.DataNull;
 import io.axual.ksml.data.object.DataObject;
 import io.axual.ksml.data.object.DataString;
 import io.axual.ksml.definition.FunctionDefinition;
+import io.axual.ksml.definition.InjectedParameter;
 import io.axual.ksml.definition.ParameterDefinition;
 import io.axual.ksml.exception.ExecutionException;
 import io.axual.ksml.exception.TopologyException;
@@ -40,19 +41,13 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import static io.axual.ksml.type.UserType.DEFAULT_NOTATION;
-import static io.axual.ksml.user.UserFunction.INJECT_CONTEXT;
-import static io.axual.ksml.user.UserFunction.INJECT_STORES;
 
 @Slf4j
 public class PythonFunction extends UserFunction {
-    // The names of the variables a call can inject. Each is a Python global that starts as None. A call sets only the
-    // variables its caller injects, and leaves the others as they are.
-    private static final List<String> INJECTABLE_VARIABLES = List.of(INJECT_STORES, INJECT_CONTEXT);
-    // Python classes that wrap an injected object before the function sees it
-    private static final Map<String, String> INJECTION_WRAPPERS = Map.of(INJECT_CONTEXT, PythonContext.PROCESSOR_CONTEXT_CLASS);
     private static final PythonNativeMapper NATIVE_MAPPER = new PythonNativeMapper();
     private static final String QUOTE = "\"";
     private final DataObjectConverter converter;
@@ -60,20 +55,8 @@ public class PythonFunction extends UserFunction {
     private final PythonDataObjectMapper dataObjectMapper;
     private final Value function;
 
-    public static PythonFunction forFunction(PythonContext context, String namespace, String name, FunctionDefinition definition) {
-        return new PythonFunction(context, namespace, "function", name, definition);
-    }
-
-    public static PythonFunction forGenerator(PythonContext context, String namespace, String name, FunctionDefinition definition) {
-        return new PythonFunction(context, namespace, "generator", name, definition);
-    }
-
-    public static PythonFunction forPredicate(PythonContext context, String namespace, String name, FunctionDefinition definition) {
-        return new PythonFunction(context, namespace, "condition", name, definition);
-    }
-
     private PythonFunction(PythonContext context, String namespace, String type, String name, FunctionDefinition definition) {
-        super(namespace, name, definition.parameters(), definition.resultType(), definition.storeNames());
+        super(namespace, name, definition.parameters(), definition.resultType(), injectedVariableNames(definition), definition.storeNames());
         converter = context.converter();
         this.context = context.context();
         dataObjectMapper = new PythonDataObjectMapper(true, this.context);
@@ -93,6 +76,26 @@ public class PythonFunction extends UserFunction {
                     """, namespace, name, builder);
             throw new ExecutionException("Error in function: %s.%s".formatted(namespace, name));
         }
+    }
+
+    public static PythonFunction forFunction(PythonContext context, String namespace, String name, FunctionDefinition definition) {
+        return new PythonFunction(context, namespace, "function", name, definition);
+    }
+
+    public static PythonFunction forGenerator(PythonContext context, String namespace, String name, FunctionDefinition definition) {
+        return new PythonFunction(context, namespace, "generator", name, definition);
+    }
+
+    public static PythonFunction forPredicate(PythonContext context, String namespace, String name, FunctionDefinition definition) {
+        return new PythonFunction(context, namespace, "condition", name, definition);
+    }
+
+    private static List<String> injectedVariableNames(FunctionDefinition definition) {
+        return definition.injectedParameters().stream().map(InjectedParameter::name).toList();
+    }
+
+    private static String[] getFunctionCode(String[] code, String spaces) {
+        return Arrays.stream(code).map(line -> spaces + line).toArray(String[]::new);
     }
 
     @Override
@@ -116,7 +119,7 @@ public class PythonFunction extends UserFunction {
 
         // Only the variables that the caller injects are set in Python
         for (final var variable : injections.keySet()) {
-            if (!INJECTABLE_VARIABLES.contains(variable))
+            if (!injectedVariableNames.contains(variable))
                 throw new ExecutionException("Python function %s.%s - can not inject unknown variable '%s'".formatted(namespace, name, variable));
         }
         var arguments = convertParameters(injections, parameters);
@@ -146,13 +149,15 @@ public class PythonFunction extends UserFunction {
                 logCall(parameters, null);
                 return DataNull.INSTANCE;
             }
-        } catch (Exception e) {
+        } catch (
+                Exception e) {
             logCall(parameters, null);
             throw FatalError.report(new TopologyException("Error while executing function %s.%s : %s".formatted(namespace, name, e.getMessage()), e));
         } finally {
             // Closes store iterators that the function left open, for example after break or return in a loop
             final int closed = StoreIteratorProxy.endCall(iteratorMark);
-            if (closed > 0) log.debug("Closed {} store iterator(s) left open by {}.{}", closed, namespace, name);
+            if (closed > 0)
+                log.debug("Closed {} store iterator(s) left open by {}.{}", closed, namespace, name);
         }
     }
 
@@ -186,15 +191,22 @@ public class PythonFunction extends UserFunction {
                 .map(storeName -> "  " + storeName + " = stores[\"" + storeName + "\"]\n")
                 .collect(Collectors.joining());
         // The injected variables are globals, declared as None until a call injects them
-        final var includeGlobals = "  global " + String.join(", ", INJECTABLE_VARIABLES) + "\n";
-        final var declareGlobals = INJECTABLE_VARIABLES.stream()
+        final var includeGlobals = !injectedVariableNames.isEmpty() ? "  global " + String.join(", ", injectedVariableNames) + "\n" : "";
+        final var declareGlobals = injectedVariableNames.stream()
                 .map(variable -> variable + " = None\n")
                 .collect(Collectors.joining());
+        // The Python classes that wrap injected objects, defined with the function that uses them
+        final var proxyCode = definition.injectedParameters().stream()
+                .map(InjectedParameter::proxyClassCode)
+                .filter(Objects::nonNull)
+                .distinct()
+                .collect(Collectors.joining("\n"));
         // Code to wrap injected objects that Python sees through a Python class; the injected dict is a new Python
         // dict for every call, so it can be changed in place
-        final var wrapInjections = INJECTION_WRAPPERS.entrySet().stream()
-                .map(wrapper -> "  if _ksml_injected.get(\"" + wrapper.getKey() + "\") is not None:\n" +
-                        "    _ksml_injected[\"" + wrapper.getKey() + "\"] = " + wrapper.getValue() + "(_ksml_injected[\"" + wrapper.getKey() + "\"])\n")
+        final var wrapInjections = definition.injectedParameters().stream()
+                .filter(ip -> ip.proxyClassName() != null)
+                .map(ip -> "  if _ksml_injected.get(\"" + ip.name() + "\") is not None:\n" +
+                        "    _ksml_injected[\"" + ip.name() + "\"] = " + ip.proxyClassName() + "(_ksml_injected[\"" + ip.name() + "\"])\n")
                 .collect(Collectors.joining());
         // Code to initialize optional parameters with default values
         final var initializeOptionalParams = Arrays.stream(definition.parameters())
@@ -241,6 +253,9 @@ public class PythonFunction extends UserFunction {
                         import polyglot
                         
                         %4$s
+                        # Python classes for injected variables go here (fifth argument)
+                        %5$s
+                        
                         # global Python code goes here (first argument)
                         %1$s
                         
@@ -252,11 +267,7 @@ public class PythonFunction extends UserFunction {
                         %3$s
                         """;
 
-        return pythonCodeTemplate.formatted(globalCode, functionAndExpression, pyCallerCode, declareGlobals);
-    }
-
-    private static String[] getFunctionCode(String[] code, String spaces) {
-        return Arrays.stream(code).map(line -> spaces + line).toArray(String[]::new);
+        return pythonCodeTemplate.formatted(globalCode, functionAndExpression, pyCallerCode, declareGlobals, proxyCode);
     }
 
     private String loggerName(String namespace, String type, String name) {
@@ -270,7 +281,8 @@ public class PythonFunction extends UserFunction {
         var defIndent = 0;
         var functionName = "";
         for (final var line : code) {
-            if (line.trim().isEmpty()) continue;
+            if (line.trim().isEmpty())
+                continue;
             int lineIndent = line.length() - line.stripIndent().length();
             if (injectCode && lineIndent > defIndent) {
                 result.add(initFunctionLocalVariables(lineIndent, loggerName(namespace, type, functionName)));

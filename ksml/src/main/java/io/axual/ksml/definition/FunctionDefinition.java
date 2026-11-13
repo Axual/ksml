@@ -30,14 +30,15 @@ import lombok.Getter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
 
 @Getter
 @EqualsAndHashCode
 public class FunctionDefinition extends AbstractDefinition {
-    private static final String[] EMPTY_STRING_ARRAY = new String[]{};
-    private static final ParameterDefinition[] EMPTY_PARAMETER_ARRAY = new ParameterDefinition[]{};
+    private static final String[] EMPTY_STRING_ARRAY = {};
+    private static final ParameterDefinition[] EMPTY_PARAMETER_ARRAY = {};
     private static final List<String> EMPTY_STRING_LIST = new ArrayList<>();
     private final String type;
     private final String name;
@@ -46,69 +47,10 @@ public class FunctionDefinition extends AbstractDefinition {
     private final String[] code;
     private final String[] expression;
     private final UserType resultType;
+    private final List<InjectedParameter> injectedParameters;
     private final List<String> storeNames;
 
-    public static FunctionDefinition as(String type, String name, List<ParameterDefinition> parameters, PythonSource source, UserType resultType, List<String> storeNames) {
-        return as(type, name, parameters != null ? parameters.toArray(EMPTY_PARAMETER_ARRAY) : EMPTY_PARAMETER_ARRAY, source, resultType, storeNames);
-    }
-
-    public static FunctionDefinition as(String type, String name, ParameterDefinition[] parameters, PythonSource source, UserType resultType, List<String> storeNames) {
-        return new FunctionDefinition(type, name, parameters, source, resultType, storeNames);
-    }
-
-    public FunctionDefinition withType(String type) {
-        return new FunctionDefinition(type, name, parameters, PythonSource.of(globalCode, code, expression), resultType, storeNames);
-    }
-
-    public FunctionDefinition withName(String name) {
-        return new FunctionDefinition(type, name, parameters, PythonSource.of(globalCode, code, expression), resultType, storeNames);
-    }
-
-    public FunctionDefinition withParameters(ParameterDefinition[] parameters) {
-        return new FunctionDefinition(type, name, parameters, PythonSource.of(globalCode, code, expression), resultType, storeNames);
-    }
-
-    public FunctionDefinition withDefaultResultType(DataType defaultResultType) {
-        return withDefaultResultType(new UserType(defaultResultType));
-    }
-
-    public FunctionDefinition withDefaultResultType(UserType defaultResultType) {
-        return new FunctionDefinition(type, name, parameters, PythonSource.of(globalCode, code, expression), resultType != null ? resultType : defaultResultType, storeNames);
-    }
-
-    public FunctionDefinition withResultType(UserType resultType) {
-        return new FunctionDefinition(type, name, parameters, PythonSource.of(globalCode, code, expression), resultType, storeNames);
-    }
-
-    public FunctionDefinition withDefaultExpression(String expression) {
-        return withDefaultExpression(new String[]{expression});
-    }
-
-    public FunctionDefinition withDefaultExpression(String[] defaultExpression) {
-        return new FunctionDefinition(type, name, parameters, PythonSource.of(globalCode, code, expression != null && !Arrays.equals(EMPTY_STRING_ARRAY, expression) ? expression : defaultExpression), resultType, storeNames);
-    }
-
-    public FunctionDefinition withStoreNames(List<String> storeNames) {
-        return new FunctionDefinition(type, name, parameters, PythonSource.of(globalCode, code, expression), resultType, storeNames);
-    }
-
-    public FunctionDefinition validateNoResultTypeDefined() {
-        if (resultType != null)
-            throw functionResultError("Function type '" + type + "' can not return a result");
-        return this;
-    }
-
-    public FunctionDefinition validateResultTypeDefined() {
-        if (resultType == null)
-            throw functionResultError("Function type '" + type + "' requires an explicit resultType");
-        return this;
-    }
-
-    protected TopologyException functionResultError(String message) {
-        throw new TopologyException(message + ": function=" + name() + ", type=" + type() + ", resultType=" + resultType());
-    }
-
-    private FunctionDefinition(String type, String name, ParameterDefinition[] parameters, PythonSource source, UserType resultType, List<String> storeNames) {
+    private FunctionDefinition(String type, String name, ParameterDefinition[] parameters, PythonSource source, UserType resultType, List<InjectedParameter> injectedParameters, List<String> storeNames) {
         Objects.requireNonNull(source, "PythonSource is required");
         this.type = type;
         this.name = name;
@@ -117,6 +59,7 @@ public class FunctionDefinition extends AbstractDefinition {
         this.expression = source.expression() != null ? source.expression().toArray(EMPTY_STRING_ARRAY) : null;
         this.code = source.code().toArray(EMPTY_STRING_ARRAY);
         this.globalCode = source.globalCode().toArray(EMPTY_STRING_ARRAY);
+        this.injectedParameters = injectedParameters != null ? injectedParameters : new ArrayList<>();
         this.storeNames = storeNames != null ? storeNames : EMPTY_STRING_LIST;
     }
 
@@ -128,7 +71,16 @@ public class FunctionDefinition extends AbstractDefinition {
         this.expression = definition.expression;
         this.code = definition.code;
         this.globalCode = definition.globalCode;
+        this.injectedParameters = definition.injectedParameters;
         this.storeNames = definition.storeNames != null ? definition.storeNames : EMPTY_STRING_LIST;
+    }
+
+    public static FunctionDefinition as(String type, String name, List<ParameterDefinition> parameters, PythonSource source, UserType resultType, List<InjectedParameter> injectedParameters, List<String> storeNames) {
+        return as(type, name, parameters != null ? parameters.toArray(EMPTY_PARAMETER_ARRAY) : EMPTY_PARAMETER_ARRAY, source, resultType, injectedParameters, storeNames);
+    }
+
+    public static FunctionDefinition as(String type, String name, ParameterDefinition[] parameters, PythonSource source, UserType resultType, List<InjectedParameter> injectedParameters, List<String> storeNames) {
+        return new FunctionDefinition(type, name, parameters, source, resultType, injectedParameters, storeNames);
     }
 
     // Add explicitly named parameters to the default set of parameters. The default parameters take precedence in the
@@ -146,7 +98,8 @@ public class FunctionDefinition extends AbstractDefinition {
 
         // Copy every required fixed parameter into the parameter array
         for (final var param : fixedParams) {
-            if (!param.isOptional()) result[index++] = param;
+            if (!param.isOptional())
+                result[index++] = param;
             // Remove from the list of "to do parameters"
             paramNames.remove(param.name());
         }
@@ -163,10 +116,70 @@ public class FunctionDefinition extends AbstractDefinition {
 
         // Copy the optional fixed parameters last, so specified parameters keep their position for positional calls
         for (final var param : fixedParams) {
-            if (param.isOptional()) result[index++] = param;
+            if (param.isOptional())
+                result[index++] = param;
         }
 
         // Return the integrated parameter list
         return result;
+    }
+
+    public FunctionDefinition withType(String type) {
+        return new FunctionDefinition(type, name, parameters, PythonSource.of(globalCode, code, expression), resultType, injectedParameters, storeNames);
+    }
+
+    public FunctionDefinition withName(String name) {
+        return new FunctionDefinition(type, name, parameters, PythonSource.of(globalCode, code, expression), resultType, injectedParameters, storeNames);
+    }
+
+    public FunctionDefinition withParameters(ParameterDefinition[] parameters) {
+        return new FunctionDefinition(type, name, parameters, PythonSource.of(globalCode, code, expression), resultType, injectedParameters, storeNames);
+    }
+
+    public FunctionDefinition withDefaultResultType(DataType defaultResultType) {
+        return withDefaultResultType(new UserType(defaultResultType));
+    }
+
+    public FunctionDefinition withDefaultResultType(UserType defaultResultType) {
+        return new FunctionDefinition(type, name, parameters, PythonSource.of(globalCode, code, expression), resultType != null ? resultType : defaultResultType, injectedParameters, storeNames);
+    }
+
+    public FunctionDefinition withResultType(UserType resultType) {
+        return new FunctionDefinition(type, name, parameters, PythonSource.of(globalCode, code, expression), resultType, injectedParameters, storeNames);
+    }
+
+    public FunctionDefinition withDefaultExpression(String expression) {
+        return withDefaultExpression(new String[]{expression});
+    }
+
+    public FunctionDefinition withDefaultExpression(String[] defaultExpression) {
+        return new FunctionDefinition(type, name, parameters, PythonSource.of(globalCode, code, expression != null && !Arrays.equals(EMPTY_STRING_ARRAY, expression) ? expression : defaultExpression), resultType, injectedParameters, storeNames);
+    }
+
+    public FunctionDefinition withInjectedParameter(InjectedParameter variable) {
+        final var newVars = new LinkedList<>(injectedParameters);
+        if (injectedParameters.stream().noneMatch(existing -> existing.name().equals(variable.name())))
+            newVars.add(variable);
+        return new FunctionDefinition(type, name, parameters, PythonSource.of(globalCode, code, expression), resultType, newVars, storeNames);
+    }
+
+    public FunctionDefinition withStoreNames(List<String> storeNames) {
+        return new FunctionDefinition(type, name, parameters, PythonSource.of(globalCode, code, expression), resultType, injectedParameters, storeNames);
+    }
+
+    public FunctionDefinition validateNoResultTypeDefined() {
+        if (resultType != null)
+            throw functionResultError("Function type '" + type + "' can not return a result");
+        return this;
+    }
+
+    public FunctionDefinition validateResultTypeDefined() {
+        if (resultType == null)
+            throw functionResultError("Function type '" + type + "' requires an explicit resultType");
+        return this;
+    }
+
+    protected TopologyException functionResultError(String message) {
+        throw new TopologyException(message + ": function=" + name() + ", type=" + type() + ", resultType=" + resultType());
     }
 }

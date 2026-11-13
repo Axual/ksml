@@ -37,7 +37,7 @@ import java.util.Map;
  */
 public class PunctuateProcessor extends OperationProcessor {
     public interface PunctuateAction {
-        void apply(StateStores stores, long timestamp, ProcessorContextProxy context);
+        void apply(StateStores stores, ProcessorContextProxy context, long timestamp);
     }
 
     /**
@@ -79,7 +79,7 @@ public class PunctuateProcessor extends OperationProcessor {
         runAt(timestamp, () -> {
             final var proxy = new ProcessorContextProxy(context, timestamp, schedule.next(), schedule.namedTargets());
             try {
-                action.apply(stores, timestamp, proxy);
+                action.apply(stores, proxy, timestamp);
             } catch (RuntimeException e) {
                 throw new ExecutionException("Error in punctuate operation '" + name() + "' during the punctuation at timestamp " + timestamp + ", not while processing a record: " + e.getMessage(), e);
             } finally {

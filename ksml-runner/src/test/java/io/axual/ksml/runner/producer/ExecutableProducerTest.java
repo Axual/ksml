@@ -257,7 +257,7 @@ class ExecutableProducerTest {
     private static UserFunction generatorReturning(DataObject result) {
         // A generator must declare the tuple/list-of-tuples result type expected by UserGenerator.
         final var generatorResultType = new UserType(UserGenerator.EXPECTED_RESULT_TYPE);
-        return new UserFunction("ns", "gen", new ParameterDefinition[0], generatorResultType, List.of()) {
+        return new UserFunction("ns", "gen", new ParameterDefinition[0], generatorResultType, null, List.of()) {
             @Override
             public DataObject call(Map<String, Object> injections, DataObject... parameters) {
                 return result;
@@ -309,7 +309,7 @@ class ExecutableProducerTest {
                 new ParameterDefinition("value", DataString.DATATYPE),
                 new ParameterDefinition("numPartitions", DataInteger.DATATYPE)
         };
-        return new UserFunction("ns", "partitioner", params, resultType, List.of()) {
+        return new UserFunction("ns", "partitioner", params, resultType, null, List.of()) {
             @Override
             public DataObject call(Map<String, Object> injections, DataObject... parameters) {
                 return result;
@@ -361,7 +361,7 @@ class ExecutableProducerTest {
                 new ParameterDefinition(DefinitionConstants.PARAM_HEADERS, DefinitionConstants.HEADERS_TYPE),
                 new ParameterDefinition("numPartitions", DataInteger.DATATYPE)
         };
-        final var partitioner = new UserFunction("ns", "partitioner", params, new UserType(UserStreamPartitioner.EXPECTED_RESULT_TYPE), List.of()) {
+        final var partitioner = new UserFunction("ns", "partitioner", params, new UserType(UserStreamPartitioner.EXPECTED_RESULT_TYPE), null, List.of()) {
             @Override
             public DataObject call(Map<String, Object> injections, DataObject... parameters) {
                 seenHeaders.set(parameters[3]);

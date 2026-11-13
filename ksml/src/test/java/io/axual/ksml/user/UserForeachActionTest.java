@@ -38,7 +38,7 @@ class UserForeachActionTest {
     void appliesActionInvokesUnderlyingCall() {
         // A forEach action must not declare a result type.
         final var invoked = new AtomicBoolean(false);
-        final var function = new UserFunction("ns", "fn", params(2), null, (String[]) null) {
+        final var function = new UserFunction("ns", "fn", params(2), null, null, (String[]) null) {
             @Override
             public DataObject call(Map<String, Object> injections, DataObject... parameters) {
                 invoked.set(true);
