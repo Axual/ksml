@@ -33,14 +33,12 @@ import io.axual.ksml.execution.FatalError;
 import io.axual.ksml.proxy.store.StoreIteratorProxy;
 import io.axual.ksml.user.UserFunction;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.kafka.streams.processor.StateStore;
 import org.graalvm.polyglot.Context;
 import org.graalvm.polyglot.Value;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -50,17 +48,11 @@ import static io.axual.ksml.user.UserFunction.INJECT_STORES;
 
 @Slf4j
 public class PythonFunction extends UserFunction {
-    private static final Map<String, StateStore> EMPTY_STORES = new HashMap<>();
-    // The variables a call can inject, with their values when a call does not inject them. Every call sets all of
-    // them, so a function never sees the value of an earlier call.
-    private static final Map<String, Object> INJECTION_DEFAULTS = new LinkedHashMap<>();
+    // The names of the variables a call can inject. Each is a Python global that starts as None. A call sets only the
+    // variables its caller injects, and leaves the others as they are.
+    private static final List<String> INJECTABLE_VARIABLES = List.of(INJECT_STORES, INJECT_CONTEXT);
     // Python classes that wrap an injected object before the function sees it
     private static final Map<String, String> INJECTION_WRAPPERS = Map.of(INJECT_CONTEXT, PythonContext.PROCESSOR_CONTEXT_CLASS);
-
-    static {
-        INJECTION_DEFAULTS.put(INJECT_STORES, EMPTY_STORES);
-        INJECTION_DEFAULTS.put(INJECT_CONTEXT, null);
-    }
     private static final PythonNativeMapper NATIVE_MAPPER = new PythonNativeMapper();
     private static final String QUOTE = "\"";
     private final DataObjectConverter converter;
@@ -122,14 +114,12 @@ public class PythonFunction extends UserFunction {
             }
         }
 
-        // Set every injectable variable, to the injected value or to its default
-        final var globalVars = new HashMap<>(INJECTION_DEFAULTS);
-        injections.forEach((variable, value) -> {
-            if (!INJECTION_DEFAULTS.containsKey(variable))
+        // Only the variables that the caller injects are set in Python
+        for (final var variable : injections.keySet()) {
+            if (!INJECTABLE_VARIABLES.contains(variable))
                 throw new ExecutionException("Python function %s.%s - can not inject unknown variable '%s'".formatted(namespace, name, variable));
-            globalVars.put(variable, value != null ? value : INJECTION_DEFAULTS.get(variable));
-        });
-        var arguments = convertParameters(globalVars, parameters);
+        }
+        var arguments = convertParameters(injections, parameters);
 
         final int iteratorMark = StoreIteratorProxy.beginCall();
         try {
@@ -166,9 +156,9 @@ public class PythonFunction extends UserFunction {
         }
     }
 
-    private Object[] convertParameters(Map<String, Object> globalVariables, DataObject... parameters) {
+    private Object[] convertParameters(Map<String, Object> injections, DataObject... parameters) {
         Object[] result = new Object[parameters.length + 1];
-        result[0] = NATIVE_MAPPER.toRealPythonValue(context, globalVariables);
+        result[0] = NATIVE_MAPPER.toRealPythonValue(context, injections);
         for (var index = 0; index < parameters.length; index++) {
             checkType(this.parameters[index], parameters[index]);
             // Convert DataObject to Python value
@@ -195,14 +185,16 @@ public class PythonFunction extends UserFunction {
         final var assignStores = definition.storeNames().stream()
                 .map(storeName -> "  " + storeName + " = stores[\"" + storeName + "\"]\n")
                 .collect(Collectors.joining());
-        // Code to copy / initialize the injected variables, which are globals
-        final var includeGlobals = "  global " + String.join(", ", INJECTION_DEFAULTS.keySet()) + "\n";
-        // globalVars is now pre-converted to Python dict by PythonTypeConverter in Java
-        final var initializeGlobals = INJECTION_DEFAULTS.keySet().stream()
-                .map(variable -> "  " + variable + " = " + injectedValue(variable) + "\n")
-                .collect(Collectors.joining());
-        final var declareGlobals = INJECTION_DEFAULTS.keySet().stream()
+        // The injected variables are globals, declared as None until a call injects them
+        final var includeGlobals = "  global " + String.join(", ", INJECTABLE_VARIABLES) + "\n";
+        final var declareGlobals = INJECTABLE_VARIABLES.stream()
                 .map(variable -> variable + " = None\n")
+                .collect(Collectors.joining());
+        // Code to wrap injected objects that Python sees through a Python class; the injected dict is a new Python
+        // dict for every call, so it can be changed in place
+        final var wrapInjections = INJECTION_WRAPPERS.entrySet().stream()
+                .map(wrapper -> "  if _ksml_injected.get(\"" + wrapper.getKey() + "\") is not None:\n" +
+                        "    _ksml_injected[\"" + wrapper.getKey() + "\"] = " + wrapper.getValue() + "(_ksml_injected[\"" + wrapper.getKey() + "\"])\n")
                 .collect(Collectors.joining());
         // Code to initialize optional parameters with default values
         final var initializeOptionalParams = Arrays.stream(definition.parameters())
@@ -230,17 +222,17 @@ public class PythonFunction extends UserFunction {
         // Prepare the actual caller for the code
         // Parameters are now pre-converted to Python types by PythonTypeConverter in Java
         // Return value is passed as-is; PythonDataObjectMapper handles GraalVM Value conversion
-        // The caller restores the injected variables when it returns: a call can run while another one is busy, for
-        // example a filter after a punctuator calls context.forward, and must not leave its values to the outer call
-        final var injectedVariables = String.join(", ", INJECTION_DEFAULTS.keySet());
-        final var pyCallerCode = "def " + name + "_caller(globalVars," + String.join(",", defParams) + "):\n" +
-                includeGlobals +
-                "  previous = (" + injectedVariables + ",)\n" +
-                initializeGlobals +
+        // The caller sets only the variables it is given, and restores them when it returns: a call can run while
+        // another one is busy, for example a filter after a punctuator calls context.forward, and must not leave its
+        // values to the outer call. Its own names start with _ksml_, so they do not hide a function or parameter.
+        final var pyCallerCode = "def " + name + "_caller(_ksml_injected," + String.join(",", defParams) + "):\n" +
+                wrapInjections +
+                "  _ksml_previous = {variable: globals()[variable] for variable in _ksml_injected}\n" +
+                "  globals().update(_ksml_injected)\n" +
                 "  try:\n" +
                 "    return " + name + "(" + String.join(",", callParams) + ")\n" +
                 "  finally:\n" +
-                "    " + injectedVariables + ", = previous\n";
+                "    globals().update(_ksml_previous)\n";
 
         // Python code template - no longer needs convert_to_python/convert_from_python
         // as Java-side PythonTypeConverter handles all collection conversion
@@ -261,13 +253,6 @@ public class PythonFunction extends UserFunction {
                         """;
 
         return pythonCodeTemplate.formatted(globalCode, functionAndExpression, pyCallerCode, declareGlobals);
-    }
-
-    /** The Python expression for an injected variable: the injected object, wrapped when it has a wrapper class. */
-    private static String injectedValue(String variable) {
-        final var value = "globalVars[\"" + variable + "\"]";
-        final var wrapper = INJECTION_WRAPPERS.get(variable);
-        return wrapper != null ? wrapper + "(" + value + ") if " + value + " is not None else None" : value;
     }
 
     private static String[] getFunctionCode(String[] code, String spaces) {

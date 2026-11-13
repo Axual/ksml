@@ -149,6 +149,11 @@ class PythonFunctionTest {
         final var function = PythonFunction.forFunction(context, "test", "injected", definition);
 
         assertThat(function.call()).isEqualTo(new DataString("None"));
+        // An injected variable is set during the call only; a later call that does not inject it does not see it
+        final var storesDefinition = FunctionDefinition.as(KSMLDSL.Functions.TYPE_GENERIC, "injectedStores", new ParameterDefinition[0], PythonSource.of(null, null, "str(type(stores).__name__)"), stringType, null);
+        final var storesFunction = PythonFunction.forFunction(context, "test", "injectedStores", storesDefinition);
+        assertThat(storesFunction.call(io.axual.ksml.user.UserFunction.withStores(new io.axual.ksml.store.StateStores()))).isEqualTo(new DataString("dict"));
+        assertThat(storesFunction.call()).isEqualTo(new DataString("NoneType"));
         assertThatThrownBy(() -> function.call(java.util.Map.of("unknown", 1)))
                 .isInstanceOf(io.axual.ksml.exception.ExecutionException.class)
                 .hasMessageContaining("can not inject unknown variable 'unknown'");
