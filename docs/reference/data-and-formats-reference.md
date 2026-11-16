@@ -913,6 +913,12 @@ streams:
     valueType: protobuf
 ```
 
+#### Fields that the local schema does not have
+
+A producer can add a field to a Protobuf schema before the `.proto` file of your KSML definition gets the field. KSML
+still reads these records with its own `.proto` file. Python functions do not see the new fields, also not in nested
+messages.
+
 ### XML
 
 XML (Extensible Markup Language) is used for complex hierarchical data.

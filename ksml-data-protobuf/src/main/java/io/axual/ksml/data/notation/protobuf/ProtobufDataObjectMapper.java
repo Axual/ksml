@@ -22,6 +22,7 @@ package io.axual.ksml.data.notation.protobuf;
 
 import com.google.protobuf.Descriptors;
 import com.google.protobuf.DynamicMessage;
+import com.google.protobuf.InvalidProtocolBufferException;
 import com.google.protobuf.Message;
 import io.axual.ksml.data.exception.DataException;
 import io.axual.ksml.data.exception.SchemaException;
@@ -36,12 +37,18 @@ import io.axual.ksml.data.type.StructType;
 import io.axual.ksml.data.util.ConvertUtil;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.Collections;
+import java.util.IdentityHashMap;
+import java.util.Map;
+
 @Slf4j
 public class ProtobufDataObjectMapper extends NativeDataObjectMapper {
     private static final DataTypeDataSchemaMapper DATA_TYPE_MAPPER = new DataTypeDataSchemaMapper();
     private final ProtobufFileElementSchemaMapper elementSchemaMapper;
     private final ProtobufFileElementDescriptorMapper descriptorElementMapper;
     private final ConvertUtil convertUtil;
+    // Message descriptors of the local schemas that records are read with, by schema instance
+    private final Map<StructSchema, Descriptors.Descriptor> localDescriptors = Collections.synchronizedMap(new IdentityHashMap<>());
 
     public ProtobufDataObjectMapper(ProtobufFileElementDescriptorMapper descriptorElementMapper) {
         this(descriptorElementMapper, new NativeDataObjectMapper(), new DataTypeDataSchemaMapper());
@@ -72,19 +79,22 @@ public class ProtobufDataObjectMapper extends NativeDataObjectMapper {
         // Ensure schema compatibility
 
         final StructSchema resultSchema;
+        final Message resultMessage;
         if (expected != null) {
             final var assignable = expected.isAssignableFrom(schema);
             if (assignable.isNotAssignable()) {
                 throw new SchemaException("PROTOBUF schema incompatibility: schema=" + schema + ", expected=" + expected);
             }
             resultSchema = expected;
+            resultMessage = parseWithLocalSchema(expected, message);
         } else {
             resultSchema = schema;
+            resultMessage = message;
         }
 
         final var result = new DataStruct(resultSchema);
 
-        for (final var field : message.getAllFields().entrySet()) {
+        for (final var field : resultMessage.getAllFields().entrySet()) {
             var val = field.getValue();
             if (val instanceof Descriptors.EnumValueDescriptor enumValue) val = enumValue.getName();
             final var parentOneOf = field.getKey().getContainingOneof();
@@ -94,6 +104,25 @@ public class ProtobufDataObjectMapper extends NativeDataObjectMapper {
             result.put(fieldName, dataObject);
         }
         return result;
+    }
+
+    /**
+     * Parses the message again with the local schema. Fields that the local schema does not have, at any level,
+     * become unknown fields of the message, so they are not shown as fields.
+     */
+    private Message parseWithLocalSchema(StructSchema localSchema, Message message) {
+        final var localDescriptor = localDescriptors.computeIfAbsent(localSchema, this::toMessageDescriptor);
+        try {
+            return DynamicMessage.newBuilder(localDescriptor).mergeFrom(message.toByteString()).buildPartial();
+        } catch (InvalidProtocolBufferException e) {
+            throw new DataException("PROTOBUF message can not be read with schema " + localSchema.fullName(), e);
+        }
+    }
+
+    private Descriptors.Descriptor toMessageDescriptor(StructSchema dataSchema) {
+        final var fileElement = elementSchemaMapper.fromDataSchema(dataSchema);
+        final var descriptor = descriptorElementMapper.toDescriptor(dataSchema.namespace(), dataSchema.name(), fileElement);
+        return descriptor.findMessageTypeByName(dataSchema.name());
     }
 
     @Override
@@ -109,9 +138,7 @@ public class ProtobufDataObjectMapper extends NativeDataObjectMapper {
         if (dataSchema == null) {
             throw new DataException("Can not convert schemaless STRUCT into a PROTOBUF message");
         }
-        final var fileElement = elementSchemaMapper.fromDataSchema(dataSchema);
-        final var descriptor = descriptorElementMapper.toDescriptor(dataSchema.namespace(), dataSchema.name(), fileElement);
-        final var msgDescriptor = descriptor.findMessageTypeByName(dataSchema.name());
+        final var msgDescriptor = toMessageDescriptor(dataSchema);
         final var msg = DynamicMessage.newBuilder(msgDescriptor);
 
         setRegularFields(msg, struct, msgDescriptor, dataSchema);
