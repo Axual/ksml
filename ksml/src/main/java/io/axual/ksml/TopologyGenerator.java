@@ -93,8 +93,9 @@ public class TopologyGenerator implements AutoCloseable {
     }
 
     /**
-     * The declared stores that the last {@link #create} built, without the stores of stream-stream joins: Kafka Streams
-     * always logged those, so their KSML 1.x local state has a changelog.
+     * The declared stores that the last {@link #create} built, without the stores whose KSML 1.x local state has a
+     * changelog whatever {@code logging} says: Kafka Streams always logged the stores of stream-stream joins, and a
+     * table restores from its input topic with topology optimization, as a global table always does.
      */
     public List<StateStoreDefinition> upgradeCheckedStores() {
         return List.copyOf(upgradeCheckedStores);
@@ -125,10 +126,12 @@ public class TopologyGenerator implements AutoCloseable {
             buildContexts.add(context);
             generate(definition, context);
             stores.putAll(definition.stateStores());
-            final var streamJoinStores = new HashSet<String>();
-            collectStreamJoinStores(definition, streamJoinStores);
+            // Stores whose KSML 1.x state has a changelog whatever logging says, so the upgrade check leaves them out
+            final var restorableStores = new HashSet<String>();
+            collectStreamJoinStores(definition, restorableStores);
+            collectSourceTopicStores(definition, restorableStores);
             definition.stateStores().forEach((name, store) -> {
-                if (!streamJoinStores.contains(name)) upgradeCheckedStores.add(store);
+                if (!restorableStores.contains(name)) upgradeCheckedStores.add(store);
             });
         });
 
@@ -298,6 +301,25 @@ public class TopologyGenerator implements AutoCloseable {
             if (operation instanceof DualStoreOperation dualStoreOperation)
                 addDualStoreNames(dualStoreOperation, streamJoinStores);
         }));
+    }
+
+    // The stores of tables that restore from their input topic. With reuse.ktable.source.topics, which is part of
+    // topology.optimization: all (the KSML default, also in 1.x), Kafka Streams uses the input topic of a table as the
+    // changelog of its store, whatever logging says. A global table always restores from its input topic.
+    private void collectSourceTopicStores(TopologyDefinition definition, Set<String> sourceTopicStores) {
+        final var reuseTableSourceTopics = reusesTableSourceTopics();
+        definition.topics().forEach((_, topic) -> {
+            if (topic instanceof TableDefinition table && table.store() != null && reuseTableSourceTopics)
+                sourceTopicStores.add(table.store().name());
+            if (topic instanceof GlobalTableDefinition globalTable && globalTable.store() != null)
+                sourceTopicStores.add(globalTable.store().name());
+        });
+    }
+
+    // Parsed as Kafka Streams does when it builds the topology
+    private boolean reusesTableSourceTopics() {
+        final var config = optimization.getProperty(StreamsConfig.TOPOLOGY_OPTIMIZATION_CONFIG);
+        return config != null && StreamsConfig.verifyTopologyOptimizationConfigs(config).contains(StreamsConfig.REUSE_KTABLE_SOURCE_TOPICS);
     }
 
     private static void addDualStoreNames(DualStoreOperation operation, Set<String> names) {

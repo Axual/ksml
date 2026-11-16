@@ -27,13 +27,16 @@ import io.axual.ksml.data.notation.binary.BinaryNotation;
 import io.axual.ksml.definition.StateStoreDefinition;
 import io.axual.ksml.definition.parser.TopologyDefinitionParser;
 import io.axual.ksml.execution.ExecutionContext;
+import io.axual.ksml.generator.TopologyDefinition;
 import io.axual.ksml.generator.YAMLObjectMapper;
 import io.axual.ksml.parser.ParseNode;
 import io.axual.ksml.type.UserType;
 import org.apache.kafka.streams.StreamsBuilder;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.NullSource;
+import org.junit.jupiter.params.provider.ValueSource;
 import tools.jackson.databind.JsonNode;
 
 import java.nio.file.Files;
@@ -52,17 +55,16 @@ class TopologyGeneratorUpgradeStoresTest {
         ExecutionContext.INSTANCE.notationLibrary().register(BinaryNotation.NOTATION_NAME, binaryNotation);
     }
 
-    @Test
-    @DisplayName("the upgrade check gets the declared stores without the stream-stream join stores, with their declared values")
-    void upgradeCheckedStores() throws Exception {
-        final var path = Paths.get(ClassLoader.getSystemResource("pipelines/test-upgrade-checked-stores.yaml").toURI());
-        final var yaml = YAMLObjectMapper.INSTANCE.readValue(Files.readString(path), JsonNode.class);
-        final var definition = new TopologyDefinitionParser("test").parse(ParseNode.fromRoot(yaml, "upgrade_stores"));
-        try (final var generator = new TopologyGenerator("upgrade_stores.app")) {
-            generator.create(new StreamsBuilder(), Map.of("definition", definition));
+    @ParameterizedTest(name = "topology.optimization: {0}")
+    @NullSource
+    @ValueSource(strings = {"none"})
+    @DisplayName("without reuse of table input topics, the upgrade check gets the declared stores, also of a table, but not of stream-stream joins or a global table")
+    void upgradeCheckedStores(String optimization) throws Exception {
+        try (final var generator = new TopologyGenerator("upgrade_stores.app", optimization, null)) {
+            generator.create(new StreamsBuilder(), Map.of("definition", definition()));
 
             assertThat(generator.upgradeCheckedStores()).extracting(StateStoreDefinition::name)
-                    .containsExactlyInAnyOrder("python_store", "count_store");
+                    .containsExactlyInAnyOrder("python_store", "count_store", "table_input");
             assertThat(generator.userStateStores()).extracting(StateStoreDefinition::name).containsExactly("python_store");
             // The count store is a copy made by the operation, which keeps the values as declared
             assertThat(generator.upgradeCheckedStores()).allSatisfy(store -> {
@@ -70,5 +72,23 @@ class TopologyGeneratorUpgradeStoresTest {
                 assertThat(store.declaredTimestamped()).isNull();
             });
         }
+    }
+
+    @ParameterizedTest(name = "topology.optimization: {0}")
+    @ValueSource(strings = {"all", "reuse.ktable.source.topics"})
+    @DisplayName("when Kafka Streams reuses table input topics as changelogs, the upgrade check leaves out the table store")
+    void upgradeCheckedStoresWithTableSourceTopicReuse(String optimization) throws Exception {
+        try (final var generator = new TopologyGenerator("upgrade_stores.app", optimization, null)) {
+            generator.create(new StreamsBuilder(), Map.of("definition", definition()));
+
+            assertThat(generator.upgradeCheckedStores()).extracting(StateStoreDefinition::name)
+                    .containsExactlyInAnyOrder("python_store", "count_store");
+        }
+    }
+
+    private static TopologyDefinition definition() throws Exception {
+        final var path = Paths.get(ClassLoader.getSystemResource("pipelines/test-upgrade-checked-stores.yaml").toURI());
+        final var yaml = YAMLObjectMapper.INSTANCE.readValue(Files.readString(path), JsonNode.class);
+        return new TopologyDefinitionParser("test").parse(ParseNode.fromRoot(yaml, "upgrade_stores"));
     }
 }

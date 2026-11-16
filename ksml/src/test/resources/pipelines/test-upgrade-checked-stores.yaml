@@ -1,7 +1,7 @@
 # $schema: https://raw.githubusercontent.com/Axual/ksml/refs/heads/main/docs/ksml-language-spec.json
 
-# A store for Python, a store declared in a count and the stores of an outer join, all without options, to check
-# which stores the KSML 1.x upgrade check gets.
+# A store for Python, a store declared in a count, the stores of an outer join and the stores of a table and a global
+# table, all without options, to check which stores the KSML 1.x upgrade check gets.
 streams:
   test_input1:
     topic: input1
@@ -23,6 +23,23 @@ streams:
     topic: transformed
     keyType: string
     valueType: string
+
+tables:
+  test_table:
+    topic: table_input
+    keyType: string
+    valueType: string
+    # The store gets the name of the topic, table_input
+    store:
+      type: keyValue
+
+globalTables:
+  test_global_table:
+    topic: global_table_input
+    keyType: string
+    valueType: string
+    store:
+      type: keyValue
 
 stores:
   python_store:

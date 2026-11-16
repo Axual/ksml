@@ -118,7 +118,7 @@ Window store state that KSML 1.x wrote from Python with a changelog SHALL read c
 - **THEN** it keeps the local state of its window stores
 
 ### Requirement: KSML stops on KSML 1.x local state that would be lost
-On the first start on an application state directory, before Kafka Streams starts, KSML SHALL stop with an error that names each store at risk, and SHALL change nothing, when a declared store that is not a stream-stream join store has local state and either leaves out `logging`, or is a persistent window store for Python with `timestamped: true` and without `logging: true`. Once the check passes, KSML SHALL not check that state directory again.
+On the first start on an application state directory, before Kafka Streams starts, KSML SHALL stop with an error that names each store at risk, and SHALL change nothing, when a declared store that the check does not leave out (see the next requirement) has local state and either leaves out `logging`, or is a persistent window store for Python with `timestamped: true` and without `logging: true`. Once the check passes, KSML SHALL not check that state directory again.
 
 #### Scenario: Persistent store without logging
 - **WHEN** a KSML 1.x application left local state for a persistent store that leaves out `logging`, and this version starts on that state directory
@@ -139,3 +139,14 @@ On the first start on an application state directory, before Kafka Streams start
 #### Scenario: New application
 - **WHEN** this version starts on a state directory without local state for its stores
 - **THEN** KSML starts, and later starts do not check the state again
+
+### Requirement: The upgrade check leaves out stores that had a changelog in KSML 1.x
+The check of local state on the first start SHALL leave out the stores of stream-stream joins, which Kafka Streams always logged, the stores of global tables, and the stores of tables when `topology.optimization` includes `reuse.ktable.source.topics`, as `all` does. Kafka Streams restores the stores of tables and global tables from their input topic, whatever `logging` says.
+
+#### Scenario: Table store with topology optimization
+- **WHEN** a KSML 1.x application left local state for the persistent store of a table that leaves out `logging`, with `topology.optimization` set to `all` (the default) or to a list with `reuse.ktable.source.topics`, and this version starts on that state directory
+- **THEN** KSML does not stop for that store, because Kafka Streams restores it from the input topic of the table
+
+#### Scenario: Table store without topology optimization
+- **WHEN** a KSML 1.x application ran with `topology.optimization: none` and left local state for the persistent store of a table that leaves out `logging`, and this version starts on that state directory
+- **THEN** KSML stops with an error that names the store and asks to set `logging`

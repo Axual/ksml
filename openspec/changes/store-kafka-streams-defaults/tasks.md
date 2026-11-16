@@ -62,6 +62,7 @@ Each implementation task follows TDD: first commit the failing test, then the fi
 - [x] 5a.5 Update `docs/migration-to-2.0.0.md` and `docs/release-notes.md`.
 - [x] 5a.6 With exactly-once processing without transactional state stores (`KafkaStreamsRunner.wipesTasks`), stop when a task where KSML would delete a window store also has local state of a store with `logging: false` (PR #767 review 03, item 2). Add unit tests for both, and document starting once with `at_least_once`.
 - [x] 5a.7 Make the spec requirement "Existing window store state reads correctly after the upgrade" match D7 and D8 (PR #767 review 03, item 7): only window stores used by Python are cleaned, the plain store reads its local state, and the store with `timestamped: true` reads its values after the restore from the changelog. The stops are in the requirement of D8. Verify `openspec validate --strict` passes.
+- [x] 5a.8 Leave the stores of tables out of `upgradeCheckedStores()` when `topology.optimization` reuses table input topics, and always the stores of global tables (PR #767 review 04, item 6). Kafka Streams then restores them from the input topic, also in 1.x. Extend the generator test with a table and a global table, with and without the optimization.
 
 ## 6. Integration verification
 
