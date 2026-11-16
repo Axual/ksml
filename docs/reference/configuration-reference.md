@@ -239,7 +239,7 @@ ksml:
     modulePath: /ksml
 ```
 
-KSML runs Python 3.13 (GraalPy 25.5). With `allowNativeAccess: true`, Python code can load C extension modules such as `ctypes` and `sqlite3`. Only one Python context in a KSML process can load C extension modules, and KSML creates one Python context for each definition file. So only one definition file can use them. Other definition files get a `SystemError` when they import such a module.
+KSML runs Python 3.13 (GraalPy 25.5). With `allowNativeAccess: true`, Python code can load C extension modules, such as `ctypes`, `sqlite3` and `termios` (`getpass`, `tty` and `pty` load `termios`). Only one Python context in a KSML process can load C extension modules. KSML creates one Python context for the pipelines of each definition file and another one for its producers, and each context loads all functions of the file. When a second context imports such a module, it gets a `SystemError`. If that import is in `globalCode`, KSML stops at startup, even when the module is used by only one definition file that has both pipelines and producers. Which context is first does not follow the order of the definitions in the runner config.
 
 ### Schema Registry Configuration
 

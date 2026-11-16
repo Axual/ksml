@@ -42,11 +42,16 @@ The innovation releases have the same version on Maven Central and on GitHub (fo
   effects:
   - `ctypes` imports `sysconfig`, and `sysconfig` asks for the current folder. KSML's sandbox
     denies that by default, so `PythonContext` uses `DenyAllFileSystem`, which answers `/`. It
-    also allows read-only access to GraalPy's own files (`FileSystem.allowInternalResources`).
-  - Only one Python context in a process can load C extensions (`ctypes`, `sqlite3`). A second
-    context gets `SystemError: Option python.IsolateNativeModules is set to 'false' and a second
-    GraalPy context attempted to load a native module`. KSML makes one context for each
-    definition file. So with `allowNativeAccess: true`, only one definition can use C extensions.
+    also allows read-only access to GraalVM's resource cache (`FileSystem.allowInternalResources`),
+    which holds the files of all GraalVM languages, not only GraalPy.
+  - Only one Python context in a process can load C extensions (`ctypes`, `sqlite3`, `termios`,
+    which `getpass`, `tty` and `pty` load). A second context gets `SystemError: Option
+    python.IsolateNativeModules is set to 'false' and a second GraalPy context attempted to load
+    a native module`. KSML makes one context for the pipelines and one for the producers of each
+    definition file, and both load all functions of the file. So with `allowNativeAccess: true`,
+    even one file with pipelines and producers that imports `ctypes` in `globalCode` stops KSML at
+    startup. The definitions are kept in a `HashMap`, so which context is first does not follow
+    the runner config.
     A failed attempt also counts: a context without native access that tries to import `ctypes`
     takes the place. Normal modules (`json`, `re`, `datetime`, `hashlib`, ...) are not C
     extensions and work in every context.
@@ -57,12 +62,19 @@ The innovation releases have the same version on Maven Central and on GitHub (fo
 ## How to upgrade GraalVM
 
 1. Pick a release from <https://github.com/graalvm/graalvm-ce-builds/releases>.
-2. Set it in `.graalvm-jdk-version` and in `<graalvm.version>` in `pom.xml`. Dependabot sends
-   GraalVM library bumps as their own pull request (group `graalvm`). Add the
+2. Set it in `.graalvm-jdk-version` and in `<graalvm.version>` in `pom.xml`. If the Java version
+   changes, also change `java-version` in the three workflows that use `graalvm/setup-graalvm`.
+   Dependabot sends GraalVM library bumps as their own pull request (group `graalvm`). Add the
    `.graalvm-jdk-version` change to that pull request.
 3. Run `scripts/graalvm-tarballs.sh check`. It checks that both versions agree and that both
    Linux files exist.
-4. Run the full test suite on the new runtime. `PythonContextTest` covers the sandbox, including
-   native access.
+4. Run the full test suite on the new runtime. `PythonContextTest` covers the sandbox. Its
+   native access test runs each case in a new JVM, because of the one-context limit above.
 5. Build the Docker image (`build-local-docker.sh`) and run a definition with Python in it, on
    `linux/arm64` and `linux/amd64`.
+
+## History
+
+KSML stayed on GraalVM 25.0.x after the Dependabot pull requests #688 (25.2.4) and #701 (25.3.4.1)
+failed: GraalPy 25.1 and 25.2 could not find `_ctypes` on arm64 and macOS, and 25.3 broke `ctypes`
+in the sandbox. The move to 25.5.5.0.3 fixed the sandbox part and accepted the one-context limit.
