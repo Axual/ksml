@@ -46,8 +46,12 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.TreeMap;
 
+/**
+ * Generates a Kafka Streams topology from KSML definitions. Each definition gets its own Python context, which the
+ * topology uses while it runs. Close the generator when the topology is not used anymore, to free these contexts.
+ */
 @Slf4j
-public class TopologyGenerator {
+public class TopologyGenerator implements AutoCloseable {
     private static final String UNDEFINED = "undefined";
     private final String applicationId;
     private final Properties optimization;
@@ -55,6 +59,8 @@ public class TopologyGenerator {
     private final boolean headersStoreFormat;
     private final List<StateStoreDefinition> userStateStores = new ArrayList<>();
     private final List<StateStoreDefinition> upgradeCheckedStores = new ArrayList<>();
+    // The contexts of all topologies that this generator created, closed by close()
+    private final List<TopologyBuildContext> buildContexts = new ArrayList<>();
 
     public TopologyGenerator(String applicationId) {
         this(applicationId, null, PythonContextConfig.builder().build());
@@ -94,6 +100,13 @@ public class TopologyGenerator {
         return List.copyOf(upgradeCheckedStores);
     }
 
+    /** Closes the Python contexts of the topologies that this generator created. */
+    @Override
+    public void close() {
+        buildContexts.forEach(TopologyBuildContext::close);
+        buildContexts.clear();
+    }
+
     public Topology create(StreamsBuilder streamsBuilder, Map<String, TopologyDefinition> definitions) {
         userStateStores.clear();
         upgradeCheckedStores.clear();
@@ -109,6 +122,7 @@ public class TopologyGenerator {
                     definition.namespace() != null ? definition.namespace() : UNDEFINED);
 
             final var context = new TopologyBuildContext(streamsBuilder, definition, pythonContextConfig, headersStoreFormat);
+            buildContexts.add(context);
             generate(definition, context);
             stores.putAll(definition.stateStores());
             final var streamJoinStores = new HashSet<String>();

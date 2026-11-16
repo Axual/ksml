@@ -96,7 +96,7 @@ class BasicStreamRunTest {
         final TopologyDescription description = topology.describe();
         log.info("{}", description);
 
-        try (TopologyTestDriver driver = new TopologyTestDriver(topology)) {
+        try (topologyGenerator; TopologyTestDriver driver = new TopologyTestDriver(topology)) {
             TestInputTopic<String, String> inputTopic = driver.createInputTopic("ksml_sensordata_avro", new StringSerializer(), new StringSerializer());
             var outputTopic = driver.createOutputTopic("ksml_sensordata_copy", new StringDeserializer(), new StringDeserializer());
             inputTopic.pipeInput("key1", "value1");
@@ -124,7 +124,7 @@ class BasicStreamRunTest {
         final TopologyDescription description = topology.describe();
         log.info("{}", description);
 
-        try (final var driver = new TopologyTestDriver(topology);
+        try (topologyGenerator; final var driver = new TopologyTestDriver(topology);
              final var serde = avroNotation.serde(new StructType(), false)) {
             TestInputTopic<String, Object> avroInputTopic = driver.createInputTopic("ksml_sensordata_avro", new StringSerializer(), serde.serializer());
             var outputTopic = driver.createOutputTopic("ksml_sensordata_filtered", new StringDeserializer(), serde.deserializer());

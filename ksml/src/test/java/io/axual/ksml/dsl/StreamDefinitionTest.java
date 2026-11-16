@@ -59,15 +59,16 @@ class StreamDefinitionTest {
         final var streamDefinition = new StreamDefinition("topic", stringType, stringType, null, null, null);
         final var resources = new TopologyResources("test");
 
-        final var context = new TopologyBuildContext(builder, resources);
-        // when it adds itself to Builder
-        final var streamWrapper = context.getStreamWrapper(streamDefinition);
+        try (final var context = new TopologyBuildContext(builder, resources)) {
+            // when it adds itself to Builder
+            final var streamWrapper = context.getStreamWrapper(streamDefinition);
 
-        // it adds a ktable to the builder with key and value dataType, and returns a KTableWrapper instance
-        verify(mockNotation).serde(stringType.dataType(), true);
-        verify(mockNotation).serde(stringType.dataType(), false);
+            // it adds a ktable to the builder with key and value dataType, and returns a KTableWrapper instance
+            verify(mockNotation).serde(stringType.dataType(), true);
+            verify(mockNotation).serde(stringType.dataType(), false);
 
-        verify(builder).stream(eq("topic"), isA(Consumed.class));
-        assertThat(streamWrapper).isInstanceOf(KStreamWrapper.class);
+            verify(builder).stream(eq("topic"), isA(Consumed.class));
+            assertThat(streamWrapper).isInstanceOf(KStreamWrapper.class);
+        }
     }
 }

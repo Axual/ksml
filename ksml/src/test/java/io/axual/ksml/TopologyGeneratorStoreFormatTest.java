@@ -32,6 +32,7 @@ import io.axual.ksml.type.UserType;
 import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.TopologyTestDriver;
 import org.apache.kafka.streams.state.TimestampedKeyValueStoreWithHeaders;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -39,12 +40,21 @@ import tools.jackson.databind.JsonNode;
 
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 /** TopologyGenerator builds declared stores in the headers-aware format only when it is asked to (AXPD-12445). */
 class TopologyGeneratorStoreFormatTest {
+    // Closed after each test, to free the Python contexts of the topologies
+    private final List<TopologyGenerator> generators = new ArrayList<>();
+
+    @AfterEach
+    void closeGenerators() {
+        generators.forEach(TopologyGenerator::close);
+    }
 
     @BeforeAll
     static void registerNotations() {
@@ -53,11 +63,12 @@ class TopologyGeneratorStoreFormatTest {
         ExecutionContext.INSTANCE.notationLibrary().register(BinaryNotation.NOTATION_NAME, binaryNotation);
     }
 
-    private static TopologyTestDriver driverFor(boolean headersStoreFormat) throws Exception {
+    private TopologyTestDriver driverFor(boolean headersStoreFormat) throws Exception {
         final var path = Paths.get(ClassLoader.getSystemResource("pipelines/test-headers-store-format.yaml").toURI());
         final var yaml = YAMLObjectMapper.INSTANCE.readValue(Files.readString(path), JsonNode.class);
         final var definition = new TopologyDefinitionParser("test").parse(ParseNode.fromRoot(yaml, "store_format"));
         final var generator = new TopologyGenerator("store_format.app", null, null, headersStoreFormat);
+        generators.add(generator);
         return new TopologyTestDriver(generator.create(new StreamsBuilder(), Map.of("definition", definition)));
     }
 

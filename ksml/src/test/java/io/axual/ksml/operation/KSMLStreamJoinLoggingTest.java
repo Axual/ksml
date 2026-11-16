@@ -34,6 +34,7 @@ import org.apache.kafka.common.serialization.StringSerializer;
 import org.apache.kafka.streams.TestInputTopic;
 import org.apache.kafka.streams.Topology;
 import org.apache.kafka.streams.TopologyTestDriver;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -41,6 +42,8 @@ import tools.jackson.databind.JsonNode;
 
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -55,6 +58,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 @ExtendWith(KSMLTestExtension.class)
 @SuppressWarnings("java:S2187")
 public class KSMLStreamJoinLoggingTest {
+    // Closed after each test, to free the Python contexts of the topologies
+    private final List<TopologyGenerator> generators = new ArrayList<>();
+
+    @AfterEach
+    void closeGenerators() {
+        generators.forEach(TopologyGenerator::close);
+    }
+
 
     @KSMLTopic(topic = "input1")
     TestInputTopic<String, String> input1;
@@ -120,11 +131,12 @@ public class KSMLStreamJoinLoggingTest {
         }
     }
 
-    private static Topology buildTopology(String resource) throws Exception {
+    private Topology buildTopology(String resource) throws Exception {
         final var path = Paths.get(ClassLoader.getSystemResource(resource).toURI());
         final var yaml = YAMLObjectMapper.INSTANCE.readValue(Files.readString(path), JsonNode.class);
         final var definition = new TopologyDefinitionParser("test").parse(ParseNode.fromRoot(yaml, "join_logging"));
         final var generator = new TopologyGenerator("join_logging.app", null, PythonContextConfig.builder().build());
+        generators.add(generator);
         return generator.create(new StreamsBuilder(), Map.of("definition", definition));
     }
 

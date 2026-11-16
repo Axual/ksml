@@ -58,17 +58,17 @@ class TopologyGeneratorUpgradeStoresTest {
         final var path = Paths.get(ClassLoader.getSystemResource("pipelines/test-upgrade-checked-stores.yaml").toURI());
         final var yaml = YAMLObjectMapper.INSTANCE.readValue(Files.readString(path), JsonNode.class);
         final var definition = new TopologyDefinitionParser("test").parse(ParseNode.fromRoot(yaml, "upgrade_stores"));
-        final var generator = new TopologyGenerator("upgrade_stores.app");
+        try (final var generator = new TopologyGenerator("upgrade_stores.app")) {
+            generator.create(new StreamsBuilder(), Map.of("definition", definition));
 
-        generator.create(new StreamsBuilder(), Map.of("definition", definition));
-
-        assertThat(generator.upgradeCheckedStores()).extracting(StateStoreDefinition::name)
-                .containsExactlyInAnyOrder("python_store", "count_store");
-        assertThat(generator.userStateStores()).extracting(StateStoreDefinition::name).containsExactly("python_store");
-        // The count store is a copy made by the operation, which keeps the values as declared
-        assertThat(generator.upgradeCheckedStores()).allSatisfy(store -> {
-            assertThat(store.declaredLogging()).isNull();
-            assertThat(store.declaredTimestamped()).isNull();
-        });
+            assertThat(generator.upgradeCheckedStores()).extracting(StateStoreDefinition::name)
+                    .containsExactlyInAnyOrder("python_store", "count_store");
+            assertThat(generator.userStateStores()).extracting(StateStoreDefinition::name).containsExactly("python_store");
+            // The count store is a copy made by the operation, which keeps the values as declared
+            assertThat(generator.upgradeCheckedStores()).allSatisfy(store -> {
+                assertThat(store.declaredLogging()).isNull();
+                assertThat(store.declaredTimestamped()).isNull();
+            });
+        }
     }
 }

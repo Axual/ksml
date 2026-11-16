@@ -62,8 +62,9 @@ import java.util.Map;
 // This is a supporting class during topology building/generation. It contains the main reference to Kafka Streams'
 // StreamsBuilder and serves as the lookup point for topology resources. It also contains the Python context in which
 // all topology definitions will get loaded. By convention, every KSML definition file is built separately and its
-// all its functions are loaded into a private Python context.
-public class TopologyBuildContext {
+// all its functions are loaded into a private Python context. The topology calls the functions in that context, so
+// close this context only when the topology is not used anymore.
+public class TopologyBuildContext implements AutoCloseable {
     private final StreamsBuilder builder;
     private final TopologyResources resources;
     private final PythonContext pythonContext;
@@ -89,6 +90,12 @@ public class TopologyBuildContext {
         this.resources = resources;
         this.pythonContext = new PythonContext(pcConfig);
         this.headersStoreFormat = headersStoreFormat;
+    }
+
+    // Closes the Python context. Without this, the GraalVM context stays in memory after the topology is gone.
+    @Override
+    public void close() {
+        pythonContext.close();
     }
 
     public String namespace() {

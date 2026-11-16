@@ -165,26 +165,28 @@ public class KSMLTestRunner {
             var topologyDefinition = new TopologyDefinitionParser(topologyName)
                     .parse(ParseNode.fromRoot(definitionJson, topologyName));
 
-            var topologyGenerator = new TopologyGenerator(
+            // Closing the generator after the driver frees the Python contexts, which otherwise stay in memory for
+            // every test
+            try (var topologyGenerator = new TopologyGenerator(
                     topologyName + ".test",
                     null,
                     PythonContextConfig.builder()
                             .modulePath(modulesDirectory)
                             .build()
-            );
+            )) {
+                var streamsBuilder = new StreamsBuilder();
+                var topology = topologyGenerator.create(streamsBuilder,
+                        ImmutableMap.of("definition", topologyDefinition));
+                log.debug("Topology:\n{}", topology.describe());
 
-            var streamsBuilder = new StreamsBuilder();
-            var topology = topologyGenerator.create(streamsBuilder,
-                    ImmutableMap.of("definition", topologyDefinition));
-            log.debug("Topology:\n{}", topology.describe());
+                try (var driver = new TopologyTestDriver(topology)) {
+                    var producer = new TestDataProducer(driver, suite.streams());
+                    producer.produce(testCase.produce());
 
-            try (var driver = new TopologyTestDriver(topology)) {
-                var producer = new TestDataProducer(driver, suite.streams());
-                producer.produce(testCase.produce());
-
-                // The generator registered every store, also those declared inside operations, in the definition
-                var assertionRunner = new AssertionRunner(driver, suite.streams(), topologyDefinition::stateStore);
-                return assertionRunner.runAssertions(testCase.assertions(), suiteName, displayLabel);
+                    // The generator registered every store, also those declared inside operations, in the definition
+                    var assertionRunner = new AssertionRunner(driver, suite.streams(), topologyDefinition::stateStore);
+                    return assertionRunner.runAssertions(testCase.assertions(), suiteName, displayLabel);
+                }
             }
 
         } catch (TestDefinitionException e) {
