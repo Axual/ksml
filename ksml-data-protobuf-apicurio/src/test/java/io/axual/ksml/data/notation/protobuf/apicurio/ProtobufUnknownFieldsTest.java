@@ -22,6 +22,7 @@ package io.axual.ksml.data.notation.protobuf.apicurio;
 
 import com.google.protobuf.Descriptors;
 import com.google.protobuf.DynamicMessage;
+import com.google.protobuf.Message;
 import com.google.protobuf.TextFormat;
 import io.apicurio.registry.serde.protobuf.ProtobufSchemaParser;
 import io.axual.ksml.data.mapper.DataTypeDataSchemaMapper;
@@ -114,5 +115,31 @@ class ProtobufUnknownFieldsTest {
 
         assertThat(result.entrySet()).extracting(Map.Entry::getKey).containsExactlyInAnyOrder("name", "inner");
         assertThat(((DataStruct) result.get("inner")).getAsString("a").value()).isEqualTo("x");
+        assertThat(result.unknownFields()).isNull();
+    }
+
+    @Test
+    @DisplayName("Fields that the local schema does not have are written back unchanged, also in nested messages")
+    void writesUnknownFieldsBack() throws Exception {
+        final var original = message(NEWER_PROTO, NEWER_RECORD);
+
+        final var written = (Message) mapper.fromDataObject(read(original));
+
+        assertThat(written.toByteArray()).isEqualTo(original.toByteArray());
+        final var asNewer = DynamicMessage.parseFrom(descriptor(NEWER_PROTO), written.toByteString());
+        assertThat(TextFormat.printer().shortDebugString(asNewer)).isEqualTo(TextFormat.printer().shortDebugString(original));
+    }
+
+    @Test
+    @DisplayName("A record built again from its fields has no unknown fields")
+    void newRecordHasNoUnknownFields() throws Exception {
+        final var read = read(message(NEWER_PROTO, "name: 'n1' extra: 'more'"));
+        final var rebuilt = new DataStruct(localSchema);
+        read.forEach(rebuilt::put);
+
+        final var written = (Message) mapper.fromDataObject(rebuilt);
+
+        final var asNewer = DynamicMessage.parseFrom(descriptor(NEWER_PROTO), written.toByteString());
+        assertThat(TextFormat.printer().shortDebugString(asNewer)).isEqualTo("name: \"n1\"");
     }
 }

@@ -24,6 +24,7 @@ import com.google.protobuf.Descriptors;
 import com.google.protobuf.DynamicMessage;
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.google.protobuf.Message;
+import com.google.protobuf.UnknownFieldSet;
 import io.axual.ksml.data.exception.DataException;
 import io.axual.ksml.data.exception.SchemaException;
 import io.axual.ksml.data.mapper.DataTypeDataSchemaMapper;
@@ -103,12 +104,15 @@ public class ProtobufDataObjectMapper extends NativeDataObjectMapper {
             final var dataObject = convertUtil.convert(null, null, expectedType, toDataObject(val), false);
             result.put(fieldName, dataObject);
         }
+        if (!resultMessage.getUnknownFields().asMap().isEmpty()) {
+            result.unknownFields(resultMessage.getUnknownFields());
+        }
         return result;
     }
 
     /**
      * Parses the message again with the local schema. Fields that the local schema does not have, at any level,
-     * become unknown fields of the message, so they are not shown as fields.
+     * become unknown fields of the message, so they are not shown as fields but can be written back.
      */
     private Message parseWithLocalSchema(StructSchema localSchema, Message message) {
         final var localDescriptor = localDescriptors.computeIfAbsent(localSchema, this::toMessageDescriptor);
@@ -143,6 +147,9 @@ public class ProtobufDataObjectMapper extends NativeDataObjectMapper {
 
         setRegularFields(msg, struct, msgDescriptor, dataSchema);
         setOneOfFields(msg, struct, msgDescriptor, dataSchema);
+        if (struct.unknownFields() instanceof UnknownFieldSet unknownFields) {
+            msg.setUnknownFields(unknownFields);
+        }
 
         return msg.build();
     }

@@ -481,4 +481,25 @@ class ConvertUtilTest {
         assertThat(converter.convert(DataInteger.DATATYPE, new DataDouble(6.0))).isEqualTo(new DataInteger(6));
         assertThat(converter.convert(DataLong.DATATYPE, new DataDouble(6.0))).isEqualTo(new DataLong(6L));
     }
+
+    @Test
+    @DisplayName("convert: a struct keeps its unknown fields when it stays the same type, and loses them as another type")
+    void convertStructKeepsUnknownFieldsOfTheSameType() {
+        final var unknownFields = new Object();
+        final var person = new DataStruct(personSchema());
+        person.put("id", new DataInteger(1));
+        person.unknownFields(unknownFields);
+
+        final var samePerson = (DataStruct) converter.convert(new StructType(personSchema()), person);
+        assertThat(samePerson).isNotSameAs(person);
+        assertThat(samePerson.unknownFields()).isSameAs(unknownFields);
+
+        final var otherSchema = new StructSchema("ns", "Other", null, List.of(new StructSchema.Field("id", DataSchema.INTEGER_SCHEMA, null, 0)));
+        final var other = (DataStruct) converter.convert(new StructType(otherSchema), person);
+        assertThat(other.get("id")).isEqualTo(new DataInteger(1));
+        assertThat(other.unknownFields()).isNull();
+
+        final var schemaless = (DataStruct) converter.convert(new StructType(), person);
+        assertThat(schemaless.unknownFields()).isNull();
+    }
 }

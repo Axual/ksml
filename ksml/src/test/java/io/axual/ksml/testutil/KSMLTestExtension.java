@@ -41,6 +41,8 @@ import io.axual.ksml.type.UserType;
 import io.confluent.kafka.serializers.KafkaAvroDeserializer;
 import io.confluent.kafka.serializers.KafkaAvroSerializer;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.kafka.common.serialization.ByteArrayDeserializer;
+import org.apache.kafka.common.serialization.ByteArraySerializer;
 import org.apache.kafka.common.serialization.Deserializer;
 import org.apache.kafka.common.serialization.IntegerDeserializer;
 import org.apache.kafka.common.serialization.IntegerSerializer;
@@ -289,6 +291,7 @@ public class KSMLTestExtension implements ExecutionCondition, BeforeAllCallback,
             case STRING -> new StringSerializer();
             case LONG -> new LongSerializer();
             case INTEGER -> new IntegerSerializer();
+            case BYTES -> new ByteArraySerializer();
         };
     }
 
@@ -312,6 +315,7 @@ public class KSMLTestExtension implements ExecutionCondition, BeforeAllCallback,
             case STRING -> new StringDeserializer();
             case LONG -> new LongDeserializer();
             case INTEGER -> new IntegerDeserializer();
+            case BYTES -> new ByteArrayDeserializer();
         };
     }
 }

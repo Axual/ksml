@@ -43,6 +43,8 @@ import io.axual.ksml.python.PythonContextConfig;
 import io.confluent.kafka.serializers.KafkaAvroDeserializer;
 import io.confluent.kafka.serializers.KafkaAvroSerializer;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.kafka.common.serialization.ByteArrayDeserializer;
+import org.apache.kafka.common.serialization.ByteArraySerializer;
 import org.apache.kafka.common.serialization.Deserializer;
 import org.apache.kafka.common.serialization.IntegerDeserializer;
 import org.apache.kafka.common.serialization.IntegerSerializer;
@@ -282,6 +284,7 @@ public class KSMLTopologyTestExtension implements ExecutionCondition, BeforeEach
             case STRING -> new StringSerializer();
             case LONG -> new LongSerializer();
             case INTEGER -> new IntegerSerializer();
+            case BYTES -> new ByteArraySerializer();
         };
     }
 
@@ -305,6 +308,7 @@ public class KSMLTopologyTestExtension implements ExecutionCondition, BeforeEach
             case STRING -> new StringDeserializer();
             case LONG -> new LongDeserializer();
             case INTEGER -> new IntegerDeserializer();
+            case BYTES -> new ByteArrayDeserializer();
         };
     }
 }

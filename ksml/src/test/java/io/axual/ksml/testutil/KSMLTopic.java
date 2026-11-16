@@ -43,5 +43,5 @@ public @interface KSMLTopic {
     SerdeType valueSerde() default SerdeType.STRING;
 
     /** Serde types the annotation supports. */
-    enum SerdeType {STRING, AVRO, LONG, INTEGER}
+    enum SerdeType {STRING, AVRO, LONG, INTEGER, BYTES}
 }
