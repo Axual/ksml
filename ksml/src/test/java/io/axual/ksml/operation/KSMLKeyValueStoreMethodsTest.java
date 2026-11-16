@@ -27,6 +27,7 @@ import io.axual.ksml.testutil.KSMLTopic;
 import org.apache.kafka.streams.TestInputTopic;
 import org.apache.kafka.streams.TestOutputTopic;
 import org.apache.kafka.streams.TopologyTestDriver;
+import org.apache.kafka.streams.state.TimestampedKeyValueStore;
 import org.apache.kafka.streams.state.TimestampedKeyValueStoreWithHeaders;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -37,8 +38,8 @@ import static io.axual.ksml.testutil.StoreMetrics.openIterators;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * Calls the key-value store methods from Python on in-memory, RocksDB and cached RocksDB stores, plain and with
- * timestamped: true. The results must be the same.
+ * Calls the key-value store methods from Python on in-memory, RocksDB and cached RocksDB stores, plain (the kv_* stores
+ * with timestamped: false) and timestamped (the ts_* stores). The results must be the same.
  */
 @ExtendWith(KSMLTestExtension.class)
 @SuppressWarnings("java:S2187")
@@ -73,6 +74,11 @@ public class KSMLKeyValueStoreMethodsTest {
                 "kv_cached", "kv_cached_copy", "ts_memory", "ts_memory_copy", "ts_rocksdb", "ts_rocksdb_copy",
                 "ts_cached", "ts_cached_copy")) {
             assertThat(openIterators(driver, store)).as(store).isZero();
+        }
+        // The kv_* stores must stay plain stores, also with the headers store format
+        for (final var store : List.of("kv_memory", "kv_memory_copy", "kv_rocksdb", "kv_rocksdb_copy", "kv_cached", "kv_cached_copy")) {
+            assertThat(driver.getAllStateStores().get(store)).as(store).isNotNull()
+                    .isNotInstanceOf(TimestampedKeyValueStore.class).isNotInstanceOf(TimestampedKeyValueStoreWithHeaders.class);
         }
     }
 
