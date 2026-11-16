@@ -12,6 +12,7 @@ stores:
     retention: 1h
     windowSize: 1m
     persistent: false
+    timestamped: false
     caching: false
     logging: false
 

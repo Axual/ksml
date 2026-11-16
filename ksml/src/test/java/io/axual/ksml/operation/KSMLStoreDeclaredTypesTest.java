@@ -20,11 +20,16 @@ package io.axual.ksml.operation;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.testutil.KSMLDriver;
 import io.axual.ksml.testutil.KSMLTest;
 import io.axual.ksml.testutil.KSMLTestExtension;
 import io.axual.ksml.testutil.KSMLTopic;
 import org.apache.kafka.streams.TestInputTopic;
 import org.apache.kafka.streams.TestOutputTopic;
+import org.apache.kafka.streams.TopologyTestDriver;
+import org.apache.kafka.streams.state.TimestampedKeyValueStore;
+import org.apache.kafka.streams.state.TimestampedKeyValueStoreWithHeaders;
+import org.apache.kafka.streams.state.TimestampedWindowStore;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.extension.ExtendWith;
 
@@ -53,6 +58,9 @@ public class KSMLStoreDeclaredTypesTest {
     @KSMLTopic(topic = "declared_types_count_output")
     TestOutputTopic<String, String> countOutput;
 
+    @KSMLDriver
+    TopologyTestDriver driver;
+
     @KSMLTest(topology = "pipelines/test-store-declared-types-python.yaml")
     @DisplayName("Python keys and values are converted to the declared simple types of every kind of store")
     void testStoreDeclaredTypes() {
@@ -68,6 +76,7 @@ public class KSMLStoreDeclaredTypesTest {
         assertThat(List.of(values.get(0).split("\\n"))).containsExactly(
                 "keyValue" + longStore + putAll,
                 "keyValueRocksdb" + longStore + putAll,
+                "defaultRocksdb" + longStore + putAll,
                 "timestamped" + longStore + putAll,
                 "versioned" + longStore,
                 "window" + longStore,
@@ -82,6 +91,19 @@ public class KSMLStoreDeclaredTypesTest {
                 // A list of ints is also bytes; reads return bytes as a list of ints
                 "bytes bytes=ok/[97, 98] list=ok/[97, 98] str=TypeError",
                 "byte put=ok/5 large=ValueError");
+
+        // The plain stores stay plain, so the plain proxies are tested too
+        final var stores = driver.getAllStateStores();
+        for (final var name : List.of("kv_long", "kv_long_rocksdb")) {
+            assertThat(stores.get(name)).as(name)
+                    .isNotInstanceOf(TimestampedKeyValueStore.class)
+                    .isNotInstanceOf(TimestampedKeyValueStoreWithHeaders.class);
+        }
+        assertThat(stores.get("window_long")).as("window_long").isNotInstanceOf(TimestampedWindowStore.class);
+        assertThat(stores.get("kv_default_long_rocksdb")).as("kv_default_long_rocksdb")
+                .isInstanceOfAny(TimestampedKeyValueStore.class, TimestampedKeyValueStoreWithHeaders.class);
+        assertThat(stores.get("kv_timestamped_long")).as("kv_timestamped_long").isInstanceOf(TimestampedKeyValueStore.class);
+        assertThat(stores.get("window_timestamped_long")).as("window_timestamped_long").isInstanceOf(TimestampedWindowStore.class);
     }
 
     @KSMLTest(topology = "pipelines/test-store-declared-types-count-python.yaml")
@@ -100,5 +122,7 @@ public class KSMLStoreDeclaredTypesTest {
     @DisplayName("Python keys and values are converted to the declared simple types of every kind of store, also with the headers store format")
     void testStoreDeclaredTypesWithHeadersStoreFormat() {
         testStoreDeclaredTypes();
+        assertThat(driver.getAllStateStores().get("kv_default_long_rocksdb")).as("kv_default_long_rocksdb")
+                .isInstanceOf(TimestampedKeyValueStoreWithHeaders.class);
     }
 }
