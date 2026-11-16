@@ -50,7 +50,7 @@ Facts that shape the approach:
 
 - A Python API for reading or writing headers on stores.
 - Headers support for in-memory or versioned stores (Kafka Streams has none).
-- Supporting `dsl.store.format` in `ksml-test-runner`: it has no Kafka config, so it uses `DEFAULT`.
+- Supporting `dsl.store.format` in `ksml-test-runner`: it has no Kafka config, so it uses `DEFAULT`. `testing-your-pipeline.md` and the Store Format section of the state store reference say so (PR #767 review 03, item 11). Python gets the same results in both formats, so a new test file field is not worth it.
 - Changing implicit table or globalTable stores, or stores of operations without a declared store.
 - Migrating existing state when users switch `dsl.store.format`. The upgrade of 1.x window store state is covered by D7.
 

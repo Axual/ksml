@@ -31,6 +31,7 @@ Each implementation task follows TDD: first commit the failing test, then the fi
 - [x] 3.4 Add a test that a stream-stream join with declared stores still builds and joins correctly with the headers format on. Verify it passes.
 - [x] 3.5 Document `dsl.store.format: HEADERS` (which stores it affects, which it doesn't, and the caution about switching formats on existing state) in `docs/reference/state-store-reference.md`, the runner configuration docs and the migration guide. Verify the docs build.
 - [x] 3.6 List the changed Java signatures (`TopologyBuildContext`, `StoreUtil.getStoreBuilder`, `materialize`, `validatedWindowStore`, `BaseOperation.streamJoinedOf`) in the Java bullet of `docs/release-notes.md` and the checklist of `docs/migration-to-2.0.0.md` (PR #767 review 03, item 10). Verify the docs build.
+- [x] 3.7 Say in `docs/getting-started/testing-your-pipeline.md` and in the Store Format section of `docs/reference/state-store-reference.md` that the test runner always uses the default store format, and what that means for the tests (PR #767 review 03, item 11). Verify the docs build.
 
 ## 4. Python access to headers-aware stores (design D5)
 

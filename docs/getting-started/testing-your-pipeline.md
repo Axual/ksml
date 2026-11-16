@@ -123,6 +123,8 @@ Each assert block runs Python code with injected variables. At least one of `on`
 
 When `on:` is set, `records` is a list of dicts with `key`, `value`, and `timestamp` fields. When `stores:` is set, each key-value store is available as a Python variable with the key-value store API (e.g. `store.get(key)`, `store.put(key, value)`). A timestamped store works like a plain one there: it has no `*WithTimestamp` methods. Keys and values are converted to the store's declared types the same way, so `counts.get(1)` works on a store with `keyType: long`.
 
+The test runner always uses the default store format: `dsl.store.format: HEADERS` is not applied. Python store methods return the same results in both formats, so your assertions still hold, but the tests don't cover the headers-aware storage itself. See [Store Format](../reference/state-store-reference.md#store-format).
+
 **Note:**  Avro output streams must declare the correct `valueType`"
 `records[i]["value"]` is a dict only when the stream's `valueType` in `streams:` matches what the pipeline actually writes. If the pipeline writes Avro but the stream is declared as `valueType: string` (or the field is omitted), the runner falls back to `StringDeserializer`. The raw Confluent wire bytes — magic byte + 4-byte schema ID + Avro payload — are returned as a string, and indexing into `records[i]["value"]` with a field name fails with `TypeError: string indices must be integers`.
 

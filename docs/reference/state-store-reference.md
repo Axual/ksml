@@ -93,7 +93,8 @@ them or Python functions use them, and to the window stores of stream-stream joi
 stores (`persistent: false`), stores with `timestamped: false` and versioned stores: Kafka Streams has no
 headers-aware format for them. Session stores are headers-aware when they are persistent. With the default value
 `DEFAULT`, no store is headers-aware. Python functions use headers-aware stores with the same methods as before; see
-[Headers-Aware Stores](#headers-aware-stores).
+[Headers-Aware Stores](#headers-aware-stores). The [KSML test runner](../getting-started/testing-your-pipeline.md)
+always uses `DEFAULT`.
 
 Operations without a `store` are not declared stores: Kafka Streams creates their stores and picks the format itself,
 also from `dsl.store.format`. Tables and globalTables without a `store` keep an in-memory store, which is not
