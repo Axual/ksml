@@ -181,9 +181,8 @@ public class PythonContext implements AutoCloseable {
                     .allowHostSocketAccess(allowHostSocketAccess)
                     .build();
         }
-        // No host file access: deny all files, or allow read-only access to modulePath. On top of that,
-        // allow read-only access to GraalPy's own files (its standard library and native libraries). The
-        // built-in "no access" file system allows those by itself, a custom file system does not.
+        // Deny all files, or allow read-only modulePath. allowInternalResources adds read-only access
+        // to GraalVM's resource cache (all languages), which GraalPy needs for its own files.
         FileSystem restricted = StringUtils.isEmpty(modulePath)
                 ? new DenyAllFileSystem()
                 : createReadOnlyFileSystem(modulePath);
@@ -194,21 +193,23 @@ public class PythonContext implements AutoCloseable {
     }
 
     /**
-     * Create an FileSystem object that allows read-only access to Python's home, and the given path and everything below it.
+     * Create an FileSystem object that allows read-only access to the given path and everything below it.
+     * Python's own files (its home) are not handled here: {@link FileSystem#allowInternalResources}
+     * gives read-only access to them before this file system is asked.
      * <p>
-     * The selector predicate normalizes both the candidate path and the two allowed prefixes
-     * (the configured {@code modulePath} and Python's {@code sys.prefix}) before doing the
-     * element-wise {@link Path#startsWith(Path)} check, to prevent any literal {@code ../..}
-     * chain in the candidate path from escaping.
+     * The selector predicate normalizes both the candidate path and the allowed prefix
+     * (the configured {@code modulePath}) before doing the element-wise
+     * {@link Path#startsWith(Path)} check, to prevent any literal {@code ../..} chain in the
+     * candidate path from escaping.
      * <p>
      * Normalization is purely lexical ({@link Path#normalize()}), not symlink-resolving
      * ({@code toRealPath}). That is safe under the threat model "untrusted Python in the
      * KSML definition" because the wrapping {@link FileSystem#newReadOnlyFileSystem} denies
      * the guest any write capability - in particular it cannot create symlinks inside the
-     * allowed region to point outwards. Any symlinks that do exist in {@code modulePath} or
-     * {@code sys.prefix} were placed there by the operator/image author and are considered
-     * intentional. If write access to the allowed region is ever granted to the guest, this
-     * predicate needs to be upgraded to symlink-resolving canonicalization.
+     * allowed region to point outwards. Any symlinks that do exist in {@code modulePath} were
+     * placed there by the operator/image author and are considered intentional. If write access
+     * to the allowed region is ever granted to the guest, this predicate needs to be upgraded to
+     * symlink-resolving canonicalization.
      * <p>
      * The {@code modulePath} string passed in is expected to already be canonical
      * (resolved via {@link Path#toRealPath()} in the constructor).
@@ -220,22 +221,21 @@ public class PythonContext implements AutoCloseable {
         log.debug("createReadOnlyFileSystem({})", modulePath);
         FileSystem modulesFileSystem = FileSystem.newDefaultFileSystem();
         FileSystem denyAllAccess = new DenyAllFileSystem();
-        // Pre-normalize the allowed prefixes once - the per-call selector then only has to
-        // normalize the candidate path and run two startsWith checks.
+        // Pre-normalize the allowed prefix once - the per-call selector then only has to
+        // normalize the candidate path and run one startsWith check.
         final Path modulePathNormalized = Path.of(modulePath).toAbsolutePath().normalize();
-        final Path sysPrefixNormalized = Path.of(getPythonSysPrefix()).toAbsolutePath().normalize();
         FileSystem restricted = FileSystem.newCompositeFileSystem(
                 // the default/fallback file system is: deny access
                 denyAllAccess,
                 // add a selector that returns the modulesFileSystem only if the normalized path
-                // is within modulePath or sys.prefix
+                // is within modulePath
                 FileSystem.Selector.of(modulesFileSystem, path -> {
                     if (path == null || !path.isAbsolute()) {
                         return false;
                     }
                     Path normalized = path.toAbsolutePath().normalize();
-                    if (!normalized.startsWith(modulePathNormalized) && !normalized.startsWith(sysPrefixNormalized)) {
-                        log.warn("Refusing path {} which is outside of modulePath {} or sys.prefix {}", normalized, modulePathNormalized, sysPrefixNormalized);
+                    if (!normalized.startsWith(modulePathNormalized)) {
+                        log.warn("Refusing path {} which is outside of modulePath {}", normalized, modulePathNormalized);
                         return false;
                     }
                     return true;
@@ -243,20 +243,6 @@ public class PythonContext implements AutoCloseable {
         );
 
         return FileSystem.newReadOnlyFileSystem(restricted);
-    }
-
-    /**
-     * Get sys.prefix from GraalVM Python.
-     *
-     * @return the value of sys.prefix.
-     */
-    private String getPythonSysPrefix() {
-        log.debug("getPythonSysPrefix()");
-        var tempContext = Context.newBuilder(PYTHON).build();
-        var result = tempContext.eval(PYTHON, "import sys; sys.prefix").asString();
-        log.debug("getPythonSysPrefix() ---> {}", result);
-        tempContext.close();
-        return result;
     }
 
     /**

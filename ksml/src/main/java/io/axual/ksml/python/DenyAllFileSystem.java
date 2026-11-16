@@ -36,13 +36,8 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * A file system that denies every operation, like {@link FileSystem#newDenyIOFileSystem()}, with one
- * exception: it answers "what is the current folder" with {@code /}.
- * <p>
- * GraalPy 25.1 and later ask for the current folder while they import {@code sysconfig}, and
- * {@code ctypes} imports {@code sysconfig}. The plain deny file system refuses that question, so
- * {@code ctypes} cannot load even when native access is allowed. The answer {@code /} is made up: it
- * gives no access to any real file, because every other operation is still denied.
+ * Denies every file operation, like {@link FileSystem#newDenyIOFileSystem()}, but answers "current folder"
+ * with {@code /}. GraalPy 25.1+ asks for it when {@code sysconfig} loads, for example through {@code ctypes}.
  */
 final class DenyAllFileSystem implements FileSystem {
 
@@ -57,7 +52,7 @@ final class DenyAllFileSystem implements FileSystem {
     @Override
     public Path toAbsolutePath(Path path) {
         // Truffle asks for the current folder as the absolute form of the empty path.
-        if (!path.isAbsolute() && path.toString().isEmpty()) {
+        if (path.toString().isEmpty()) {
             return CURRENT_FOLDER;
         }
         throw denied(path);
