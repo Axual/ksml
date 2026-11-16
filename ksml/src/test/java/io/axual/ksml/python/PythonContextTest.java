@@ -214,10 +214,12 @@ class PythonContextTest {
                 int pid = fn.execute().asInt();
                 assertThat(pid).isGreaterThan(0);
             } else {
-                // ❌ Expect native access to fail
+                // ❌ Expect native access to fail. GraalPy 25.1+ loads _ctypes as a C extension, and
+                // only one context per process can load C extensions. The case above already did, so
+                // the error here can also be "a second GraalPy context attempted to load ... '_ctypes'".
                 assertThatThrownBy(fn::execute)
                         .isInstanceOf(PolyglotException.class)
-                        .hasMessageContaining("cannot import");
+                        .hasMessageContaining("_ctypes");
             }
         }
     }

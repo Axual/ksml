@@ -30,10 +30,13 @@ jobs:
         run: echo "version=$(cat .graalvm-jdk-version)" >> "$GITHUB_OUTPUT"
 
       - name: Set up GraalVM
-        uses: actions/setup-java@v6
+        # actions/setup-java cannot find GraalVM Community 25.1 and later: their files are named
+        # graalvm-community-jdk-25iN-..., which it skips. GraalVM's own action can.
+        uses: graalvm/setup-graalvm@v1
         with:
           distribution: graalvm-community
-          java-version: ${{ steps.graalvm.outputs.version }}
+          version: ${{ steps.graalvm.outputs.version }}
+          java-version: '25'
           cache: maven
 
       - name: Build and test

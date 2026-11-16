@@ -6,7 +6,8 @@
 #   graalvm-tarballs.sh check      only check both URLs exist, download nothing
 #
 # The version comes from .graalvm-jdk-version. Set GRAALVM_JDK_VERSION to try a
-# different one without editing that file.
+# different one without editing that file. It must be the same as <graalvm.version> in
+# pom.xml: the GraalVM libraries only work on the GraalVM runtime of the same release.
 #
 # Keep the output names as they are. The Dockerfile unpacks
 # graalvm-${TARGETARCH}.tar.gz, and Docker sets TARGETARCH to amd64 or arm64.
@@ -27,6 +28,29 @@ if [ -z "$version" ]; then
     exit 1
 fi
 
+pom_version=$(sed -n 's:.*<graalvm.version>\(.*\)</graalvm.version>.*:\1:p' "$repo_root/pom.xml" | head -1)
+if [ "$version" != "$pom_version" ]; then
+    echo "GraalVM runtime ${version} (.graalvm-jdk-version) is not the same as the GraalVM" >&2
+    echo "libraries ${pom_version} (<graalvm.version> in pom.xml). Change both to the same version." >&2
+    exit 1
+fi
+
+# Up to 25.0.2 a release is tagged jdk-<version> and the files carry the same version.
+# From 25.1 a release is tagged graal-<version>, and the files carry "25iN" plus the version
+# of the OpenJDK inside it. Release 25.5.5.0.3 contains OpenJDK 25.0.5.0.3, so its files are
+# graalvm-community-jdk-25i5-25.0.5.0.3_linux-x64_bin.tar.gz. The check mode tells right away
+# if this rule ever stops matching.
+major=${version%%.*}
+rest=${version#*.}
+minor=${rest%%.*}
+if [ "$major" -lt 25 ] || { [ "$major" -eq 25 ] && [ "$minor" -eq 0 ]; }; then
+    tag="jdk-${version}"
+    file_version="${version}"
+else
+    tag="graal-${version}"
+    file_version="${major}i${minor}-${major}.0.${rest#*.}"
+fi
+
 base_url=https://github.com/graalvm/graalvm-ce-builds/releases/download
 failed=0
 
@@ -35,7 +59,7 @@ failed=0
 for pair in x64:amd64 aarch64:arm64; do
     graal_arch=${pair%%:*}
     docker_arch=${pair##*:}
-    url="${base_url}/jdk-${version}/graalvm-community-jdk-${version}_linux-${graal_arch}_bin.tar.gz"
+    url="${base_url}/${tag}/graalvm-community-jdk-${file_version}_linux-${graal_arch}_bin.tar.gz"
     output="graalvm-${docker_arch}.tar.gz"
 
     if [ "$mode" = "check" ]; then
@@ -66,13 +90,10 @@ done
 if [ "$failed" -ne 0 ]; then
     cat >&2 <<EOF
 
-GraalVM Community JDK ${version} is not published as a tarball, so the Docker image
-cannot be built. See https://github.com/graalvm/graalvm-ce-builds/releases for what
-exists. Releases after 25.0.2 use a "graal-" tag and a "25iN-" file name, which the URL
-above cannot produce, so those need a change here and not just a new version number.
-
-The <graalvm.version> in pom.xml is a separate thing. It selects the org.graalvm.* Maven
-artifacts, which are published independently, so it may legitimately differ from this.
+GraalVM Community ${version} is not published as a tarball under the URL above, so the
+Docker image cannot be built. See https://github.com/graalvm/graalvm-ce-builds/releases
+for what exists. Note that Maven Central also has 25.0.x versions after 25.0.2 (25.0.3,
+25.0.5.0.3, ...). Those are only libraries: there is no GraalVM Community runtime for them.
 EOF
     exit 1
 fi

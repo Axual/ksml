@@ -20,19 +20,16 @@ updates:
     schedule:
       interval: "weekly"
     groups:
+      # GraalVM gets its own pull request. The libraries must have the same version as the
+      # GraalVM runtime in .graalvm-jdk-version, so such a pull request needs one more commit
+      # that changes that file too. Until then, scripts/graalvm-tarballs.sh fails on purpose.
+      # See developerdocs/graalvm-version-pinning.md.
+      graalvm:
+        patterns: [ "org.graalvm.*" ]
       dev-deps:
         dependency-type: "development"
       prod-deps:
         dependency-type: "production"
-    ignore:
-      # All GraalVM library bumps past 25.0.x are blocked on purpose, with no upper
-      # end to the range. Do not narrow this range without reading
-      # developerdocs/graalvm-version-pinning.md first - it explains a second,
-      # deeper problem found in GraalVM 25.3.4.1 (PR #701) on top of the original
-      # GraalPy 25.1/25.2 native-extension bug (#688), and what needs to be true
-      # before it is safe to widen this again.
-      - dependency-name: "org.graalvm.*:*"
-        versions: [ ">=25.1.0" ]
   - package-ecosystem: "pip"
     directory: "/"
     schedule:

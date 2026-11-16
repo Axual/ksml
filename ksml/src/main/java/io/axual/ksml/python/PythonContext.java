@@ -175,20 +175,22 @@ public class PythonContext implements AutoCloseable {
     private IOAccess createIOAccess(boolean allowHostFileAccess, boolean allowHostSocketAccess, String modulePath) {
         log.debug("createIOAccess({}, {}, {})", allowHostFileAccess, allowHostSocketAccess, modulePath);
 
-        if (allowHostFileAccess || StringUtils.isEmpty(modulePath)) {
-            // if host file access is allowed or no module path configured, then we don't need to set up an extra restricted file system for module access
+        if (allowHostFileAccess) {
             return IOAccess.newBuilder()
-                    .allowHostFileAccess(allowHostFileAccess)
-                    .allowHostSocketAccess(allowHostSocketAccess)
-                    .build();
-        } else {
-            // host file access is false, but modulePath is not empty: set up restricted file system for module access
-            FileSystem modulesReadOnly = createReadOnlyFileSystem(modulePath);
-            return IOAccess.newBuilder()
-                    .fileSystem(modulesReadOnly)
+                    .allowHostFileAccess(true)
                     .allowHostSocketAccess(allowHostSocketAccess)
                     .build();
         }
+        // No host file access: deny all files, or allow read-only access to modulePath. On top of that,
+        // allow read-only access to GraalPy's own files (its standard library and native libraries). The
+        // built-in "no access" file system allows those by itself, a custom file system does not.
+        FileSystem restricted = StringUtils.isEmpty(modulePath)
+                ? new DenyAllFileSystem()
+                : createReadOnlyFileSystem(modulePath);
+        return IOAccess.newBuilder()
+                .fileSystem(FileSystem.allowInternalResources(restricted))
+                .allowHostSocketAccess(allowHostSocketAccess)
+                .build();
     }
 
     /**
@@ -217,7 +219,7 @@ public class PythonContext implements AutoCloseable {
     private FileSystem createReadOnlyFileSystem(String modulePath) {
         log.debug("createReadOnlyFileSystem({})", modulePath);
         FileSystem modulesFileSystem = FileSystem.newDefaultFileSystem();
-        FileSystem denyAllAccess = FileSystem.newDenyIOFileSystem();
+        FileSystem denyAllAccess = new DenyAllFileSystem();
         // Pre-normalize the allowed prefixes once - the per-call selector then only has to
         // normalize the candidate path and run two startsWith checks.
         final Path modulePathNormalized = Path.of(modulePath).toAbsolutePath().normalize();

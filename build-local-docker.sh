@@ -22,8 +22,8 @@ cp -r ksml-runner/target/libs build-output/
 cp ksml-test-runner/target/libs/*.jar build-output/libs/
 cp ksml-runner/NOTICE.txt build-output/
 cp LICENSE.txt build-output/
-# Download graalvm tarfiles. Version comes from .graalvm-jdk-version; override it with
-# GRAALVM_JDK_VERSION=... to try another one.
+# Download graalvm tarfiles. Version comes from .graalvm-jdk-version, and must match <graalvm.version>
+# in pom.xml. Override it with GRAALVM_JDK_VERSION=... to try another one.
 scripts/graalvm-tarballs.sh download
 
 # Create builder if it doesn't exist
