@@ -63,6 +63,7 @@ Each implementation task follows TDD: first commit the failing test, then the fi
 - [x] 6.2 Run the ticket's Docker reproduction with the KSML runner: confirm that declared stores create changelog topics, survive a restart, and that with `dsl.store.format: HEADERS` the stores are headers-aware. Verify by inspecting topics and the logged topology.
 - [x] 6.3 Run the parity cases C30, C32, C44a, C49, C50 and C50b from AXPD-12447 against this build. Verify they pass, or record each difference on the ticket.
 - [x] 6.4 Run `openspec validate store-kafka-streams-defaults --strict`. Verify it reports no issues.
+- [x] 6.5 Rebase on `main` with #751 (tombstones) (PR #767 review 03, item 4). Add a headers store format variant of `KSMLTimestampedStoreTombstoneTest.putNoneWithTimestampDeletes`, because `TimestampedKeyValueStoreProxy.put` with `None` now runs on `HeadersKeyValueStoreAdapter`. Run `mvn clean verify` again. Verify it passes.
 
 ## Workflow follow-up
 
