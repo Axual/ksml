@@ -26,6 +26,7 @@ import io.axual.ksml.integration.testutil.SharedKsmlInfra;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.admin.AdminClient;
 import org.apache.kafka.clients.admin.AdminClientConfig;
+import org.apache.kafka.clients.admin.MemberDescription;
 import org.apache.kafka.clients.admin.NewTopic;
 import org.apache.kafka.clients.admin.OffsetSpec;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
@@ -33,6 +34,7 @@ import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.clients.producer.ProducerRecord;
+import org.apache.kafka.common.GroupState;
 import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.StringSerializer;
@@ -58,8 +60,10 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.function.UnaryOperator;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -235,9 +239,11 @@ class WindowStoreUpgradeIT {
 
     private String runThisVersionAndGet(String bootstrapServers, long windowStart, UnaryOperator<String> definitionChange) throws Exception {
         prepareThisVersion(bootstrapServers, definitionChange);
+        final var membersBefore = groupMembers(bootstrapServers);
         runner = new KSMLRunnerWrapper(workDirectory.resolve(RUNNER_CONFIG), Map.of());
         runner.start();
         runner.waitForReady(30_000);
+        waitForInputAssignment(bootstrapServers, membersBefore);
         produceGet(bootstrapServers, windowStart);
         final var result = readGetResult();
         runner.stop();
@@ -329,6 +335,34 @@ class WindowStoreUpgradeIT {
                     if (changelogEndOffset(admin, store) < puts) return false;
                 }
                 return !ksml1Version.equals("1.1.0") || Files.exists(checkpoint);
+            });
+        }
+    }
+
+    /** The member ids in the consumer group of the application, which KSML 1.x or an earlier run may have left. */
+    private Set<String> groupMembers(String bootstrapServers) throws Exception {
+        try (var admin = AdminClient.create(Map.of(AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers))) {
+            return admin.describeConsumerGroups(List.of(applicationId())).all().get().get(applicationId()).members().stream()
+                    .map(MemberDescription::consumerId)
+                    .collect(Collectors.toSet());
+        } catch (ExecutionException e) {
+            // The group does not exist yet
+            return Set.of();
+        }
+    }
+
+    /**
+     * Waits until a new member of the consumer group has the input partition. A member that KSML 1.x left when it was
+     * stopped keeps the partition until its session times out, so a get sent before that is not read in time.
+     */
+    private void waitForInputAssignment(String bootstrapServers, Set<String> membersBefore) {
+        final var input = new TopicPartition(topic("input"), 0);
+        try (var admin = AdminClient.create(Map.of(AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers))) {
+            Awaitility.await().atMost(PROCESSING_TIMEOUT).pollInterval(Duration.ofSeconds(1)).ignoreExceptions().until(() -> {
+                final var group = admin.describeConsumerGroups(List.of(applicationId())).all().get().get(applicationId());
+                return group.groupState() == GroupState.STABLE && group.members().stream()
+                        .anyMatch(member -> !membersBefore.contains(member.consumerId())
+                                && member.assignment().topicPartitions().contains(input));
             });
         }
     }
