@@ -515,7 +515,7 @@ public abstract class BaseOperation implements StreamOperation {
 
     private static void warnIfJoinStoreLoggingDisabled(WindowStateStoreDefinition store) {
         if (loggingDisabled(store)) {
-            log.warn("Join store '{}' sets 'logging: false', but Kafka Streams still logs it; only the shared store of a left or outer join is not logged", store.name());
+            log.warn("Join store '{}' sets 'logging: false', but Kafka Streams always logs join stores (see 'For Stream-Stream Joins' in the state store reference)", store.name());
         }
     }
 

@@ -96,7 +96,7 @@ The shared store of a stream-stream left or outer join SHALL NOT log to a change
 - **THEN** the topology is built and the outer join's shared store has a changelog topic
 
 ### Requirement: Join window stores always log
-The two declared window stores of a stream-stream join SHALL always log to changelog topics, as Kafka Streams does for join stores that the application provides. When a join store sets `logging: false`, KSML SHALL log a warning that names the store and says that only the shared store's changelog is turned off.
+The two declared window stores of a stream-stream join SHALL always log to changelog topics, as Kafka Streams does for join stores that the application provides. When a join store sets `logging: false`, KSML SHALL log a warning that names the store and says that Kafka Streams always logs join stores. The warning SHALL NOT describe the shared store, because it is true for inner, left and outer joins alike.
 
 #### Scenario: Window stores with logging off
 - **WHEN** an outer join between two streams declares `thisStore` and `otherStore` with `logging: false`

@@ -91,7 +91,7 @@ public class KSMLStreamJoinLoggingTest {
         final var topology = new AtomicReference<Topology>();
         final var log = stderrOf(() -> topology.set(buildTopology("pipelines/test-stream-join-logging-off.yaml")));
 
-        assertThat(log).contains("WARN").contains("this_store").contains("other_store");
+        assertThat(log).contains(warning("this_store")).contains(warning("other_store")).doesNotContain("shared store");
         try (var driver = new TopologyTestDriver(topology.get())) {
             driver.createInputTopic("input1", new StringSerializer(), new StringSerializer()).pipeInput("a", "left", 1000L);
             driver.createInputTopic("input2", new StringSerializer(), new StringSerializer()).pipeInput("b", "right", 1000L);
@@ -110,7 +110,7 @@ public class KSMLStreamJoinLoggingTest {
         final var topology = new AtomicReference<Topology>();
         final var log = stderrOf(() -> topology.set(buildTopology("pipelines/test-stream-join-logging-mixed.yaml")));
 
-        assertThat(log).contains("WARN").contains("other_store").doesNotContain("this_store");
+        assertThat(log).contains(warning("other_store")).doesNotContain("this_store").doesNotContain("shared store");
         try (var driver = new TopologyTestDriver(topology.get())) {
             driver.createInputTopic("input1", new StringSerializer(), new StringSerializer()).pipeInput("a", "left", 1000L);
             driver.createInputTopic("input2", new StringSerializer(), new StringSerializer()).pipeInput("b", "right", 1000L);
@@ -128,4 +128,8 @@ public class KSMLStreamJoinLoggingTest {
         return generator.create(new StreamsBuilder(), Map.of("definition", definition));
     }
 
+    /** The warning for a join store with logging: false, true for inner, left and outer joins alike. */
+    private static String warning(String store) {
+        return "Join store '" + store + "' sets 'logging: false', but Kafka Streams always logs join stores";
+    }
 }
