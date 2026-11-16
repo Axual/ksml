@@ -92,6 +92,8 @@ class DenyAllFileSystemTest {
     @ParameterizedTest(name = "{0}")
     @MethodSource("fileOperations")
     void deniesEveryFileOperation(String name, ThrowingCallable call) {
-        assertThatThrownBy(call).isInstanceOf(SecurityException.class);
+        assertThatThrownBy(call)
+                .isInstanceOf(SecurityException.class)
+                .hasMessageStartingWith("Operation is not allowed");
     }
 }

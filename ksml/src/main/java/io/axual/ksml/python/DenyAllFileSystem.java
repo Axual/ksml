@@ -49,13 +49,18 @@ final class DenyAllFileSystem implements FileSystem {
     private static final Path CURRENT_FOLDER = Path.of("/");
     private final FileSystem deny = FileSystem.newDenyIOFileSystem();
 
+    // Same exception and message as Truffle's own deny file system.
+    private static SecurityException denied(Path path) {
+        return new SecurityException(path == null ? "Operation is not allowed." : "Operation is not allowed for: " + path);
+    }
+
     @Override
     public Path toAbsolutePath(Path path) {
         // Truffle asks for the current folder as the absolute form of the empty path.
         if (!path.isAbsolute() && path.toString().isEmpty()) {
             return CURRENT_FOLDER;
         }
-        return deny.toAbsolutePath(path);
+        throw denied(path);
     }
 
     @Override
@@ -70,77 +75,77 @@ final class DenyAllFileSystem implements FileSystem {
 
     @Override
     public void checkAccess(Path path, Set<? extends AccessMode> modes, LinkOption... linkOptions) throws IOException {
-        deny.checkAccess(path, modes, linkOptions);
+        throw denied(path);
     }
 
     @Override
     public void createDirectory(Path dir, FileAttribute<?>... attrs) throws IOException {
-        deny.createDirectory(dir, attrs);
+        throw denied(dir);
     }
 
     @Override
     public void delete(Path path) throws IOException {
-        deny.delete(path);
+        throw denied(path);
     }
 
     @Override
     public SeekableByteChannel newByteChannel(Path path, Set<? extends OpenOption> options, FileAttribute<?>... attrs) throws IOException {
-        return deny.newByteChannel(path, options, attrs);
+        throw denied(path);
     }
 
     @Override
     public DirectoryStream<Path> newDirectoryStream(Path dir, DirectoryStream.Filter<? super Path> filter) throws IOException {
-        return deny.newDirectoryStream(dir, filter);
+        throw denied(dir);
     }
 
     @Override
     public Path toRealPath(Path path, LinkOption... linkOptions) throws IOException {
-        return deny.toRealPath(path, linkOptions);
+        throw denied(path);
     }
 
     @Override
     public Map<String, Object> readAttributes(Path path, String attributes, LinkOption... options) throws IOException {
-        return deny.readAttributes(path, attributes, options);
+        throw denied(path);
     }
 
     @Override
     public void setAttribute(Path path, String attribute, Object value, LinkOption... options) throws IOException {
-        deny.setAttribute(path, attribute, value, options);
+        throw denied(path);
     }
 
     @Override
     public void copy(Path source, Path target, CopyOption... options) throws IOException {
-        deny.copy(source, target, options);
+        throw denied(source);
     }
 
     @Override
     public void move(Path source, Path target, CopyOption... options) throws IOException {
-        deny.move(source, target, options);
+        throw denied(source);
     }
 
     @Override
     public void createLink(Path link, Path existing) throws IOException {
-        deny.createLink(link, existing);
+        throw denied(link);
     }
 
     @Override
     public void createSymbolicLink(Path link, Path target, FileAttribute<?>... attrs) throws IOException {
-        deny.createSymbolicLink(link, target, attrs);
+        throw denied(link);
     }
 
     @Override
     public Path readSymbolicLink(Path link) throws IOException {
-        return deny.readSymbolicLink(link);
+        throw denied(link);
     }
 
     @Override
     public Path getTempDirectory() {
-        return deny.getTempDirectory();
+        throw denied(null);
     }
 
     @Override
     public boolean isSameFile(Path path1, Path path2, LinkOption... options) throws IOException {
-        return deny.isSameFile(path1, path2, options);
+        throw denied(path1);
     }
 
     @Override
@@ -150,26 +155,26 @@ final class DenyAllFileSystem implements FileSystem {
 
     @Override
     public long getFileStoreTotalSpace(Path path) throws IOException {
-        return deny.getFileStoreTotalSpace(path);
+        throw denied(path);
     }
 
     @Override
     public long getFileStoreUnallocatedSpace(Path path) throws IOException {
-        return deny.getFileStoreUnallocatedSpace(path);
+        throw denied(path);
     }
 
     @Override
     public long getFileStoreUsableSpace(Path path) throws IOException {
-        return deny.getFileStoreUsableSpace(path);
+        throw denied(path);
     }
 
     @Override
     public long getFileStoreBlockSize(Path path) throws IOException {
-        return deny.getFileStoreBlockSize(path);
+        throw denied(path);
     }
 
     @Override
     public boolean isFileStoreReadOnly(Path path) throws IOException {
-        return deny.isFileStoreReadOnly(path);
+        throw denied(path);
     }
 }
