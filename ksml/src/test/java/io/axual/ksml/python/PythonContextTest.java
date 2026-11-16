@@ -33,6 +33,9 @@ import org.junit.jupiter.params.provider.ValueSource;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -191,36 +194,72 @@ class PythonContextTest {
                         .noneMatch(t -> t.getName().startsWith("Polyglot-python-")));
     }
 
-    // Confirms whether native library access using ctypes is permitted
+    // Confirms whether native library access using ctypes is permitted. Only one GraalPy context per
+    // process can load C extensions such as _ctypes, and a denied attempt also counts, so each case
+    // runs in its own JVM.
     @ParameterizedTest
     @ValueSource(booleans = {true, false})
-    void testNativeAccess(boolean allowNativeAccess) {
-        final var config = PythonContextConfig.builder()
-                .allowNativeAccess(allowNativeAccess)
-                .build();
-        try (var pythonContext = new PythonContext(config)) {
-            final var pyCode = """
-                    import polyglot
-                    @polyglot.export_value
-                    def test_native():
-                        import ctypes
-                        lib = ctypes.CDLL(None)
-                        return lib.getpid()
-                    """;
-            final var fn = pythonContext.registerFunction(pyCode, "test_native");
+    void testNativeAccess(boolean allowNativeAccess) throws Exception {
+        final var output = runInNewJvm(NativeAccessCheck.class, String.valueOf(allowNativeAccess));
+        if (allowNativeAccess) {
+            // ✅ Expect native function call to succeed
+            assertThat(output).containsPattern("pid=[1-9][0-9]*");
+        } else {
+            // ❌ Expect native access to fail
+            assertThat(output)
+                    .contains("native access is not allowed")
+                    .doesNotContain("pid=");
+        }
+    }
 
-            if (allowNativeAccess) {
-                // ✅ Expect native function call to succeed
-                int pid = fn.execute().asInt();
-                assertThat(pid).isGreaterThan(0);
-            } else {
-                // ❌ Expect native access to fail. GraalPy 25.1+ loads _ctypes as a C extension, and
-                // only one context per process can load C extensions. The case above already did, so
-                // the error here can also be "a second GraalPy context attempted to load ... '_ctypes'".
-                assertThatThrownBy(fn::execute)
-                        .isInstanceOf(PolyglotException.class)
-                        .hasMessageContaining("_ctypes");
+    static class NativeAccessCheck {
+        public static void main(String[] args) {
+            final var config = PythonContextConfig.builder()
+                    .allowNativeAccess(Boolean.parseBoolean(args[0]))
+                    .build();
+            try (var pythonContext = new PythonContext(config)) {
+                final var pyCode = """
+                        import polyglot
+                        @polyglot.export_value
+                        def test_native():
+                            import ctypes
+                            lib = ctypes.CDLL(None)
+                            return lib.getpid()
+                        """;
+                final var fn = pythonContext.registerFunction(pyCode, "test_native");
+                try {
+                    System.out.println("pid=" + fn.execute().asInt());
+                } catch (PolyglotException e) {
+                    System.out.println("error: " + e.getMessage());
+                }
             }
+        }
+    }
+
+    private static String runInNewJvm(Class<?> mainClass, String... args) throws Exception {
+        final var command = new ArrayList<>(List.of(
+                Path.of(System.getProperty("java.home"), "bin", "java").toString(),
+                "--enable-native-access=ALL-UNNAMED",
+                "--sun-misc-unsafe-memory-access=allow",
+                "-cp", System.getProperty("java.class.path"),
+                mainClass.getName()));
+        command.addAll(List.of(args));
+        final var outputFile = Files.createTempFile("native-access-check", ".log");
+        try {
+            final var process = new ProcessBuilder(command)
+                    .redirectErrorStream(true)
+                    .redirectOutput(outputFile.toFile())
+                    .start();
+            final boolean finished = process.waitFor(5, TimeUnit.MINUTES);
+            if (!finished) {
+                process.destroyForcibly();
+            }
+            final var output = Files.readString(outputFile);
+            assertThat(finished).as("JVM did not stop in time: %s", output).isTrue();
+            assertThat(process.exitValue()).as(output).isZero();
+            return output;
+        } finally {
+            Files.deleteIfExists(outputFile);
         }
     }
 
