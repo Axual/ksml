@@ -23,7 +23,7 @@ Before you upgrade, check each item below:
 * Add `toTable` before any `join` or `leftJoin` with `foreignKeyExtractor` that has a stream as input.
 * Do not keep a store iterator in a global variable for a later function call.
 * If Python code reads `get(key)["value"]` or `["timestamp"]` on a store with `timestamped: true`, or on the store of a `count`, `aggregate`, `reduce` or non-versioned table, use `getWithTimestamp(key)` instead. The same applies to the results of `delete` and `putIfAbsent`, and to `fetch(key, time)` on the store of a windowed aggregation (use `fetchWithTimestamp`).
-* Check every store you declare under `stores` or in an operation: it is now persistent, timestamped and has a changelog topic unless it sets `persistent`, `timestamped` or `logging` to `false`. Make sure the application can create the changelog topics (or create them yourself) and that `state.dir` is on a volume that has room for RocksDB. See [Declared stores use the Kafka Streams defaults](#declared-stores-use-the-kafka-streams-defaults).
+* Check every store you declare under `stores` or in an operation: it is now persistent, timestamped and has a changelog topic unless it sets `persistent`, `timestamped` or `logging` to `false`. Make sure the application can create the changelog topics (or create them yourself) and that `state.dir` is on a volume that has room for RocksDB. On the first start, KSML stops if a persistent store with local state leaves out `logging`, until you set it. See [Declared stores use the Kafka Streams defaults](#declared-stores-use-the-kafka-streams-defaults).
 * If you rely on every update of an `aggregate`, `count`, `reduce` or table being emitted, set `caching: false` on its store.
 * If Python code calls `put` or `remove` on a session store, check that each session key is a dict with `key`, `start` and `end`, with `int` times. A session key that is not valid now raises an error instead of being ignored.
 * Check `reduce` and `aggregate` functions that handle `None`, and functions that return `None`: tombstones are now handled like in Kafka Streams.
@@ -304,12 +304,19 @@ What changes for a running application:
 * **Session stores.** `timestamped: true` on a session store now logs a warning, because it has no effect there. `timestamped: false` gives no warning.
 * **Stream-stream joins.** The shared store of a `leftJoin` or `outerJoin` between two streams now has a changelog topic, unless both `thisStore` and `otherStore` set `logging: false`. In 1.x it only had one when `thisStore` set `logging: true`, and the `logging` of `otherStore` was ignored. The two window stores of the join always had changelog topics, and still do: `logging: false` on them now logs a warning. See [Changelog topics of stream-stream joins](reference/state-store-reference.md#for-stream-stream-joins).
 * **Timestamps.** A RocksDB store of a `count`, `aggregate`, `reduce` or table now keeps timestamps, so `getWithTimestamp` and `fetchWithTimestamp` return the record timestamp instead of `-1`.
-* **Window stores used by Python.** A window store under `stores` is now timestamped unless it sets `timestamped: false`, so Python functions get the `*WithTimestamp` methods. KSML 2.0.0 can't always read the KSML 1.x local state of such a persistent store, so:
-    * On the first start, KSML deletes this local state once, and Kafka Streams restores it from the changelog. The first start takes longer, also for the other stores of the same tasks.
-    * A store with `logging: false` has no changelog, so its state is lost. KSML logs a warning.
-    * KSML then writes the file `.ksml-store-format` in `<state.dir>/<application.id>`. If you go back to KSML 1.x and then upgrade again, delete this file first.
+* **Persistent stores without a changelog.** A store with `persistent: true` that left out `logging` had no changelog in 1.x. Its state is only on the local disk, and a new, empty changelog can't restore it: the state is lost when the task moves to another instance, and at once with `processing.guarantee: exactly_once_v2`. So on the first start, KSML stops before Kafka Streams starts when such a store has local state, and changes nothing. Set `logging` on the store and start again:
+    * `logging: false` keeps the 1.x behavior, and the store keeps its state.
+    * `logging: true` gives the store a changelog with only the updates from now on. With `exactly_once_v2`, Kafka Streams deletes the old local state at once.
+
+    To keep the old state and get a changelog, set `logging: true` while still on KSML 1.x, with `at_least_once`. Upgrade once the changelog has all the state that you need, for a window store after one retention period.
+
+    Stream-stream join stores are not checked: Kafka Streams always gave them a changelog.
+* **Window stores used by Python.** A window store under `stores` is now timestamped unless it sets `timestamped: false`, so Python functions get the `*WithTimestamp` methods. A store that left out `timestamped` was a plain store in 1.x, and Kafka Streams converts its state. A persistent store with `timestamped: true` has local state from 1.x that KSML 2.0.0 can't read, so on the first start:
+    * With `logging: true`, KSML deletes this local state once, and Kafka Streams restores it from the changelog. The first start takes longer, also for the other stores of the same tasks.
+    * Without `logging: true`, there is no changelog to restore from, and KSML stops. It does not delete the state for you. Delete the files that the error names (the data is lost), give the store a new name, or set `logging: true` on KSML 1.x first, as above.
 
     See [Timestamped Window Stores](reference/state-store-reference.md#timestamped-window-stores).
+* **The first start checks the 1.x state once.** KSML takes `timestamped: true` and `logging: true` to be the options of 1.x. Except where the check asks you to set `logging`, upgrade with the store options of 1.x and change them after the first start. Once the check passes, KSML writes the file `.ksml-store-format` in `<state.dir>/<application.id>` and does not check again. If you go back to KSML 1.x and then upgrade again, delete this file first.
 
 KSML now also follows the Kafka Streams setting `dsl.store.format`. With `dsl.store.format: HEADERS` in the `kafka`
 section of the runner config, declared stores that are persistent and timestamped keep the record headers with each

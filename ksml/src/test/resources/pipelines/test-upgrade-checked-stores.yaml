@@ -1,0 +1,88 @@
+# $schema: https://raw.githubusercontent.com/Axual/ksml/refs/heads/main/docs/ksml-language-spec.json
+
+# A store for Python, a store declared in a count and the stores of an outer join, all without options, to check
+# which stores the KSML 1.x upgrade check gets.
+streams:
+  test_input1:
+    topic: input1
+    keyType: string
+    valueType: string
+  test_input2:
+    topic: input2
+    keyType: string
+    valueType: string
+  test_joined:
+    topic: joined
+    keyType: string
+    valueType: string
+  test_counted:
+    topic: counted
+    keyType: string
+    valueType: long
+  test_transformed:
+    topic: transformed
+    keyType: string
+    valueType: string
+
+stores:
+  python_store:
+    type: window
+    keyType: string
+    valueType: string
+    windowSize: 1m
+    retention: 1h
+  this_store:
+    type: window
+    keyType: string
+    valueType: string
+    retainDuplicates: true
+    windowSize: 2s
+    retention: 3s
+  other_store:
+    type: window
+    keyType: string
+    valueType: string
+    retainDuplicates: true
+    windowSize: 2s
+    retention: 3s
+
+functions:
+  join_values:
+    type: valueJoiner
+    resultType: string
+    expression: str(value1) + "," + str(value2)
+  use_store:
+    type: valueTransformer
+    expression: value
+    resultType: string
+    stores:
+      - python_store
+
+pipelines:
+  join_pipeline:
+    from: test_input1
+    via:
+      - type: outerJoin
+        stream: test_input2
+        valueJoiner: join_values
+        timeDifference: 1s
+        grace: 1s
+        thisStore: this_store
+        otherStore: other_store
+    to: test_joined
+  count_pipeline:
+    from: test_input1
+    via:
+      - type: groupByKey
+      - type: count
+        store:
+          name: count_store
+          type: keyValue
+      - type: toStream
+    to: test_counted
+  python_pipeline:
+    from: test_input2
+    via:
+      - type: transformValue
+        mapper: use_store
+    to: test_transformed

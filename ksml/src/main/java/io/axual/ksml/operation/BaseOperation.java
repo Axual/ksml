@@ -572,14 +572,14 @@ public abstract class BaseOperation implements StreamOperation {
             return new KeyValueStateStoreDefinition(
                     keyValueStore.name(),
                     keyValueStore.persistent(),
-                    keyValueStore.timestamped(),
+                    keyValueStore.declaredTimestamped(),
                     keyValueStore.versioned(),
                     keyValueStore.historyRetention(),
                     keyValueStore.segmentInterval(),
                     storeKeyType,
                     storeValueType,
                     keyValueStore.caching(),
-                    keyValueStore.logging());
+                    keyValueStore.declaredLogging());
         }
         throw new ExecutionException(this + " requires a  state store of type 'keyValue'");
     }
@@ -597,12 +597,12 @@ public abstract class BaseOperation implements StreamOperation {
             return new SessionStateStoreDefinition(
                     sessionStore.name(),
                     sessionStore.persistent(),
-                    sessionStore.timestamped(),
+                    sessionStore.declaredTimestamped(),
                     sessionStore.retention(),
                     storeKeyType,
                     storeValueType,
                     sessionStore.caching(),
-                    sessionStore.logging());
+                    sessionStore.declaredLogging());
         }
         throw new ExecutionException(this + " requires a  state store of type 'session'");
     }
@@ -620,14 +620,14 @@ public abstract class BaseOperation implements StreamOperation {
             return new WindowStateStoreDefinition(
                     windowStore.name(),
                     windowStore.persistent(),
-                    windowStore.timestamped(),
+                    windowStore.declaredTimestamped(),
                     windowStore.retention(),
                     windowStore.windowSize(),
                     windowStore.retainDuplicates(),
                     storeKeyType,
                     storeValueType,
                     windowStore.caching(),
-                    windowStore.logging());
+                    windowStore.declaredLogging());
         }
         throw new ExecutionException(this + " requires a  state store of type 'window'");
     }

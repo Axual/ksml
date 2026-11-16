@@ -40,6 +40,10 @@ public abstract class StateStoreDefinition extends AbstractDefinition {
     // so the default depends on where the store is used
     private final Boolean caching;
     private final boolean logging;
+    // The values as declared, null when the definition leaves them out. KSML 1.x read null as false, so the upgrade
+    // checks of StoreUpgrade use these, and copies pass them along
+    private final Boolean declaredTimestamped;
+    private final Boolean declaredLogging;
 
     protected StateStoreDefinition(StoreType type, String name, Boolean persistent, Boolean timestamped, UserType keyType, UserType valueType, Boolean caching, Boolean logging) {
         Objects.requireNonNull(type, "State stores must have a defined type");
@@ -53,6 +57,8 @@ public abstract class StateStoreDefinition extends AbstractDefinition {
         this.valueType = valueType;
         this.caching = caching;
         this.logging = logging == null || logging;
+        this.declaredTimestamped = timestamped;
+        this.declaredLogging = logging;
     }
 
     @Override

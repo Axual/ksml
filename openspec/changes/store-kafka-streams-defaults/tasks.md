@@ -47,6 +47,14 @@ Each implementation task follows TDD: first commit the failing test, then the fi
 - [x] 5.6 Finish the upgrade test from 5.3: run it from KSML 1.1.0 and 1.3.2, assert correct reads from local state and after the changelog restore, and check that a second start keeps the local state. Verify it passes.
 - [x] 5.7 Document the window store change: in `docs/reference/state-store-reference.md`, remove "Without `HEADERS`, a window store under `stores` has the methods of a plain window store" and say that window stores used by Python have the timestamped methods unless `timestamped: false`; add the one-time cleanup and restore of 1.x window store state to `docs/migration-to-2.0.0.md` and `docs/release-notes.md`. Verify the docs build.
 
+## 5a. Decide the upgrade on the declared values, and stop on 1.x state that would be lost (design D7, D8; PR #767 reviews 02 and 03, item 1)
+
+- [x] 5a.1 Keep the declared `timestamped` and `logging` in `StateStoreDefinition` (`declaredTimestamped()`, `declaredLogging()`), and pass them along in copies (`KeyValueStateStoreDefinition.with`, `BaseOperation.validate*Store`). Add a parser test.
+- [x] 5a.2 Rename `WindowStoreUpgrade` to `StoreUpgrade`. Delete only window stores for Python that declare `timestamped: true` and `logging: true`; stop, without changing anything, for a declared store with local state that leaves out `logging`, and for a window store for Python with `timestamped: true` and without `logging: true`. Write the marker when the topology has any persistent store. Rewrite the unit tests.
+- [x] 5a.3 Have `TopologyGenerator` give the declared stores without stream-stream join stores (`upgradeCheckedStores()`), and pass them from `KafkaStreamsRunner`. Add a generator test.
+- [x] 5a.4 Extend `WindowStoreUpgradeIT`: the plain store of KSML 1.x keeps its RocksDB databases on the first start, and from KSML 1.1.0 a store without `logging` stops this version, then reads its 1.x values with `logging: false`. Verify it passes.
+- [x] 5a.5 Update `docs/migration-to-2.0.0.md` and `docs/release-notes.md`.
+
 ## 6. Integration verification
 
 - [x] 6.1 Run the full Maven build (`mvn clean verify`) for all modules. Verify it passes.

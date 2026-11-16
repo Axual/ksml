@@ -54,6 +54,7 @@ public class TopologyGenerator {
     private final PythonContextConfig pythonContextConfig;
     private final boolean headersStoreFormat;
     private final List<StateStoreDefinition> userStateStores = new ArrayList<>();
+    private final List<StateStoreDefinition> upgradeCheckedStores = new ArrayList<>();
 
     public TopologyGenerator(String applicationId) {
         this(applicationId, null, PythonContextConfig.builder().build());
@@ -85,8 +86,17 @@ public class TopologyGenerator {
         return List.copyOf(userStateStores);
     }
 
+    /**
+     * The declared stores that the last {@link #create} built, without the stores of stream-stream joins: Kafka Streams
+     * always logged those, so their KSML 1.x local state has a changelog.
+     */
+    public List<StateStoreDefinition> upgradeCheckedStores() {
+        return List.copyOf(upgradeCheckedStores);
+    }
+
     public Topology create(StreamsBuilder streamsBuilder, Map<String, TopologyDefinition> definitions) {
         userStateStores.clear();
+        upgradeCheckedStores.clear();
         if (definitions.isEmpty()) return null;
 
         final var stores = new TreeMap<String, StateStoreDefinition>();
@@ -101,6 +111,11 @@ public class TopologyGenerator {
             final var context = new TopologyBuildContext(streamsBuilder, definition, pythonContextConfig, headersStoreFormat);
             generate(definition, context);
             stores.putAll(definition.stateStores());
+            final var streamJoinStores = new HashSet<String>();
+            collectStreamJoinStores(definition, streamJoinStores);
+            definition.stateStores().forEach((name, store) -> {
+                if (!streamJoinStores.contains(name)) upgradeCheckedStores.add(store);
+            });
         });
 
         final var topology = build(streamsBuilder);
@@ -254,6 +269,15 @@ public class TopologyGenerator {
      * {@code kafkaStreamsCreatedStores}, since Kafka Streams sets those up itself as part of
      * building the topology, rather than KSML having to create them manually.
      */
+    private static void collectStreamJoinStores(TopologyDefinition definition, Set<String> streamJoinStores) {
+        definition.pipelines().forEach((_, pipeline) -> pipeline.chain().forEach(operation -> {
+            if (operation instanceof DualStoreOperation dualStoreOperation) {
+                if (dualStoreOperation.thisStore() != null) streamJoinStores.add(dualStoreOperation.thisStore().name());
+                if (dualStoreOperation.otherStore() != null) streamJoinStores.add(dualStoreOperation.otherStore().name());
+            }
+        }));
+    }
+
     private void collectPipelineManagedStores(TopologyDefinition definition, Set<String> kafkaStreamsCreatedStores) {
         definition.pipelines().forEach((_, pipeline) -> pipeline.chain().forEach(operation -> {
             if (operation instanceof StoreOperation storeOperation && storeOperation.store() != null)

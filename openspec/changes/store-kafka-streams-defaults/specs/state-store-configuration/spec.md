@@ -92,11 +92,11 @@ The two declared window stores of a stream-stream join SHALL always log to chang
 - **THEN** both window stores have changelog topics and a warning naming each store is logged
 
 ### Requirement: Existing window store state reads correctly after the upgrade
-Window store state written by KSML 1.x SHALL read correctly after the upgrade to this version, both from local state and after a restore from the changelog topic.
+Window store state written by KSML 1.x with a changelog SHALL read correctly after the upgrade to this version, both from local state and after a restore from the changelog topic. KSML SHALL decide on the store options as declared, because KSML 1.x read options that a definition leaves out as `false`.
 
 #### Scenario: Local state from KSML 1.x
-- **WHEN** a KSML 1.x application with a persistent window store wrote values from Python, and this version starts with the same application id and state directory
-- **THEN** Python reads the same values from the store as before the upgrade
+- **WHEN** a KSML 1.x application with persistent window stores with `logging: true`, one with `timestamped: true` and one without `timestamped`, wrote values from Python, and this version starts with the same application id and state directory
+- **THEN** KSML deletes the local state of the store with `timestamped: true` once, keeps the local state of the other store, and Python reads the same values from both stores as before the upgrade
 
 #### Scenario: Restore from the changelog
 - **WHEN** the same application starts on this version without local state
@@ -105,3 +105,22 @@ Window store state written by KSML 1.x SHALL read correctly after the upgrade to
 #### Scenario: Cleanup runs once
 - **WHEN** this version has already started on a state directory and restarts
 - **THEN** it keeps the local state of its window stores
+
+### Requirement: KSML stops on KSML 1.x local state that would be lost
+On the first start on an application state directory, before Kafka Streams starts, KSML SHALL stop with an error that names each store at risk, and SHALL change nothing, when a declared store that is not a stream-stream join store has local state and either leaves out `logging`, or is a persistent window store for Python with `timestamped: true` and without `logging: true`. Once the check passes, KSML SHALL not check that state directory again.
+
+#### Scenario: Persistent store without logging
+- **WHEN** a KSML 1.x application left local state for a persistent store that leaves out `logging`, and this version starts on that state directory
+- **THEN** KSML stops with an error that names the store and asks to set `logging`, and the local state is unchanged
+
+#### Scenario: Logging set after the stop
+- **WHEN** the store then sets `logging: false` and this version starts again
+- **THEN** KSML starts and Python reads the values that KSML 1.x left in the local state
+
+#### Scenario: Unreadable window store without changelog
+- **WHEN** a KSML 1.x application left local state for a persistent window store for Python with `timestamped: true` and without `logging: true`, and this version starts on that state directory
+- **THEN** KSML stops with an error that names the files to delete, and does not delete them
+
+#### Scenario: New application
+- **WHEN** this version starts on a state directory without local state for its stores
+- **THEN** KSML starts, and later starts do not check the state again

@@ -39,6 +39,7 @@ import org.apache.kafka.common.serialization.StringSerializer;
 import org.assertj.core.api.SoftAssertions;
 import org.awaitility.Awaitility;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -58,6 +59,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
+import java.util.function.UnaryOperator;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -71,6 +73,9 @@ import static org.assertj.core.api.Assertions.assertThat;
  * KSML 1.x is stopped with SIGTERM, as in production. Its shutdown hook doesn't wait for Kafka Streams to close, so
  * the local state is what RocksDB had written to disk at that moment. KSML 1.1.0 (Kafka Streams 4.0) has written the
  * stores and a checkpoint on commit by then; KSML 1.3.2 (Kafka Streams 4.3) has not written them to disk.
+ * <p>
+ * A store that leaves out {@code logging} had no changelog in KSML 1.x. This version stops on its local state until
+ * the definition sets {@code logging}, and with {@code logging: false} reads the state that KSML 1.x left.
  */
 @Slf4j
 class WindowStoreUpgradeIT {
@@ -110,7 +115,76 @@ class WindowStoreUpgradeIT {
         final long windowStart = System.currentTimeMillis() / 60_000 * 60_000;
 
         // KSML 1.x writes the stores and reads them back
+        final var stateDirectory = runKsml1(ksml1Version, bootstrapServers, windowStart, UnaryOperator.identity(), List.of("window_timestamped", "window_unset"));
+        // The store without timestamped was a plain store in KSML 1.x, which Kafka Streams converts itself
+        final var plainStoreDirectory = stateDirectory.resolve(applicationId()).resolve("0_0").resolve("window_unset");
+        final var plainDatabasesBefore = rocksDbIdentities(plainStoreDirectory);
+
+        // This version reads the local state written by KSML 1.x
+        final var localStateResult = runThisVersionAndGet(bootstrapServers, windowStart);
+        final var plainDatabasesAfter = rocksDbIdentities(plainStoreDirectory);
+
+        // This version restores the stores from the changelog topics
+        deleteRecursively(stateDirectory.resolve(applicationId()));
+        final var restoredResult = runThisVersionAndGet(bootstrapServers, windowStart);
+
+        // A second start of this version keeps the local state: the RocksDB databases are the same ones
+        final var storeDirectory = stateDirectory.resolve(applicationId()).resolve("0_0").resolve("window_timestamped");
+        final var databasesBefore = rocksDbIdentities(storeDirectory);
+        final var restartResult = runThisVersionAndGet(bootstrapServers, windowStart);
+        final var databasesAfter = rocksDbIdentities(storeDirectory);
+
+        log.info("Window store upgrade from KSML {}: local state: {}, restored from changelog: {}, after a restart: {}",
+                ksml1Version, localStateResult, restoredResult, restartResult);
+        final var softly = new SoftAssertions();
+        softly.assertThat(localStateResult).as("read from the local state of KSML " + ksml1Version).isEqualTo(EXPECTED);
+        softly.assertThat(plainDatabasesAfter).as("RocksDB databases of the plain store after the upgrade").isEqualTo(plainDatabasesBefore);
+        softly.assertThat(restoredResult).as("read after a restore from the changelog").isEqualTo(EXPECTED);
+        softly.assertThat(restartResult).as("read after a restart of this version").isEqualTo(EXPECTED);
+        softly.assertThat(databasesAfter).as("RocksDB databases after a restart of this version").isNotEmpty().isEqualTo(databasesBefore);
+        softly.assertAll();
+    }
+
+    @Test
+    void unloggedStoreFromKsml1StopsUntilLoggingIsSet() throws Exception {
+        suffix = "110unlogged";
+        final var bootstrapServers = SharedKsmlInfra.kafka().getBootstrapServers();
+        createTopics(bootstrapServers);
+        outputConsumer = outputConsumer(bootstrapServers);
+        final long windowStart = System.currentTimeMillis() / 60_000 * 60_000;
+        final UnaryOperator<String> unlogged = definition -> withPlainStoreLogging(definition, "");
+
+        // KSML 1.1.0 writes the plain store without a changelog; the logged store makes it write its local state
+        final var stateDirectory = runKsml1("1.1.0", bootstrapServers, windowStart, unlogged, List.of("window_timestamped"));
+        final var applicationDirectory = stateDirectory.resolve(applicationId());
+        final var plainStoreDirectory = applicationDirectory.resolve("0_0").resolve("window_unset");
+        final var timestampedStoreDirectory = applicationDirectory.resolve("0_0").resolve("window_timestamped");
+        final var plainDatabases = rocksDbIdentities(plainStoreDirectory);
+        final var timestampedDatabases = rocksDbIdentities(timestampedStoreDirectory);
+
+        // This version stops before Kafka Streams starts, and changes nothing
+        prepareThisVersion(bootstrapServers, unlogged);
+        runner = new KSMLRunnerWrapper(workDirectory.resolve(RUNNER_CONFIG), Map.of());
+        runner.start();
+        final var exitCode = runner.waitForExit(Duration.ofSeconds(60));
+        runner = null;
+
+        // With logging: false it reads what KSML 1.1.0 left on disk, as there is no changelog
+        final var result = runThisVersionAndGet(bootstrapServers, windowStart, definition -> withPlainStoreLogging(definition, "    logging: false\n"));
+
+        final var softly = new SoftAssertions();
+        softly.assertThat(exitCode).as("exit code of this version on the unlogged store").isPresent().get().isNotEqualTo(0);
+        softly.assertThat(plainDatabases).as("RocksDB databases of the unlogged store, written by KSML 1.1.0").isNotEmpty();
+        softly.assertThat(timestampedDatabases).as("RocksDB databases of the timestamped store, written by KSML 1.1.0").isNotEmpty();
+        softly.assertThat(result).as("read with logging: false").isEqualTo(EXPECTED);
+        softly.assertAll();
+    }
+
+    /** Runs KSML 1.x, which writes both stores and reads them back, and stops it; returns the state directory. */
+    private Path runKsml1(String ksml1Version, String bootstrapServers, long windowStart, UnaryOperator<String> definitionChange,
+                          List<String> loggedStores) throws Exception {
         copyResources();
+        changeDefinition(definitionChange);
         final var stateDirectory = workDirectory.resolve("state");
         Files.createDirectories(stateDirectory, PosixFilePermissions.asFileAttribute(PosixFilePermissions.fromString("rwxrwxrwx")));
         try (var ksml1 = new GenericContainer<>(DockerImageName.parse(KSML_1X_IMAGE + ksml1Version))
@@ -129,39 +203,38 @@ class WindowStoreUpgradeIT {
             }
             produce(bootstrapServers, records);
             waitForPuts(records.size());
-            waitForState(bootstrapServers, ksml1Version, stateDirectory, records.size());
+            waitForState(bootstrapServers, ksml1Version, stateDirectory, records.size(), loggedStores);
             produceGet(bootstrapServers, windowStart);
             assertThat(readGetResult()).as("read by KSML " + ksml1Version).isEqualTo(EXPECTED);
             ksml1.getDockerClient().stopContainerCmd(ksml1.getContainerId()).withTimeout(60).exec();
         }
+        return stateDirectory;
+    }
 
-        // This version reads the local state written by KSML 1.x
-        final var localStateResult = runThisVersionAndGet(bootstrapServers, windowStart);
+    /** Replaces the logging line of the plain store {@code window_unset}. */
+    private static String withPlainStoreLogging(String definition, String logging) {
+        final var start = definition.indexOf("  window_unset:");
+        return definition.substring(0, start) + definition.substring(start).replaceFirst("    logging: true\n", logging);
+    }
 
-        // This version restores the stores from the changelog topics
-        deleteRecursively(stateDirectory.resolve(applicationId()));
-        final var restoredResult = runThisVersionAndGet(bootstrapServers, windowStart);
+    private void prepareThisVersion(String bootstrapServers, UnaryOperator<String> definitionChange) throws Exception {
+        KSMLRunnerTestUtil.prepareTestEnvironment(workDirectory, RESOURCES, new String[]{RUNNER_CONFIG, DEFINITION}, bootstrapServers, null, null);
+        renameForVersion();
+        changeDefinition(definitionChange);
+    }
 
-        // A second start of this version keeps the local state: the RocksDB databases are the same ones
-        final var storeDirectory = stateDirectory.resolve(applicationId()).resolve("0_0").resolve("window_timestamped");
-        final var databasesBefore = rocksDbIdentities(storeDirectory);
-        final var restartResult = runThisVersionAndGet(bootstrapServers, windowStart);
-        final var databasesAfter = rocksDbIdentities(storeDirectory);
-
-        log.info("Window store upgrade from KSML {}: local state: {}, restored from changelog: {}, after a restart: {}",
-                ksml1Version, localStateResult, restoredResult, restartResult);
-        final var softly = new SoftAssertions();
-        softly.assertThat(localStateResult).as("read from the local state of KSML " + ksml1Version).isEqualTo(EXPECTED);
-        softly.assertThat(restoredResult).as("read after a restore from the changelog").isEqualTo(EXPECTED);
-        softly.assertThat(restartResult).as("read after a restart of this version").isEqualTo(EXPECTED);
-        softly.assertThat(databasesAfter).as("RocksDB databases after a restart of this version").isNotEmpty().isEqualTo(databasesBefore);
-        softly.assertAll();
+    private void changeDefinition(UnaryOperator<String> change) throws IOException {
+        final var definition = workDirectory.resolve(DEFINITION);
+        Files.writeString(definition, change.apply(Files.readString(definition)));
     }
 
     /** Runs this version, reads key {@code a} from both stores and stops; {@code null} when there is no result. */
     private String runThisVersionAndGet(String bootstrapServers, long windowStart) throws Exception {
-        KSMLRunnerTestUtil.prepareTestEnvironment(workDirectory, RESOURCES, new String[]{RUNNER_CONFIG, DEFINITION}, bootstrapServers, null, null);
-        renameForVersion();
+        return runThisVersionAndGet(bootstrapServers, windowStart, UnaryOperator.identity());
+    }
+
+    private String runThisVersionAndGet(String bootstrapServers, long windowStart, UnaryOperator<String> definitionChange) throws Exception {
+        prepareThisVersion(bootstrapServers, definitionChange);
         runner = new KSMLRunnerWrapper(workDirectory.resolve(RUNNER_CONFIG), Map.of());
         runner.start();
         runner.waitForReady(30_000);
@@ -245,16 +318,18 @@ class WindowStoreUpgradeIT {
     }
 
     /**
-     * Waits until KSML 1.x has written every put to the changelogs of both stores. KSML 1.1.0 also writes its local
-     * state and a checkpoint on commit; KSML 1.3.2 does not write them before it stops.
+     * Waits until KSML 1.x has written every put to the changelogs of the logged stores. KSML 1.1.0 also writes its
+     * local state and a checkpoint on commit; KSML 1.3.2 does not write them before it stops.
      */
-    private void waitForState(String bootstrapServers, String ksml1Version, Path stateDirectory, int puts) {
+    private void waitForState(String bootstrapServers, String ksml1Version, Path stateDirectory, int puts, List<String> loggedStores) {
         final var checkpoint = stateDirectory.resolve(applicationId()).resolve("0_0").resolve(".checkpoint");
         try (var admin = AdminClient.create(Map.of(AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers))) {
-            Awaitility.await().atMost(PROCESSING_TIMEOUT).pollInterval(Duration.ofSeconds(1)).until(() ->
-                    changelogEndOffset(admin, "window_timestamped") >= puts
-                            && changelogEndOffset(admin, "window_unset") >= puts
-                            && (!ksml1Version.equals("1.1.0") || Files.exists(checkpoint)));
+            Awaitility.await().atMost(PROCESSING_TIMEOUT).pollInterval(Duration.ofSeconds(1)).until(() -> {
+                for (final var store : loggedStores) {
+                    if (changelogEndOffset(admin, store) < puts) return false;
+                }
+                return !ksml1Version.equals("1.1.0") || Files.exists(checkpoint);
+            });
         }
     }
 

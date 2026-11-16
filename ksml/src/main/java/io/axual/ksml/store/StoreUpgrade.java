@@ -1,0 +1,188 @@
+package io.axual.ksml.store;
+
+/*-
+ * ========================LICENSE_START=================================
+ * KSML
+ * %%
+ * Copyright (C) 2021 - 2026 Axual B.V.
+ * %%
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =========================LICENSE_END==================================
+ */
+
+import io.axual.ksml.definition.StateStoreDefinition;
+import io.axual.ksml.definition.WindowStateStoreDefinition;
+import io.axual.ksml.exception.ExecutionException;
+import lombok.extern.slf4j.Slf4j;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+/**
+ * Checks the local state that KSML 1.x left, once per application state directory, before Kafka Streams opens it.
+ * <p>
+ * KSML 1.x read a store option that the definition leaves out as {@code false}; this version reads it as {@code true}.
+ * So the checks use the declared values:
+ * <ul>
+ *     <li>A persistent store that leaves out {@code logging} had no changelog in 1.x, and now gets a new, empty one.
+ *     Its local state is lost when the task moves, and at once with exactly-once processing. KSML stops until the
+ *     definition sets {@code logging}.</li>
+ *     <li>A persistent window store for Python with {@code timestamped: true} was a timestamped RocksDB store in 1.x,
+ *     with plain values in it. This version can't read them. With {@code logging: true}, KSML deletes the local state
+ *     and Kafka Streams restores it from the changelog. Without, KSML stops and leaves the state to the user.</li>
+ * </ul>
+ * Stores that leave out {@code timestamped} were plain stores in 1.x, which Kafka Streams converts itself.
+ */
+@Slf4j
+public final class StoreUpgrade {
+    /** Marks an application state directory as checked. */
+    public static final String MARKER_FILE = ".ksml-store-format";
+    private static final String CHECKPOINT_FILE = ".checkpoint";
+    private static final String POSITION_FILE_SUFFIX = ".position";
+    // Kafka Streams keeps key-value and versioned stores in this subdirectory of the task, other stores in the task
+    private static final String KEY_VALUE_STORE_DIRECTORY = "rocksdb";
+    // Kafka Streams names task directories <subtopology>_<partition>
+    private static final Pattern TASK_DIRECTORY = Pattern.compile("\\d+_\\d+");
+
+    private StoreUpgrade() {
+    }
+
+    /**
+     * Checks the KSML 1.x local state of the stores in every task directory, unless the application state directory
+     * is marked already. Throws when state would be lost, and changes nothing then. Otherwise it deletes the 1.x
+     * state of timestamped window stores for Python that have a changelog, and marks the directory. Without
+     * persistent stores it does nothing.
+     *
+     * @param applicationDirectory the state directory of the application: {@code <state.dir>/<application.id>}
+     * @param stores               the declared stores, without the stores of stream-stream joins
+     * @param pythonStores         the stores among them that are built for Python functions
+     */
+    public static void prepare(Path applicationDirectory,
+                               Collection<? extends StateStoreDefinition> stores,
+                               Collection<? extends StateStoreDefinition> pythonStores) {
+        final var marker = applicationDirectory.resolve(MARKER_FILE);
+        if (Files.exists(marker)) return;
+        // No 1.x state can exist, so leave the state directory alone, as Kafka Streams does
+        if (stores.stream().noneMatch(StateStoreDefinition::persistent)) return;
+
+        final var unreadableStores = pythonStores.stream()
+                .filter(WindowStateStoreDefinition.class::isInstance)
+                .filter(store -> store.persistent() && Boolean.TRUE.equals(store.declaredTimestamped()))
+                .toList();
+        final var unreadableNames = unreadableStores.stream().map(StateStoreDefinition::name).collect(Collectors.toSet());
+        final var unloggedStores = stores.stream()
+                .filter(store -> store.persistent() && store.declaredLogging() == null)
+                .filter(store -> !unreadableNames.contains(store.name()))
+                .toList();
+
+        try {
+            final var tasks = taskDirectories(applicationDirectory);
+            final var problems = new ArrayList<String>();
+            final var restorable = new LinkedHashMap<Path, List<StateStoreDefinition>>();
+            for (final var store : unreadableStores) {
+                final var storeTasks = tasks.stream().filter(task -> hasWindowState(task, store.name())).toList();
+                if (storeTasks.isEmpty()) continue;
+                if (Boolean.TRUE.equals(store.declaredLogging())) {
+                    storeTasks.forEach(task -> restorable.computeIfAbsent(task, _ -> new ArrayList<>()).add(store));
+                } else {
+                    problems.add(unreadableProblem(store, storeTasks));
+                }
+            }
+            for (final var store : unloggedStores) {
+                final var storeTasks = tasks.stream().filter(task -> hasLocalState(task, store.name())).toList();
+                if (!storeTasks.isEmpty()) problems.add(unloggedProblem(store, storeTasks));
+            }
+            if (!problems.isEmpty()) {
+                throw new ExecutionException("KSML 1.x left local state in " + applicationDirectory
+                        + " that this version would lose. Nothing was changed. Fix these stores and start again, see the guide 'Upgrading to 2.0.0':\n"
+                        + String.join("\n", problems));
+            }
+
+            for (final var entry : restorable.entrySet()) {
+                deleteWindowState(entry.getKey(), entry.getValue());
+            }
+            Files.createDirectories(applicationDirectory);
+            Files.writeString(marker, "KSML 1.x store state checked.\n");
+        } catch (IOException e) {
+            throw new ExecutionException("Could not check the KSML 1.x store state in " + applicationDirectory, e);
+        }
+    }
+
+    private static List<Path> taskDirectories(Path applicationDirectory) throws IOException {
+        if (!Files.isDirectory(applicationDirectory)) return List.of();
+        try (var paths = Files.list(applicationDirectory)) {
+            return paths.filter(StoreUpgrade::isTaskDirectory).sorted().toList();
+        }
+    }
+
+    private static boolean isTaskDirectory(Path path) {
+        return Files.isDirectory(path) && TASK_DIRECTORY.matcher(path.getFileName().toString()).matches();
+    }
+
+    private static boolean hasWindowState(Path task, String store) {
+        return Files.exists(task.resolve(store)) || Files.exists(task.resolve(store + POSITION_FILE_SUFFIX));
+    }
+
+    private static boolean hasLocalState(Path task, String store) {
+        return Files.exists(task.resolve(store)) || Files.exists(task.resolve(KEY_VALUE_STORE_DIRECTORY).resolve(store));
+    }
+
+    private static String unloggedProblem(StateStoreDefinition store, List<Path> tasks) {
+        return "- Store '" + store.name() + "' has local state in task " + taskNames(tasks)
+                + " and leaves out 'logging'. In KSML 1.x it had no changelog, now it gets a new, empty one."
+                + " Set 'logging: false' to keep the KSML 1.x behavior, or 'logging: true' to accept a changelog without the old data.";
+    }
+
+    private static String unreadableProblem(StateStoreDefinition store, List<Path> tasks) {
+        final var paths = tasks.stream()
+                .flatMap(task -> Stream.of(task.resolve(store.name()), task.resolve(store.name() + POSITION_FILE_SUFFIX)))
+                .map(Path::toString)
+                .collect(Collectors.joining(", "));
+        return "- Window store '" + store.name() + "' has local state in task " + taskNames(tasks)
+                + " that KSML 1.x wrote in a format this version can't read, and no changelog to restore it from."
+                + " Delete " + paths + " (the data is lost), give the store a new name, or set 'logging: true' on KSML 1.x first.";
+    }
+
+    private static String taskNames(List<Path> tasks) {
+        return tasks.stream().map(task -> task.getFileName().toString()).collect(Collectors.joining(", "));
+    }
+
+    private static void deleteWindowState(Path task, List<StateStoreDefinition> stores) throws IOException {
+        for (final var store : stores) {
+            deleteRecursively(task.resolve(store.name()));
+            Files.deleteIfExists(task.resolve(store.name() + POSITION_FILE_SUFFIX));
+            log.info("Deleted the KSML 1.x local state of window store '{}' in task '{}': Kafka Streams restores it from the changelog",
+                    store.name(), task.getFileName());
+        }
+        // Kafka Streams would load the offsets of the deleted stores from the checkpoint and skip their restore
+        Files.deleteIfExists(task.resolve(CHECKPOINT_FILE));
+    }
+
+    private static void deleteRecursively(Path path) throws IOException {
+        if (!Files.exists(path)) return;
+        try (var paths = Files.walk(path)) {
+            for (final var file : paths.sorted(Comparator.reverseOrder()).toList()) {
+                Files.delete(file);
+            }
+        }
+    }
+}

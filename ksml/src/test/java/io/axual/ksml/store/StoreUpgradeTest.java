@@ -1,0 +1,271 @@
+package io.axual.ksml.store;
+
+/*-
+ * ========================LICENSE_START=================================
+ * KSML
+ * %%
+ * Copyright (C) 2021 - 2026 Axual B.V.
+ * %%
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =========================LICENSE_END==================================
+ */
+
+
+import io.axual.ksml.definition.KeyValueStateStoreDefinition;
+import io.axual.ksml.definition.StateStoreDefinition;
+import io.axual.ksml.definition.WindowStateStoreDefinition;
+import io.axual.ksml.exception.ExecutionException;
+import io.axual.ksml.type.UserType;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.time.Duration;
+import java.util.Comparator;
+import java.util.List;
+
+import static io.axual.ksml.testutil.LogCapture.stderrOf;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+
+/**
+ * The one-time check of the local state that KSML 1.x left: it stops when state would be lost, and clears window
+ * store state that this version can't read but can restore from the changelog.
+ */
+class StoreUpgradeTest {
+    private static final UserType UNKNOWN = UserType.UNKNOWN;
+
+    @TempDir
+    Path stateDirectory;
+
+    private static WindowStateStoreDefinition windowStore(String name, boolean persistent, Boolean timestamped, Boolean logging) {
+        return new WindowStateStoreDefinition(name, persistent, timestamped, Duration.ofHours(1), Duration.ofMinutes(1), false, UNKNOWN, UNKNOWN, false, logging);
+    }
+
+    private static KeyValueStateStoreDefinition keyValueStore(String name, boolean persistent, Boolean logging) {
+        return new KeyValueStateStoreDefinition(name, persistent, null, false, null, null, UNKNOWN, UNKNOWN, false, logging);
+    }
+
+    private Path applicationDirectory() {
+        return stateDirectory.resolve("app");
+    }
+
+    private void prepare(List<? extends StateStoreDefinition> stores) {
+        // As in a topology where Python functions use every store
+        StoreUpgrade.prepare(applicationDirectory(), stores, stores);
+    }
+
+    private Path createWindowStore(String task, String store) throws IOException {
+        final var storeDirectory = applicationDirectory().resolve(task).resolve(store);
+        Files.createDirectories(storeDirectory.resolve(store + ".1794319200000"));
+        Files.writeString(storeDirectory.resolve(store + ".1794319200000").resolve("000010.sst"), "data");
+        Files.writeString(applicationDirectory().resolve(task).resolve(store + ".position"), "position");
+        return storeDirectory;
+    }
+
+    private Path createKeyValueStore(String task, String store) throws IOException {
+        final var storeDirectory = applicationDirectory().resolve(task).resolve("rocksdb").resolve(store);
+        Files.createDirectories(storeDirectory);
+        Files.writeString(storeDirectory.resolve("000010.sst"), "data");
+        return storeDirectory;
+    }
+
+    private Path createCheckpoint(String task) throws IOException {
+        Files.createDirectories(applicationDirectory().resolve(task));
+        return Files.writeString(applicationDirectory().resolve(task).resolve(".checkpoint"), "checkpoint");
+    }
+
+    private Path marker() {
+        return applicationDirectory().resolve(StoreUpgrade.MARKER_FILE);
+    }
+
+    @Test
+    @DisplayName("deletes the timestamped window stores with a changelog of every task, with their position files and the checkpoint of their task")
+    void deletesRestorableWindowStoreState() throws IOException {
+        createWindowStore("0_0", "window_timestamped");
+        createWindowStore("1_2", "window_timestamped");
+        final var plain = createWindowStore("0_0", "window_plain");
+        final var keyValue = createKeyValueStore("0_0", "key_value");
+        final var otherCheckpoint = createCheckpoint("2_0");
+        createCheckpoint("0_0");
+        createCheckpoint("1_2");
+        // Not a task directory
+        final var notATask = createWindowStore("other", "window_timestamped");
+
+        prepare(List.of(
+                windowStore("window_timestamped", true, true, true),
+                // A plain store in KSML 1.x: Kafka Streams converts it itself
+                windowStore("window_plain", true, null, true),
+                keyValueStore("key_value", true, false)));
+
+        for (final var task : List.of("0_0", "1_2")) {
+            assertThat(applicationDirectory().resolve(task).resolve("window_timestamped")).doesNotExist();
+            assertThat(applicationDirectory().resolve(task).resolve("window_timestamped.position")).doesNotExist();
+            assertThat(applicationDirectory().resolve(task).resolve(".checkpoint")).doesNotExist();
+        }
+        assertThat(plain).exists();
+        assertThat(keyValue).exists();
+        assertThat(otherCheckpoint).exists();
+        assertThat(notATask).exists();
+        assertThat(marker()).exists();
+    }
+
+    @Test
+    @DisplayName("stops for a persistent store with local state that leaves out logging, and changes nothing")
+    void stopsForUnloggedState() throws IOException {
+        final var keyValue = createKeyValueStore("0_1", "key_value");
+        final var window = createWindowStore("0_0", "window_plain");
+        final var restorable = createWindowStore("0_0", "window_timestamped");
+        final var checkpoint = createCheckpoint("0_0");
+        final var stores = List.of(
+                keyValueStore("key_value", true, null),
+                windowStore("window_plain", true, null, null),
+                windowStore("window_timestamped", true, true, true));
+
+        assertThatThrownBy(() -> prepare(stores))
+                .isInstanceOf(ExecutionException.class)
+                .hasMessageContaining("Store 'key_value' has local state in task 0_1")
+                .hasMessageContaining("Store 'window_plain' has local state in task 0_0")
+                .hasMessageContaining("logging: false")
+                .hasMessageNotContaining("window_timestamped");
+        assertThat(keyValue).exists();
+        assertThat(window).exists();
+        assertThat(restorable).exists();
+        assertThat(checkpoint).exists();
+        assertThat(marker()).doesNotExist();
+    }
+
+    @Test
+    @DisplayName("keeps the local state of a store that sets logging explicitly")
+    void keepsStateWithExplicitLogging() throws IOException {
+        final var unlogged = createKeyValueStore("0_0", "key_value_unlogged");
+        final var logged = createKeyValueStore("0_0", "key_value_logged");
+
+        prepare(List.of(keyValueStore("key_value_unlogged", true, false), keyValueStore("key_value_logged", true, true)));
+
+        assertThat(unlogged).exists();
+        assertThat(logged).exists();
+        assertThat(marker()).exists();
+    }
+
+    @Test
+    @DisplayName("stops for a timestamped window store without a changelog, whatever logging says, and names the files to delete")
+    void stopsForUnreadableState() throws IOException {
+        final var unset = createWindowStore("0_0", "window_unset");
+        final var unlogged = createWindowStore("1_0", "window_unlogged");
+        final var stores = List.of(
+                windowStore("window_unset", true, true, null),
+                windowStore("window_unlogged", true, true, false));
+
+        assertThatThrownBy(() -> prepare(stores))
+                .isInstanceOf(ExecutionException.class)
+                .hasMessageContaining("Window store 'window_unset' has local state in task 0_0")
+                .hasMessageContaining("Window store 'window_unlogged' has local state in task 1_0")
+                .hasMessageContaining(unset.toString())
+                .hasMessageContaining(unlogged + ".position");
+        assertThat(unset).exists();
+        assertThat(unlogged).exists();
+        assertThat(marker()).doesNotExist();
+    }
+
+    @Test
+    @DisplayName("starts once the user has deleted the state that the check named")
+    void startsAfterTheStateIsDeleted() throws IOException {
+        createWindowStore("0_0", "window_unlogged");
+        final var stores = List.of(windowStore("window_unlogged", true, true, false));
+        assertThatThrownBy(() -> prepare(stores)).isInstanceOf(ExecutionException.class);
+
+        Files.delete(applicationDirectory().resolve("0_0").resolve("window_unlogged.position"));
+        try (var files = Files.walk(applicationDirectory().resolve("0_0").resolve("window_unlogged"))) {
+            files.sorted(Comparator.reverseOrder()).forEach(path -> path.toFile().delete());
+        }
+        prepare(stores);
+
+        assertThat(marker()).exists();
+    }
+
+    @Test
+    @DisplayName("checks only the window stores of Python functions for the KSML 1.x format")
+    void checksOnlyPythonWindowStoresForTheFormat() throws IOException {
+        final var dslStore = createWindowStore("0_0", "window_dsl");
+        final var store = windowStore("window_dsl", true, true, true);
+
+        StoreUpgrade.prepare(applicationDirectory(), List.of(store), List.of());
+
+        assertThat(dslStore).exists();
+        assertThat(marker()).exists();
+    }
+
+    @Test
+    @DisplayName("ignores stores without local state and in-memory stores")
+    void ignoresStoresWithoutState() throws IOException {
+        Files.createDirectories(applicationDirectory().resolve("0_0"));
+
+        prepare(List.of(
+                keyValueStore("key_value", true, null),
+                windowStore("window_timestamped", true, true, null),
+                keyValueStore("key_value_memory", false, null)));
+
+        assertThat(marker()).exists();
+    }
+
+    @Test
+    @DisplayName("leaves a marked application directory alone, so the check runs once")
+    void keepsMarkedState() throws IOException {
+        final var stores = List.of(windowStore("window_timestamped", true, true, true), keyValueStore("key_value", true, null));
+        createWindowStore("0_0", "window_timestamped");
+        prepare(stores);
+
+        // Kafka Streams has written the stores since the check
+        final var window = createWindowStore("0_0", "window_timestamped");
+        final var keyValue = createKeyValueStore("0_0", "key_value");
+        final var checkpoint = createCheckpoint("0_0");
+        prepare(stores);
+
+        assertThat(window).exists();
+        assertThat(applicationDirectory().resolve("0_0").resolve("window_timestamped.position")).exists();
+        assertThat(keyValue).exists();
+        assertThat(checkpoint).exists();
+    }
+
+    @Test
+    @DisplayName("creates and marks a missing application directory")
+    void marksNewApplicationDirectory() {
+        prepare(List.of(keyValueStore("key_value", true, null)));
+
+        assertThat(marker()).exists();
+    }
+
+    @Test
+    @DisplayName("leaves the state directory alone without persistent stores")
+    void ignoresApplicationWithoutPersistentStores() {
+        prepare(List.of(windowStore("window_memory", false, true, null), keyValueStore("key_value_memory", false, null)));
+        prepare(List.of());
+
+        assertThat(applicationDirectory()).doesNotExist();
+    }
+
+    @Test
+    @DisplayName("logs which stores it deletes")
+    void logsDeletedStores() throws Exception {
+        createWindowStore("0_0", "window_timestamped");
+        final var stores = List.of(windowStore("window_timestamped", true, true, true));
+
+        final var log = stderrOf(() -> prepare(stores));
+
+        assertThat(log.lines().filter(line -> line.contains("INFO") && line.contains("window_timestamped"))).hasSize(1);
+    }
+}

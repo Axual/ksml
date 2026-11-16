@@ -33,7 +33,7 @@ import io.axual.ksml.python.PythonContextConfig;
 import io.axual.ksml.runner.config.ApplicationServerConfig;
 import io.axual.ksml.runner.exception.RunnerException;
 import io.axual.ksml.runner.streams.KSMLClientSupplier;
-import io.axual.ksml.store.WindowStoreUpgrade;
+import io.axual.ksml.store.StoreUpgrade;
 import io.axual.utils.headers.cleaning.AxualHeaderCleaningInterceptor;
 import lombok.Builder;
 import lombok.Getter;
@@ -155,7 +155,7 @@ public class KafkaStreamsRunner implements Runner {
         var optimize = streamsProps.getOrDefault(StreamsConfig.TOPOLOGY_OPTIMIZATION_CONFIG, StreamsConfig.OPTIMIZE);
         final var topologyGenerator = new TopologyGenerator(applicationId, (String) optimize, config.pythonContextConfig(), headersStoreFormat(streamsConfig));
         final var topology = topologyGenerator.create(streamsBuilder, config.definitions);
-        clearKsml1WindowStoreState(streamsConfig, applicationId, topologyGenerator.userStateStores());
+        checkKsml1StoreState(streamsConfig, applicationId, topologyGenerator.upgradeCheckedStores(), topologyGenerator.userStateStores());
         final var topologyDesc = topology.describe();
         final var ksmlTagEnricher = KsmlTagEnricher.from(topologyDesc);
 
@@ -170,15 +170,19 @@ public class KafkaStreamsRunner implements Runner {
     }
 
     /**
-     * Clears window store state that KSML 1.x wrote in a format this version can't read, before Kafka Streams opens it,
-     * so Kafka Streams restores it from the changelog. This happens once per application state directory.
+     * Checks the local state that KSML 1.x left, before Kafka Streams opens it. Stops when the state would be lost,
+     * and clears window store state that this version can't read, so Kafka Streams restores it from the changelog.
+     * This happens once per application state directory.
      *
      * @param streamsConfig the validated Kafka Streams configuration, with the state directory
      * @param applicationId the application id, which names the state directory of the application
-     * @param stores        the stores built for Python functions
+     * @param stores        the declared stores, without the stores of stream-stream joins
+     * @param pythonStores  the stores built for Python functions
      */
-    static void clearKsml1WindowStoreState(StreamsConfig streamsConfig, String applicationId, Collection<? extends StateStoreDefinition> stores) {
-        WindowStoreUpgrade.prepare(Path.of(streamsConfig.getString(StreamsConfig.STATE_DIR_CONFIG), applicationId), stores);
+    static void checkKsml1StoreState(StreamsConfig streamsConfig, String applicationId,
+                                     Collection<? extends StateStoreDefinition> stores,
+                                     Collection<? extends StateStoreDefinition> pythonStores) {
+        StoreUpgrade.prepare(Path.of(streamsConfig.getString(StreamsConfig.STATE_DIR_CONFIG), applicationId), stores, pythonStores);
     }
 
     /**

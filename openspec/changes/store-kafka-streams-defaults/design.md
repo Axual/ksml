@@ -131,20 +131,50 @@ Existing state, as read from the Kafka Streams 4.4 source before task 5.3:
 | 1.x declaration | Local RocksDB state after the fix | Restore from the changelog |
 |---|---|---|
 | in memory (the 1.x default) | none | none (the 1.x default had no changelog) |
-| `persistent: true`, `timestamped` unset or false | migrated by Kafka Streams' plain-to-timestamped upgrade path | correct |
-| `persistent: true`, `timestamped: true` | misread: 1.x wrote plain value bytes into the timestamped column family, and the new store can't tell them apart | correct: the changelog holds plain values and record timestamps |
+| `persistent: true`, `timestamped` unset or false | migrated by Kafka Streams' plain-to-timestamped upgrade path, so KSML leaves it alone | correct, if the store had `logging: true` (otherwise see D8) |
+| `persistent: true`, `timestamped: true` | misread: 1.x wrote plain value bytes into the timestamped column family, and the new store can't tell them apart | correct: the changelog holds plain values and record timestamps, if the store had `logging: true` (otherwise see D8) |
 
 Result of task 5.3: KSML 1.1.0 (Kafka Streams 4.0) leaves RocksDB data and a `.checkpoint` file. This version then crashes on the first Python `fetch` from a `timestamped: true` window store, with an `IndexOutOfBoundsException`. KSML 1.3.2 (Kafka Streams 4.3) leaves no data on disk, because its shutdown hook doesn't wait for Kafka Streams to close and RocksDB runs without a write-ahead log. This version then restores from the changelog and reads correctly.
 
-Decision: clean up 1.x local state once. Before Kafka Streams starts, `KafkaStreamsRunner` calls `WindowStoreUpgrade.prepare(<state.dir>/<application.id>, stores)` with the stores that `TopologyGenerator` built for Python functions (`createUserStateStore`). If the application state directory has no `.ksml-store-format` marker, `prepare` does this in every task directory (`<n>_<n>`), for each persistent, timestamped window store among them:
+Decision: clean up 1.x local state once, as part of the upgrade check of D8. Before Kafka Streams starts, `KafkaStreamsRunner` calls `StoreUpgrade.prepare(<state.dir>/<application.id>, stores, pythonStores)`. If the application state directory has no `.ksml-store-format` marker, `prepare` looks in every task directory (`<n>_<n>`) for the local state of each persistent window store for Python that **declares** `timestamped: true` (row 3 of the table):
 
-- deletes `<task>/<store>` and `<task>/<store>.position`, and logs it at INFO
-- logs a WARN when the store has `logging: false`, because its data can't be restored
-- deletes the task's `.checkpoint` when it deleted a store there, because Kafka Streams would otherwise load the old offsets and skip the restore; the other stores of that task are then restored from their changelogs too
+- with a declared `logging: true`, it deletes `<task>/<store>` and `<task>/<store>.position`, logs it at INFO, and deletes the task's `.checkpoint`, because Kafka Streams would otherwise load the old offsets and skip the restore; the other stores of that task are then restored from their changelogs too
+- without a declared `logging: true`, the store had no changelog in 1.x, so its state can't be restored: KSML stops, see D8
 
-Then it writes the marker, creating the directory if needed. Without persistent, timestamped window stores for Python, `prepare` does nothing: no 1.x state can need a cleanup, and Kafka Streams also leaves the state directory alone when a topology has no persistent stores. Kafka Streams restores the deleted stores from their changelogs. The marker is one file per application state directory, so it survives Kafka Streams deleting and recreating task directories. Kafka Streams ignores unknown files there; only `KafkaStreams.cleanUp()`, which KSML doesn't call, warns about them.
+Then it writes the marker, creating the directory if needed. The marker is one file per application state directory, so it survives Kafka Streams deleting and recreating task directories. Kafka Streams ignores unknown files there; only `KafkaStreams.cleanUp()`, which KSML doesn't call, warns about them.
 
-Not touched: window stores that DSL operations materialize (1.x already built them as timestamped), and stores with `timestamped: false` (built the same way in 1.x and now).
+The cleanup decides on the declared values, not on the resolved defaults of D1, because the state was written with the 1.x defaults (`false`). Not touched: window stores that DSL operations materialize (1.x already built them as timestamped), and stores that leave out `timestamped` or set it to `false` (plain stores in 1.x, row 2, which Kafka Streams converts itself).
+
+An earlier version of this decision filtered on the resolved `timestamped` and logged on the resolved `logging`. It deleted the plain 1.x stores of row 2 too, and for a store that left out `logging` it logged that Kafka Streams restores it from the changelog, while that changelog was new and empty. Reviews 02 and 03 of PR #767 found it.
+
+### D8. Stop on KSML 1.x local state that would be lost
+
+The new defaults of D1 turn `logging` on for stores that had no changelog in 1.x. Their local state is the only copy: a new, empty changelog can't restore it, so it is lost when the task moves, and at once with `exactly_once_v2` (Kafka Streams 4.4 `ProcessorStateManager.initializeStoreOffsets` treats a logged store with local state and no offset as corrupted, and wipes the task). The unreadable window stores of D7 without a changelog lose their state too.
+
+Decision: KSML stops, and changes nothing, rather than lose data without the user deciding. Losing data can't be undone, while a stop costs one deploy, and the user is watching the upgrade anyway. Flink (`--allowNonRestoredState`), PostgreSQL and Kafka Streams' own downgrade error choose the same.
+
+`StoreUpgrade.prepare` runs the check in the same pass as the D7 cleanup, on an unmarked application state directory, before it deletes anything:
+
+| Store with local state in a task | KSML |
+|---|---|
+| persistent, `logging` left out (not a stream-stream join store) | stops; the user sets `logging: false` (keeps the 1.x behavior and the state) or `logging: true` (accepts a changelog with only new updates) |
+| persistent window store for Python, `timestamped: true`, `logging` not `true` | stops; the user deletes the files the error names (the data is lost), renames the store, or sets `logging: true` on 1.x first |
+| persistent window store for Python, `timestamped: true`, `logging: true` | deletes the state, Kafka Streams restores it from the changelog (D7) |
+
+The error lists every store at risk with its tasks, so one fix covers all. After a stop the marker is not written, so the check runs again on the next start. Once it passes, KSML writes the marker and never checks again. "Local state" is a `<task>/<store>` or `<task>/rocksdb/<store>` directory (`rocksdb` holds key-value and versioned stores); KSML can't tell an empty RocksDB database from a full one without opening it, so it treats an existing directory as state.
+
+The checked stores are all declared stores that `TopologyGenerator` built, as copies keep the declared values (`StateStoreDefinition.declaredTimestamped()` and `declaredLogging()`). Stream-stream join stores are left out: Kafka Streams always logged them, whatever `logging` said (D6). The marker is now written when the topology has any persistent store, not only window stores for Python: otherwise the second start of a 2.0 application would find its own state and stop.
+
+Known limits:
+- KSML reads the YAML as the 1.x options. A user who adds `logging: true` before the first start, to a store that had no changelog in 1.x, skips the stop. For an unreadable window store, KSML then deletes the state. The migration guide says to upgrade with the store options of 1.x.
+- KSML 1.3.x (Kafka Streams 4.3) leaves RocksDB directories without data at shutdown (task 5.3), so such an application stops although there is little to lose. The fix is the same.
+- A table with a `store` restores from its input topic when `topology.optimization` is `all` and the store is logged. Such a store also stops when it leaves out `logging`, although `logging: true` would lose nothing. The fix is the same.
+
+- *Alternative: detect the changelog from the task's `.checkpoint`.* Rejected: since Kafka Streams 4.3, RocksDB stores keep their offsets inside the store (`managesOffsets()`), so state from KSML 1.3.x has no checkpoint entries even with a changelog.
+- *Alternative: ask Kafka whether `<application.id>-<store>-changelog` exists.* Rejected: it only helps a user who removed `logging: true` from the YAML, who gets a stop and sets it again. It costs an Admin call and Describe rights at startup.
+- *Alternative: log a warning and continue.* Rejected: with `exactly_once_v2` the state is gone a few seconds later, before anyone reads the log.
+- *Alternative: copy the local state into the new changelog.* Rejected: it needs the changelog topic created with Kafka Streams' configs, Kafka Streams' internal key formats and RocksDB layout, and care with stale task directories of several instances. Re-writing through the store after start uses public API, but it is too late with `exactly_once_v2`.
+- *Alternative for unreadable window stores: a runner setting that allows the delete, or an explicit `logging` value as consent.* Rejected: a setting is a config key that has to stay forever, because unknown keys are rejected; and a `logging: false` already in the 1.x YAML would delete without a stop. Deleting by hand, or renaming the store, is a clear decision by a person, as in Kafka Streams' own downgrade error.
 
 - *Alternative: (a) document a reset in the migration guide and mark the change BREAKING.* Rejected: users who miss the guide get a crash.
 - *Alternative: (c) convert the values in place.* Rejected: more code, and the restore from the changelog is enough.
@@ -157,6 +187,7 @@ Not touched: window stores that DSL operations materialize (1.x already built th
 - [More tests run RocksDB, so the build gets slower] → Measure in group 1. Tests that don't care about persistence set `persistent: false`.
 - [The adapters must override every store method the proxies call, or Kafka Streams' throwing defaults surface] → Unit tests per adapter, and an end-to-end test that runs the same Python calls against both formats (the spec's "same calls" scenario).
 - [The first start after the upgrade restores these window stores from the changelog] → It happens once, it's logged, and the migration guide mentions it.
+- [The first start stops on 1.x state that would be lost (D8)] → The error names each store and what to set or delete; the migration guide lists the cases. It only happens once per state directory, and only for stores with local state.
 
 ## Migration Plan
 

@@ -130,6 +130,19 @@ class StoreDefinitionDefaultsTest {
     }
 
     @Test
+    @DisplayName("the declared timestamped and logging stay null when left out, for the KSML 1.x upgrade checks")
+    void declaredValuesAreKept() throws Exception {
+        final var parser = new WindowStateStoreDefinitionParser(false, true).parser();
+        final var unset = parser.parse(nodeOf("name: window_store\nkeyType: string\nvalueType: string\nwindowSize: 10s\nretention: 1m"));
+        final var set = parser.parse(nodeOf("name: window_store\nkeyType: string\nvalueType: string\nwindowSize: 10s\nretention: 1m\ntimestamped: true\nlogging: false"));
+
+        assertThat(unset.declaredTimestamped()).isNull();
+        assertThat(unset.declaredLogging()).isNull();
+        assertThat(set.declaredTimestamped()).isTrue();
+        assertThat(set.declaredLogging()).isFalse();
+    }
+
+    @Test
     @DisplayName("a versioned keyValue store without persistent is a persistent, logged versioned store")
     void versionedStoreWithoutPersistent() throws Exception {
         final var store = new KeyValueStateStoreDefinitionParser(false, true).parser()

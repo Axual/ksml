@@ -26,7 +26,7 @@ import io.axual.ksml.execution.ExecutionErrorHandler;
 import io.axual.ksml.metric.KsmlTagEnricher;
 import io.axual.ksml.runner.config.ApplicationServerConfig;
 import io.axual.ksml.runner.exception.RunnerException;
-import io.axual.ksml.store.WindowStoreUpgrade;
+import io.axual.ksml.store.StoreUpgrade;
 import io.axual.ksml.type.UserType;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
@@ -788,15 +788,15 @@ class KafkaStreamsRunnerTest {
     }
 
     @Test
-    @DisplayName("clears the window store state of KSML 1.x in the state directory of the application")
-    void clearsKsml1WindowStoreStateOfApplication() {
+    @DisplayName("checks the KSML 1.x store state in the state directory of the application")
+    void checksKsml1StoreStateOfApplication() {
         final var props = new HashMap<String, Object>(INPUT_CONFIG_WITHOUT_PATTERNS);
         props.put(StreamsConfig.STATE_DIR_CONFIG, stateDirectory.toString());
         final var windowStore = new WindowStateStoreDefinition("window_store", true, true, Duration.ofHours(1), Duration.ofMinutes(1), false, UserType.UNKNOWN, UserType.UNKNOWN, false, true);
 
-        KafkaStreamsRunner.clearKsml1WindowStoreState(new StreamsConfig(props), "test-id", List.of(windowStore));
+        KafkaStreamsRunner.checkKsml1StoreState(new StreamsConfig(props), "test-id", List.of(windowStore), List.of(windowStore));
 
-        assertThat(stateDirectory.resolve("test-id").resolve(WindowStoreUpgrade.MARKER_FILE)).exists();
+        assertThat(stateDirectory.resolve("test-id").resolve(StoreUpgrade.MARKER_FILE)).exists();
     }
 
     static Stream<Arguments> storeFormatData() {
