@@ -191,7 +191,13 @@ class WindowStoreUpgradeIT {
         changeDefinition(definitionChange);
         final var stateDirectory = workDirectory.resolve("state");
         Files.createDirectories(stateDirectory, PosixFilePermissions.asFileAttribute(PosixFilePermissions.fromString("rwxrwxrwx")));
+        // On Linux, the image user (1024) can't read the work directory, and the test can't read or delete the state
+        // that it writes. So KSML 1.x runs as the user of the test, in group 0 like the image user, as the parity
+        // Docker tests do with PARITY_USER. The image sets no HOME, and an unknown user gets "/".
+        final var hostUser = Files.getAttribute(workDirectory, "unix:uid") + ":0";
         try (var ksml1 = new GenericContainer<>(DockerImageName.parse(KSML_1X_IMAGE + ksml1Version))
+                .withCreateContainerCmdModifier(cmd -> cmd.withUser(hostUser))
+                .withEnv("HOME", "/home/ksml")
                 .withNetwork(SharedKsmlInfra.network())
                 .withFileSystemBind(workDirectory.toString(), "/ksml", BindMode.READ_WRITE)
                 .withWorkingDirectory("/ksml")
