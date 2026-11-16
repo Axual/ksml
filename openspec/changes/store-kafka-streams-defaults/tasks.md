@@ -26,10 +26,11 @@ Each implementation task follows TDD: first commit the failing test, then the fi
 ## 3. Headers store format (design D4)
 
 - [x] 3.1 Add failing `StoreUtilTest` cases: with the headers format on, default keyValue, window and session stores get headers-aware suppliers and builders (for both materialized and processor use); in-memory, `timestamped: false` and versioned stores do not; with the headers format off, nothing changes. Verify the tests fail.
-- [x] 3.2 Add the `headersStoreFormat` flag to `StoreUtil`, `TopologyBuildContext` and `TopologyGenerator` (existing constructors default to `false`), and pick the suppliers and builders from the D4 table. Verify the 3.1 tests pass.
+- [x] 3.2 Add the `headersStoreFormat` flag to `StoreUtil`, `TopologyBuildContext` and `TopologyGenerator` (the existing `TopologyGenerator` constructor defaults to `false`; see D4 for why the others don't keep their old signatures), and pick the suppliers and builders from the D4 table. Verify the 3.1 tests pass.
 - [x] 3.3 Add a failing `KafkaStreamsRunner` test that `dsl.store.format: HEADERS` (any case) in the Kafka config builds a topology with headers-aware stores and that an absent value does not. Then pass the flag on from `KafkaStreamsRunner`. Verify the test passes.
 - [x] 3.4 Add a test that a stream-stream join with declared stores still builds and joins correctly with the headers format on. Verify it passes.
 - [x] 3.5 Document `dsl.store.format: HEADERS` (which stores it affects, which it doesn't, and the caution about switching formats on existing state) in `docs/reference/state-store-reference.md`, the runner configuration docs and the migration guide. Verify the docs build.
+- [x] 3.6 List the changed Java signatures (`TopologyBuildContext`, `StoreUtil.getStoreBuilder`, `materialize`, `validatedWindowStore`, `BaseOperation.streamJoinedOf`) in the Java bullet of `docs/release-notes.md` and the checklist of `docs/migration-to-2.0.0.md` (PR #767 review 03, item 10). Verify the docs build.
 
 ## 4. Python access to headers-aware stores (design D5)
 
