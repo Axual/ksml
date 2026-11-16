@@ -160,6 +160,9 @@ Decision: KSML stops, and changes nothing, rather than lose data without the use
 | persistent, `logging` left out (not a stream-stream join store) | stops; the user sets `logging: false` (keeps the 1.x behavior and the state) or `logging: true` (accepts a changelog with only new updates) |
 | persistent window store for Python, `timestamped: true`, `logging` not `true` | stops; the user deletes the files the error names (the data is lost), renames the store, or sets `logging: true` on 1.x first |
 | persistent window store for Python, `timestamped: true`, `logging: true` | deletes the state, Kafka Streams restores it from the changelog (D7) |
+| a task where the row above deletes a store, and a store with `logging: false` has local state, with exactly-once processing | stops; the user starts once with `processing.guarantee: at_least_once` |
+
+With exactly-once processing, Kafka Streams 4.4 deletes the **whole task directory** when one logged store in it has local state but no changelog offset (`ProcessorStateManager.initializeStoreOffsets` checks whether the task directory is empty, then `StateManagerUtil.closeStateManager` deletes `baseDir()`). A window store that D7 deleted has no offset, so its task is always wiped, together with the state of a `logging: false` store that the user chose to keep. The runner passes `wipesTasks`: `processing.guarantee` other than `at_least_once`, and `enable.transactional.statestores` off, because Kafka Streams skips the wipe with transactional state stores. With at-least-once, Kafka Streams restores the deleted store and leaves the rest of the task alone; the user can switch back to exactly-once on the next start, when the logged stores have offsets.
 
 The error lists every store at risk with its tasks, so one fix covers all. After a stop the marker is not written, so the check runs again on the next start. Once it passes, KSML writes the marker and never checks again. "Local state" is a `<task>/<store>` or `<task>/rocksdb/<store>` directory (`rocksdb` holds key-value and versioned stores); KSML can't tell an empty RocksDB database from a full one without opening it, so it treats an existing directory as state.
 
@@ -167,6 +170,7 @@ The checked stores are all declared stores that `TopologyGenerator` built, as co
 
 Known limits:
 - KSML reads the YAML as the 1.x options. A user who adds `logging: true` before the first start, to a store that had no changelog in 1.x, skips the stop. For an unreadable window store, KSML then deletes the state. The migration guide says to upgrade with the store options of 1.x.
+- A store that sets `logging: true` but had no changelog in 1.x, for example after the stop for `logging` left out, has no offset either. With exactly-once processing, Kafka Streams wipes its task too. KSML can't tell this store from one that was logged in 1.x, so it doesn't stop; the migration guide says to start once with `at_least_once`.
 - KSML 1.3.x (Kafka Streams 4.3) leaves RocksDB directories without data at shutdown (task 5.3), so such an application stops although there is little to lose. The fix is the same.
 - A table with a `store` restores from its input topic when `topology.optimization` is `all` and the store is logged. Such a store also stops when it leaves out `logging`, although `logging: true` would lose nothing. The fix is the same.
 

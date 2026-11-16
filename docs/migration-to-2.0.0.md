@@ -306,13 +306,13 @@ What changes for a running application:
 * **Timestamps.** A RocksDB store of a `count`, `aggregate`, `reduce` or table now keeps timestamps, so `getWithTimestamp` and `fetchWithTimestamp` return the record timestamp instead of `-1`.
 * **Persistent stores without a changelog.** A store with `persistent: true` that left out `logging` had no changelog in 1.x. Its state is only on the local disk, and a new, empty changelog can't restore it: the state is lost when the task moves to another instance, and at once with `processing.guarantee: exactly_once_v2`. So on the first start, KSML stops before Kafka Streams starts when such a store has local state, and changes nothing. Set `logging` on the store and start again:
     * `logging: false` keeps the 1.x behavior, and the store keeps its state.
-    * `logging: true` gives the store a changelog with only the updates from now on. With `exactly_once_v2`, Kafka Streams deletes the old local state at once.
+    * `logging: true` gives the store a changelog with only the updates from now on. With `exactly_once_v2`, Kafka Streams deletes the old local state at once, and the state of every other store in the same task too, also of stores with `logging: false`. To keep those, start once with `processing.guarantee: at_least_once`, then switch back.
 
     To keep the old state and get a changelog, set `logging: true` while still on KSML 1.x, with `at_least_once`. Upgrade once the changelog has all the state that you need, for a window store after one retention period.
 
     Stream-stream join stores are not checked: Kafka Streams always gave them a changelog.
 * **Window stores used by Python.** A window store under `stores` is now timestamped unless it sets `timestamped: false`, so Python functions get the `*WithTimestamp` methods. A store that left out `timestamped` was a plain store in 1.x, and Kafka Streams converts its state. A persistent store with `timestamped: true` has local state from 1.x that KSML 2.0.0 can't read, so on the first start:
-    * With `logging: true`, KSML deletes this local state once, and Kafka Streams restores it from the changelog. The first start takes longer, also for the other stores of the same tasks.
+    * With `logging: true`, KSML deletes this local state once, and Kafka Streams restores it from the changelog. The first start takes longer, also for the other stores of the same tasks. With `exactly_once_v2`, Kafka Streams then deletes the whole task, so KSML stops when a store with `logging: false` in that task has local state. Start once with `processing.guarantee: at_least_once`, then switch back.
     * Without `logging: true`, there is no changelog to restore from, and KSML stops. It does not delete the state for you. Delete the files that the error names (the data is lost), give the store a new name, or set `logging: true` on KSML 1.x first, as above.
 
     See [Timestamped Window Stores](reference/state-store-reference.md#timestamped-window-stores).

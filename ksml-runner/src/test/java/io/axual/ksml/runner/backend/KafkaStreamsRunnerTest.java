@@ -799,6 +799,25 @@ class KafkaStreamsRunnerTest {
         assertThat(stateDirectory.resolve("test-id").resolve(StoreUpgrade.MARKER_FILE)).exists();
     }
 
+    static Stream<Arguments> wipesTasksData() {
+        return Stream.of(
+                Arguments.of(named("at least once", Map.of()), false),
+                Arguments.of(named("exactly once", Map.of(StreamsConfig.PROCESSING_GUARANTEE_CONFIG, StreamsConfig.EXACTLY_ONCE_V2)), true),
+                Arguments.of(named("exactly once with transactional state stores", Map.of(
+                        StreamsConfig.PROCESSING_GUARANTEE_CONFIG, StreamsConfig.EXACTLY_ONCE_V2,
+                        StreamsConfig.TRANSACTIONAL_STATE_STORES_CONFIG, "true")), false));
+    }
+
+    @ParameterizedTest
+    @MethodSource("wipesTasksData")
+    @DisplayName("knows when Kafka Streams deletes a task whose logged store has no changelog offset")
+    void wipesTasks(Map<String, Object> config, boolean expected) {
+        final var props = new HashMap<String, Object>(INPUT_CONFIG_WITHOUT_PATTERNS);
+        props.putAll(config);
+
+        assertThat(KafkaStreamsRunner.wipesTasks(new StreamsConfig(props))).isEqualTo(expected);
+    }
+
     static Stream<Arguments> storeFormatData() {
         return Stream.of(
                 Arguments.of(named("HEADERS", "HEADERS"), true),

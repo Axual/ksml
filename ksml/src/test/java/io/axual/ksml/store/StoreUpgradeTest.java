@@ -65,7 +65,11 @@ class StoreUpgradeTest {
 
     private void prepare(List<? extends StateStoreDefinition> stores) {
         // As in a topology where Python functions use every store
-        StoreUpgrade.prepare(applicationDirectory(), stores, stores);
+        StoreUpgrade.prepare(applicationDirectory(), stores, stores, false);
+    }
+
+    private void prepareWithExactlyOnce(List<? extends StateStoreDefinition> stores) {
+        StoreUpgrade.prepare(applicationDirectory(), stores, stores, true);
     }
 
     private Path createWindowStore(String task, String store) throws IOException {
@@ -198,12 +202,61 @@ class StoreUpgradeTest {
     }
 
     @Test
+    @DisplayName("with exactly-once, stops when clearing a window store would delete a task with a store that keeps its state")
+    void stopsWhenExactlyOnceWipesKeptState() throws IOException {
+        final var window = createWindowStore("0_0", "window_timestamped");
+        final var kept = createKeyValueStore("0_0", "key_value_unlogged");
+        final var checkpoint = createCheckpoint("0_0");
+        final var stores = List.of(windowStore("window_timestamped", true, true, true), keyValueStore("key_value_unlogged", true, false));
+
+        assertThatThrownBy(() -> prepareWithExactlyOnce(stores))
+                .isInstanceOf(ExecutionException.class)
+                .hasMessageContaining("Task 0_0: KSML clears window store 'window_timestamped'")
+                .hasMessageContaining("'key_value_unlogged' with 'logging: false'")
+                .hasMessageContaining("processing.guarantee: at_least_once");
+        assertThat(window).exists();
+        assertThat(kept).exists();
+        assertThat(checkpoint).exists();
+        assertThat(marker()).doesNotExist();
+    }
+
+    @Test
+    @DisplayName("with exactly-once, clears a window store when no store of its task keeps its state")
+    void clearsWithExactlyOnceWithoutKeptStateInTask() throws IOException {
+        final var window = createWindowStore("0_0", "window_timestamped");
+        final var logged = createKeyValueStore("0_0", "key_value_logged");
+        final var otherTask = createKeyValueStore("1_0", "key_value_unlogged");
+
+        prepareWithExactlyOnce(List.of(
+                windowStore("window_timestamped", true, true, true),
+                keyValueStore("key_value_logged", true, true),
+                keyValueStore("key_value_unlogged", true, false)));
+
+        assertThat(window).doesNotExist();
+        assertThat(logged).exists();
+        assertThat(otherTask).exists();
+        assertThat(marker()).exists();
+    }
+
+    @Test
+    @DisplayName("with at-least-once, clears a window store next to a store that keeps its state")
+    void clearsWithAtLeastOnce() throws IOException {
+        final var window = createWindowStore("0_0", "window_timestamped");
+        final var kept = createKeyValueStore("0_0", "key_value_unlogged");
+
+        prepare(List.of(windowStore("window_timestamped", true, true, true), keyValueStore("key_value_unlogged", true, false)));
+
+        assertThat(window).doesNotExist();
+        assertThat(kept).exists();
+    }
+
+    @Test
     @DisplayName("checks only the window stores of Python functions for the KSML 1.x format")
     void checksOnlyPythonWindowStoresForTheFormat() throws IOException {
         final var dslStore = createWindowStore("0_0", "window_dsl");
         final var store = windowStore("window_dsl", true, true, true);
 
-        StoreUpgrade.prepare(applicationDirectory(), List.of(store), List.of());
+        StoreUpgrade.prepare(applicationDirectory(), List.of(store), List.of(), false);
 
         assertThat(dslStore).exists();
         assertThat(marker()).exists();

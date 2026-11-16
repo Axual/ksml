@@ -182,7 +182,19 @@ public class KafkaStreamsRunner implements Runner {
     static void checkKsml1StoreState(StreamsConfig streamsConfig, String applicationId,
                                      Collection<? extends StateStoreDefinition> stores,
                                      Collection<? extends StateStoreDefinition> pythonStores) {
-        StoreUpgrade.prepare(Path.of(streamsConfig.getString(StreamsConfig.STATE_DIR_CONFIG), applicationId), stores, pythonStores);
+        StoreUpgrade.prepare(Path.of(streamsConfig.getString(StreamsConfig.STATE_DIR_CONFIG), applicationId), stores, pythonStores, wipesTasks(streamsConfig));
+    }
+
+    /**
+     * Whether Kafka Streams deletes a whole task when a logged store in it has local state but no changelog offset.
+     * It does with exactly-once processing, unless transactional state stores keep uncommitted data out of the stores.
+     *
+     * @param streamsConfig the validated Kafka Streams configuration
+     * @return {@code true} when Kafka Streams wipes such a task
+     */
+    static boolean wipesTasks(StreamsConfig streamsConfig) {
+        return !StreamsConfig.AT_LEAST_ONCE.equals(streamsConfig.getString(StreamsConfig.PROCESSING_GUARANTEE_CONFIG))
+                && !streamsConfig.getBoolean(StreamsConfig.TRANSACTIONAL_STATE_STORES_CONFIG);
     }
 
     /**

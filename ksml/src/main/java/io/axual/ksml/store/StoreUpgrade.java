@@ -50,6 +50,10 @@ import java.util.stream.Stream;
  *     with plain values in it. This version can't read them. With {@code logging: true}, KSML deletes the local state
  *     and Kafka Streams restores it from the changelog. Without, KSML stops and leaves the state to the user.</li>
  * </ul>
+ * With exactly-once processing, Kafka Streams deletes a whole task when a logged store in it has local state but no
+ * changelog offset, as a deleted window store has. KSML stops when that would take the state of a store with
+ * {@code logging: false} along.
+ * <p>
  * Stores that leave out {@code timestamped} were plain stores in 1.x, which Kafka Streams converts itself.
  */
 @Slf4j
@@ -75,10 +79,14 @@ public final class StoreUpgrade {
      * @param applicationDirectory the state directory of the application: {@code <state.dir>/<application.id>}
      * @param stores               the declared stores, without the stores of stream-stream joins
      * @param pythonStores         the stores among them that are built for Python functions
+     * @param wipesTasks           whether Kafka Streams deletes a whole task when a logged store in it has local
+     *                             state but no changelog offset: with exactly-once processing, without transactional
+     *                             state stores
      */
     public static void prepare(Path applicationDirectory,
                                Collection<? extends StateStoreDefinition> stores,
-                               Collection<? extends StateStoreDefinition> pythonStores) {
+                               Collection<? extends StateStoreDefinition> pythonStores,
+                               boolean wipesTasks) {
         final var marker = applicationDirectory.resolve(MARKER_FILE);
         if (Files.exists(marker)) return;
         // No 1.x state can exist, so leave the state directory alone, as Kafka Streams does
@@ -110,6 +118,15 @@ public final class StoreUpgrade {
             for (final var store : unloggedStores) {
                 final var storeTasks = tasks.stream().filter(task -> hasLocalState(task, store.name())).toList();
                 if (!storeTasks.isEmpty()) problems.add(unloggedProblem(store, storeTasks));
+            }
+            if (wipesTasks) {
+                for (final var entry : restorable.entrySet()) {
+                    final var task = entry.getKey();
+                    final var keptStores = stores.stream()
+                            .filter(store -> store.persistent() && !store.logging() && hasLocalState(task, store.name()))
+                            .toList();
+                    if (!keptStores.isEmpty()) problems.add(wipedTaskProblem(task, entry.getValue(), keptStores));
+                }
             }
             if (!problems.isEmpty()) {
                 throw new ExecutionException("KSML 1.x left local state in " + applicationDirectory
@@ -160,6 +177,17 @@ public final class StoreUpgrade {
         return "- Window store '" + store.name() + "' has local state in task " + taskNames(tasks)
                 + " that KSML 1.x wrote in a format this version can't read, and no changelog to restore it from."
                 + " Delete " + paths + " (the data is lost), give the store a new name, or set 'logging: true' on KSML 1.x first.";
+    }
+
+    private static String wipedTaskProblem(Path task, List<? extends StateStoreDefinition> deletedStores, List<? extends StateStoreDefinition> keptStores) {
+        return "- Task " + task.getFileName() + ": KSML clears window store " + storeNames(deletedStores)
+                + ", and with exactly-once processing Kafka Streams then deletes the whole task, also the state of "
+                + storeNames(keptStores) + " with 'logging: false'."
+                + " Start once with 'processing.guarantee: at_least_once', then switch back.";
+    }
+
+    private static String storeNames(List<? extends StateStoreDefinition> stores) {
+        return stores.stream().map(store -> "'" + store.name() + "'").collect(Collectors.joining(", "));
     }
 
     private static String taskNames(List<Path> tasks) {

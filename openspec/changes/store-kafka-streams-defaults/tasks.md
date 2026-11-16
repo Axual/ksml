@@ -54,6 +54,7 @@ Each implementation task follows TDD: first commit the failing test, then the fi
 - [x] 5a.3 Have `TopologyGenerator` give the declared stores without stream-stream join stores (`upgradeCheckedStores()`), and pass them from `KafkaStreamsRunner`. Add a generator test.
 - [x] 5a.4 Extend `WindowStoreUpgradeIT`: the plain store of KSML 1.x keeps its RocksDB databases on the first start, and from KSML 1.1.0 a store without `logging` stops this version, then reads its 1.x values with `logging: false`. Verify it passes.
 - [x] 5a.5 Update `docs/migration-to-2.0.0.md` and `docs/release-notes.md`.
+- [x] 5a.6 With exactly-once processing without transactional state stores (`KafkaStreamsRunner.wipesTasks`), stop when a task where KSML would delete a window store also has local state of a store with `logging: false` (PR #767 review 03, item 2). Add unit tests for both, and document starting once with `at_least_once`.
 
 ## 6. Integration verification
 
