@@ -283,25 +283,25 @@ public class TopologyGenerator implements AutoCloseable {
      * {@code kafkaStreamsCreatedStores}, since Kafka Streams sets those up itself as part of
      * building the topology, rather than KSML having to create them manually.
      */
-    private static void collectStreamJoinStores(TopologyDefinition definition, Set<String> streamJoinStores) {
-        definition.pipelines().forEach((_, pipeline) -> pipeline.chain().forEach(operation -> {
-            if (operation instanceof DualStoreOperation dualStoreOperation) {
-                if (dualStoreOperation.thisStore() != null) streamJoinStores.add(dualStoreOperation.thisStore().name());
-                if (dualStoreOperation.otherStore() != null) streamJoinStores.add(dualStoreOperation.otherStore().name());
-            }
-        }));
-    }
-
     private void collectPipelineManagedStores(TopologyDefinition definition, Set<String> kafkaStreamsCreatedStores) {
         definition.pipelines().forEach((_, pipeline) -> pipeline.chain().forEach(operation -> {
             if (operation instanceof StoreOperation storeOperation && storeOperation.store() != null)
                 kafkaStreamsCreatedStores.add(storeOperation.store().name());
-            if (operation instanceof DualStoreOperation dualStoreOperation) {
-                if (dualStoreOperation.thisStore() != null)
-                    kafkaStreamsCreatedStores.add(dualStoreOperation.thisStore().name());
-                if (dualStoreOperation.otherStore() != null)
-                    kafkaStreamsCreatedStores.add(dualStoreOperation.otherStore().name());
-            }
+            if (operation instanceof DualStoreOperation dualStoreOperation)
+                addDualStoreNames(dualStoreOperation, kafkaStreamsCreatedStores);
         }));
+    }
+
+    // The stores of stream-stream joins: Kafka Streams always logged them, so their KSML 1.x state has a changelog
+    private static void collectStreamJoinStores(TopologyDefinition definition, Set<String> streamJoinStores) {
+        definition.pipelines().forEach((_, pipeline) -> pipeline.chain().forEach(operation -> {
+            if (operation instanceof DualStoreOperation dualStoreOperation)
+                addDualStoreNames(dualStoreOperation, streamJoinStores);
+        }));
+    }
+
+    private static void addDualStoreNames(DualStoreOperation operation, Set<String> names) {
+        if (operation.thisStore() != null) names.add(operation.thisStore().name());
+        if (operation.otherStore() != null) names.add(operation.otherStore().name());
     }
 }
