@@ -103,11 +103,11 @@ The two declared window stores of a stream-stream join SHALL always log to chang
 - **THEN** both window stores have changelog topics and a warning naming each store is logged
 
 ### Requirement: Existing window store state reads correctly after the upgrade
-Window store state written by KSML 1.x with a changelog SHALL read correctly after the upgrade to this version, both from local state and after a restore from the changelog topic. KSML SHALL decide on the store options as declared, because KSML 1.x read options that a definition leaves out as `false`.
+Window store state that KSML 1.x wrote from Python with a changelog SHALL read correctly after the upgrade to this version: the local state of a plain store as it is, the state of a store with `timestamped: true` after KSML deletes its local state once and Kafka Streams restores it from the changelog topic, and every store after a restore without local state. KSML SHALL decide on the store options as declared, because KSML 1.x read options that a definition leaves out as `false`.
 
 #### Scenario: Local state from KSML 1.x
-- **WHEN** a KSML 1.x application with persistent window stores with `logging: true`, one with `timestamped: true` and one without `timestamped`, wrote values from Python, and this version starts with the same application id and state directory
-- **THEN** KSML deletes the local state of the store with `timestamped: true` once, keeps the local state of the other store, and Python reads the same values from both stores as before the upgrade
+- **WHEN** a KSML 1.x application with persistent window stores used by Python, with `logging: true`, one with `timestamped: true` and one without `timestamped`, wrote values from Python, and this version starts with the same application id and state directory
+- **THEN** KSML deletes the local state of the store with `timestamped: true` once and Kafka Streams restores it from the changelog, KSML keeps the local state of the other store, and Python reads the same values from both stores as before the upgrade
 
 #### Scenario: Restore from the changelog
 - **WHEN** the same application starts on this version without local state

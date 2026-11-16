@@ -58,6 +58,7 @@ Each implementation task follows TDD: first commit the failing test, then the fi
 - [x] 5a.4 Extend `WindowStoreUpgradeIT`: the plain store of KSML 1.x keeps its RocksDB databases on the first start, and from KSML 1.1.0 a store without `logging` stops this version, then reads its 1.x values with `logging: false`. Verify it passes.
 - [x] 5a.5 Update `docs/migration-to-2.0.0.md` and `docs/release-notes.md`.
 - [x] 5a.6 With exactly-once processing without transactional state stores (`KafkaStreamsRunner.wipesTasks`), stop when a task where KSML would delete a window store also has local state of a store with `logging: false` (PR #767 review 03, item 2). Add unit tests for both, and document starting once with `at_least_once`.
+- [x] 5a.7 Make the spec requirement "Existing window store state reads correctly after the upgrade" match D7 and D8 (PR #767 review 03, item 7): only window stores used by Python are cleaned, the plain store reads its local state, and the store with `timestamped: true` reads its values after the restore from the changelog. The stops are in the requirement of D8. Verify `openspec validate --strict` passes.
 
 ## 6. Integration verification
 

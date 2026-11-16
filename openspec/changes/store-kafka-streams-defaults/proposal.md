@@ -30,7 +30,7 @@ None. No existing spec covers state stores.
 ## Impact
 
 - Code: `ksml` store definitions and parsers, `StoreUtil`, `BaseOperation` (stream join), `TopologyGenerator` / `TopologyBuildContext` (store format plumbing), the store proxies under `proxy/store` and the operation processors. `ksml-runner` passes `dsl.store.format` on. `ksml-test-runner` keeps the default format.
-- Runtime: declared stores now create changelog topics, so applications need topic-create rights or pre-created topics. They also keep RocksDB state under `state.dir`, and DSL results from cached stores are emitted on commit or cache flush instead of on every update.
+- Runtime: declared stores now create changelog topics, so applications need topic-create rights or pre-created topics. They also keep RocksDB state under `ksml.storageDirectory` (the Kafka Streams `state.dir`), and DSL results from cached stores are emitted on commit or cache flush instead of on every update.
 - Tests: tests that rely on the old defaults need explicit flags or new expectations, and more tests run RocksDB in `TopologyTestDriver`. `ksml-integration-tests` gets an upgrade test that runs a KSML 1.x image and then this build on the same state and topics.
 - Docs: `docs/reference/state-store-reference.md`, `docs/reference/definition-reference.md`, `docs/tutorials/intermediate/state-stores.md`, `docs/tutorials/advanced/performance-optimization.md`, `docs/migration-to-2.0.0.md`, `docs/release-notes.md`.
 - Dependencies: none new. This uses the headers-aware store APIs that Kafka Streams 4.4.0 already provides.
