@@ -185,17 +185,18 @@ Known limits:
 
 ## Risks / Trade-offs
 
-- [Existing applications suddenly create changelog topics and write RocksDB state] → Document it as **BREAKING** in the migration guide, with ACL needs, `state.dir` volume advice and the `persistent/logging: false` opt-out.
+- [Existing applications suddenly create changelog topics and write RocksDB state] → Document it as **BREAKING** in the migration guide, with ACL needs, `ksml.storageDirectory` volume advice and the `persistent/logging: false` opt-out.
 - [Caching changes when DSL results are emitted (deduplicated, emitted on commit)] → Document it, and note that `statestore.cache.max.bytes` and `commit.interval.ms` control it. `TopologyTestDriver` commits after every record, so most tests are unaffected. Any that are get explicit `caching: false`.
 - [Switching `dsl.store.format` on an application with existing state] → Kafka Streams' headers stores can open plain or timestamped data through their migrating RocksDB stores. Whether that holds for every type is not something KSML guarantees: the migration guide advises a reset or a new application id, and says that switching back from HEADERS is unsupported.
 - [More tests run RocksDB, so the build gets slower] → Measure in group 1. Tests that don't care about persistence set `persistent: false`.
 - [The adapters must override every store method the proxies call, or Kafka Streams' throwing defaults surface] → Unit tests per adapter, and an end-to-end test that runs the same Python calls against both formats (the spec's "same calls" scenario).
 - [The first start after the upgrade restores these window stores from the changelog] → It happens once, it's logged, and the migration guide mentions it.
+- [Users put `state.dir` in the `kafka` section on a volume, but the runner always uses `ksml.storageDirectory`, so the persistent stores write to the working directory and are restored after every container restart] → The docs name `ksml.storageDirectory`, and the runner warns when the `kafka` section sets another `state.dir` (PR #767 review 03, item 6). Honoring `state.dir` was rejected: it would move the state directory of existing applications on upgrade, and give one setting two names.
 - [The first start stops on 1.x state that would be lost (D8)] → The error names each store and what to set or delete; the migration guide lists the cases. It only happens once per state directory, and only for stores with local state.
 
 ## Migration Plan
 
-- Ships in KSML 2.0 with a `docs/migration-to-2.0.0.md` section: new defaults, a table to restore the old behavior (`persistent: false`, `logging: false`, `caching: false`, `timestamped: false`), changelog topics and ACLs, `state.dir`, caching emission timing, join changelogs, and how to opt in to HEADERS (with the caution about existing state).
+- Ships in KSML 2.0 with a `docs/migration-to-2.0.0.md` section: new defaults, a table to restore the old behavior (`persistent: false`, `logging: false`, `caching: false`, `timestamped: false`), changelog topics and ACLs, `ksml.storageDirectory`, caching emission timing, join changelogs, and how to opt in to HEADERS (with the caution about existing state).
 - Rollback: users can restore the old behavior per store with explicit flags. There is no global switch back to the old defaults.
 
 ## Open Questions

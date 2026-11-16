@@ -20,6 +20,10 @@ package io.axual.ksml.runner.backend;
  * =========================LICENSE_END==================================
  */
 
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.Logger;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.read.ListAppender;
 import io.axual.ksml.client.resolving.ResolvingClientConfig;
 import io.axual.ksml.definition.WindowStateStoreDefinition;
 import io.axual.ksml.execution.ExecutionErrorHandler;
@@ -47,6 +51,7 @@ import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.stubbing.Answer;
+import org.slf4j.LoggerFactory;
 
 import java.nio.file.Path;
 import java.time.Duration;
@@ -357,6 +362,50 @@ class KafkaStreamsRunnerTest {
             String interceptors = (String) result.get(StreamsConfig.CONSUMER_PREFIX + ConsumerConfig.INTERCEPTOR_CLASSES_CONFIG);
             assertThat(interceptors).contains("io.axual.utils.headers.cleaning.AxualHeaderCleaningInterceptor");
         }
+    }
+
+    @ParameterizedTest
+    @DisplayName("A state.dir in the Kafka config is replaced by ksml.storageDirectory, with a warning when it differs")
+    @MethodSource("stateDirConfigs")
+    void stateDirInKafkaConfigIsReplacedWithWarning(String kafkaStateDir, boolean warns) {
+        final var config = KafkaStreamsRunner.Config.builder()
+                .definitions(Map.of())
+                .kafkaConfig(INPUT_CONFIG_WITHOUT_PATTERNS)
+                .storageDirectory("tmp")
+                .build();
+        final var runner = new KafkaStreamsRunner(config, (_, _) -> mock(KafkaStreams.class), mock(KsmlTagEnricher.class));
+        final var initialConfigs = new HashMap<>(INPUT_CONFIG_WITHOUT_PATTERNS);
+        if (kafkaStateDir != null) initialConfigs.put(StreamsConfig.STATE_DIR_CONFIG, kafkaStateDir);
+
+        final var logger = (Logger) LoggerFactory.getLogger(KafkaStreamsRunner.class);
+        final var appender = new ListAppender<ILoggingEvent>();
+        appender.start();
+        logger.addAppender(appender);
+        final Map<String, Object> result;
+        try {
+            result = runner.getStreamsConfig(initialConfigs, "/ksml/state", null);
+        } finally {
+            logger.detachAppender(appender);
+        }
+
+        assertThat(result).containsEntry(StreamsConfig.STATE_DIR_CONFIG, "/ksml/state");
+        final var warnings = appender.list.stream()
+                .filter(event -> event.getLevel() == Level.WARN)
+                .map(ILoggingEvent::getFormattedMessage)
+                .toList();
+        if (warns) {
+            assertThat(warnings).singleElement().asString()
+                    .contains(StreamsConfig.STATE_DIR_CONFIG, kafkaStateDir, "ksml.storageDirectory", "/ksml/state");
+        } else {
+            assertThat(warnings).isEmpty();
+        }
+    }
+
+    static Stream<Arguments> stateDirConfigs() {
+        return Stream.of(
+                Arguments.of(named("another state.dir", "/data/state"), true),
+                Arguments.of(named("the same state.dir", "/ksml/state"), false),
+                Arguments.of(named("no state.dir", null), false));
     }
 
     /**

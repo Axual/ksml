@@ -54,6 +54,17 @@ When a session store definition sets `timestamped: true`, KSML SHALL log a warni
 - **WHEN** a session store is declared with `timestamped: false`
 - **THEN** no warning is logged
 
+### Requirement: Store state is kept in ksml.storageDirectory
+The runner SHALL use `ksml.storageDirectory` as the Kafka Streams `state.dir`. When the `kafka` section sets another `state.dir`, the runner SHALL log a warning that names both directories, and SHALL still use `ksml.storageDirectory`.
+
+#### Scenario: state.dir in the kafka section
+- **WHEN** the `kafka` section sets `state.dir` to a directory other than `ksml.storageDirectory`
+- **THEN** a warning naming both directories is logged and Kafka Streams uses `ksml.storageDirectory`
+
+#### Scenario: No state.dir, or the same one
+- **WHEN** the `kafka` section leaves out `state.dir`, or sets it to `ksml.storageDirectory`
+- **THEN** no warning is logged
+
 ### Requirement: Store format follows dsl.store.format
 When the runner's Kafka config sets `dsl.store.format` to `HEADERS`, declared stores that are persistent, timestamped and not versioned SHALL be built in the headers-aware format. Other stores, and all stores when the setting is absent or `DEFAULT`, SHALL keep the non-headers format.
 

@@ -305,7 +305,7 @@ public class KafkaStreamsRunner implements Runner {
      *     <li>Sets default values for optimization if not explicitly configured</li>
      *     <li>Sets exception handlers for production and deserialization errors</li>
      *     <li>Adds cleanup interceptors to all consumer configurations</li>
-     *     <li>Sets the state directory for Kafka Streams</li>
+     *     <li>Sets the state directory for Kafka Streams, and warns when the Kafka config sets another one</li>
      *     <li>Configures the application server if enabled</li>
      * </ul>
      *
@@ -329,6 +329,12 @@ public class KafkaStreamsRunner implements Runner {
         addCleanupInterceptor(StreamsConfig.RESTORE_CONSUMER_PREFIX, result, false);
         addCleanupInterceptor(StreamsConfig.GLOBAL_CONSUMER_PREFIX, result, false);
 
+        // ksml.storageDirectory wins over a state.dir in the Kafka config, so say so instead of ignoring it silently
+        final var configuredStateDir = result.get(StreamsConfig.STATE_DIR_CONFIG);
+        if (configuredStateDir != null && !configuredStateDir.equals(storageDirectory)) {
+            log.warn("Ignoring {} '{}' in the kafka config: Kafka Streams state is kept in ksml.storageDirectory '{}'",
+                    StreamsConfig.STATE_DIR_CONFIG, configuredStateDir, storageDirectory);
+        }
         result.put(StreamsConfig.STATE_DIR_CONFIG, storageDirectory);
         if (appServer != null && appServer.enabled()) {
             result.put(StreamsConfig.APPLICATION_SERVER_CONFIG, appServer.getApplicationServer());

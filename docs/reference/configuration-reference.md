@@ -112,6 +112,10 @@ ksml:
   createStorageDirectory: true
 ```
 
+`storageDirectory` is the Kafka Streams `state.dir`. Persistent state stores keep their RocksDB state there, so in a
+container put it on a volume that is kept between restarts. Otherwise the stores are restored from their changelog
+topics after every restart.
+
 !!! note
     `schemaDirectory` is mainly intended for scenarios where your pipeline uses schemas but no schema
     server is present. In production using a schema server is preferred.
@@ -375,7 +379,8 @@ ksml:
 ## Kafka Configuration Section
 
 The `kafka` section contains standard Kafka client configuration properties. All Kafka Streams and Kafka client
-properties are supported.
+properties are supported, except `state.dir`: KSML sets it from `storageDirectory` in the `ksml` section (see
+[Directory Configuration](#directory-configuration)), and logs a warning when the `kafka` section sets another value.
 
 ### Essential Properties
 
