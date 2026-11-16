@@ -20,9 +20,7 @@ updates:
     schedule:
       interval: "weekly"
     groups:
-      # GraalVM gets its own pull request. The libraries must have the same version as the
-      # GraalVM runtime in .graalvm-jdk-version, so such a pull request needs one more commit
-      # that changes that file too. Until then, scripts/graalvm-tarballs.sh fails on purpose.
+      # Needs a second commit that changes .graalvm-jdk-version too.
       # See developerdocs/graalvm-version-pinning.md.
       graalvm:
         patterns: [ "org.graalvm.*" ]

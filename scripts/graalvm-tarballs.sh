@@ -5,8 +5,7 @@
 #   graalvm-tarballs.sh download   download both tarballs into this directory
 #   graalvm-tarballs.sh check      only check both URLs exist, download nothing
 #
-# The version comes from .graalvm-jdk-version. Set GRAALVM_JDK_VERSION to try a
-# different one without editing that file. It must be the same as <graalvm.version> in
+# The version comes from .graalvm-jdk-version. It must be the same as <graalvm.version> in
 # pom.xml: the GraalVM libraries only work on the GraalVM runtime of the same release.
 #
 # Keep the output names as they are. The Dockerfile unpacks
@@ -21,7 +20,7 @@ if [ "$mode" != "download" ] && [ "$mode" != "check" ]; then
 fi
 
 repo_root=$(cd "$(dirname "$0")/.." && pwd)
-version=${GRAALVM_JDK_VERSION:-$(tr -d '[:space:]' < "$repo_root/.graalvm-jdk-version")}
+version=$(tr -d '[:space:]' < "$repo_root/.graalvm-jdk-version")
 
 if [ -z "$version" ]; then
     echo "No version found in $repo_root/.graalvm-jdk-version" >&2
@@ -35,11 +34,8 @@ if [ "$version" != "$pom_version" ]; then
     exit 1
 fi
 
-# Up to 25.0.2 a release is tagged jdk-<version> and the files carry the same version.
-# From 25.1 a release is tagged graal-<version>, and the files carry "25iN" plus the version
-# of the OpenJDK inside it. Release 25.5.5.0.3 contains OpenJDK 25.0.5.0.3, so its files are
-# graalvm-community-jdk-25i5-25.0.5.0.3_linux-x64_bin.tar.gz. The check mode tells right away
-# if this rule ever stops matching.
+# Up to 25.0.2: tag jdk-<version>, file graalvm-community-jdk-<version>_...
+# From 25.1: tag graal-<version>, file graalvm-community-jdk-25i<N>-25.0.<rest>_... (25.5.5.0.3 -> 25i5-25.0.5.0.3).
 major=${version%%.*}
 rest=${version#*.}
 minor=${rest%%.*}
