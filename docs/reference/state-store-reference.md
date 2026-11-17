@@ -88,7 +88,7 @@ Define directly within operations for custom configurations:
 
 **Important:** Versioned stores (`versioned: true`) cannot have caching enabled (`caching: false` is required).
 
-**Note:** A key-value store keeps each entry until it is deleted or overwritten; entries do not expire. Key-value stores have no `retention` parameter: that parameter exists only for window and session stores. For a versioned store, `historyRetention` sets how long the old versions of a value are kept; the current value stays until it is deleted.
+**Note:** Key-value stores have no `retention`: an entry stays until it is deleted or overwritten. For a versioned store, `historyRetention` sets how long old versions are kept.
 
 ### Session Store Specific Parameters
 

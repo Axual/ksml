@@ -95,7 +95,8 @@ public class ChoiceParser<T> extends BaseParser<T> implements StructsParser<T>, 
             throw new ParseException(child, "Expected a string for \"" + childName + "\", but found " + child.nodeTypeName() + ", choose one of " + choices());
         final var childValue = chosenValue(node);
         if (!parsers.containsKey(childValue)) {
-            throw new ParseException(child, "Unknown " + parsedType + " \"" + childName + "\", choose one of " + choices());
+            final var problem = childValue != null ? "Unknown " + parsedType + " \"" + childValue + "\"" : "Missing \"" + childName + "\"";
+            throw new ParseException(child != null ? child : node, problem + ", choose one of " + choices());
         }
         return parsers.get(childValue).parse(node);
     }

@@ -65,26 +65,11 @@ Besides parsing, each parser knows its fields. The published language schema (`k
 
 ### Step 6: Unknown fields are rejected
 
-The field parsers never look at which keys are actually in the YAML; they only ask for the keys they know. So a separate check is needed to catch typos. Before KSML 2.0 there was no such check: with `copy: { from: input, to: output, tu: x }`, nobody asked for `tu`, and it was silently ignored.
-
-Now, wherever an object is handed to its parser, KSML compares the object's keys with the fields that parser knows, and stops with an error for the keys that do not belong. That happens for each map entry, each list entry, each nested object, and the whole file. For a step with `type:`, only the fields of the chosen operation count. The example above now gives:
-
-```
-Error in input node ns->pipelines->copy: Unknown field "tu", known fields: as, branch, forEach, from, name, print, to, toTopicNameExtractor, via
-```
+Each parser only asks for the keys it knows, so a separate check rejects all other keys. See [Rejecting unknown fields](#rejecting-unknown-fields).
 
 ### Where the field knowledge lives
 
-There is no central list of allowed fields. Each parser knows only its own level, and the full picture comes from nesting the parsers.
-
-Inside one parser, the field list is written once: the field parsers that are passed to `FieldParsers.structsParser(...)`. That one list is used for both:
-
-- **parsing:** each field parser asks for its own key;
-- **the schema:** each field parser adds its field.
-
-So "which fields to ask for" and "which fields are allowed" come from the same declaration. The unknown-field check uses the schema side, so it does not add a new list that must be kept up to date.
-
-A few hand-written parsers keep reading and schema apart. See [Rejecting unknown fields](#rejecting-unknown-fields) for which ones, and for how the check makes such a drift visible.
+There is no central list of allowed fields. Each parser knows only its own level, and the full picture comes from nesting the parsers. Inside one parser, the fields are declared once, and both parsing and the schema come from that declaration (see [Where `schema()` gets its information from](#where-schema-gets-its-information-from)). A few hand-written parsers keep reading and schema apart; see [Rejecting unknown fields](#rejecting-unknown-fields).
 
 ## 1. The three abstractions, at a glance
 
@@ -268,6 +253,9 @@ The check runs where an object is handed to its parser:
 
 It does not run inside the `ValueStructParser` that `structsParser(...)` builds, because a
 variant's own parser does not know the `type` field that `ChoiceParser` adds.
+
+For example, `tu: x` in the `copy` pipeline of the overview was silently ignored before KSML 2.0.
+Now it gives:
 
 ```
 Error in input node ns->pipelines->copy: Unknown field "tu", known fields: as, branch, forEach, from, name, print, to, toTopicNameExtractor, via

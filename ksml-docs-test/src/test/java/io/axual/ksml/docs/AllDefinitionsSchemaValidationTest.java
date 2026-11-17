@@ -50,9 +50,7 @@ import tools.jackson.databind.JsonNode;
  * - ksml/src/test/resources
  * - ksml-integration-tests/src/test/resources/docs-examples
  * - examples (except the runner configs ksml-runner.yaml and ksml-data-generator.yaml)
- *
  * The parity usability probes are skipped: they contain typical user mistakes on purpose.
- *
  * The KSML JSON schema is generated dynamically using the same TopologyDefinitionParser
  * and JsonSchemaMapper that KSML uses when invoked with the --schema flag, so the test
  * always runs against the latest spec derived from current source.
@@ -101,9 +99,9 @@ class AllDefinitionsSchemaValidationTest {
                 .filter(Files::isRegularFile)
                 .filter(path -> path.toString().endsWith(".yaml"))
                 .filter(path -> !path.getFileName().toString().equals("ksml-runner.yaml"))
-                .filter(path -> !dir.relativize(path).startsWith(PARITY_USABILITY_PROBES))
-                // These definitions contain unknown fields on purpose, see UnknownFieldsTest
-                .filter(path -> !path.getParent().endsWith("unknown-keys"));
+                // These definitions contain unknown fields on purpose, except the valid-* ones, see UnknownFieldsTest
+                .filter(path -> !path.getParent().endsWith("unknown-keys") || path.getFileName().toString().startsWith("valid-"))
+                .filter(path -> !dir.relativize(path).startsWith(PARITY_USABILITY_PROBES));
     }
 
     @BeforeAll

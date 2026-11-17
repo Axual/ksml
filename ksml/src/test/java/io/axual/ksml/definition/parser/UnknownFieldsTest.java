@@ -75,7 +75,7 @@ class UnknownFieldsTest {
     }
 
     @ParameterizedTest(name = "{0} parses")
-    @ValueSource(strings = {"valid-definition.yaml", "name-version-description.yaml"})
+    @ValueSource(strings = {"valid-definition.yaml", "valid-name-version-description.yaml"})
     @DisplayName("A valid definition parses")
     void validDefinitionParses(String file) {
         assertThatCode(() -> parse(file)).doesNotThrowAnyException();
@@ -110,12 +110,19 @@ class UnknownFieldsTest {
     }
 
     @Test
+    @DisplayName("The error names the path, the unknown field and the known fields")
+    void errorNamesPathAndKnownFields() {
+        assertThatThrownBy(() -> parse("store-misspelled-option.yaml"))
+                .hasStackTraceContaining("test->stores->count_store: Unknown field \"loging\", known fields: caching, historyRetention, keyType, logging, name, persistent, segmentInterval, timestamped, type, valueType, versioned");
+    }
+
+    @Test
     @DisplayName("An invalid operation type is reported as such, not as unknown fields")
     void invalidOperationTypeKeepsItsError() {
         final var thrown = catchThrowable(() -> parse("invalid-operation-type.yaml"));
 
         assertThat(causeMessages(thrown))
-                .contains("Unknown operation")
+                .contains("Unknown operation \"fliter\"")
                 .doesNotContain("Unknown field");
     }
 
