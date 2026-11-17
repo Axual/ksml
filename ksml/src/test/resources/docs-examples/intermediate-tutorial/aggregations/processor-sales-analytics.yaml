@@ -90,6 +90,7 @@ pipelines:
           type: window
           windowSize: 1m
           retention: 10m
+          caching: false
         initializer: initialize_sales_stats
         aggregator: aggregate_sales
       - type: toStream

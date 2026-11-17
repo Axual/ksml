@@ -537,7 +537,7 @@ called for it. An `aggregator` that returns `None` deletes the key from the stor
 #### Example
 
 ```yaml
---8<-- "docs-examples/intermediate-tutorial/aggregations/processor-sales-analytics.yaml:91:97"
+--8<-- "docs-examples/intermediate-tutorial/aggregations/processor-sales-analytics.yaml:87:95"
 ```
 
 **Full example for `aggregate`**:
