@@ -34,7 +34,10 @@ jobs:
       # GraalVM, a different product under a different licence.
       - name: Read GraalVM version
         id: graalvm
-        run: echo "version=$(cat .graalvm-jdk-version)" >> "$GITHUB_OUTPUT"
+        run: |
+          version=$(cat .graalvm-jdk-version)
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "java=${version%%.*}" >> "$GITHUB_OUTPUT"
 
       - name: Set up GraalVM
         # actions/setup-java cannot find GraalVM Community 25.1+ (files named graalvm-community-jdk-25iN-...).
@@ -42,7 +45,7 @@ jobs:
         with:
           distribution: 'graalvm-community'
           version: ${{ steps.graalvm.outputs.version }}
-          java-version: '25'
+          java-version: ${{ steps.graalvm.outputs.java }}
           cache: 'maven'
 
       - name: Log in to Docker Hub

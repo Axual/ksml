@@ -26,6 +26,10 @@ if [ -z "$version" ]; then
     echo "No version found in $repo_root/.graalvm-jdk-version" >&2
     exit 1
 fi
+case "$version" in
+    *.*.*) ;;
+    *) echo "GraalVM version ${version} needs at least 3 parts, for example 25.5.5.0.3" >&2; exit 1 ;;
+esac
 
 pom_version=$(sed -n 's:.*<graalvm.version>\(.*\)</graalvm.version>.*:\1:p' "$repo_root/pom.xml" | head -1)
 if [ "$version" != "$pom_version" ]; then
