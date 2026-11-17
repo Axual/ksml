@@ -31,7 +31,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.util.HashMap;
 
-import static io.axual.ksml.proxy.context.ProcessorContextProxy.PYTHON_PROXY;
+import static io.axual.ksml.proxy.context.ProcessorContextProxy.INJECT_CONTEXT;
 
 @Slf4j
 public class UserPunctuator extends Invoker {
@@ -49,7 +49,7 @@ public class UserPunctuator extends Invoker {
      */
     public void apply(StateStores stores, ProcessorContextProxy context, long timestamp) {
         final var injections = new HashMap<>(function.withStores(stores));
-        injections.put(PYTHON_PROXY.name(), context);
+        injections.put(INJECT_CONTEXT.name(), context);
         final var result = timeExecutionOf(() -> function.call(injections, new DataLong(timestamp)));
         if (result != null && !(result instanceof DataNull) && !warnedAboutResult) {
             warnedAboutResult = true;

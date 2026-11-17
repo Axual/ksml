@@ -21,12 +21,10 @@ package io.axual.ksml.data.notation.apicurio;
  */
 
 import io.apicurio.registry.client.RegistryClientFactory;
-import io.apicurio.registry.client.RegistryV2ClientFactory;
 import io.apicurio.registry.client.common.RegistryClientOptions;
 import io.apicurio.registry.resolver.client.RegistryClientFacade;
 import io.apicurio.registry.resolver.client.RegistryClientFacadeFactory;
 import io.apicurio.registry.resolver.client.RegistryClientFacadeImpl;
-import io.apicurio.registry.resolver.client.RegistryClientFacadeImpl_v2;
 import io.apicurio.registry.resolver.config.SchemaResolverConfig;
 import io.axual.ksml.data.exception.DataException;
 import io.vertx.core.Vertx;
@@ -55,7 +53,7 @@ public final class ApicurioRegistryClientFactory {
     public static final String TLS_KEYSTORE_KEY = "apicurio.registry.tls.keystore.key";
     private static final String TLS_KEYSTORE_TYPE_DEFAULT = "JKS";
     private static final String PEM_MARKER = "-----BEGIN";
-    private static final String V2_URL_PATH = "/apis/registry/v2";
+    static final String BUILD_CLIENT_OPTIONS = "buildClientOptions";
 
     private ApicurioRegistryClientFactory() {
     }
@@ -74,9 +72,8 @@ public final class ApicurioRegistryClientFactory {
         if (!hasKeystore(configs))
             return RegistryClientFacadeFactory.create(config);
 
+        // KSML 2.0 only supports the v3 registry API
         final var options = clientOptions(config, configs);
-        if (isV2(config))
-            return new RegistryClientFacadeImpl_v2(RegistryV2ClientFactory.create(options));
         return new RegistryClientFacadeImpl(RegistryClientFactory.create(options), config.getRegistryUrl(), config.getUsageTelemetryClientId());
     }
 
@@ -92,17 +89,12 @@ public final class ApicurioRegistryClientFactory {
         return configs.containsKey(TLS_KEYSTORE_LOCATION) || configs.containsKey(TLS_KEYSTORE_CERTIFICATE) || configs.containsKey(TLS_KEYSTORE_KEY);
     }
 
-    // Follows RegistryClientFacadeFactory: an explicit version wins, otherwise the URL path decides.
-    private static boolean isV2(SchemaResolverConfig config) {
-        final var version = config.getRegistryUrlVersion();
-        return version != null ? version.equals("2") : config.getRegistryUrl().contains(V2_URL_PATH);
-    }
-
     // Apicurio keeps the options for the URL, authentication, trust store, proxy and retries private. Calling it
     // keeps those settings exactly as Apicurio applies them, so only the key store is added here.
+    // ApicurioRegistryClientFactoryTest checks that the method still exists.
     private static RegistryClientOptions buildClientOptions(SchemaResolverConfig config) {
         try {
-            final var method = RegistryClientFacadeFactory.class.getDeclaredMethod("buildClientOptions", SchemaResolverConfig.class, Vertx.class);
+            final var method = RegistryClientFacadeFactory.class.getDeclaredMethod(BUILD_CLIENT_OPTIONS, SchemaResolverConfig.class, Vertx.class);
             method.setAccessible(true);
             return (RegistryClientOptions) method.invoke(null, config, config.getVertx());
         } catch (InvocationTargetException e) {

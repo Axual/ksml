@@ -37,11 +37,11 @@ import io.axual.ksml.definition.InitializerDefinition;
 import io.axual.ksml.definition.KeyTransformerDefinition;
 import io.axual.ksml.definition.KeyValueMapperDefinition;
 import io.axual.ksml.definition.KeyValuePrinterDefinition;
-import io.axual.ksml.definition.KeyValueStateStoreDefinition;
 import io.axual.ksml.definition.KeyValueToKeyValueListTransformerDefinition;
 import io.axual.ksml.definition.KeyValueToValueListTransformerDefinition;
 import io.axual.ksml.definition.KeyValueTransformerDefinition;
 import io.axual.ksml.definition.MergerDefinition;
+import io.axual.ksml.definition.KeyValueStateStoreDefinition;
 import io.axual.ksml.definition.MetadataTransformerDefinition;
 import io.axual.ksml.definition.PredicateDefinition;
 import io.axual.ksml.definition.PythonSource;
@@ -50,12 +50,11 @@ import io.axual.ksml.definition.SessionStateStoreDefinition;
 import io.axual.ksml.definition.StreamDefinition;
 import io.axual.ksml.definition.StreamPartitionerDefinition;
 import io.axual.ksml.definition.TableDefinition;
+import io.axual.ksml.definition.WindowStateStoreDefinition;
 import io.axual.ksml.definition.TopicNameExtractorDefinition;
 import io.axual.ksml.definition.TopologyResource;
 import io.axual.ksml.definition.ValueJoinerDefinition;
 import io.axual.ksml.definition.ValueTransformerDefinition;
-import io.axual.ksml.definition.WindowStateStoreDefinition;
-import io.axual.ksml.execution.ExecutionContext;
 import io.axual.ksml.generator.StreamDataType;
 import io.axual.ksml.generator.TopologyBuildContext;
 import io.axual.ksml.metric.MetricTags;
@@ -70,17 +69,18 @@ import io.axual.ksml.stream.SessionWindowedKStreamWrapper;
 import io.axual.ksml.stream.StreamWrapper;
 import io.axual.ksml.stream.TimeWindowedCogroupedKStreamWrapper;
 import io.axual.ksml.stream.TimeWindowedKStreamWrapper;
+import io.axual.ksml.execution.ExecutionContext;
 import io.axual.ksml.type.UserTupleType;
 import io.axual.ksml.type.UserType;
 import io.axual.ksml.user.UserFunction;
 import org.apache.kafka.common.serialization.Serde;
 import org.apache.kafka.streams.kstream.CogroupedKStream;
+import org.apache.kafka.streams.kstream.Materialized;
 import org.apache.kafka.streams.kstream.GlobalKTable;
 import org.apache.kafka.streams.kstream.KGroupedStream;
 import org.apache.kafka.streams.kstream.KGroupedTable;
 import org.apache.kafka.streams.kstream.KStream;
 import org.apache.kafka.streams.kstream.KTable;
-import org.apache.kafka.streams.kstream.Materialized;
 import org.apache.kafka.streams.kstream.SessionWindowedCogroupedKStream;
 import org.apache.kafka.streams.kstream.SessionWindowedKStream;
 import org.apache.kafka.streams.kstream.TimeWindowedCogroupedKStream;
@@ -187,9 +187,7 @@ final class OperationTestSupport {
 
     // --- Function definitions --------------------------------------------------------------------
 
-    /**
-     * A minimal, fully typed base function definition with the given result type.
-     */
+    /** A minimal, fully typed base function definition with the given result type. */
     static FunctionDefinition genericFunction(UserType resultType) {
         return FunctionDefinition.as(
                 "generic",
@@ -229,9 +227,7 @@ final class OperationTestSupport {
         return new KeyValueMapperDefinition(genericFunction());
     }
 
-    /**
-     * A key/value selector whose result is a two-element tuple, as required by KTable groupBy.
-     */
+    /** A key/value selector whose result is a two-element tuple, as required by KTable groupBy. */
     static KeyValueMapperDefinition tupleKeyValueMapper() {
         return new KeyValueMapperDefinition(genericFunction(new UserType(new UserTupleType(UNKNOWN_TYPE, UNKNOWN_TYPE))));
     }
@@ -376,9 +372,7 @@ final class OperationTestSupport {
         return new KTableWrapper(mock(KTable.class), key(), value());
     }
 
-    /**
-     * The windowed key type produced by windowed aggregations, e.g. as consumed by a windowed suppress.
-     */
+    /** The windowed key type produced by windowed aggregations, e.g. as consumed by a windowed suppress. */
     static StreamDataType windowedKey() {
         return new StreamDataType(new UserType(new WindowedType(DataType.UNKNOWN)), true);
     }

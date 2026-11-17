@@ -43,9 +43,10 @@ import java.util.List;
 @Slf4j
 public class PythonContext implements AutoCloseable {
 
-    static final String PYTHON = "python";
     private static final LoggerBridge LOGGER_BRIDGE = new LoggerBridge();
     private static final MetricsBridge METRICS_BRIDGE = new MetricsBridge(Metrics.registry());
+    static final String PYTHON = "python";
+
     // With HostAccess.EXPLICIT, only classes with @HostAccess.Export annotations are accessible
     // Java collections (ArrayList, HashMap, TreeMap) are no longer needed since PythonTypeConverter
     // converts them to Python-native types before passing to Python code
@@ -62,9 +63,7 @@ public class PythonContext implements AutoCloseable {
             "io.axual.ksml.proxy.store.TimestampedWindowStoreProxy",
             "io.axual.ksml.proxy.store.TimestampedKeyValueStoreProxy",
             "io.axual.ksml.proxy.store.VersionedKeyValueStoreProxy");
-    /**
-     * For value conversion and the test runner only - bypasses registerFunction().
-     */
+    /** For value conversion and the test runner only - bypasses registerFunction(). */
     @Getter
     private final Context context;
     @Getter
@@ -116,8 +115,7 @@ public class PythonContext implements AutoCloseable {
             }
 
             registerGlobalCode();
-        } catch (
-                Exception e) {
+        } catch (Exception e) {
             log.error("Error setting up a new Python context", e);
             throw new ExecutionException("Could not setup a new Python context", e);
         }
@@ -141,8 +139,7 @@ public class PythonContext implements AutoCloseable {
     }
 
     /**
-     * Register global code that is used to initialize the loggerBridge and metricsBridge variables, and the Python
-     * class that wraps the processor context.
+     * Register global code that is used to initialize the loggerBridge and metricsBridge variables.
      */
     public void registerGlobalCode() {
         // The following code registers a global variables "loggerBridge" and "metricsBridge" inside the Python
@@ -269,19 +266,18 @@ public class PythonContext implements AutoCloseable {
         try {
             String absolutePath = modulePath.toAbsolutePath().toString();
             String pythonCode = String.format(
-                    """
-                            import sys
-                            if '%s' not in sys.path:
-                                sys.path.insert(0, '%s')
-                            """,
+                """
+                    import sys
+                    if '%s' not in sys.path:
+                        sys.path.insert(0, '%s')
+                    """,
                     absolutePath.replace("\\", "\\\\").replace("'", "\\'"),
                     absolutePath.replace("\\", "\\\\").replace("'", "\\'")
             );
 
             context.eval(PYTHON, pythonCode);
             log.info("Added Python module path to sys.path: {}", absolutePath);
-        } catch (
-                Exception e) {
+        } catch (Exception e) {
             log.error("Failed to add module path to sys.path: {}", modulePath, e);
             throw new ExecutionException("Could not configure Python module path", e);
         }
@@ -294,8 +290,7 @@ public class PythonContext implements AutoCloseable {
         try {
             var result = context.eval(PYTHON, "import sys; sys.path");
             log.debug("Python sys.path: {}", result);
-        } catch (
-                Exception e) {
+        } catch (Exception e) {
             log.warn("Could not read Python sys.path", e);
         }
     }

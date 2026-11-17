@@ -21,8 +21,10 @@ package io.axual.ksml.data.notation.apicurio;
  */
 
 import io.apicurio.registry.client.common.RegistryClientOptions;
+import io.apicurio.registry.resolver.client.RegistryClientFacadeFactory;
 import io.apicurio.registry.resolver.config.SchemaResolverConfig;
 import io.axual.ksml.data.exception.DataException;
+import io.vertx.core.Vertx;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -35,6 +37,7 @@ import static io.axual.ksml.data.notation.apicurio.ApicurioRegistryClientFactory
 import static io.axual.ksml.data.notation.apicurio.ApicurioRegistryClientFactory.TLS_KEYSTORE_PASSWORD;
 import static io.axual.ksml.data.notation.apicurio.ApicurioRegistryClientFactory.TLS_KEYSTORE_TYPE;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class ApicurioRegistryClientFactoryTest {
@@ -50,6 +53,14 @@ class ApicurioRegistryClientFactoryTest {
 
     private static RegistryClientOptions options(Map<String, Object> configs) {
         return ApicurioRegistryClientFactory.clientOptions(new SchemaResolverConfig(configs), configs);
+    }
+
+    @Test
+    @DisplayName("Apicurio still has the private method that builds the client options")
+    void apicurioStillHasBuildClientOptions() {
+        // The factory calls it by reflection, so an Apicurio upgrade that removes it must fail here
+        assertThatCode(() -> RegistryClientFacadeFactory.class.getDeclaredMethod(ApicurioRegistryClientFactory.BUILD_CLIENT_OPTIONS, SchemaResolverConfig.class, Vertx.class))
+                .doesNotThrowAnyException();
     }
 
     @Test

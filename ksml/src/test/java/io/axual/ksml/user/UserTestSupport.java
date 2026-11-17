@@ -69,9 +69,7 @@ final class UserTestSupport {
         };
     }
 
-    /**
-     * Returns a fixed result and keeps the arguments of the last call.
-     */
+    /** Returns a fixed result and keeps the arguments of the last call. */
     static final class RecordingFunction extends UserFunction {
         private final DataObject result;
         DataObject[] lastArguments;

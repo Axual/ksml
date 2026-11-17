@@ -34,8 +34,7 @@ public class FatalError {
 
     public static RuntimeException report(Throwable t) {
         // An error that report() already logged is passed on without logging it again
-        if (t instanceof ReportedError reported)
-            return reported;
+        if (t instanceof ReportedError reported) return reported;
         var messageBuilder = new StringBuilder().append(NEW_LINE);
         messageBuilder.append("FatalError").append(NEW_LINE).append(LOG_ITEM_SEPARATOR);
         printExceptionDetails(messageBuilder, t);

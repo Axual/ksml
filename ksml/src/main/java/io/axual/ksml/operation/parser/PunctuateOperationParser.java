@@ -27,7 +27,6 @@ import io.axual.ksml.exception.TopologyException;
 import io.axual.ksml.generator.TopologyResources;
 import io.axual.ksml.operation.PunctuateOperation;
 import io.axual.ksml.parser.FieldParsers;
-import io.axual.ksml.parser.StringValueParser;
 import io.axual.ksml.parser.StructsParser;
 import org.apache.kafka.streams.processor.PunctuationType;
 
@@ -56,8 +55,7 @@ public class PunctuateOperationParser extends OperationParser<PunctuateOperation
                 FieldParsers.durationField(Punctuate.INTERVAL, "The time between two punctuations, at least 1 millisecond"),
                 FieldParsers.enumField(Punctuate.PUNCTUATION_TYPE, PUNCTUATION_TYPE_SCHEMA),
                 functionField(Punctuate.PUNCTUATOR, "The function that is called on each punctuation", new PunctuatorDefinitionParser(false)),
-                FieldParsers.optional(FieldParsers.listField(Punctuate.STORES, "store-name", "store", "The names of the state stores the punctuator uses, in addition to those of the function", new StringValueParser())),
-                (name, interval, punctuationType, punctuator, stores, tags) -> {
+                (name, interval, punctuationType, punctuator, tags) -> {
                     requireField(interval, Punctuate.INTERVAL);
                     requireField(punctuationType, Punctuate.PUNCTUATION_TYPE);
                     requireField(punctuator, Punctuate.PUNCTUATOR);
@@ -68,7 +66,7 @@ public class PunctuateOperationParser extends OperationParser<PunctuateOperation
                     final var type = Punctuate.PUNCTUATION_TYPE_STREAM_TIME.equals(punctuationType)
                             ? PunctuationType.STREAM_TIME
                             : PunctuationType.WALL_CLOCK_TIME;
-                    return new PunctuateOperation(operationConfig(name, tags), interval, type, punctuator, stores);
+                    return new PunctuateOperation(operationConfig(name, tags), interval, type, punctuator);
                 });
     }
 

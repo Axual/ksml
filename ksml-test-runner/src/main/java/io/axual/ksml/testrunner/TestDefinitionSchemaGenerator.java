@@ -30,8 +30,8 @@ import java.lang.reflect.RecordComponent;
 import java.lang.reflect.Type;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -110,7 +110,7 @@ public class TestDefinitionSchemaGenerator {
             required.forEach(arr::add);
         }
 
-        // Apply type-level structural constraints (oneOfRequired / anyOfRequired)
+        // Apply type-level structural constraints (oneOfRequired / anyOfRequired / mutuallyExclusive)
         if (typeAnnotation != null) {
             applyTypeAnnotationConstraints(schema, typeAnnotation);
         }
@@ -133,6 +133,17 @@ public class TestDefinitionSchemaGenerator {
                 var variant = MAPPER.createObjectNode();
                 variant.putArray(REQUIRED).add(fieldName);
                 anyOf.add(variant);
+            }
+        }
+        final var exclusive = typeAnnotation.mutuallyExclusive();
+        if (exclusive.length > 1) {
+            var allOf = schema.putArray("allOf");
+            for (int first = 0; first < exclusive.length; first++) {
+                for (int second = first + 1; second < exclusive.length; second++) {
+                    var variant = MAPPER.createObjectNode();
+                    variant.putObject("not").putArray(REQUIRED).add(exclusive[first]).add(exclusive[second]);
+                    allOf.add(variant);
+                }
             }
         }
     }

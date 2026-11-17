@@ -32,7 +32,7 @@ import java.lang.annotation.Target;
  *
  * <p>Per-component fields ({@code description}, {@code defaultValue}, {@code examples},
  * {@code required}, {@code minProperties}, {@code yamlName}) describe a single record
- * component. Per-type fields ({@code oneOfRequired}, {@code anyOfRequired}) describe a
+ * component. Per-type fields ({@code oneOfRequired}, {@code anyOfRequired}, {@code mutuallyExclusive}) describe a
  * structural constraint on the whole record/type.
  */
 @Retention(RetentionPolicy.RUNTIME)
@@ -73,4 +73,10 @@ public @interface JsonSchema {
      * at least that field. Use to express "at least one of X or Y must be present".
      */
     String[] anyOfRequired() default {};
+
+    /**
+     * Type-level constraint: at most one of the named fields may be present. Each pair becomes a
+     * {@code not} of a {@code required} on both fields.
+     */
+    String[] mutuallyExclusive() default {};
 }

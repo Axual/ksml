@@ -20,10 +20,7 @@ package io.axual.ksml.definition;
  * =========================LICENSE_END==================================
  */
 
-// Formally this is not a Definition in the sense that it does not show up in the KSML Language
-// Specification. Therefore, it does not have the Definition suffix in the name. It does belong
-// in this package because it is a crucial element during the generation of Python code for
-// parameters that do not implement the DataObject interface.
+// A Python variable that KSML injects into a function, such as context. Not part of the KSML language spec.
 public record InjectedParameter(String name, String proxyClassName, String proxyClassCode) {
     public InjectedParameter(String name) {
         this(name, null);

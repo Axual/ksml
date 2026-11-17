@@ -288,7 +288,7 @@ A function that returns `None` gives Kafka Streams a real `null`:
 
 ## Function Types Overview
 
-Below is a table with all 21 function types in KSML.
+Below is a table with all 22 function types in KSML.
 
 | Function Type                                                           | Purpose                                          | Used In                                     |
 |-------------------------------------------------------------------------|--------------------------------------------------|---------------------------------------------|
@@ -985,8 +985,7 @@ calling it later raises a `RuntimeError`.
 
 #### State stores and timestamps
 
-A punctuator can use the stores listed in its own `stores` and in the `stores` of the `punctuate` operation, with
-the same methods as other functions. A write to a timestamped store without a timestamp uses the punctuation
+A punctuator can use the stores listed in its own `stores`, with the same methods as other functions. A write to a timestamped store without a timestamp uses the punctuation
 `timestamp`. To clear entries, collect their keys while iterating and delete them after the loop, as in the example
 below.
 

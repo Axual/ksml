@@ -55,6 +55,18 @@ public class PythonFunction extends UserFunction {
     private final PythonDataObjectMapper dataObjectMapper;
     private final Value function;
 
+    public static PythonFunction forFunction(PythonContext context, String namespace, String name, FunctionDefinition definition) {
+        return new PythonFunction(context, namespace, "function", name, definition);
+    }
+
+    public static PythonFunction forGenerator(PythonContext context, String namespace, String name, FunctionDefinition definition) {
+        return new PythonFunction(context, namespace, "generator", name, definition);
+    }
+
+    public static PythonFunction forPredicate(PythonContext context, String namespace, String name, FunctionDefinition definition) {
+        return new PythonFunction(context, namespace, "condition", name, definition);
+    }
+
     private PythonFunction(PythonContext context, String namespace, String type, String name, FunctionDefinition definition) {
         super(namespace, name, definition.parameters(), definition.resultType(), definition.injectedParameters(), definition.storeNames());
         converter = context.converter();
@@ -76,22 +88,6 @@ public class PythonFunction extends UserFunction {
                     """, namespace, name, builder);
             throw new ExecutionException("Error in function: %s.%s".formatted(namespace, name));
         }
-    }
-
-    public static PythonFunction forFunction(PythonContext context, String namespace, String name, FunctionDefinition definition) {
-        return new PythonFunction(context, namespace, "function", name, definition);
-    }
-
-    public static PythonFunction forGenerator(PythonContext context, String namespace, String name, FunctionDefinition definition) {
-        return new PythonFunction(context, namespace, "generator", name, definition);
-    }
-
-    public static PythonFunction forPredicate(PythonContext context, String namespace, String name, FunctionDefinition definition) {
-        return new PythonFunction(context, namespace, "condition", name, definition);
-    }
-
-    private static String[] getFunctionCode(String[] code, String spaces) {
-        return Arrays.stream(code).map(line -> spaces + line).toArray(String[]::new);
     }
 
     @Override
@@ -145,15 +141,13 @@ public class PythonFunction extends UserFunction {
                 logCall(parameters, null);
                 return DataNull.INSTANCE;
             }
-        } catch (
-                Exception e) {
+        } catch (Exception e) {
             logCall(parameters, null);
             throw FatalError.report(new TopologyException("Error while executing function %s.%s : %s".formatted(namespace, name, e.getMessage()), e));
         } finally {
             // Closes store iterators that the function left open, for example after break or return in a loop
             final int closed = StoreIteratorProxy.endCall(iteratorMark);
-            if (closed > 0)
-                log.debug("Closed {} store iterator(s) left open by {}.{}", closed, namespace, name);
+            if (closed > 0) log.debug("Closed {} store iterator(s) left open by {}.{}", closed, namespace, name);
         }
     }
 
@@ -220,9 +214,8 @@ public class PythonFunction extends UserFunction {
         // Prepare the actual caller for the code
         // Parameters are now pre-converted to Python types by PythonTypeConverter in Java
         // Return value is passed as-is; PythonDataObjectMapper handles GraalVM Value conversion
-        // The caller sets only the variables it is given, and restores them when it returns: a call can run while
-        // another one is busy, for example a filter after a punctuator calls context.forward, and must not leave its
-        // values to the outer call. Its own names start with _ksml_, so they do not hide a function or parameter.
+        // Saves and restores the injected values, because calls can nest (a punctuator's context.forward runs a filter).
+        // Its own names start with _ksml_, so they do not hide a function or parameter.
         final var pyCallerCode = "def " + name + "_caller(_ksml_injected," + String.join(",", defParams) + "):\n" +
                 "  global _ksml_injected_parameters\n" +
                 "  _ksml_previous = _ksml_injected_parameters\n" +
@@ -256,6 +249,10 @@ public class PythonFunction extends UserFunction {
         return pythonCodeTemplate.formatted(globalCode, functionAndExpression, pyCallerCode, proxyCode);
     }
 
+    private static String[] getFunctionCode(String[] code, String spaces) {
+        return Arrays.stream(code).map(line -> spaces + line).toArray(String[]::new);
+    }
+
     private String initializeInjectedParams(List<InjectedParameter> params) {
         final var result = new StringBuilder();
         for (final var param : params) {
@@ -280,8 +277,7 @@ public class PythonFunction extends UserFunction {
         var defIndent = 0;
         var functionName = "";
         for (final var line : code) {
-            if (line.trim().isEmpty())
-                continue;
+            if (line.trim().isEmpty()) continue;
             int lineIndent = line.length() - line.stripIndent().length();
             if (injectCode && lineIndent > defIndent) {
                 result.add(initFunctionLocalVariables(lineIndent, loggerName(namespace, type, functionName)));

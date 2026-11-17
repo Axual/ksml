@@ -46,6 +46,19 @@ public final class OperationChain {
      * @param cursor     the stream to start with
      * @param operations the operations of the pipeline, in order
      * @param context    the build context
+     * @return the result of the last operation
+     */
+    public static StreamWrapper apply(StreamWrapper cursor, List<StreamOperation> operations, TopologyBuildContext context) {
+        return apply(cursor, operations, context, (operation, result) -> {
+        });
+    }
+
+    /**
+     * Applies the operations to the cursor.
+     *
+     * @param cursor     the stream to start with
+     * @param operations the operations of the pipeline, in order
+     * @param context    the build context
      * @param applied    called with each operation and its result
      * @return the result of the last operation
      */
@@ -62,7 +75,7 @@ public final class OperationChain {
                 punctuate.namedOperationsFollow(namedTargetFollows(operations.subList(index + 1, operations.size())));
             cursor = cursor.apply(operation, context);
             if (operation instanceof PunctuateOperation punctuate) punctuates.add(punctuate);
-            if (repartitions(operation)) punctuates.clear();
+            if (isRepartitioningOperation(operation)) punctuates.clear();
             applied.accept(operation, cursor);
         }
         return cursor;
@@ -72,12 +85,12 @@ public final class OperationChain {
     private static boolean namedTargetFollows(List<StreamOperation> operations) {
         for (final var operation : operations) {
             if (isNamed(operation)) return true;
-            if (repartitions(operation)) return false;
+            if (isRepartitioningOperation(operation)) return false;
         }
         return false;
     }
 
-    private static boolean repartitions(StreamOperation operation) {
+    private static boolean isRepartitioningOperation(StreamOperation operation) {
         return REPARTITIONING_OPERATIONS.stream().anyMatch(type -> type.isInstance(operation));
     }
 

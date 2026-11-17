@@ -31,13 +31,14 @@ import io.axual.ksml.metric.MetricTags;
 import io.axual.ksml.metric.Metrics;
 import io.axual.ksml.type.UserType;
 import io.axual.ksml.user.UserFunction;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
 import java.util.function.Supplier;
 
-@Slf4j
 public abstract class Invoker {
+    private static final Logger LOG = LoggerFactory.getLogger(Invoker.class);
     protected final UserFunction function;
     private final Timer timer;
 
@@ -54,19 +55,6 @@ public abstract class Invoker {
         } else {
             timer = Metrics.registry().getTimer(metricName);
         }
-    }
-
-    /**
-     * Returns the arguments for a call with {@code argumentCount} arguments: the required arguments, None for the
-     * custom parameters after them, and the optional argument last.
-     */
-    protected static DataObject[] withOptionalArgument(int argumentCount, Supplier<DataObject> optionalArgument, DataObject... requiredArguments) {
-        if (argumentCount <= requiredArguments.length)
-            return requiredArguments;
-        final var result = Arrays.copyOf(requiredArguments, argumentCount);
-        Arrays.fill(result, requiredArguments.length, argumentCount - 1, DataNull.INSTANCE);
-        result[argumentCount - 1] = optionalArgument.get();
-        return result;
     }
 
     protected <V> V timeExecutionOf(Supplier<V> callback) {
@@ -96,10 +84,21 @@ public abstract class Invoker {
         verify(function.fixedParameterCount <= minCount, "Function can have at most " + minCount + " required parameters, but has " + function.fixedParameterCount);
         verify(function.parameters.length >= minCount, "Function needs at least " + minCount + " parameters, but has " + function.parameters.length);
         for (int index = minCount; optionalParameter != null && index < function.parameters.length; index++) {
-            if (optionalParameter.equals(function.parameters[index].name()))
-                return index + 1;
+            if (optionalParameter.equals(function.parameters[index].name())) return index + 1;
         }
         return minCount;
+    }
+
+    /**
+     * Returns the arguments for a call with {@code argumentCount} arguments: the required arguments, None for the
+     * custom parameters after them, and the optional argument last.
+     */
+    protected static DataObject[] withOptionalArgument(int argumentCount, Supplier<DataObject> optionalArgument, DataObject... requiredArguments) {
+        if (argumentCount <= requiredArguments.length) return requiredArguments;
+        final var result = Arrays.copyOf(requiredArguments, argumentCount);
+        Arrays.fill(result, requiredArguments.length, argumentCount - 1, DataNull.INSTANCE);
+        result[argumentCount - 1] = optionalArgument.get();
+        return result;
     }
 
     protected void verifyNoResult() {
@@ -108,7 +107,7 @@ public abstract class Invoker {
 
     private void verifyNoResultInternal(UserType type) {
         if (type != null && type.dataType() != DataNull.DATATYPE) {
-            log.warn("Function {} used as {}: Function return value of type {} will be ignored", function.name, getClass().getSimpleName(), type);
+            LOG.warn("Function {} used as {}: Function return value of type {} will be ignored", function.name, getClass().getSimpleName(), type);
         }
     }
 
@@ -118,7 +117,7 @@ public abstract class Invoker {
 
     private void verifyTypeInternal(UserType type, DataType expected) {
         verify(type != null, "Function does not return a result, while " + expected + " was expected");
-        verify(type != null && expected.isAssignableFrom(type.dataType()).isAssignable(), "Function does not return expected " + expected + ". but " + (type != null ? type.dataType() : "null") + " instead");
+        verify(expected.isAssignableFrom(type.dataType()).isAssignable(), "Function does not return expected " + expected + ". but " + type.dataType() + " instead");
     }
 
     protected void verifyNoStoresUsed() {

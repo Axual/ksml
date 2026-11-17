@@ -41,7 +41,7 @@ import org.graalvm.polyglot.HostAccess;
 import org.graalvm.polyglot.Value;
 
 import java.util.Map;
-import java.util.TreeMap;
+import java.util.TreeSet;
 
 import static io.axual.ksml.type.UserType.DEFAULT_NOTATION;
 
@@ -59,8 +59,8 @@ public class ProcessorContextProxy implements AbstractProxy {
     private static final DataObjectConverter CONVERTER = new DataObjectConverter();
     private static final HeaderDataObjectMapper HEADER_MAPPER = new HeaderDataObjectMapper();
 
+    // The Python class that wraps a ProcessorContextProxy
     private static final String PROXY_NAME = "context";
-    // The Python class that wraps this proxy as {@code context}
     private static final String PROXY_CLASS_NAME = "KSMLProcessorContext";
     private static final String PROXY_CLASS_CODE = """
             # GraalPy passes no keyword arguments to Java methods, so this class takes them and calls the
@@ -92,7 +92,7 @@ public class ProcessorContextProxy implements AbstractProxy {
               def taskId(self):
                 return self._proxy.taskId()
             """.formatted(PROXY_CLASS_NAME);
-    public static final InjectedParameter PYTHON_PROXY = new InjectedParameter(PROXY_NAME, PROXY_CLASS_NAME, PROXY_CLASS_CODE);
+    public static final InjectedParameter INJECT_CONTEXT = new InjectedParameter(PROXY_NAME, PROXY_CLASS_NAME, PROXY_CLASS_CODE);
     private final ProcessorContext<Object, Object> context;
     private final long defaultTimestamp;
     private final Target next;
@@ -110,7 +110,7 @@ public class ProcessorContextProxy implements AbstractProxy {
         this.context = context;
         this.defaultTimestamp = defaultTimestamp;
         this.next = next;
-        this.namedTargets = new TreeMap<>(namedTargets);
+        this.namedTargets = namedTargets;
     }
 
     private static Object noneToNull(Object object) {
@@ -127,9 +127,8 @@ public class ProcessorContextProxy implements AbstractProxy {
             // As for function results, only a value that does not fit yet gets the notations' converters
             if (type.dataType().isAssignableFrom(result).isNotAssignable())
                 result = CONVERTER.convert(DEFAULT_NOTATION, result, type);
-        } catch (
-                RuntimeException e) {
-            throw PythonErrors.typeError("forward " + role + " for " + targetName + " must be " + type + ", got " + PythonErrors.typeName(object));
+        } catch (RuntimeException e) {
+            throw PythonErrors.typeError("forward " + role + " for " + targetName + " must be " + type + ", got " + PythonErrors.typeName(object), e);
         }
         if (!(result instanceof DataNull) && type.dataType().isAssignableFrom(result.type()).isNotAssignable())
             throw PythonErrors.typeError("forward " + role + " for " + targetName + " must be " + type + ", got " + result.type());
@@ -142,8 +141,7 @@ public class ProcessorContextProxy implements AbstractProxy {
             return new RecordHeaders();
         try {
             return HEADER_MAPPER.fromDataObject(DATA_OBJECT_MAPPER.toDataObject(DefinitionConstants.HEADERS_TYPE, headers));
-        } catch (
-                RuntimeException e) {
+        } catch (RuntimeException e) {
             throw PythonErrors.typeError("forward headers must be a list of dicts with a key and a value: " + e.getMessage());
         }
     }
@@ -238,7 +236,7 @@ public class ProcessorContextProxy implements AbstractProxy {
             if (namedTargets.containsKey(name))
                 return name;
             throw PythonErrors.valueError("forward can not send to '" + name + "', valid names are: "
-                    + (namedTargets.isEmpty() ? "none" : String.join(", ", namedTargets.keySet())));
+                    + (namedTargets.isEmpty() ? "none" : String.join(", ", new TreeSet<>(namedTargets.keySet()))));
         }
         throw PythonErrors.typeError("forward to must be an operation name, got " + PythonErrors.typeName(to));
     }
@@ -249,8 +247,7 @@ public class ProcessorContextProxy implements AbstractProxy {
         final Object value;
         try {
             value = NATIVE_MAPPER.fromPython(timestamp);
-        } catch (
-                DataException e) {
+        } catch (DataException e) {
             // An int that does not fit in a long
             throw PythonErrors.valueError("forward timestamp is out of range", e);
         }

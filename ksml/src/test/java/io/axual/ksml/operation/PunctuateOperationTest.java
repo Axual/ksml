@@ -280,6 +280,46 @@ class PunctuateOperationTest {
         assertThat(output.isEmpty()).isTrue();
     }
 
+    private static String totalsPunctuator(String code) {
+        return """
+                stores:
+                  totals:
+                    type: keyValue
+                    keyType: string
+                    valueType: long
+                    persistent: false
+                """ + pipeline("""
+                - type: punctuate
+                  interval: 1m
+                  punctuationType: wallClockTime
+                  punctuator:
+                    stores: [totals]
+                    globalCode: |
+                      def get_total(store, key):
+                        return store.get(key)
+                      def old_style_total(key):
+                        return stores["totals"].get(key)
+                    code: |
+                      totals.put("a", 5)
+                %s
+                """.formatted(code.indent(6)));
+    }
+
+    @Test
+    @DisplayName("a globalCode helper can use a store that the function passes to it")
+    void globalCodeHelperGetsStore() {
+        start(totalsPunctuator("context.forward('a', get_total(totals, 'a'))"));
+        tick();
+        assertThat(output.readKeyValuesToList()).containsExactly(KeyValue.pair("a", 5L));
+    }
+
+    @Test
+    @DisplayName("a globalCode helper can not read stores: it is no longer a global")
+    void globalCodeHelperHasNoStoresGlobal() {
+        start(totalsPunctuator("old_style_total('a')"));
+        assertThatThrownBy(this::tick).hasStackTraceContaining("NameError: name 'stores' is not defined");
+    }
+
     @Test
     @DisplayName("the punctuator reads, forwards and deletes the entries of a store an earlier operation writes to")
     void readAndClearStore() {
@@ -305,8 +345,8 @@ class PunctuateOperationTest {
                 - type: punctuate
                   interval: 1m
                   punctuationType: wallClockTime
-                  stores: [totals]
                   punctuator:
+                    stores: [totals]
                     code: |
                       keys = []
                       for e in totals.all():
@@ -499,6 +539,69 @@ class PunctuateOperationTest {
                 .doesNotContain("flush-to-test_after_repartition");
         // The input topic and the repartition topic stay in separate sub-topologies
         assertThat(description.subtopologies()).hasSize(2);
+    }
+
+    @Test
+    @DisplayName("a join after a key change can be a target, but operations after it get no side path that skips it")
+    void noSidePathsPastJoinAfterKeyChange() {
+        final var description = topology(STREAMS + """
+                tables:
+                  lookup:
+                    topic: lookup
+                    keyType: string
+                    valueType: long
+                """ + pipeline(wallClock("pass") + """
+                - type: transformKey
+                  mapper:
+                    expression: key.upper()
+                    resultType: string
+                - type: join
+                  name: joined
+                  table: lookup
+                  valueJoiner:
+                    expression: value1 + value2
+                    resultType: long
+                - type: peek
+                  name: after_join
+                  forEach:
+                    code: pass
+                """).substring(STREAMS.length())).describe().toString();
+        assertThat(description)
+                .contains("Processor: test_flush-to-test_joined ")
+                .doesNotContain("flush-to-test_after_join");
+    }
+
+    @Test
+    @DisplayName("groupBy can be a target, but operations after groupBy, aggregate and toStream get no side path")
+    void noSidePathsPastGroupByAggregate() {
+        final var description = topology(pipeline(wallClock("pass") + """
+                - type: groupBy
+                  name: grouped
+                  mapper:
+                    expression: key.upper()
+                    resultType: string
+                - type: aggregate
+                  name: summed
+                  store:
+                    name: sums
+                    type: keyValue
+                    persistent: false
+                  initializer:
+                    expression: 0
+                    resultType: long
+                  aggregator:
+                    expression: aggregatedValue + value
+                    resultType: long
+                - type: toStream
+                  name: summed_stream
+                - type: peek
+                  name: after_aggregate
+                  forEach:
+                    code: pass
+                """)).describe().toString();
+        assertThat(description)
+                .contains("Processor: test_flush-to-test_grouped ")
+                .doesNotContain("flush-to-test_summed", "flush-to-test_after_aggregate");
     }
 
     @Test

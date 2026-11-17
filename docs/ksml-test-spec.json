@@ -130,6 +130,11 @@
                   "required" : [ "generator" ]
                 }, {
                   "required" : [ "advanceWallClockTime" ]
+                } ],
+                "allOf" : [ {
+                  "not" : {
+                    "required" : [ "messages", "generator" ]
+                  }
                 } ]
               },
               "description" : "Produce blocks defining test data for this test"

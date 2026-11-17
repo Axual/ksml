@@ -204,7 +204,6 @@ public class KSMLDSL {
             public static final String PUNCTUATION_TYPE_WALL_CLOCK_TIME = "wallClockTime";
             public static final String PUNCTUATION_TYPE_STREAM_TIME = "streamTime";
             public static final String PUNCTUATOR = "punctuator";
-            public static final String STORES = "stores";
         }
 
         public static final String PRINT = "print";

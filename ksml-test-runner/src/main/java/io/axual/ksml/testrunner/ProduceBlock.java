@@ -35,7 +35,8 @@ import java.util.Map;
  */
 @JsonSchema(
         description = "A block that defines test data to be produced into a stream",
-        anyOfRequired = {KSMLTestDSL.Produce.MESSAGES, KSMLTestDSL.Produce.GENERATOR, KSMLTestDSL.Produce.ADVANCE_WALL_CLOCK_TIME})
+        anyOfRequired = {KSMLTestDSL.Produce.MESSAGES, KSMLTestDSL.Produce.GENERATOR, KSMLTestDSL.Produce.ADVANCE_WALL_CLOCK_TIME},
+        mutuallyExclusive = {KSMLTestDSL.Produce.MESSAGES, KSMLTestDSL.Produce.GENERATOR})
 public record ProduceBlock(
         @JsonSchema(yamlName = KSMLTestDSL.Produce.TO,
                 description = "Key into the suite's streams: map identifying the target stream",
@@ -75,7 +76,8 @@ public record ProduceBlock(
     }
 
     /**
-     * Validate that the produce block has either messages or a generator, but not both.
+     * Validate that the produce block has messages, a generator or advanceWallClockTime, and not both messages and a
+     * generator.
      */
     public void validate() {
         // A block that only advances the wall-clock time needs no messages

@@ -71,7 +71,7 @@ class ProcessorContextProxyTest {
     @BeforeAll
     static void setUpPython() {
         pythonContext = new PythonContext(PythonContextConfig.builder().build());
-        pythonContext.context().eval("python", ProcessorContextProxy.PYTHON_PROXY.proxyClassCode());
+        pythonContext.context().eval("python", ProcessorContextProxy.INJECT_CONTEXT.proxyClassCode());
     }
 
     @AfterAll
@@ -103,7 +103,7 @@ class ProcessorContextProxyTest {
                     except Exception as e:
                         return type(e).__name__ + ": " + str(e)
                 run()
-                """.formatted(ProcessorContextProxy.PYTHON_PROXY.proxyClassName(), call)).asString();
+                """.formatted(ProcessorContextProxy.INJECT_CONTEXT.proxyClassName(), call)).asString();
     }
 
     @Test

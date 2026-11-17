@@ -250,6 +250,13 @@ class TestDefinitionParserTest {
     }
 
     @Test
+    void parsesAdvanceWallClockTimeInMilliseconds() throws IOException {
+        var suite = parser.parse(resource("advance-wall-clock-millis.yaml"));
+        var block = suite.tests().get("millis_time_step").produce().get(0);
+        assertEquals(java.time.Duration.ofMillis(500), block.advanceWallClockTime());
+    }
+
+    @Test
     void rejectsNegativeAdvanceWallClockTime() {
         var path = resource("advance-wall-clock-negative.yaml");
         var e = assertThrows(TestDefinitionException.class, () -> parser.parse(path));

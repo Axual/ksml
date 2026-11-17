@@ -32,27 +32,26 @@ import io.axual.ksml.exception.ExecutionException;
 import io.axual.ksml.exception.TopologyException;
 import io.axual.ksml.store.StateStores;
 import io.axual.ksml.type.UserType;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.streams.KeyValue;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-@Slf4j
 public class UserFunction {
-    /**
-     * Injects the state stores of the call; the function's code reads each store by its name.
-     */
+    private static final Logger LOG = LoggerFactory.getLogger(UserFunction.class);
+    /** Injects the state stores of the call; the function's code reads each store by its name. */
     public static final String INJECT_STORES = "stores";
-    private static final String[] TEMPLATE = {};
+    private static final String[] TEMPLATE = new String[]{};
     public final String name;
     public final String namespace;
     public final ParameterDefinition[] parameters;
     public final int fixedParameterCount;
     public final UserType resultType;
-    public final List<InjectedParameter> injectedParameters = new LinkedList<>();
+    public final List<InjectedParameter> injectedParameters;
     public final String[] storeNames;
 
     public UserFunction(String namespace, String name, ParameterDefinition[] parameters, UserType resultType, List<InjectedParameter> injectedParams, List<String> storeNames) {
@@ -71,27 +70,24 @@ public class UserFunction {
         this.parameters = parameters;
         this.fixedParameterCount = getFixedParameterCount(parameters);
         this.resultType = resultType;
+        final var injected = new ArrayList<InjectedParameter>();
         if (storeNames != null && storeNames.length > 0)
-            this.injectedParameters.add(new InjectedParameter(INJECT_STORES));
+            injected.add(new InjectedParameter(INJECT_STORES));
         if (injectedParams != null)
             injectedParams.stream()
-                    .filter(param -> !hasInjectedParameter(param.name()))
-                    .forEach(this.injectedParameters::add);
+                    .filter(param -> injected.stream().noneMatch(existing -> existing.name().equals(param.name())))
+                    .forEach(injected::add);
+        this.injectedParameters = List.copyOf(injected);
         this.storeNames = storeNames != null ? storeNames : TEMPLATE;
-        log.info("Registered function '{}'", this);
+        LOG.info("Registered function '{}'", this);
     }
 
-    /**
-     * The injections for a call that has access to these state stores. They are left out when {@code stores} is null
-     * or the function does not use state stores.
-     */
+    /** The injections for a call with these state stores; empty when stores is null or the function uses none. */
     public Map<String, Object> withStores(StateStores stores) {
         return stores != null && hasInjectedParameter(INJECT_STORES) ? Map.of(INJECT_STORES, stores) : Map.of();
     }
 
-    /**
-     * Whether the function declares an injected parameter with this name.
-     */
+    /** Whether the function declares an injected parameter with this name. */
     public boolean hasInjectedParameter(String name) {
         return injectedParameters.stream().anyMatch(param -> param.name().equals(name));
     }
@@ -128,8 +124,7 @@ public class UserFunction {
     }
 
     protected void checkType(DataType expected, DataObject value) {
-        if (value instanceof DataNull)
-            return;
+        if (value instanceof DataNull) return;
         if (expected != null && value != null) {
             final var assignable = expected.isAssignableFrom(value.type());
             if (assignable.isNotAssignable()) {
@@ -144,17 +139,17 @@ public class UserFunction {
 
     protected void logCall(DataObject[] parameters, Object result) {
         // Log the called function in debug
-        if (log.isDebugEnabled()) {
+        if (LOG.isDebugEnabled()) {
             // Check all parameters and copy them into the interpreter as prefixed globals
             StringBuilder paramsAndValues = new StringBuilder();
             for (int index = 0; index < parameters.length; index++) {
-                paramsAndValues.append(paramsAndValues.isEmpty() ? "" : ", ");
+                paramsAndValues.append(!paramsAndValues.isEmpty() ? ", " : "");
                 paramsAndValues.append(this.parameters[index].name()).append("=").append(parameters[index] != null ? parameters[index].toString(DataObject.Printer.EXTERNAL_ALL_SCHEMA) : "null");
             }
             if (result != null) {
-                log.debug("User function {}.{}({}) returned {}", namespace, name, paramsAndValues, result);
+                LOG.debug("User function {}.{}({}) returned {}", namespace, name, paramsAndValues, result);
             } else {
-                log.debug("User function {}.{}({}) called", namespace, name, paramsAndValues);
+                LOG.debug("User function {}.{}({}) called", namespace, name, paramsAndValues);
             }
         }
     }
@@ -163,7 +158,7 @@ public class UserFunction {
      * Call the user-defined function and return the result.
      *
      * @param injections variables to make available to the function's code, by name, such as {@link #INJECT_STORES}
-     *                   and {@link io.axual.ksml.proxy.context.ProcessorContextProxy#PYTHON_PROXY}; a name that is not given gets its default value.
+     *                   and {@link io.axual.ksml.proxy.context.ProcessorContextProxy#INJECT_CONTEXT}; a name that is not given gets its default value.
      * @param parameters parameters for the function.
      * @return the result of the call.
      */
@@ -175,9 +170,7 @@ public class UserFunction {
         return call(Map.of(), parameters);
     }
 
-    /**
-     * Returns the (key, value) result as a KeyValue. A None key or value becomes null, as Kafka Streams needs.
-     */
+    /** Returns the (key, value) result as a KeyValue. A None key or value becomes null, as Kafka Streams needs. */
     public KeyValue<Object, Object> convertToKeyValue(DataObject result, DataType keyType, DataType valueType) {
         if (result instanceof DataList list &&
                 list.size() == 2 &&

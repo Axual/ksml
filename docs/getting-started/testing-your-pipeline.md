@@ -106,7 +106,7 @@ Each produce block targets one stream by reference. You can define multiple prod
 | `messages` | * | | List of messages with `key`, `value`, and optional `timestamp` (epoch millis). |
 | `generator` | * | | Generator function (KSML generator syntax). Mutually exclusive with `messages`. |
 | `count` | no | `1` | Number of times to invoke the generator. |
-| `advanceWallClockTime` | * | | Duration, such as `1m` or `30s`. After producing the block's messages, advances the wall-clock time of the test by this amount, so wall-clock punctuations that become due run. |
+| `advanceWallClockTime` | * | | Duration, such as `1m`, `30s` or `500` (milliseconds). After producing the block's messages, advances the wall-clock time of the test by this amount, so wall-clock punctuations that become due run. |
 
 \* At least one of `messages`, `generator` or `advanceWallClockTime` must be present, and not both `messages` and `generator`.
 

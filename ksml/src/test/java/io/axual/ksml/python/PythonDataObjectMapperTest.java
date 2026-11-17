@@ -26,6 +26,7 @@ import io.axual.ksml.data.mapper.DataObjectFlattener;
 import io.axual.ksml.data.mapper.DataTypeFlattener;
 import io.axual.ksml.data.notation.Notation;
 import io.axual.ksml.data.notation.NotationContext;
+import io.axual.ksml.data.notation.avro.AvroSchemaMapper;
 import io.axual.ksml.data.notation.binary.BinaryNotation;
 import io.axual.ksml.data.object.DataBoolean;
 import io.axual.ksml.data.object.DataByte;
@@ -50,10 +51,12 @@ import io.axual.ksml.data.type.MapType;
 import io.axual.ksml.data.type.StructType;
 import io.axual.ksml.data.type.TupleType;
 import io.axual.ksml.data.type.UnionType;
+import io.axual.ksml.data.mapper.DataObjectConverter;
 import io.axual.ksml.execution.ExecutionContext;
 import io.axual.ksml.notation.MockNotation;
 import io.axual.ksml.parser.UserTypeParser;
 import io.axual.ksml.type.UserType;
+import org.apache.avro.Schema;
 import org.graalvm.polyglot.Context;
 import org.graalvm.polyglot.HostAccess;
 import org.graalvm.polyglot.Value;
@@ -66,6 +69,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -535,5 +540,44 @@ class PythonDataObjectMapperTest {
         context.getBindings("python").putMember("data", mapper.fromDataObject(struct));
         context.eval("python", "data['new_key'] = 'new_value'");
         assertThat(context.eval("python", "data['new_key']").asString()).isEqualTo("new_value");
+    }
+
+    private static final String CONVERSION_SCHEMA = """
+            {"type": "record", "name": "R", "namespace": "x", "fields": [
+              {"name": "e", "type": {"type": "enum", "name": "E", "symbols": ["A", "B"]}},
+              {"name": "l", "type": "long"},
+              {"name": "i", "type": "int"},
+              {"name": "f", "type": "float"},
+              {"name": "d", "type": "double"},
+              {"name": "ns", "type": ["null", "string"], "default": null},
+              {"name": "u", "type": ["null", "long", "string"], "default": null},
+              {"name": "n", "type": {"type": "record", "name": "N", "fields": [
+                {"name": "x", "type": "long"},
+                {"name": "t", "type": {"type": "enum", "name": "T", "symbols": ["P", "Q"]}}]}},
+              {"name": "arr", "type": {"type": "array", "items": "N"}},
+              {"name": "m", "type": {"type": "map", "values": "long"}},
+              {"name": "ul", "type": {"type": "array", "items": ["null", "long"]}, "default": []},
+              {"name": "um", "type": {"type": "map", "values": ["null", "string"]}, "default": {}}
+            ]}""";
+
+    // PythonFunction skips the converter for a result that already fits its type. That is only safe when the
+    // converter would not change such a result, which this test checks.
+    @ParameterizedTest
+    @ValueSource(strings = {
+            "{'e': 'A', 'l': 1, 'i': 2, 'f': 2.5, 'd': 3, 'ns': None, 'u': 5, 'n': {'x': 1, 't': 'P'}, 'arr': [{'x': 2, 't': 'Q'}], 'm': {'a': 1}}",
+            "{'e': 'B', 'l': 1, 'i': 2, 'f': 2.5, 'd': 3.5, 'ns': 's', 'u': 'str', 'n': {'x': 1, 't': 'Q'}, 'arr': [], 'm': {}}",
+            "{'e': 'A', 'l': 1, 'i': 2, 'f': 2.5, 'd': 3.5, 'n': {'x': 1, 't': 'P'}, 'arr': [], 'm': {}, 'ul': [1, None], 'um': {'a': None, 'b': 'x'}}"})
+    @DisplayName("toDataObject - a result that fits its type is not changed by the converter")
+    void fittingResultNeedsNoConversion(String python) {
+        final var schema = (StructSchema) new AvroSchemaMapper().toDataSchema("x", "R", new Schema.Parser().parse(CONVERSION_SCHEMA));
+        final var type = new StructType(schema);
+
+        final var result = mapper.toDataObject(type, context.eval("python", python));
+        final var converted = new DataObjectConverter().convert(UserType.DEFAULT_NOTATION, result, new UserType(type));
+
+        assertThat(type.isAssignableFrom(result).isAssignable()).isTrue();
+        assertThat(converted).isEqualTo(result);
+        ((DataStruct) result).forEach((field, value) ->
+                assertThat(((DataObject) ((DataStruct) converted).get(field)).type()).as(field).isEqualTo(((DataObject) value).type()));
     }
 }

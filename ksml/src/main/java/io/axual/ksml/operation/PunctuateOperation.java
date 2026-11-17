@@ -42,11 +42,9 @@ import org.apache.kafka.streams.processor.PunctuationType;
 
 import java.time.Duration;
 import java.util.HashMap;
-import java.util.LinkedHashSet;
-import java.util.List;
 import java.util.Map;
 
-import static io.axual.ksml.proxy.context.ProcessorContextProxy.PYTHON_PROXY;
+import static io.axual.ksml.proxy.context.ProcessorContextProxy.INJECT_CONTEXT;
 
 /**
  * Calls a punctuator on a schedule; records pass through unchanged. The punctuator can forward records to the next
@@ -58,19 +56,17 @@ public class PunctuateOperation extends BaseOperation {
     private final Duration interval;
     private final PunctuationType punctuationType;
     private final FunctionDefinition punctuator;
-    private final List<String> storeNames;
     // Set by OperationChain before apply: whether a later operation in the pipeline has a name
     private boolean namedOperationsFollow = false;
     // The output of the last apply, and the named targets found for it while the rest of the pipeline is built
     private KStream<Object, Object> output;
     private Map<String, ProcessorContextProxy.Target> namedTargets;
 
-    public PunctuateOperation(OperationConfig config, Duration interval, PunctuationType punctuationType, FunctionDefinition punctuator, List<String> storeNames) {
+    public PunctuateOperation(OperationConfig config, Duration interval, PunctuationType punctuationType, FunctionDefinition punctuator) {
         super(config);
         this.interval = interval;
         this.punctuationType = punctuationType;
         this.punctuator = punctuator;
-        this.storeNames = storeNames != null ? storeNames : List.of();
     }
 
     /** Sets whether a later operation in the pipeline has a name, and so may become a target of a side path. */
@@ -90,12 +86,9 @@ public class PunctuateOperation extends BaseOperation {
         checkNotNull(punctuator, PUNCTUATOR_NAME.toLowerCase());
         final var k = input.keyType().flatten();
         final var v = input.valueType().flatten();
-        final var allStoreNames = new LinkedHashSet<>(punctuator.storeNames());
-        allStoreNames.addAll(storeNames);
-        final var function = punctuator.withInjectedParameter(PYTHON_PROXY).withStoreNames(List.copyOf(allStoreNames));
+        final var function = punctuator.withInjectedParameter(INJECT_CONTEXT);
         final var userFunction = userFunctionOf(context, PUNCTUATOR_NAME, function, DataType.UNKNOWN, superOf(DataLong.DATATYPE));
         final var userPunctuator = new UserPunctuator(userFunction, tags);
-        final var stores = allStoreNames.toArray(String[]::new);
 
         // Input records and records forwarded without a name only go to the next operation. When side paths may
         // follow, the next operation gets a pass-through node with a known name, so the processor can address it.
@@ -103,16 +96,17 @@ public class PunctuateOperation extends BaseOperation {
         namedTargets = new HashMap<>();
         final var schedule = new PunctuateProcessor.Schedule(interval, punctuationType,
                 new ProcessorContextProxy.Target(nextName, k.userType(), v.userType()), namedTargets);
+        final var storeNames = punctuator.storeNames().toArray(String[]::new);
         final var supplier = new OperationProcessorSupplier<PunctuateProcessor.PunctuateAction>(
                 name,
                 (n, action, s) -> new PunctuateProcessor(n, schedule, action, s),
                 userPunctuator::apply,
-                stores,
-                storeDefinitions(context, stores));
+                storeNames,
+                storeDefinitions(context, storeNames));
         final var named = namedOf();
         output = named != null
-                ? input.stream.process(supplier, named, stores)
-                : input.stream.process(supplier, stores);
+                ? input.stream.process(supplier, named, storeNames)
+                : input.stream.process(supplier, storeNames);
         final var next = nextName != null ? output.peek((key, value) -> {
         }, Named.as(nextName)) : output;
         return new KStreamWrapper(next, k, v);
@@ -128,8 +122,7 @@ public class PunctuateOperation extends BaseOperation {
      */
     KStreamWrapper sidePathTo(BaseOperation target, KStreamWrapper input) {
         final var sideName = name + "-to-" + target.name;
-        final var side = output.peek((key, value) -> {
-        }, Named.as(sideName));
+        final var side = output.peek((key, value) -> {}, Named.as(sideName));
         namedTargets.putIfAbsent(target.definedName(), new ProcessorContextProxy.Target(sideName, input.keyType().flatten().userType(), input.valueType().flatten().userType()));
         return new KStreamWrapper(input.stream.merge(side, Named.as(sideName + "-merge")), input.keyType(), input.valueType());
     }

@@ -1,4 +1,4 @@
-name: "Produce block with an negative advanceWallClockTime"
+name: "Produce block with a negative advanceWallClockTime"
 definition: pipelines/test-passthrough.yaml
 
 streams:

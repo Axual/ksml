@@ -45,7 +45,7 @@ functions:
         keys.append(entry["key"])
       for key in keys:
         sensor_totals_store.delete(key)
-      log.warn("Emitted {} totals at {}", len(keys), timestamp)
+      log.info("Emitted {} totals at {}", len(keys), timestamp)
 
 pipelines:
   sum_sensor_values:

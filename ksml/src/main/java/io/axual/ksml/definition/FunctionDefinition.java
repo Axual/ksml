@@ -30,15 +30,14 @@ import lombok.Getter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
 
 @Getter
 @EqualsAndHashCode
 public class FunctionDefinition extends AbstractDefinition {
-    private static final String[] EMPTY_STRING_ARRAY = {};
-    private static final ParameterDefinition[] EMPTY_PARAMETER_ARRAY = {};
+    private static final String[] EMPTY_STRING_ARRAY = new String[]{};
+    private static final ParameterDefinition[] EMPTY_PARAMETER_ARRAY = new ParameterDefinition[]{};
     private static final List<String> EMPTY_STRING_LIST = new ArrayList<>();
     private final String type;
     private final String name;
@@ -50,79 +49,12 @@ public class FunctionDefinition extends AbstractDefinition {
     private final List<InjectedParameter> injectedParameters;
     private final List<String> storeNames;
 
-    private FunctionDefinition(String type, String name, ParameterDefinition[] parameters, PythonSource source, UserType resultType, List<InjectedParameter> injectedParameters, List<String> storeNames) {
-        Objects.requireNonNull(source, "PythonSource is required");
-        this.type = type;
-        this.name = name;
-        this.parameters = parameters;
-        this.resultType = resultType;
-        this.expression = source.expression() != null ? source.expression().toArray(EMPTY_STRING_ARRAY) : null;
-        this.code = source.code().toArray(EMPTY_STRING_ARRAY);
-        this.globalCode = source.globalCode().toArray(EMPTY_STRING_ARRAY);
-        this.injectedParameters =
-                injectedParameters != null ? new ArrayList<>(injectedParameters):new ArrayList<>();
-        this.storeNames = storeNames != null ? storeNames : EMPTY_STRING_LIST;
-    }
-
-    protected FunctionDefinition(FunctionDefinition definition) {
-        this.type = definition.type;
-        this.name = definition.name;
-        this.parameters = definition.parameters;
-        this.resultType = definition.resultType;
-        this.expression = definition.expression;
-        this.code = definition.code;
-        this.globalCode = definition.globalCode;
-        this.injectedParameters = definition.injectedParameters;
-        this.storeNames = definition.storeNames != null ? definition.storeNames : EMPTY_STRING_LIST;
-    }
-
     public static FunctionDefinition as(String type, String name, List<ParameterDefinition> parameters, PythonSource source, UserType resultType, List<InjectedParameter> injectedParameters, List<String> storeNames) {
         return as(type, name, parameters != null ? parameters.toArray(EMPTY_PARAMETER_ARRAY) : EMPTY_PARAMETER_ARRAY, source, resultType, injectedParameters, storeNames);
     }
 
     public static FunctionDefinition as(String type, String name, ParameterDefinition[] parameters, PythonSource source, UserType resultType, List<InjectedParameter> injectedParameters, List<String> storeNames) {
         return new FunctionDefinition(type, name, parameters, source, resultType, injectedParameters, storeNames);
-    }
-
-    // Add explicitly named parameters to the default set of parameters. The default parameters take precedence in the
-    // ordering of all arguments.
-    protected static ParameterDefinition[] mergeParameters(ParameterDefinition[] fixedParams, ParameterDefinition[] specifiedParams) {
-        // First, create the set of all named parameters to get the required size of the result array
-        final var paramNames = new HashSet<String>();
-        Arrays.stream(fixedParams).forEach(p -> paramNames.add(p.name()));
-        Arrays.stream(specifiedParams).forEach(p -> paramNames.add(p.name()));
-        final var result = new ParameterDefinition[paramNames.size()];
-
-        // From here on, the paramNames set becomes the set of parameters to still include in the result
-        // The index value is the cursor into the result array that we fill below
-        var index = 0;
-
-        // Copy every required fixed parameter into the parameter array
-        for (final var param : fixedParams) {
-            if (!param.isOptional())
-                result[index++] = param;
-            // Remove from the list of "to do parameters"
-            paramNames.remove(param.name());
-        }
-
-        // Copy every specified parameter into the result, unless it was included above as a fixed parameter
-        for (final var param : specifiedParams) {
-            // Only take non-fixed parameters into account
-            if (paramNames.contains(param.name())) {
-                result[index++] = param;
-                // Remove param name to prevent that doubly specified parameters lead to array overflows
-                paramNames.remove(param.name());
-            }
-        }
-
-        // Copy the optional fixed parameters last, so specified parameters keep their position for positional calls
-        for (final var param : fixedParams) {
-            if (param.isOptional())
-                result[index++] = param;
-        }
-
-        // Return the integrated parameter list
-        return result;
     }
 
     public FunctionDefinition withType(String type) {
@@ -158,14 +90,10 @@ public class FunctionDefinition extends AbstractDefinition {
     }
 
     public FunctionDefinition withInjectedParameter(InjectedParameter variable) {
-        final var newVars = new LinkedList<>(injectedParameters);
+        final var newVars = new ArrayList<>(injectedParameters);
         if (injectedParameters.stream().noneMatch(existing -> existing.name().equals(variable.name())))
             newVars.add(variable);
         return new FunctionDefinition(type, name, parameters, PythonSource.of(globalCode, code, expression), resultType, newVars, storeNames);
-    }
-
-    public FunctionDefinition withStoreNames(List<String> storeNames) {
-        return new FunctionDefinition(type, name, parameters, PythonSource.of(globalCode, code, expression), resultType, injectedParameters, storeNames);
     }
 
     public FunctionDefinition validateNoResultTypeDefined() {
@@ -182,5 +110,69 @@ public class FunctionDefinition extends AbstractDefinition {
 
     protected TopologyException functionResultError(String message) {
         throw new TopologyException(message + ": function=" + name() + ", type=" + type() + ", resultType=" + resultType());
+    }
+
+    private FunctionDefinition(String type, String name, ParameterDefinition[] parameters, PythonSource source, UserType resultType, List<InjectedParameter> injectedParameters, List<String> storeNames) {
+        Objects.requireNonNull(source, "PythonSource is required");
+        this.type = type;
+        this.name = name;
+        this.parameters = parameters;
+        this.resultType = resultType;
+        this.expression = source.expression() != null ? source.expression().toArray(EMPTY_STRING_ARRAY) : null;
+        this.code = source.code().toArray(EMPTY_STRING_ARRAY);
+        this.globalCode = source.globalCode().toArray(EMPTY_STRING_ARRAY);
+        this.injectedParameters = injectedParameters != null ? List.copyOf(injectedParameters) : List.of();
+        this.storeNames = storeNames != null && !storeNames.isEmpty() ? storeNames : EMPTY_STRING_LIST;
+    }
+
+    protected FunctionDefinition(FunctionDefinition definition) {
+        this.type = definition.type;
+        this.name = definition.name;
+        this.parameters = definition.parameters;
+        this.resultType = definition.resultType;
+        this.expression = definition.expression;
+        this.code = definition.code;
+        this.globalCode = definition.globalCode;
+        this.injectedParameters = definition.injectedParameters;
+        this.storeNames = definition.storeNames != null ? definition.storeNames : EMPTY_STRING_LIST;
+    }
+
+    // Add explicitly named parameters to the default set of parameters. The default parameters take precedence in the
+    // ordering of all arguments.
+    protected static ParameterDefinition[] mergeParameters(ParameterDefinition[] fixedParams, ParameterDefinition[] specifiedParams) {
+        // First, create the set of all named parameters to get the required size of the result array
+        final var paramNames = new HashSet<String>();
+        Arrays.stream(fixedParams).forEach(p -> paramNames.add(p.name()));
+        Arrays.stream(specifiedParams).forEach(p -> paramNames.add(p.name()));
+        final var result = new ParameterDefinition[paramNames.size()];
+
+        // From here on, the paramNames set becomes the set of parameters to still include in the result
+        // The index value is the cursor into the result array that we fill below
+        var index = 0;
+
+        // Copy every required fixed parameter into the parameter array
+        for (final var param : fixedParams) {
+            if (!param.isOptional()) result[index++] = param;
+            // Remove from the list of "to do parameters"
+            paramNames.remove(param.name());
+        }
+
+        // Copy every specified parameter into the result, unless it was included above as a fixed parameter
+        for (final var param : specifiedParams) {
+            // Only take non-fixed parameters into account
+            if (paramNames.contains(param.name())) {
+                result[index++] = param;
+                // Remove param name to prevent that doubly specified parameters lead to array overflows
+                paramNames.remove(param.name());
+            }
+        }
+
+        // Copy the optional fixed parameters last, so specified parameters keep their position for positional calls
+        for (final var param : fixedParams) {
+            if (param.isOptional()) result[index++] = param;
+        }
+
+        // Return the integrated parameter list
+        return result;
     }
 }

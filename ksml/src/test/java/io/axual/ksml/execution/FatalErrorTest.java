@@ -20,6 +20,7 @@ package io.axual.ksml.execution;
  * =========================LICENSE_END==================================
  */
 
+import io.apicurio.registry.rest.client.models.ProblemDetails;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -71,5 +72,27 @@ class FatalErrorTest {
         }
         final var log = captured.toString(StandardCharsets.UTF_8);
         assertThat(log).contains("Description: outer").doesNotContain("Description: inner");
+    }
+
+    @Test
+    @DisplayName("report describes an Apicurio ProblemDetails by its detail and status, as its message is empty")
+    void reportDescribesProblemDetails() {
+        final var problem = new ProblemDetails();
+        problem.setDetail("Unauthorized");
+        problem.setStatus(401);
+        assertThat(captureStdErr(() -> FatalError.report(problem))).contains("Description: Unauthorized(401)");
+    }
+
+    // slf4j-simple writes to System.err
+    private static String captureStdErr(Runnable runnable) {
+        final var originalErr = System.err;
+        final var captured = new ByteArrayOutputStream();
+        System.setErr(new PrintStream(captured, true, StandardCharsets.UTF_8));
+        try {
+            runnable.run();
+        } finally {
+            System.setErr(originalErr);
+        }
+        return captured.toString(StandardCharsets.UTF_8);
     }
 }

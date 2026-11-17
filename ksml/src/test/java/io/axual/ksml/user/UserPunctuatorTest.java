@@ -85,7 +85,7 @@ class UserPunctuatorTest {
 
     private static UserPunctuator punctuator(String... code) {
         final var function = FunctionDefinition.as(KSMLDSL.Functions.TYPE_PUNCTUATOR, "emit", new ParameterDefinition[0], PythonSource.of(new String[0], code, new String[0]), null, null, null);
-        final var definition = new PunctuatorDefinition(function).withInjectedParameter(ProcessorContextProxy.PYTHON_PROXY);
+        final var definition = new PunctuatorDefinition(function).withInjectedParameter(ProcessorContextProxy.INJECT_CONTEXT);
         return new UserPunctuator(PythonFunction.forFunction(pythonContext, "test", "emit", definition), tags());
     }
 

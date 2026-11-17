@@ -1055,7 +1055,6 @@ punctuator can send new records down the pipeline with `context.forward`.
 | `interval`        | Duration | Yes      | The time between two punctuations, at least 1 millisecond, for example `30s` or `1m`               |
 | `punctuationType` | String   | Yes      | `wallClockTime` or `streamTime`, see below                                                          |
 | `punctuator`      | Object   | Yes      | A [punctuator](function-reference.md#punctuator) function, inline or by name                        |
-| `stores`          | Array    | No       | Names of state stores the punctuator uses, in addition to the `stores` of the function             |
 | `name`            | String   | No       | The name of the operation                                                                           |
 
 `punctuate` needs a stream as input. After a table, use `toStream` first; it can not follow a grouped or windowed
@@ -1100,9 +1099,7 @@ target raises an error that lists the valid names. The key and value must fit th
     The repartitioning operation itself can be a target. To reach an operation after it, forward to the
     repartitioning operation, or to an operation before it, and let the record flow on from there.
 
-KSML connects every possible target to the `punctuate` operation when it builds the topology, with a pass-through
-node and a merge right before the target. These nodes are added for every named operation after `punctuate`, also
-when the punctuator never sends to it. Records from the input still pass every operation once.
+Records from the input still pass every operation once.
 
 #### Things to keep in mind
 
