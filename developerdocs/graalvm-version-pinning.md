@@ -52,9 +52,14 @@ The innovation releases have the same version on Maven Central and on GitHub (fo
     even one file with pipelines and producers that imports `ctypes` in `globalCode` stops KSML at
     startup. The definitions are kept in a `HashMap`, so which context is first does not follow
     the runner config.
-    A failed attempt also counts: a context without native access that tries to import `ctypes`
-    takes the place. Normal modules (`json`, `re`, `datetime`, `hashlib`, ...) are not C
-    extensions and work in every context.
+    Normal modules (`json`, `re`, `datetime`, `hashlib`, ...) are not C extensions and work in
+    every context.
+  - GraalPy takes that place before it checks native access, and never gives it back. So without
+    native access, a denied import in one context would make the same import fail in every later
+    context with a `SystemError` instead of an `ImportError`. That breaks `import getpass` and
+    `try: import ctypes` / `except ImportError` with the default settings. To prevent it,
+    `PythonContext.blockCExtensions` makes every C extension import fail early with an
+    `ImportError` when native access is off, so the place is never taken.
 - `python.IsolateNativeModules` would lift that limit, but only on Linux (on macOS it fails with
   `modifying Mach-O files is not yet supported`), and it needs extra file and process access.
   KSML does not turn it on.

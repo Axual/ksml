@@ -270,6 +270,42 @@ class PythonContextTest {
         }
     }
 
+    // Default config: every context must get ImportError for C extensions, not only the first.
+    // GraalPy 25.5 takes its one C extension place before it checks native access.
+    @Test
+    void defaultConfigTwoContextsGetImportError() throws Exception {
+        assertThat(runInNewJvm(DefaultConfigCheck.class))
+                .contains("first ctypes=fallback")
+                .contains("second ctypes=fallback")
+                .contains("first getpass=ok")
+                .contains("second getpass=ok");
+    }
+
+    static class DefaultConfigCheck {
+        public static void main(String[] args) {
+            final var pyCode = """
+                    import polyglot
+                    @polyglot.export_value
+                    def try_imports():
+                        try:
+                            import ctypes
+                            result = 'ctypes=loaded'
+                        except ImportError:
+                            result = 'ctypes=fallback'
+                        import getpass
+                        return result + ' getpass=ok'
+                    """;
+            for (var name : List.of("first", "second")) {
+                try (var pythonContext = new PythonContext(PythonContextConfig.builder().build())) {
+                    final var result = pythonContext.registerFunction(pyCode, "try_imports").execute().asString();
+                    System.out.println(name + " " + result.replace(" ", " " + name + " "));
+                } catch (Exception e) {
+                    System.out.println(name + " error: " + e.getMessage());
+                }
+            }
+        }
+    }
+
     @Test
     void testNativeModuleHint() {
         final var limit = new RuntimeException("SystemError: Option python.IsolateNativeModules is set to 'false' and a second GraalPy context ...");
@@ -278,7 +314,7 @@ class PythonContextTest {
              var nativeOff = new PythonContext(PythonContextConfig.builder().build())) {
             assertThat(nativeOn.nativeModuleHint(limit)).startsWith("Only one Python context per KSML process");
             assertThat(nativeOn.nativeModuleHint(later)).startsWith("Only one Python context per KSML process");
-            assertThat(nativeOff.nativeModuleHint(limit)).contains("allowNativeAccess is false");
+            assertThat(nativeOff.nativeModuleHint(limit)).isNull();
             assertThat(nativeOn.nativeModuleHint(new RuntimeException("NameError: name 'x' is not defined"))).isNull();
         }
     }

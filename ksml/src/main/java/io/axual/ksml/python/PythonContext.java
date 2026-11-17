@@ -111,6 +111,10 @@ public class PythonContext implements AutoCloseable {
                     .allowIO(ioAccess)
                     .build();
 
+            if (!allowNativeAccess) {
+                blockCExtensions();
+            }
+
             if (!StringUtils.isEmpty(canonicalModulePath)) {
                 addModulePathToSysPath(Path.of(canonicalModulePath));
             }
@@ -144,6 +148,22 @@ public class PythonContext implements AutoCloseable {
     }
 
     /**
+     * Makes every C extension import fail with an ImportError when native access is off. GraalPy 25.5
+     * takes its one C extension place for the whole process before it checks native access, so without
+     * this a denied import in one context makes the same import in every later context fail with a
+     * SystemError, which code like {@code import getpass} or {@code except ImportError} does not expect.
+     */
+    private void blockCExtensions() {
+        context.eval(PYTHON, """
+                import importlib.machinery as _m
+                def _ksml_no_c_ext(self, spec):
+                    raise ImportError("Cannot run any C extensions because native access is not allowed.", name=spec.name)
+                _m.ExtensionFileLoader.create_module = _ksml_no_c_ext
+                del _m, _ksml_no_c_ext
+                """);
+    }
+
+    /**
      * Explains GraalPy's error when a C extension module cannot load because another Python context
      * already loaded one. GraalPy's own text names an option that KSML users cannot set.
      *
@@ -152,12 +172,11 @@ public class PythonContext implements AutoCloseable {
      */
     public String nativeModuleHint(Throwable e) {
         final var message = String.valueOf(e.getMessage());
-        if (!message.contains("IsolateNativeModules") && !message.contains("C API initialization has previously failed")) {
+        if (!allowNativeAccess
+                || (!message.contains("IsolateNativeModules") && !message.contains("C API initialization has previously failed"))) {
             return null;
         }
-        return allowNativeAccess
-                ? "Only one Python context per KSML process can load C extension modules such as ctypes, sqlite3 or termios. See allowNativeAccess in the KSML configuration reference."
-                : "C extension modules such as ctypes cannot load, because allowNativeAccess is false.";
+        return "Only one Python context per KSML process can load C extension modules such as ctypes, sqlite3 or termios. See allowNativeAccess in the KSML configuration reference.";
     }
 
     /**
