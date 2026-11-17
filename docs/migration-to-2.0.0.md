@@ -320,7 +320,7 @@ What changes for a running application:
     * Without `logging: true`, there is no changelog to restore from, and KSML stops. It does not delete the state for you. Delete the files that the error names (the data is lost), give the store a new name, or set `logging: true` on KSML 1.x first, as above.
 
     See [Timestamped Window Stores](reference/state-store-reference.md#timestamped-window-stores).
-* **The first start checks the 1.x state once.** KSML takes `timestamped: true` and `logging: true` to be the options of 1.x. Except where the check asks you to set `logging`, upgrade with the store options of 1.x and change them after the first start. Once the check passes, KSML writes the file `.ksml-store-format` in `<storageDirectory>/<application.id>` and does not check again. If you go back to KSML 1.x and then upgrade again, delete this file first.
+* **The first start checks the 1.x state once.** The check reads `timestamped` and `logging` in your YAML as the options the store had in 1.x: a store that sets them to `true` had them in 1.x, and a store that leaves them out had the 1.x default `false`. So do the first start with the store options of 1.x (add `logging` only where the check asks for it), and change them after the first start. Once the check passes, KSML writes the file `.ksml-store-format` in `<storageDirectory>/<application.id>` and does not check again. If you go back to KSML 1.x and then upgrade again, delete this file first.
 
 KSML now also follows the Kafka Streams setting `dsl.store.format`. With `dsl.store.format: HEADERS` in the `kafka`
 section of the runner config, declared key-value and window stores that are persistent and timestamped, and persistent
