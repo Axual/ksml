@@ -67,7 +67,7 @@ The constructor `KeyValueStateStoreDefinition(name, keyType, valueType)` and the
 
 ### D2. Warn about session `timestamped` at parse time
 
-`SessionStateStoreDefinitionParser` logs a warning when `timestamped` is set, explicitly or to any value. The definition keeps the value, but it has no effect. Removing the field would break existing YAML and the JSON schema.
+`SessionStateStoreDefinitionParser` logs a warning when `timestamped: true` is set. `timestamped: false` gives no warning: users set it to keep the 1.x behavior. The definition keeps the value, but it has no effect. Removing the field would break existing YAML and the JSON schema.
 
 ### D3. Versioned stores rely on the persistent default
 
