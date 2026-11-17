@@ -121,7 +121,7 @@ The `context` SHALL only be usable during the punctuator call that received it.
 - **THEN** records forwarded by the punctuator SHALL pass through the `filter` like records from the input
 
 ### Requirement: Forwarding to a named operation
-`context.forward` SHALL accept an optional `to` argument with the name of an operation. The record SHALL then go directly to that operation, skipping the operations in between. Every operation that comes after the `punctuate` operation in the same pipeline's `via` list, has a `name`, and takes a stream as input SHALL be a valid target. Without `to`, the record SHALL go to the next operation.
+`context.forward` SHALL accept an optional `to` argument with the name of an operation. The record SHALL then go directly to that operation, skipping the operations in between. Every operation that comes after the `punctuate` operation in the same pipeline's `via` list, has a `name`, takes a stream as input, and does not come after an operation that repartitions (`repartition`, `groupBy`, `groupByKey`, `toTable`, or a join with a stream or table) SHALL be a valid target. Without `to`, the record SHALL go to the next operation.
 
 #### Scenario: Skip operations
 - **WHEN** the `via` list is `punctuate`, `transformValue` named `compute`, `transformValue` named `enrich`, and the punctuator calls `context.forward("a", 10, to="enrich")`

@@ -169,6 +169,9 @@ class PythonDataObjectMapperTest {
         assertThat(mapper.toDataObject(null, context.eval("python", "1.5"))).isEqualTo(new DataDouble(1.5));
         assertThat(mapper.toDataObject(DataType.UNKNOWN, context.eval("python", "1.5"))).isEqualTo(new DataDouble(1.5));
         assertThat(mapper.toDataObject(null, context.eval("python", "7"))).isEqualTo(new DataLong(7L));
+        // The type follows the Python type, not the value: a whole float stays a double, a large one too
+        assertThat(mapper.toDataObject(null, context.eval("python", "3.0"))).isEqualTo(new DataDouble(3.0));
+        assertThat(mapper.toDataObject(null, context.eval("python", "1e20"))).isEqualTo(new DataDouble(1e20));
     }
 
     @Test

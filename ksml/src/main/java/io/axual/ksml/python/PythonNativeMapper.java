@@ -44,9 +44,12 @@ import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class PythonNativeMapper {
+    // The type names of floating point numbers: a Python float, or a Java Double or Float
+    private static final Set<String> FLOATING_POINT_TYPES = Set.of("float", "Double", "Float");
     private final Map<Context, PythonTypes> typesByContext = new ConcurrentHashMap<>();
 
     private record PythonTypes(Value dict, Value list, Value none) {
@@ -108,14 +111,20 @@ public class PythonNativeMapper {
                 final var result = polyglotExpectedNumberToNative(expected, object);
                 if (result != null) return result;
             }
-            // Without a numeric expected type, read an int as a long and a float as a double. An int too
-            // large for a long fits in a double too, but would lose precision, so asLong() rejects it.
-            if (object.fitsInLong() || object.fitsInBigInteger()) return object.asLong();
-            return object.asDouble();
+            // Without a numeric expected type, a float becomes a double and an int a long, whatever its value.
+            // asLong() rejects an int too large for a long, instead of losing precision as a double.
+            // Not a ternary: that would turn the long into a double too
+            if (isFloatingPoint(object)) return object.asDouble();
+            return object.asLong();
         } catch (ClassCastException | UnsupportedOperationException e) {
             throw new DataException("Python value " + object + " does not fit in expected type "
                     + (expected != null ? expected : DataLong.DATATYPE), e);
         }
+    }
+
+    private static boolean isFloatingPoint(Value number) {
+        final var type = number.getMetaObject();
+        return type != null && FLOATING_POINT_TYPES.contains(type.getMetaSimpleName());
     }
 
     /**

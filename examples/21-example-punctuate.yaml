@@ -45,7 +45,7 @@ functions:
         keys.append(entry["key"])
       for key in keys:
         sensor_totals_store.delete(key)
-      log.info("Emitted {} totals at {}", len(keys), timestamp)
+      log.warn("Emitted {} totals at {}", len(keys), timestamp)
 
 pipelines:
   sum_sensor_values:
@@ -67,8 +67,8 @@ pipelines:
         if:
           expression: False
       - type: punctuate
-        name: emit_totals_every_minute
-        interval: 1m
         punctuationType: wallClockTime
+        interval: 1m
         punctuator: emit_totals
+        name: emit_totals_every_minute
     to: sensor_totals

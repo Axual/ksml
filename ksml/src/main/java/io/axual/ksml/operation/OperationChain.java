@@ -30,6 +30,13 @@ import java.util.function.BiConsumer;
 
 /** Applies the operations of a pipeline in order, and connects punctuate operations to named operations after them. */
 public final class OperationChain {
+    // Operations after one of these run behind a repartition topic, in another sub-topology. A side path to them
+    // would skip the repartition, so only the operation itself can still be a target.
+    private static final List<Class<? extends StreamOperation>> REPARTITIONING_OPERATIONS = List.of(
+            RepartitionOperation.class, GroupByOperation.class, GroupByKeyOperation.class, ToTableOperation.class,
+            JoinWithStreamOperation.class, LeftJoinWithStreamOperation.class, OuterJoinWithStreamOperation.class,
+            JoinWithTableOperation.class, LeftJoinWithTableOperation.class, OuterJoinWithTableOperation.class);
+
     private OperationChain() {
     }
 
@@ -52,12 +59,26 @@ public final class OperationChain {
                 cursor = stream;
             }
             if (operation instanceof PunctuateOperation punctuate)
-                punctuate.namedOperationsFollow(operations.subList(index + 1, operations.size()).stream().anyMatch(OperationChain::isNamed));
+                punctuate.namedOperationsFollow(namedTargetFollows(operations.subList(index + 1, operations.size())));
             cursor = cursor.apply(operation, context);
             if (operation instanceof PunctuateOperation punctuate) punctuates.add(punctuate);
+            if (repartitions(operation)) punctuates.clear();
             applied.accept(operation, cursor);
         }
         return cursor;
+    }
+
+    // Whether a named operation follows, up to and including the first operation that repartitions
+    private static boolean namedTargetFollows(List<StreamOperation> operations) {
+        for (final var operation : operations) {
+            if (isNamed(operation)) return true;
+            if (repartitions(operation)) return false;
+        }
+        return false;
+    }
+
+    private static boolean repartitions(StreamOperation operation) {
+        return REPARTITIONING_OPERATIONS.stream().anyMatch(type -> type.isInstance(operation));
     }
 
     private static boolean isNamed(StreamOperation operation) {

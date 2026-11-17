@@ -127,7 +127,7 @@ input ─► punctuate ──(main)──► compute ─► merge ─► enrich 
 
 Every named stream operation becomes a target without extra syntax, because the user asked for every following operation in the pipeline to be reachable and there is no security reason to limit it.
 *Cost:* one merge node per named stream operation after a `punctuate`, also when the punctuator never uses it. A merge is a pass-through, so the cost per record is small. A wrong name is found at runtime, with an error that lists the valid names.
-*Not targetable:* operations whose input is a table or a grouped or windowed stream (a merge needs two `KStream`s), operations in other pipelines or inside `branch` sub-pipelines, and the pipeline's `to`. These can be added later if needed.
+*Not targetable:* operations whose input is a table or a grouped or windowed stream (a merge needs two `KStream`s), operations after an operation that repartitions (a side path would skip the repartition topic and join two sub-topologies), operations in other pipelines or inside `branch` sub-pipelines, and the pipeline's `to`. These can be added later if needed.
 *Alternative:* a declared list of targets on the `punctuate` operation. Rejected with the user: it adds syntax without adding safety.
 *Alternative:* one shared side path, merged before every target, with a header to filter on. Rejected: every target would need a filter, and the header would have to be removed again before output.
 

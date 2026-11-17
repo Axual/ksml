@@ -976,7 +976,9 @@ The arguments of `forward`:
 - `headers` is a list of dicts with a `key` and a `value`, the same format as in a
   [metadataTransformer](#metadatatransformer). Without it, the record has no headers.
 - `to` is the `name` of an operation further down the same pipeline. The record skips the operations in between.
-  See [`punctuate`](operation-reference.md#punctuate) for which operations can be a target.
+  It can not skip a repartition: an operation after a `repartition`, `groupBy`, `groupByKey`, `toTable`, or a
+  join with a stream or table, can not be a target. See [`punctuate`](operation-reference.md#punctuate) for which
+  operations can be a target.
 
 The `context` can only be used during the call that received it. Keeping it, for example in a global variable, and
 calling it later raises a `RuntimeError`.

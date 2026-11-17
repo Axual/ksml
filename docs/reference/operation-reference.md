@@ -1082,12 +1082,23 @@ the end of the pipeline, such as `to`. Later operations process it like a record
 operations in between. An operation can be a target when it:
 
 - comes after the `punctuate` operation in the same `via` list,
-- has a `name`, and
-- takes a stream as input. Operations after a `groupBy`, `groupByKey`, `windowBy...` or `toTable` can not be a
-  target until a `toStream` turns the result back into a stream.
+- has a `name`,
+- takes a stream as input, and
+- does not come after an operation that repartitions (see below).
 
 Operations in other pipelines, inside a `branch`, and the pipeline's `to` can not be a target. A name that is not a
 target raises an error that lists the valid names. The key and value must fit the input types of the target.
+
+!!! warning "A forwarded record can not skip a repartition"
+
+    These operations send records through a repartition topic, so that each key goes to the right task:
+    `repartition`, `groupBy`, `groupByKey`, `toTable`, and `join`, `leftJoin` or `outerJoin` with a stream or table.
+    Operations after them can not be a target of `to`, also when the key and value have the right types. A record
+    that skipped the repartition would be processed by the wrong task, and stateful operations would use the wrong
+    store.
+
+    The repartitioning operation itself can be a target. To reach an operation after it, forward to the
+    repartitioning operation, or to an operation before it, and let the record flow on from there.
 
 KSML connects every possible target to the `punctuate` operation when it builds the topology, with a pass-through
 node and a merge right before the target. These nodes are added for every named operation after `punctuate`, also

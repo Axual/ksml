@@ -276,7 +276,7 @@ class PunctuateOperationTest {
                     resultType: long
                 """));
         assertThatThrownBy(this::tick)
-                .hasStackTraceContaining("forward can not send to 'nothing', valid names are: after_table, compute");
+                .hasStackTraceContaining("forward can not send to 'nothing', valid names are: compute");
         assertThat(output.isEmpty()).isTrue();
     }
 
@@ -480,6 +480,25 @@ class PunctuateOperationTest {
                 "Processor: test_flush-to-test_enrich ", "Processor: test_flush-to-test_enrich-merge");
         // Only the named operations: two side paths, each with its merge
         assertThat(description.split("Processor: test_flush-to-")).hasSize(5);
+    }
+
+    @Test
+    @DisplayName("a repartition can be a target, but operations after it get no side path that skips it")
+    void noSidePathsPastRepartition() {
+        final var description = topology(pipeline(wallClock("pass") + """
+                - type: repartition
+                  name: spread
+                  numberOfPartitions: 3
+                - type: peek
+                  name: after_repartition
+                  forEach:
+                    code: pass
+                """)).describe();
+        assertThat(description.toString())
+                .contains("Processor: test_flush-to-test_spread ")
+                .doesNotContain("flush-to-test_after_repartition");
+        // The input topic and the repartition topic stay in separate sub-topologies
+        assertThat(description.subtopologies()).hasSize(2);
     }
 
     @Test
