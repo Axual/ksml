@@ -23,6 +23,7 @@ package io.axual.ksml.integration;
 import io.axual.ksml.integration.testutil.KSMLRunnerTestUtil;
 import io.axual.ksml.integration.testutil.KSMLRunnerTestUtil.KSMLRunnerWrapper;
 import io.axual.ksml.integration.testutil.SharedKsmlInfra;
+import io.axual.ksml.store.StoreUpgrade;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.admin.AdminClient;
 import org.apache.kafka.clients.admin.AdminClientConfig;
@@ -172,14 +173,22 @@ class WindowStoreUpgradeIT {
         runner.start();
         final var exitCode = runner.waitForExit(Duration.ofSeconds(60));
         runner = null;
+        // Taken before the run with logging: false below, which writes the marker and rebuilds the timestamped store
+        final var plainDatabasesAfterStop = rocksDbIdentities(plainStoreDirectory);
+        final var timestampedDatabasesAfterStop = rocksDbIdentities(timestampedStoreDirectory);
+        final var markerAfterStop = Files.exists(applicationDirectory.resolve(StoreUpgrade.MARKER_FILE));
 
         // With logging: false it reads what KSML 1.1.0 left on disk, as there is no changelog
         final var result = runThisVersionAndGet(bootstrapServers, windowStart, definition -> withPlainStoreLogging(definition, "    logging: false\n"));
 
         final var softly = new SoftAssertions();
-        softly.assertThat(exitCode).as("exit code of this version on the unlogged store").isPresent().get().isNotEqualTo(0);
+        // KSMLRunner returns 1 for every failure, so the checks below show that this was the stop that changes nothing
+        softly.assertThat(exitCode).as("exit code of this version on the unlogged store").contains(1);
         softly.assertThat(plainDatabases).as("RocksDB databases of the unlogged store, written by KSML 1.1.0").isNotEmpty();
         softly.assertThat(timestampedDatabases).as("RocksDB databases of the timestamped store, written by KSML 1.1.0").isNotEmpty();
+        softly.assertThat(plainDatabasesAfterStop).as("RocksDB databases of the unlogged store after the stop").isEqualTo(plainDatabases);
+        softly.assertThat(timestampedDatabasesAfterStop).as("RocksDB databases of the timestamped store after the stop").isEqualTo(timestampedDatabases);
+        softly.assertThat(markerAfterStop).as("marker file written after the stop").isFalse();
         softly.assertThat(result).as("read with logging: false").isEqualTo(EXPECTED);
         softly.assertAll();
     }
