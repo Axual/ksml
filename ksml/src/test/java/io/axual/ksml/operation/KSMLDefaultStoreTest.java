@@ -20,11 +20,15 @@ package io.axual.ksml.operation;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.testutil.KSMLDriver;
 import io.axual.ksml.testutil.KSMLTest;
 import io.axual.ksml.testutil.KSMLTestExtension;
 import io.axual.ksml.testutil.KSMLTopic;
 import org.apache.kafka.streams.TestInputTopic;
 import org.apache.kafka.streams.TestOutputTopic;
+import org.apache.kafka.streams.TopologyTestDriver;
+import org.apache.kafka.streams.state.TimestampedKeyValueStore;
+import org.apache.kafka.streams.state.TimestampedKeyValueStoreWithHeaders;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.extension.ExtendWith;
 
@@ -46,19 +50,35 @@ public class KSMLDefaultStoreTest {
     @KSMLTopic(topic = "default_store_output")
     TestOutputTopic<String, String> output;
 
+    @KSMLDriver
+    TopologyTestDriver driver;
+
     @KSMLTest(topology = "pipelines/test-default-store-python.yaml")
     @DisplayName("get() and all() on a store without options give the same results as before the new defaults")
     void defaultStoreKeepsPythonBehavior() {
-        input.pipeInput("trigger", "go", 1000L);
+        checkPythonResults();
 
-        final var lines = List.of(output.readValuesToList().getFirst().split("\\n"));
-        final var expected = " get={'count': 1} missing=None all={'key': 'a', 'value': {'count': 1}};{'key': 'b', 'value': {'count': 2}}";
-        assertThat(lines).containsExactly("default" + expected, "old_default" + expected);
+        // Python gives the same results, so check that the store without options really got the new defaults
+        final var stores = driver.getAllStateStores();
+        assertThat(stores.get("default_store").persistent()).as("default_store is persistent").isTrue();
+        assertThat(stores.get("default_store")).as("default_store").isInstanceOf(TimestampedKeyValueStore.class);
+        assertThat(stores.get("old_default_store").persistent()).as("old_default_store is persistent").isFalse();
+        assertThat(stores.get("old_default_store")).as("old_default_store").isNotInstanceOf(TimestampedKeyValueStore.class);
     }
 
     @KSMLTest(topology = "pipelines/test-default-store-python.yaml", headersStoreFormat = true)
     @DisplayName("get() and all() on a store without options give the same results, also with the headers store format")
     void defaultStoreKeepsPythonBehaviorWithHeadersStoreFormat() {
-        defaultStoreKeepsPythonBehavior();
+        checkPythonResults();
+        assertThat(driver.getAllStateStores().get("default_store")).as("default_store")
+                .isInstanceOf(TimestampedKeyValueStoreWithHeaders.class);
+    }
+
+    private void checkPythonResults() {
+        input.pipeInput("trigger", "go", 1000L);
+
+        final var lines = List.of(output.readValuesToList().getFirst().split("\\n"));
+        final var expected = " get={'count': 1} missing=None all={'key': 'a', 'value': {'count': 1}};{'key': 'b', 'value': {'count': 2}}";
+        assertThat(lines).containsExactly("default" + expected, "old_default" + expected);
     }
 }
