@@ -172,6 +172,8 @@ class WindowStoreUpgradeIT {
         runner = new KSMLRunnerWrapper(workDirectory.resolve(RUNNER_CONFIG), Map.of());
         runner.start();
         final var exitCode = runner.waitForExit(Duration.ofSeconds(60));
+        // Does nothing when KSML stopped by itself; kills it when it did not, so the next run gets the state directory
+        runner.stop();
         runner = null;
         // Taken before the run with logging: false below, which writes the marker and rebuilds the timestamped store
         final var plainDatabasesAfterStop = rocksDbIdentities(plainStoreDirectory);
