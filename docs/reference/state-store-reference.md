@@ -88,10 +88,11 @@ kafka:
   dsl.store.format: HEADERS
 ```
 
-This applies to stores that are persistent and timestamped (both are the default), whether an operation materializes
-them or Python functions use them, and to the window stores of stream-stream joins. It does not apply to in-memory
-stores (`persistent: false`), stores with `timestamped: false` and versioned stores: Kafka Streams has no
-headers-aware format for them. Session stores are headers-aware when they are persistent. With the default value
+This applies to key-value and window stores that are persistent and timestamped (both are the default), whether an
+operation materializes them or Python functions use them, and to the window stores of stream-stream joins. It does not
+apply to in-memory stores (`persistent: false`), key-value and window stores with `timestamped: false`, and versioned
+stores: Kafka Streams has no headers-aware format for them. Session stores are not timestamped, so they are
+headers-aware when they are persistent. With the default value
 `DEFAULT`, no store is headers-aware. Python functions use headers-aware stores with the same methods as before; see
 [Headers-Aware Stores](#headers-aware-stores). The [KSML test runner](../getting-started/testing-your-pipeline.md)
 always uses `DEFAULT`.
@@ -492,7 +493,8 @@ A negative timestamp in `put` raises a `ValueError`, as on a timestamped key-val
 
 ### Headers-Aware Stores
 
-With [`dsl.store.format: HEADERS`](#store-format), persistent stores keep the record headers with each value. Python
+With [`dsl.store.format: HEADERS`](#store-format), the stores that [Store Format](#store-format) lists keep the record
+headers with each value. Python
 uses them with the same methods, and gets the same results, as without headers:
 
 - A key-value store has the methods of a [timestamped key-value store](#timestamped-key-value-stores).

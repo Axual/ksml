@@ -320,8 +320,8 @@ What changes for a running application:
 * **The first start checks the 1.x state once.** KSML takes `timestamped: true` and `logging: true` to be the options of 1.x. Except where the check asks you to set `logging`, upgrade with the store options of 1.x and change them after the first start. Once the check passes, KSML writes the file `.ksml-store-format` in `<storageDirectory>/<application.id>` and does not check again. If you go back to KSML 1.x and then upgrade again, delete this file first.
 
 KSML now also follows the Kafka Streams setting `dsl.store.format`. With `dsl.store.format: HEADERS` in the `kafka`
-section of the runner config, declared stores that are persistent and timestamped keep the record headers with each
-value. The default (`DEFAULT`) changes nothing, so you only need to act if you set it: switch the format only on a new
+section of the runner config, declared key-value and window stores that are persistent and timestamped, and persistent
+session stores, keep the record headers with each value. The default (`DEFAULT`) changes nothing, so you only need to act if you set it: switch the format only on a new
 application or after a reset, because existing state keeps its old format. See
 [Store Format](reference/state-store-reference.md#store-format).
 

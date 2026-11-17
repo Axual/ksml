@@ -66,7 +66,7 @@ The runner SHALL use `ksml.storageDirectory` as the Kafka Streams `state.dir`. W
 - **THEN** no warning is logged
 
 ### Requirement: Store format follows dsl.store.format
-When the runner's Kafka config sets `dsl.store.format` to `HEADERS`, declared stores that are persistent, timestamped and not versioned SHALL be built in the headers-aware format. Other stores, and all stores when the setting is absent or `DEFAULT`, SHALL keep the non-headers format.
+When the runner's Kafka config sets `dsl.store.format` to `HEADERS`, declared keyValue and window stores that are persistent, timestamped and not versioned, and declared session stores that are persistent, SHALL be built in the headers-aware format. Other stores, and all stores when the setting is absent or `DEFAULT`, SHALL keep the non-headers format.
 
 #### Scenario: Headers format for a default store
 - **WHEN** `dsl.store.format` is `HEADERS` and a keyValue, window or session store is declared without options
@@ -77,8 +77,12 @@ When the runner's Kafka config sets `dsl.store.format` to `HEADERS`, declared st
 - **THEN** the store is a timestamped store without headers
 
 #### Scenario: Stores excluded from the headers format
-- **WHEN** `dsl.store.format` is `HEADERS` and a store is declared with `persistent: false`, with `timestamped: false`, or with `versioned: true`
+- **WHEN** `dsl.store.format` is `HEADERS` and a keyValue or window store is declared with `persistent: false`, with `timestamped: false`, or with `versioned: true`, or a session store is declared with `persistent: false`
 - **THEN** the store is built without the headers-aware format
+
+#### Scenario: Session store with timestamped false
+- **WHEN** `dsl.store.format` is `HEADERS` and a persistent session store is declared with `timestamped: false`
+- **THEN** the store is built in the headers-aware format, because session stores are not timestamped
 
 ### Requirement: Shared join store follows the join stores' logging
 The shared store of a stream-stream left or outer join SHALL NOT log to a changelog topic when both declared join stores have `logging` false, and SHALL log in all other cases.

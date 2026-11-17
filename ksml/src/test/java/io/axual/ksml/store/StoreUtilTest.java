@@ -233,6 +233,14 @@ class StoreUtilTest {
     }
 
     @Test
+    @DisplayName("with the headers format, a persistent session store with timestamped: false is headers-aware, as session stores are not timestamped")
+    void headersFormatSessionStoreIgnoresTimestamped() {
+        final var store = new SessionStateStoreDefinition("store", null, false, Duration.ofSeconds(60), UNKNOWN, UNKNOWN, null, null);
+        assertThat(StoreUtil.getStoreBuilder(store, true).build()).isInstanceOf(SessionStoreWithHeaders.class);
+        assertThat(materializedSupplier(StoreUtil.materialize(store, true))).isInstanceOf(HeadersBytesStoreSupplier.class);
+    }
+
+    @Test
     @DisplayName("with the headers format, a join window store gets a headers-aware supplier")
     void headersFormatJoinStore() {
         final var store = new WindowStateStoreDefinition("store", null, null, Duration.ofSeconds(2), Duration.ofSeconds(2), true, UNKNOWN, UNKNOWN, null, null);
