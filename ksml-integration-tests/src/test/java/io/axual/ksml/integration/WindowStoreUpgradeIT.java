@@ -360,7 +360,7 @@ class WindowStoreUpgradeIT {
             return admin.describeConsumerGroups(List.of(applicationId())).all().get().get(applicationId()).members().stream()
                     .map(MemberDescription::consumerId)
                     .collect(Collectors.toSet());
-        } catch (ExecutionException e) {
+        } catch (ExecutionException _) {
             // The group does not exist yet
             return Set.of();
         }
@@ -387,7 +387,7 @@ class WindowStoreUpgradeIT {
         final var partition = new TopicPartition(applicationId() + "-" + store + "-changelog", 0);
         try {
             return admin.listOffsets(Map.of(partition, OffsetSpec.latest())).all().get().get(partition).offset();
-        } catch (ExecutionException e) {
+        } catch (ExecutionException _) {
             return 0;
         }
     }

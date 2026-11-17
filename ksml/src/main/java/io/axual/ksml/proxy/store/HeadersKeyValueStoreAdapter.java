@@ -100,7 +100,7 @@ class HeadersKeyValueStoreAdapter extends AbstractHeadersStoreAdapter<Timestampe
     }
 
     @Override
-    public <PS extends Serializer<P>, P> KeyValueIterator<Object, ValueAndTimestamp<Object>> prefixScan(P prefix, PS prefixKeySerializer) {
+    public <S extends Serializer<P>, P> KeyValueIterator<Object, ValueAndTimestamp<Object>> prefixScan(P prefix, S prefixKeySerializer) {
         return withoutHeaders(delegate.prefixScan(prefix, prefixKeySerializer));
     }
 

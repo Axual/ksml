@@ -33,6 +33,7 @@ import java.util.Collection;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -104,30 +105,11 @@ public final class StoreUpgrade {
 
         try {
             final var tasks = taskDirectories(applicationDirectory);
+            final var restorable = restorableTasks(unreadableStores, tasks);
             final var problems = new ArrayList<String>();
-            final var restorable = new LinkedHashMap<Path, List<StateStoreDefinition>>();
-            for (final var store : unreadableStores) {
-                final var storeTasks = tasks.stream().filter(task -> hasWindowState(task, store.name())).toList();
-                if (storeTasks.isEmpty()) continue;
-                if (Boolean.TRUE.equals(store.declaredLogging())) {
-                    storeTasks.forEach(task -> restorable.computeIfAbsent(task, _ -> new ArrayList<>()).add(store));
-                } else {
-                    problems.add(unreadableProblem(store, storeTasks));
-                }
-            }
-            for (final var store : unloggedStores) {
-                final var storeTasks = tasks.stream().filter(task -> hasLocalState(task, store.name())).toList();
-                if (!storeTasks.isEmpty()) problems.add(unloggedProblem(store, storeTasks));
-            }
-            if (wipesTasks) {
-                for (final var entry : restorable.entrySet()) {
-                    final var task = entry.getKey();
-                    final var keptStores = stores.stream()
-                            .filter(store -> store.persistent() && !store.logging() && hasLocalState(task, store.name()))
-                            .toList();
-                    if (!keptStores.isEmpty()) problems.add(wipedTaskProblem(task, entry.getValue(), keptStores));
-                }
-            }
+            problems.addAll(unreadableProblems(unreadableStores, tasks));
+            problems.addAll(unloggedProblems(unloggedStores, tasks));
+            if (wipesTasks) problems.addAll(wipedTaskProblems(restorable, stores));
             if (!problems.isEmpty()) {
                 throw new ExecutionException("KSML 1.x left local state in " + applicationDirectory
                         + " that this version would lose. Nothing was changed. Fix these stores and start again, see the guide 'Upgrading to 2.0.0':\n"
@@ -161,6 +143,49 @@ public final class StoreUpgrade {
 
     private static boolean hasLocalState(Path task, String store) {
         return Files.exists(task.resolve(store)) || Files.exists(task.resolve(KEY_VALUE_STORE_DIRECTORY).resolve(store));
+    }
+
+    /** The tasks with 1.x state of unreadable window stores that have a changelog, with those stores. */
+    private static Map<Path, List<StateStoreDefinition>> restorableTasks(List<? extends StateStoreDefinition> unreadableStores, List<Path> tasks) {
+        final var restorable = new LinkedHashMap<Path, List<StateStoreDefinition>>();
+        for (final var store : unreadableStores) {
+            if (!Boolean.TRUE.equals(store.declaredLogging())) continue;
+            tasks.stream()
+                    .filter(task -> hasWindowState(task, store.name()))
+                    .forEach(task -> restorable.computeIfAbsent(task, _ -> new ArrayList<>()).add(store));
+        }
+        return restorable;
+    }
+
+    private static List<String> unreadableProblems(List<? extends StateStoreDefinition> unreadableStores, List<Path> tasks) {
+        final var problems = new ArrayList<String>();
+        for (final var store : unreadableStores) {
+            if (Boolean.TRUE.equals(store.declaredLogging())) continue;
+            final var storeTasks = tasks.stream().filter(task -> hasWindowState(task, store.name())).toList();
+            if (!storeTasks.isEmpty()) problems.add(unreadableProblem(store, storeTasks));
+        }
+        return problems;
+    }
+
+    private static List<String> unloggedProblems(List<? extends StateStoreDefinition> unloggedStores, List<Path> tasks) {
+        final var problems = new ArrayList<String>();
+        for (final var store : unloggedStores) {
+            final var storeTasks = tasks.stream().filter(task -> hasLocalState(task, store.name())).toList();
+            if (!storeTasks.isEmpty()) problems.add(unloggedProblem(store, storeTasks));
+        }
+        return problems;
+    }
+
+    private static List<String> wipedTaskProblems(Map<Path, List<StateStoreDefinition>> restorable, Collection<? extends StateStoreDefinition> stores) {
+        final var problems = new ArrayList<String>();
+        for (final var entry : restorable.entrySet()) {
+            final var task = entry.getKey();
+            final var keptStores = stores.stream()
+                    .filter(store -> store.persistent() && !store.logging() && hasLocalState(task, store.name()))
+                    .toList();
+            if (!keptStores.isEmpty()) problems.add(wipedTaskProblem(task, entry.getValue(), keptStores));
+        }
+        return problems;
     }
 
     private static String unloggedProblem(StateStoreDefinition store, List<Path> tasks) {
