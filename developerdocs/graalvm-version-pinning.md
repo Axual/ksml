@@ -7,10 +7,9 @@ KSML runs Python code with GraalVM. GraalVM reaches KSML in two ways:
 | Java libraries (`org.graalvm.polyglot`, `org.graalvm.python`, `org.graalvm.truffle`) | `<graalvm.version>` in `pom.xml` | Maven Central |
 | The Java runtime that the Docker image and CI run on | `.graalvm-jdk-version` | GitHub releases of `graalvm/graalvm-ce-builds` |
 
-Both must have the same version. The libraries do not work on a runtime of another GraalVM
-release. With libraries 25.0.5.0.3 on runtime 25.5.5.0.3, every Python context fails to start
-(`UnsatisfiedLinkError` in `LibGraalScope`). `scripts/graalvm-tarballs.sh` stops the build when
-the two files do not agree.
+Use the same version for both. Mixing releases can fail: with libraries 25.0.5.0.3 on runtime
+25.5.5.0.3, every Python context fails to start (`UnsatisfiedLinkError` in `LibGraalScope`).
+`scripts/graalvm-tarballs.sh` stops the build when the two files do not agree.
 
 We ship GraalVM Community Edition (GPLv2 with Classpath Exception). Oracle GraalVM has another
 licence (GFTC). Do not switch to it by accident: in GitHub Actions, the distribution is
@@ -27,7 +26,8 @@ After that, GraalVM Community only has "innovation" releases, tagged `graal-<ver
 | `graal-25.5.5.0.3` | 25.0.5.0.3 | `graalvm-community-jdk-25i5-25.0.5.0.3_linux-x64_bin.tar.gz` |
 
 Maven Central also has library versions such as `25.0.3` and `25.0.5.0.3`. These belong to the
-Oracle GraalVM 25.0 line. There is no GraalVM Community runtime for them, so we cannot use them.
+Oracle GraalVM 25.0 line. There is no GraalVM Community runtime for them, so `.graalvm-jdk-version`
+cannot hold them.
 The innovation releases have the same version on Maven Central and on GitHub (for example
 `25.5.5.0.3`), so both files can hold the same number.
 
@@ -62,10 +62,10 @@ The innovation releases have the same version on Maven Central and on GitHub (fo
 ## How to upgrade GraalVM
 
 1. Pick a release from <https://github.com/graalvm/graalvm-ce-builds/releases>.
-2. Set it in `.graalvm-jdk-version` and in `<graalvm.version>` in `pom.xml`. If the Java version
-   changes, also change `java-version` in the three workflows that use `graalvm/setup-graalvm`.
-   Dependabot sends GraalVM library bumps as their own pull request (group `graalvm`). Add the
-   `.graalvm-jdk-version` change to that pull request.
+2. Set it in `.graalvm-jdk-version` and in `<graalvm.version>` in `pom.xml`. The workflows take the
+   Java version from the first number of `.graalvm-jdk-version`. Dependabot sends GraalVM library
+   bumps as their own pull request (group `graalvm`). Add the `.graalvm-jdk-version` change to that
+   pull request.
 3. Run `scripts/graalvm-tarballs.sh check`. It checks that both versions agree and that both
    Linux files exist.
 4. Run the full test suite on the new runtime. `PythonContextTest` covers the sandbox. Its

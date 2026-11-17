@@ -26,7 +26,7 @@ Before you upgrade, check each item below:
 * Check `reduce` and `aggregate` functions that handle `None`, and functions that return `None`: tombstones are now handled like in Kafka Streams.
 * Check consumers of topics that get empty `json` or union keys or values, and `valueJoiner`s that read such a table: an empty key or value is no longer a `null` key or a tombstone.
 * Check your Python code and `modulePath` modules for modules that Python 3.13 removed, such as `cgi`, `telnetlib`, `imghdr` and `pipes`.
-* If you set `allowNativeAccess: true`, check that only one Python context imports C extension modules such as `ctypes`.
+* If you set `allowNativeAccess: true`, check that only one definition file imports C extension modules such as `ctypes`, and that this file does not have both pipelines and producers.
 * If you build your own code on top of the KSML libraries, update the Jackson package names.
 * If you use `KeyValueIteratorProxy` or `WindowStoreIteratorProxy`, use `StoreIteratorProxy` instead, and create store proxies with `ProxyUtil.wrapStateStore`.
 * If you extend `OperationProcessor` or `FixedKeyOperationProcessor`, implement `processRecord` instead of `process`.

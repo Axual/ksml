@@ -258,7 +258,7 @@
         },
         "allowNativeAccess" : {
           "type" : "boolean",
-          "description" : "Allow Graal native access / JNI. Default is false.",
+          "description" : "Allow Graal native access / JNI. Only one Python context can load C extension modules. Default is false.",
           "default" : false
         },
         "inheritEnvironmentVariables" : {

@@ -41,7 +41,7 @@ Major dependency upgrades. This release moves KSML to Jackson 3, Apicurio Regist
 * The Apicurio notations (`apicurio_avro`, `apicurio_jsonschema`, `apicurio_protobuf`) keep the same on-wire format as 1.x. KSML still pins the serde options explicitly (updated to the Apicurio v3 config keys) rather than depending on the Apicurio v3 defaults, so the schema id stays a 4-byte content id in the payload with no Kafka headers. Verified on 2.0.0 for all three notations. No topic reprocessing is needed. Set `apicurio.registry.headers.enabled: true` if you want the header-based id format instead.
 * Runner config validation is strict again: an unknown or misspelled key in `ksml-runner.yaml` fails at startup instead of being silently ignored (Jackson 3 changed this default, so KSML re-enables the strict check).
 * Upgraded Kafka Streams and the Kafka clients from 4.3 to 4.4.0.
-* Upgraded GraalVM from 25.0.2 to 25.5.5.0.3 (OpenJDK 25.0.5). Python code now runs on Python 3.13 instead of 3.12. Some old modules are gone, for example `cgi`, `telnetlib`, `imghdr` and `pipes`.
+* Breaking change: upgraded GraalVM from 25.0.2 to 25.5.5.0.3 (OpenJDK 25.0.5). Python code now runs on Python 3.13 instead of 3.12, and some old Python modules are gone. See [Upgrading to 2.0.0](migration-to-2.0.0.md).
 * Breaking change: with `allowNativeAccess: true`, only one Python context in a KSML process can load C extension modules such as `ctypes`. See [Upgrading to 2.0.0](migration-to-2.0.0.md).
 * Moved off the deprecated Kafka Streams error-handler, admin, stream partitioner and globalTable join APIs.
 * A `streamPartitioner` function now gets the record headers in a new `headers` parameter, before `numPartitions`, in the order that Kafka Streams uses.
