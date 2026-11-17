@@ -289,8 +289,9 @@ A few hand-written parsers keep reading and schema apart, so they need care:
   `knownFields` allows any field, so that `parse()` can report "A branch inside a branch is not
   supported yet" instead of unknown fields.
 
-A field that a parser reads but leaves out of its schema is rejected as unknown, and the tests
-that parse all test definitions and examples catch that.
+A field that a parser reads but leaves out of its schema is rejected as unknown.
+`AllDefinitionsParseTest` (in `ksml`) catches that: it parses every definition in
+`ksml/src/test/resources`, `examples/` and the docs examples, and fails on any unknown field.
 
 ## 5. Class/interface map
 

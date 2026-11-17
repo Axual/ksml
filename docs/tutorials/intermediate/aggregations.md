@@ -110,8 +110,8 @@ store:
   name: my_aggregate_store
   type: keyValue
   caching: true           # Enable caching to reduce downstream updates
-  loggingDisabled: false  # Keep changelog for fault tolerance (default: false)
-  persistent: true        # Use RocksDB for persistence (default: true)
+  logging: true           # Keep changelog for fault tolerance (default: false)
+  persistent: true        # Use RocksDB for persistence (default: false)
 ```
 
 #### Window Stores
@@ -621,7 +621,7 @@ Overlapping, fixed-size windows that advance by a hop interval.
 - type: windowByTime
   windowType: hopping
   duration: 1h    # Window size
-  advance: 15m    # Hop interval
+  advanceBy: 15m  # Hop interval
   grace: 5m
 ```
 

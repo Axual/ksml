@@ -260,8 +260,9 @@ via:
     if: is_valid_order
   - type: mapValues     # Transform record values
     mapper: enrich_order
-  - type: join          # Combine with other streams
-    with: customers
+  - type: join          # Combine with a table
+    table: customers
+    valueJoiner: add_customer
 ```
 
 For complete operation documentation, see [Operation Reference](operation-reference.md).

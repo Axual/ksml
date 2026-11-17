@@ -51,7 +51,7 @@ Every field that the parser reads SHALL be part of the parser's schema, so that 
 
 #### Scenario: Existing definitions and examples
 - **WHEN** the test definitions, the docs examples and the files in `examples/` are parsed
-- **THEN** they all parse successfully
+- **THEN** none of them fails with an unknown field (some test definitions fail on purpose, for other reasons)
 
 #### Scenario: Objects that allow any field
 - **WHEN** an object is parsed by a parser whose schema allows additional fields
