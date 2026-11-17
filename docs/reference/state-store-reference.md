@@ -427,10 +427,10 @@ time is the window start for window stores and the session end for session store
 
 ### Timestamped Key-Value Stores
 
-A key-value store with `timestamped: true` keeps a timestamp with each value. The store of a `count`, `aggregate`,
-`reduce` or table (not a versioned table) is also a timestamped store in Python, with or without `timestamped: true`. In Python it has the
-same methods as a plain key-value store, and they return the same results, so the same code works on both kinds of
-store:
+A key-value store keeps a timestamp with each value, unless it sets `timestamped: false` or is versioned. The store of a
+`count`, `aggregate`, `reduce` or table (not a versioned table) is timestamped in Python even with `timestamped: false`.
+In Python it has the same methods as a plain key-value store, and they return the same results, so the same code works
+on both kinds of store:
 
 - `store.get(key)`, `store.delete(key)` and `store.putIfAbsent(key, value)` return only the value
 - `store.all()`, `store.range(...)`, `store.reverseRange(...)`, `store.reverseAll()` and `store.prefixScan(prefix)`
