@@ -297,6 +297,11 @@ of the two window stores decides whether the shared store gets a changelog topic
 
 KSML logs a warning for each window store with `logging: false`, because its own changelog topic stays.
 
+Kafka Streams names the shared store `<thisStore>-outer-shared-join-store` or `<thisStore>-left-shared-join-store`,
+and keeps it in RocksDB when `thisStore` is persistent. KSML 1.x gave it a changelog topic only when `thisStore` set
+`logging: true`, so the first start after the upgrade checks its local state, see
+[Upgrading to 2.0.0](../migration-to-2.0.0.md#declared-stores-use-the-kafka-streams-defaults).
+
 ### Retention Guidelines
 
 **For Window Aggregations:**

@@ -34,6 +34,7 @@ import io.axual.ksml.runner.config.ApplicationServerConfig;
 import io.axual.ksml.runner.exception.RunnerException;
 import io.axual.ksml.runner.streams.KSMLClientSupplier;
 import io.axual.ksml.store.StoreUpgrade;
+import io.axual.ksml.store.StoreUpgrade.SharedJoinStore;
 import io.axual.utils.headers.cleaning.AxualHeaderCleaningInterceptor;
 import lombok.Builder;
 import lombok.Getter;
@@ -155,7 +156,7 @@ public class KafkaStreamsRunner implements Runner {
         var optimize = streamsProps.getOrDefault(StreamsConfig.TOPOLOGY_OPTIMIZATION_CONFIG, StreamsConfig.OPTIMIZE);
         final var topologyGenerator = new TopologyGenerator(applicationId, (String) optimize, config.pythonContextConfig(), headersStoreFormat(streamsConfig));
         final var topology = topologyGenerator.create(streamsBuilder, config.definitions);
-        checkKsml1StoreState(streamsConfig, applicationId, topologyGenerator.upgradeCheckedStores(), topologyGenerator.userStateStores());
+        checkKsml1StoreState(streamsConfig, applicationId, topologyGenerator.upgradeCheckedStores(), topologyGenerator.userStateStores(), topologyGenerator.sharedJoinStores());
         final var topologyDesc = topology.describe();
         final var ksmlTagEnricher = KsmlTagEnricher.from(topologyDesc);
 
@@ -174,15 +175,17 @@ public class KafkaStreamsRunner implements Runner {
      * and clears window store state that this version can't read, so Kafka Streams restores it from the changelog.
      * This happens once per application state directory.
      *
-     * @param streamsConfig the validated Kafka Streams configuration, with the state directory
-     * @param applicationId the application id, which names the state directory of the application
-     * @param stores        the declared stores, without the stores of stream-stream joins
-     * @param pythonStores  the stores built for Python functions
+     * @param streamsConfig    the validated Kafka Streams configuration, with the state directory
+     * @param applicationId    the application id, which names the state directory of the application
+     * @param stores           the stores to check, see {@link TopologyGenerator#upgradeCheckedStores()}
+     * @param pythonStores     the stores built for Python functions
+     * @param sharedJoinStores the shared stores of stream-stream left and outer joins
      */
     static void checkKsml1StoreState(StreamsConfig streamsConfig, String applicationId,
                                      Collection<? extends StateStoreDefinition> stores,
-                                     Collection<? extends StateStoreDefinition> pythonStores) {
-        StoreUpgrade.prepare(Path.of(streamsConfig.getString(StreamsConfig.STATE_DIR_CONFIG), applicationId), stores, pythonStores, wipesTasks(streamsConfig));
+                                     Collection<? extends StateStoreDefinition> pythonStores,
+                                     Collection<SharedJoinStore> sharedJoinStores) {
+        StoreUpgrade.prepare(Path.of(streamsConfig.getString(StreamsConfig.STATE_DIR_CONFIG), applicationId), stores, pythonStores, sharedJoinStores, wipesTasks(streamsConfig));
     }
 
     /**

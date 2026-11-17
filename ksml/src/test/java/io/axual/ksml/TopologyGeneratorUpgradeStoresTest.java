@@ -30,10 +30,12 @@ import io.axual.ksml.execution.ExecutionContext;
 import io.axual.ksml.generator.TopologyDefinition;
 import io.axual.ksml.generator.YAMLObjectMapper;
 import io.axual.ksml.parser.ParseNode;
+import io.axual.ksml.store.StoreUpgrade.SharedJoinStore;
 import io.axual.ksml.type.UserType;
 import org.apache.kafka.streams.StreamsBuilder;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.NullSource;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -44,6 +46,7 @@ import java.nio.file.Paths;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.tuple;
 
 /** The stores that TopologyGenerator gives to the KSML 1.x upgrade check (AXPD-12445). */
 class TopologyGeneratorUpgradeStoresTest {
@@ -58,7 +61,7 @@ class TopologyGeneratorUpgradeStoresTest {
     @ParameterizedTest(name = "topology.optimization: {0}")
     @NullSource
     @ValueSource(strings = {"none"})
-    @DisplayName("without reuse of table input topics, the upgrade check gets the declared stores, also of a table, but not of stream-stream joins or a global table")
+    @DisplayName("without reuse of table input topics, the upgrade check gets the declared stores, also of a table, but not the window stores of stream-stream joins or a global table")
     void upgradeCheckedStores(String optimization) throws Exception {
         try (final var generator = new TopologyGenerator("upgrade_stores.app", optimization, null)) {
             generator.create(new StreamsBuilder(), Map.of("definition", definition()));
@@ -83,6 +86,23 @@ class TopologyGeneratorUpgradeStoresTest {
 
             assertThat(generator.upgradeCheckedStores()).extracting(StateStoreDefinition::name)
                     .containsExactlyInAnyOrder("python_store", "count_store");
+        }
+    }
+
+    @Test
+    @DisplayName("the upgrade check gets the shared stores of left and outer joins, with the names that Kafka Streams gives them")
+    void sharedJoinStores() throws Exception {
+        try (final var generator = new TopologyGenerator("upgrade_stores.app")) {
+            final var topology = generator.create(new StreamsBuilder(), Map.of("definition", definition()));
+
+            assertThat(generator.sharedJoinStores())
+                    .extracting(SharedJoinStore::name, store -> store.thisStore().name(), store -> store.otherStore().name())
+                    .containsExactlyInAnyOrder(
+                            tuple("this_store-outer-shared-join-store", "this_store", "other_store"),
+                            tuple("left_this_store-left-shared-join-store", "left_this_store", "left_other_store"));
+            // The topology has stores with these names, so a rename in Kafka Streams fails this test
+            final var description = topology.describe().toString();
+            assertThat(generator.sharedJoinStores()).allSatisfy(store -> assertThat(description).contains(store.name()));
         }
     }
 

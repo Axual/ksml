@@ -29,9 +29,12 @@ import io.axual.ksml.generator.TopologyAnalyzer;
 import io.axual.ksml.generator.TopologyBuildContext;
 import io.axual.ksml.generator.TopologyDefinition;
 import io.axual.ksml.operation.DualStoreOperation;
+import io.axual.ksml.operation.LeftJoinWithStreamOperation;
+import io.axual.ksml.operation.OuterJoinWithStreamOperation;
 import io.axual.ksml.operation.StoreOperation;
 import io.axual.ksml.operation.StreamOperation;
 import io.axual.ksml.python.PythonContextConfig;
+import io.axual.ksml.store.StoreUpgrade.SharedJoinStore;
 import io.axual.ksml.stream.StreamWrapper;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.streams.StreamsBuilder;
@@ -59,6 +62,7 @@ public class TopologyGenerator implements AutoCloseable {
     private final boolean headersStoreFormat;
     private final List<StateStoreDefinition> userStateStores = new ArrayList<>();
     private final List<StateStoreDefinition> upgradeCheckedStores = new ArrayList<>();
+    private final List<SharedJoinStore> sharedJoinStores = new ArrayList<>();
     // The contexts of all topologies that this generator created, closed by close()
     private final List<TopologyBuildContext> buildContexts = new ArrayList<>();
 
@@ -94,11 +98,19 @@ public class TopologyGenerator implements AutoCloseable {
 
     /**
      * The declared stores that the last {@link #create} built, without the stores whose KSML 1.x local state has a
-     * changelog whatever {@code logging} says: Kafka Streams always logged the stores of stream-stream joins, and a
-     * table restores from its input topic with topology optimization, as a global table always does.
+     * changelog whatever {@code logging} says: Kafka Streams always logged the window stores of stream-stream joins,
+     * and a table restores from its input topic with topology optimization, as a global table always does.
      */
     public List<StateStoreDefinition> upgradeCheckedStores() {
         return List.copyOf(upgradeCheckedStores);
+    }
+
+    /**
+     * The shared stores of the stream-stream left and outer joins that the last {@link #create} built. Kafka Streams
+     * creates them itself, so they are not declared stores, but their logging depends on the join stores.
+     */
+    public List<SharedJoinStore> sharedJoinStores() {
+        return List.copyOf(sharedJoinStores);
     }
 
     /** Closes the Python contexts of the topologies that this generator created. */
@@ -111,6 +123,7 @@ public class TopologyGenerator implements AutoCloseable {
     public Topology create(StreamsBuilder streamsBuilder, Map<String, TopologyDefinition> definitions) {
         userStateStores.clear();
         upgradeCheckedStores.clear();
+        sharedJoinStores.clear();
         if (definitions.isEmpty()) return null;
 
         final var stores = new TreeMap<String, StateStoreDefinition>();
@@ -133,6 +146,7 @@ public class TopologyGenerator implements AutoCloseable {
             definition.stateStores().forEach((name, store) -> {
                 if (!restorableStores.contains(name)) upgradeCheckedStores.add(store);
             });
+            collectSharedJoinStores(definition, sharedJoinStores);
         });
 
         final var topology = build(streamsBuilder);
@@ -295,11 +309,26 @@ public class TopologyGenerator implements AutoCloseable {
         }));
     }
 
-    // The stores of stream-stream joins: Kafka Streams always logged them, so their KSML 1.x state has a changelog
+    // The window stores of stream-stream joins: Kafka Streams always logged them, so their KSML 1.x state has a
+    // changelog. The shared store of a left or outer join is checked apart, see collectSharedJoinStores
     private static void collectStreamJoinStores(TopologyDefinition definition, Set<String> streamJoinStores) {
         definition.pipelines().forEach((_, pipeline) -> pipeline.chain().forEach(operation -> {
             if (operation instanceof DualStoreOperation dualStoreOperation)
                 addDualStoreNames(dualStoreOperation, streamJoinStores);
+        }));
+    }
+
+    // The shared stores of left and outer stream-stream joins, with the names that Kafka Streams gives them
+    // (OuterStreamJoinStoreFactory: the name of the thisStore supplier, a suffix for the join type, and "-store")
+    private static void collectSharedJoinStores(TopologyDefinition definition, List<SharedJoinStore> sharedJoinStores) {
+        definition.pipelines().forEach((_, pipeline) -> pipeline.chain().forEach(operation -> {
+            final var suffix = switch (operation) {
+                case OuterJoinWithStreamOperation _ -> "-outer-shared-join-store";
+                case LeftJoinWithStreamOperation _ -> "-left-shared-join-store";
+                default -> null;
+            };
+            if (suffix != null && operation instanceof DualStoreOperation join && join.thisStore() != null && join.otherStore() != null)
+                sharedJoinStores.add(new SharedJoinStore(join.thisStore().name() + suffix, join.thisStore(), join.otherStore()));
         }));
     }
 

@@ -843,7 +843,7 @@ class KafkaStreamsRunnerTest {
         props.put(StreamsConfig.STATE_DIR_CONFIG, stateDirectory.toString());
         final var windowStore = new WindowStateStoreDefinition("window_store", true, true, Duration.ofHours(1), Duration.ofMinutes(1), false, UserType.UNKNOWN, UserType.UNKNOWN, false, true);
 
-        KafkaStreamsRunner.checkKsml1StoreState(new StreamsConfig(props), "test-id", List.of(windowStore), List.of(windowStore));
+        KafkaStreamsRunner.checkKsml1StoreState(new StreamsConfig(props), "test-id", List.of(windowStore), List.of(windowStore), List.of());
 
         assertThat(stateDirectory.resolve("test-id").resolve(StoreUpgrade.MARKER_FILE)).exists();
     }

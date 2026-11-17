@@ -25,10 +25,13 @@ import io.axual.ksml.definition.KeyValueStateStoreDefinition;
 import io.axual.ksml.definition.StateStoreDefinition;
 import io.axual.ksml.definition.WindowStateStoreDefinition;
 import io.axual.ksml.exception.ExecutionException;
+import io.axual.ksml.store.StoreUpgrade.SharedJoinStore;
 import io.axual.ksml.type.UserType;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -47,6 +50,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
  */
 class StoreUpgradeTest {
     private static final UserType UNKNOWN = UserType.UNKNOWN;
+    private static final String SHARED_JOIN_STORE = "this_store-outer-shared-join-store";
 
     @TempDir
     Path stateDirectory;
@@ -59,17 +63,30 @@ class StoreUpgradeTest {
         return new KeyValueStateStoreDefinition(name, persistent, null, false, null, null, UNKNOWN, UNKNOWN, false, logging);
     }
 
+    // The shared store of an outer join of the stores 'this_store' and 'other_store'
+    private static SharedJoinStore sharedJoinStore(boolean persistent, Boolean thisLogging, Boolean otherLogging) {
+        return new SharedJoinStore(SHARED_JOIN_STORE, windowStore("this_store", persistent, null, thisLogging), windowStore("other_store", persistent, null, otherLogging));
+    }
+
     private Path applicationDirectory() {
         return stateDirectory.resolve("app");
     }
 
     private void prepare(List<? extends StateStoreDefinition> stores) {
         // As in a topology where Python functions use every store
-        StoreUpgrade.prepare(applicationDirectory(), stores, stores, false);
+        prepare(stores, List.of());
+    }
+
+    private void prepare(List<? extends StateStoreDefinition> stores, List<SharedJoinStore> sharedJoinStores) {
+        StoreUpgrade.prepare(applicationDirectory(), stores, stores, sharedJoinStores, false);
     }
 
     private void prepareWithExactlyOnce(List<? extends StateStoreDefinition> stores) {
-        StoreUpgrade.prepare(applicationDirectory(), stores, stores, true);
+        prepareWithExactlyOnce(stores, List.of());
+    }
+
+    private void prepareWithExactlyOnce(List<? extends StateStoreDefinition> stores, List<SharedJoinStore> sharedJoinStores) {
+        StoreUpgrade.prepare(applicationDirectory(), stores, stores, sharedJoinStores, true);
     }
 
     private Path createWindowStore(String task, String store) throws IOException {
@@ -250,13 +267,72 @@ class StoreUpgradeTest {
         assertThat(kept).exists();
     }
 
+    @ParameterizedTest(name = "thisStore logging: {0}, otherStore logging: {1}")
+    @CsvSource(nullValues = "unset", value = {"unset, unset", "false, unset", "unset, false", "false, true"})
+    @DisplayName("stops for the shared store of a join that had no changelog in KSML 1.x and gets one now, and changes nothing")
+    void stopsForUnloggedSharedJoinState(Boolean thisLogging, Boolean otherLogging) throws IOException {
+        final var shared = createKeyValueStore("0_0", SHARED_JOIN_STORE);
+        final var checkpoint = createCheckpoint("0_0");
+        final var sharedJoinStores = List.of(sharedJoinStore(true, thisLogging, otherLogging));
+
+        assertThatThrownBy(() -> prepare(List.of(), sharedJoinStores))
+                .isInstanceOf(ExecutionException.class)
+                .hasMessageContaining("The shared store '" + SHARED_JOIN_STORE + "' of the join of 'this_store' and 'other_store' has local state in task 0_0")
+                .hasMessageContaining("Set 'logging: false' on both 'this_store' and 'other_store'")
+                .hasMessageContaining("'logging: true' on 'this_store'");
+        assertThat(shared).exists();
+        assertThat(checkpoint).exists();
+        assertThat(marker()).doesNotExist();
+    }
+
+    @ParameterizedTest(name = "thisStore logging: {0}, otherStore logging: {1}")
+    @CsvSource(nullValues = "unset", value = {
+            // Logged in KSML 1.x
+            "true, unset",
+            // Not logged now either
+            "false, false"})
+    @DisplayName("keeps the local state of a shared join store whose changelog does not change")
+    void keepsSharedJoinStateWithoutNewChangelog(Boolean thisLogging, Boolean otherLogging) throws IOException {
+        final var shared = createKeyValueStore("0_0", SHARED_JOIN_STORE);
+
+        prepare(List.of(), List.of(sharedJoinStore(true, thisLogging, otherLogging)));
+
+        assertThat(shared).exists();
+        assertThat(marker()).exists();
+    }
+
+    @Test
+    @DisplayName("marks the state directory of an application whose only persistent stores are join stores")
+    void marksApplicationWithOnlyJoinStores() throws IOException {
+        Files.createDirectories(applicationDirectory().resolve("0_0"));
+
+        prepare(List.of(), List.of(sharedJoinStore(true, null, null)));
+
+        assertThat(marker()).exists();
+    }
+
+    @Test
+    @DisplayName("with exactly-once, stops when clearing a window store would delete a task with a shared join store that keeps its state")
+    void stopsWhenExactlyOnceWipesSharedJoinState() throws IOException {
+        final var window = createWindowStore("0_0", "window_timestamped");
+        final var shared = createKeyValueStore("0_0", SHARED_JOIN_STORE);
+
+        assertThatThrownBy(() -> prepareWithExactlyOnce(List.of(windowStore("window_timestamped", true, true, true)), List.of(sharedJoinStore(true, false, false))))
+                .isInstanceOf(ExecutionException.class)
+                .hasMessageContaining("Task 0_0: KSML clears window store 'window_timestamped'")
+                .hasMessageContaining("'" + SHARED_JOIN_STORE + "' with 'logging: false'");
+        assertThat(window).exists();
+        assertThat(shared).exists();
+        assertThat(marker()).doesNotExist();
+    }
+
     @Test
     @DisplayName("checks only the window stores of Python functions for the KSML 1.x format")
     void checksOnlyPythonWindowStoresForTheFormat() throws IOException {
         final var dslStore = createWindowStore("0_0", "window_dsl");
         final var store = windowStore("window_dsl", true, true, true);
 
-        StoreUpgrade.prepare(applicationDirectory(), List.of(store), List.of(), false);
+        StoreUpgrade.prepare(applicationDirectory(), List.of(store), List.of(), List.of(), false);
 
         assertThat(dslStore).exists();
         assertThat(marker()).exists();
