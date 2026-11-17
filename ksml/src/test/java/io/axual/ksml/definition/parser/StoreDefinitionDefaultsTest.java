@@ -184,6 +184,6 @@ class StoreDefinitionDefaultsTest {
         final var node = nodeOf("name: versioned_store\nkeyType: string\nvalueType: string\nversioned: true\nhistoryRetention: 1h\npersistent: false");
         final var parser = new KeyValueStateStoreDefinitionParser(false, true).parser();
 
-        assertThat(stderrOf(() -> parser.parse(node))).contains("WARN").contains("versioned_store").contains("versioned");
+        assertThat(stderrOf(() -> parser.parse(node))).contains("WARN").contains("'versioned_store'").contains("so it is not versioned");
     }
 }

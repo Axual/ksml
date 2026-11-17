@@ -36,6 +36,7 @@ Before you upgrade, check each item below:
 * If you extend `OperationProcessor` or `FixedKeyOperationProcessor`, implement `processRecord` instead of `process`.
 * If you create a `TimestampedKeyValueStoreProxy` or `TimestampedWindowStoreProxy` yourself, pass a `LongSupplier` that gives the timestamp of the record that is being processed.
 * If you create a `TopologyBuildContext` yourself, or call `StoreUtil.getStoreBuilder`, `StoreUtil.materialize` or `StoreUtil.validatedWindowStore`, pass `headersStoreFormat`: `true` when `dsl.store.format` is `HEADERS`, and the same value for the whole topology. If you call `BaseOperation.streamJoinedOf` in a subclass, pass the `TopologyBuildContext` first.
+* If you call `StateStoreDefinition.caching()`, handle `null`: it means the definition does not set `caching`.
 * If you call `TimestampedWindowStoreProxy.put(key, ValueAndTimestamp, windowStart)`, call `put(key, value, windowStart, timestamp)` instead. A `ValueAndTimestamp` still compiles as the value, but is then stored inside another `ValueAndTimestamp`.
 
 ## Apicurio Registry 3

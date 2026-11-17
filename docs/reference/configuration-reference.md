@@ -400,7 +400,7 @@ properties are supported, except `state.dir`: KSML sets it from `storageDirector
 | `security.protocol` | String | PLAINTEXT | Security protocol (PLAINTEXT, SSL, SASL_*)   |
 | `auto.offset.reset` | String | latest    | Offset reset policy (earliest, latest, none) |
 | `acks`              | String | 1         | Producer acknowledgment mode                 |
-| `dsl.store.format`  | String | DEFAULT   | `HEADERS` builds declared state stores in the headers-aware format. See [Store Format](state-store-reference.md#store-format) |
+| `dsl.store.format`  | String | DEFAULT   | `HEADERS` keeps record headers in the declared stores that support it (persistent; for key-value and window stores also timestamped and not versioned). See [Store Format](state-store-reference.md#store-format) |
 
 ```yaml
 kafka:
