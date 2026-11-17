@@ -39,6 +39,8 @@ import io.axual.ksml.store.StoreType;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 
 public class OuterJoinOperationParser extends BaseJoinOperationParser {
     private final StructsParser<OuterJoinWithStreamOperation> joinStreamParser;
@@ -65,6 +67,13 @@ public class OuterJoinOperationParser extends BaseJoinOperationParser {
             public List<StructSchema> schemas() {
                 return schemas;
             }
+
+            // Only the fields of the chosen join kind. Without a target key, all join fields
+            @Override
+            public Optional<Set<String>> knownFields(ParseNode node) {
+                final var variant = variantByKey(node, joinStreamParser, joinTableParser, null);
+                return variant != null ? variant.knownFields(node) : StructsParser.super.knownFields(node);
+            }
         };
     }
 
@@ -80,9 +89,7 @@ public class OuterJoinOperationParser extends BaseJoinOperationParser {
                 FieldParsers.optional(FieldParsers.durationField(KSMLDSL.Operations.Join.GRACE, "The window grace period (the time to admit out-of-order events after the end of the window)")),
                 storeField(KSMLDSL.Operations.SOURCE_STORE_ATTRIBUTE, true, "Materialized view of the source stream", StoreType.WINDOW_STORE),
                 storeField(KSMLDSL.Operations.OTHER_STORE_ATTRIBUTE, true, "Materialized view of the outerJoined stream", StoreType.WINDOW_STORE),
-                (name, stream, valueJoiner, timeDifference, grace, thisStore, otherStore, tags) -> {
-                    return new OuterJoinWithStreamOperation(dualStoreOperationConfig(name, tags, thisStore, otherStore), targetOf(stream, StreamDefinition.class, "OuterJoin stream not correct, should be a stream"), valueJoiner, timeDifference, grace);
-                });
+                (name, stream, valueJoiner, timeDifference, grace, thisStore, otherStore, tags) -> new OuterJoinWithStreamOperation(dualStoreOperationConfig(name, tags, thisStore, otherStore), targetOf(stream, StreamDefinition.class, "OuterJoin stream not correct, should be a stream"), valueJoiner, timeDifference, grace));
     }
 
     private StructsParser<OuterJoinWithTableOperation> createOuterJoinTableParser() {
@@ -94,8 +101,6 @@ public class OuterJoinOperationParser extends BaseJoinOperationParser {
                 targetField(KSMLDSL.Operations.Join.WITH_TABLE, KSMLDSL.TABLES, "A reference to a defined table or to a table saved with \"as\" in an earlier pipeline, or an inline definition of the table to outerJoin with", new TableDefinitionParser(resources(), true)),
                 functionField(KSMLDSL.Operations.Join.VALUE_JOINER, "A function that joins two values", new ValueJoinerDefinitionParser(false)),
                 storeField(false, "Materialized view of the outerJoined table", StoreType.KEYVALUE_STORE),
-                (name, table, valueJoiner, store, tags) -> {
-                    return new OuterJoinWithTableOperation(storeOperationConfig(name, tags, store), targetOf(table, TableDefinition.class, "OuterJoin table not correct, should be a table"), valueJoiner);
-                });
+                (name, table, valueJoiner, store, tags) -> new OuterJoinWithTableOperation(storeOperationConfig(name, tags, store), targetOf(table, TableDefinition.class, "OuterJoin table not correct, should be a table"), valueJoiner));
     }
 }

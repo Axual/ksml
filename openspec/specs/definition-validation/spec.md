@@ -32,11 +32,15 @@ When a KSML definition contains a field in an object that the parser for that ob
 - **THEN** it stops at start-up with the parse error, and does not start the pipelines
 
 ### Requirement: Fields of another type are not accepted
-For an object whose variant is chosen with a `type` field (operations, functions and stores), parsing SHALL accept only the `type` field and the fields of the chosen variant.
+For an object whose variant is chosen with a `type` field (operations, functions and stores), parsing SHALL accept only the `type` field and the fields of the chosen variant. For a `join`, `leftJoin` or `outerJoin` step, the target key (`stream`, `table` or `globalTable`) chooses the variant in the same way.
 
 #### Scenario: Field of another operation type
 - **WHEN** a pipeline step with `type: filter` contains `duration:`, which is a field of the window operations but not of `filter`
 - **THEN** parsing fails with an error that names the unknown field `duration`
+
+#### Scenario: Field of another join kind
+- **WHEN** a `join` step with `table:` contains `timeDifference:`, which is a field of a join with a stream but not of a join with a table
+- **THEN** parsing fails with an error that names the unknown field `timeDifference`
 
 ### Requirement: Valid definitions keep parsing
 Every field that the parser reads SHALL be part of the parser's schema, so that valid definitions are not rejected and the published language schema accepts the same fields as the parser.

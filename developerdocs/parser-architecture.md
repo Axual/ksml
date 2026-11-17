@@ -278,9 +278,13 @@ A few hand-written parsers keep reading and schema apart, so they need care:
 - **`TopologyDefinitionParser`** reads `name`, `version` and `description` with its own field
   parsers, and adds their fields to the root schema by hand.
 - **`ChoiceParser`** adds the `type` field to the schema by hand.
-- **`ReduceOperationParser`** and **`JoinTargetDefinitionParser`** look at some keys only to
-  decide which variant applies. Without a `type:` field, the known fields are the union of the
-  variants, so a field of a sibling variant is not rejected there.
+- **`JoinOperationParser`**, **`LeftJoinOperationParser`** and **`OuterJoinOperationParser`**
+  combine the schemas of their join kinds (stream, table, globalTable). Their `knownFields`
+  picks the kind by its target key, like `ChoiceParser` does with `type`, so a field of another
+  join kind is rejected. Without a target key, all join fields are known, and `parse()` reports
+  the missing target.
+- **`ReduceOperationParser`** combines the `reducer` and the `adder`/`subtractor` variants, so
+  all their fields are known. `parse()` itself rejects a mix of the two.
 - **`BranchDefinitionParser`**, for a branch inside a branch (not supported yet): its
   `knownFields` allows any field, so that `parse()` can report "A branch inside a branch is not
   supported yet" instead of unknown fields.

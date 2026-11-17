@@ -90,7 +90,16 @@ class UnknownFieldsTest {
             "filter-field-of-other-operation.yaml, duration",
             "inline-topic-unknown-field.yaml,      valuetype",
             "inline-function-unknown-field.yaml,   resultTyp",
-            "print-unknown-field.yaml,             labl"
+            "print-unknown-field.yaml,             labl",
+            // A join accepts only the fields of the join kind that its target key picks
+            "join-stream-with-store.yaml,                 store",
+            "join-table-with-time-difference.yaml,        timeDifference",
+            "join-global-table-with-this-store.yaml,      thisStore",
+            "left-join-stream-with-mapper.yaml,           mapper",
+            "left-join-table-with-other-store.yaml,       otherStore",
+            "left-join-global-table-with-grace.yaml,      grace",
+            "outer-join-stream-with-store.yaml,           store",
+            "outer-join-table-with-grace.yaml,            grace"
     })
     @DisplayName("An unknown field is rejected and named in the error")
     void unknownFieldIsRejected(String file, String unknownFields) {

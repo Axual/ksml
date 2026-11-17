@@ -60,6 +60,18 @@ public abstract class BaseJoinOperationParser extends OperationParser<BaseOperat
         throw new ParseException(node, operation + " stream not found: " + description);
     }
 
+    // The variant that the target key picks, for the unknown-field check. Null if none fits
+    protected static StructsParser<?> variantByKey(ParseNode node,
+                                                   StructsParser<?> streamParser,
+                                                   StructsParser<?> tableParser,
+                                                   StructsParser<?> globalTableParser) {
+        final var key = JoinTargetDefinitionParser.keyOf(node);
+        if (Operations.Join.WITH_STREAM.equals(key)) return streamParser;
+        if (Operations.Join.WITH_TABLE.equals(key)) return tableParser;
+        if (Operations.Join.WITH_GLOBAL_TABLE.equals(key)) return globalTableParser;
+        return null;
+    }
+
     // By definition type, or by key for an "as" name. Null if none fits
     private static StructsParser<? extends BaseOperation> variantOf(TopologyResource<TopicDefinition> target, ParseNode node,
                                                                     StructsParser<? extends BaseOperation> streamParser,
