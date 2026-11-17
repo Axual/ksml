@@ -20,15 +20,18 @@ package io.axual.ksml.operation;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.testutil.KSMLDriver;
 import io.axual.ksml.testutil.KSMLTest;
 import io.axual.ksml.testutil.KSMLTestExtension;
 import io.axual.ksml.testutil.KSMLTopic;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.streams.TestInputTopic;
 import org.apache.kafka.streams.TestOutputTopic;
+import org.apache.kafka.streams.TopologyTestDriver;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.extension.ExtendWith;
 
+import java.util.List;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -46,6 +49,9 @@ public class KSMLOuterJoinTest {
 
     @KSMLTopic(topic = "joined")
     TestOutputTopic<String,String> mergedTopic;
+
+    @KSMLDriver
+    TopologyTestDriver driver;
 
     @KSMLTest(topology = "pipelines/test-outerjoin-reference.yaml")
     @DisplayName("Two topics can be outer joined with function reference")
@@ -70,6 +76,18 @@ public class KSMLOuterJoinTest {
                 .containsEntry("2", "two,zwei")
                 .containsEntry("3", "three,?")
                 .containsEntry("4", "?,vier");
+    }
+
+    @KSMLTest(topology = "pipelines/test-outerjoin-reference-in-memory.yaml")
+    @DisplayName("Two topics can be outer joined with in-memory join stores")
+    void testJoinWithInMemoryStores() {
+        testJoinByReference();
+
+        // Kafka Streams makes the shared store in memory only when it recognizes thisStore's supplier as in memory
+        for (final var store : List.of("left_store", "right_store", "left_store-outer-shared-join-store")) {
+            assertThat(driver.getAllStateStores()).containsKey(store);
+            assertThat(driver.getAllStateStores().get(store).persistent()).as(store).isFalse();
+        }
     }
 
     @KSMLTest(topology = "pipelines/test-outerjoin-reference.yaml", headersStoreFormat = true)
