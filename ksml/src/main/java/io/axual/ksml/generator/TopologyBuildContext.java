@@ -78,10 +78,6 @@ public class TopologyBuildContext implements AutoCloseable {
     private final Map<String, StreamWrapper> streamWrappersByName = new HashMap<>();
     private final Map<String, StreamWrapper> streamWrappersByTopic = new HashMap<>();
 
-    public TopologyBuildContext(StreamsBuilder builder, TopologyResources resources) {
-        this(builder, resources, PythonContextConfig.builder().build(), false);
-    }
-
     public TopologyBuildContext(StreamsBuilder builder,
                                 TopologyResources resources,
                                 PythonContextConfig pcConfig,

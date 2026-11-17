@@ -27,6 +27,7 @@ import io.axual.ksml.execution.ExecutionContext;
 import io.axual.ksml.generator.TopologyBuildContext;
 import io.axual.ksml.generator.TopologyResources;
 import io.axual.ksml.parser.UserTypeParser;
+import io.axual.ksml.python.PythonContextConfig;
 import io.axual.ksml.stream.KTableWrapper;
 import io.axual.ksml.type.UserType;
 import org.apache.kafka.streams.StreamsBuilder;
@@ -61,7 +62,7 @@ class TableDefinitionTest {
         final var tableDefinition = new TableDefinition("topic", stringType, stringType, null, null, null, new KeyValueStateStoreDefinition("storename", stringType, stringType));
         final var resources = new TopologyResources("test");
 
-        try (final var context = new TopologyBuildContext(builder, resources)) {
+        try (final var context = new TopologyBuildContext(builder, resources, PythonContextConfig.builder().build(), false)) {
             // when it adds itself to Builder
             final var streamWrapper = context.getStreamWrapper(tableDefinition);
 
