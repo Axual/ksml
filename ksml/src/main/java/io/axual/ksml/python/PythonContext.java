@@ -67,9 +67,11 @@ public class PythonContext implements AutoCloseable {
     private final Context context;
     @Getter
     private final DataObjectConverter converter;
+    private final boolean allowNativeAccess;
 
     public PythonContext(PythonContextConfig config) {
         this.converter = new DataObjectConverter();
+        this.allowNativeAccess = config.allowNativeAccess();
 
         log.debug("Setting up new Python context: {}", config);
         try {
@@ -132,9 +134,30 @@ public class PythonContext implements AutoCloseable {
         try {
             context.eval(script);
         } catch (Exception e) {
+            final var hint = nativeModuleHint(e);
+            if (hint != null) {
+                log.error(hint);
+            }
             log.error("Error loading Python code", e);
         }
         return context.getPolyglotBindings().getMember(callerName);
+    }
+
+    /**
+     * Explains GraalPy's error when a C extension module cannot load because another Python context
+     * already loaded one. GraalPy's own text names an option that KSML users cannot set.
+     *
+     * @param e the error from Python.
+     * @return a hint for the log, or null when the error is about something else.
+     */
+    public String nativeModuleHint(Throwable e) {
+        final var message = String.valueOf(e.getMessage());
+        if (!message.contains("IsolateNativeModules") && !message.contains("C API initialization has previously failed")) {
+            return null;
+        }
+        return allowNativeAccess
+                ? "Only one Python context per KSML process can load C extension modules such as ctypes, sqlite3 or termios. See allowNativeAccess in the KSML configuration reference."
+                : "C extension modules such as ctypes cannot load, because allowNativeAccess is false.";
     }
 
     /**
@@ -193,29 +216,14 @@ public class PythonContext implements AutoCloseable {
     }
 
     /**
-     * Create an FileSystem object that allows read-only access to the given path and everything below it.
-     * Python's own files (its home) are not handled here: {@link FileSystem#allowInternalResources}
-     * gives read-only access to them before this file system is asked.
+     * Create a FileSystem with read-only access to the given path and everything below it.
+     * Python's own files are allowed by {@link FileSystem#allowInternalResources} before this one is asked.
      * <p>
-     * The selector predicate normalizes both the candidate path and the allowed prefix
-     * (the configured {@code modulePath}) before doing the element-wise
-     * {@link Path#startsWith(Path)} check, to prevent any literal {@code ../..} chain in the
-     * candidate path from escaping.
-     * <p>
-     * Normalization is purely lexical ({@link Path#normalize()}), not symlink-resolving
-     * ({@code toRealPath}). That is safe under the threat model "untrusted Python in the
-     * KSML definition" because the wrapping {@link FileSystem#newReadOnlyFileSystem} denies
-     * the guest any write capability - in particular it cannot create symlinks inside the
-     * allowed region to point outwards. Any symlinks that do exist in {@code modulePath} were
-     * placed there by the operator/image author and are considered intentional. If write access
-     * to the allowed region is ever granted to the guest, this predicate needs to be upgraded to
-     * symlink-resolving canonicalization.
-     * <p>
-     * The {@code modulePath} string passed in is expected to already be canonical
-     * (resolved via {@link Path#toRealPath()} in the constructor).
+     * The selector normalizes paths (lexically), so {@code ../..} cannot escape. Symlinks are not resolved:
+     * that is safe only because the guest cannot write. Change it if write access is ever added.
      *
      * @param modulePath the canonical path where customer Python modules are located.
-     * @return an FileSystem for Python module access that allows read-only access to the given path and everything below it.
+     * @return a FileSystem with read-only access to the given path and everything below it.
      */
     private FileSystem createReadOnlyFileSystem(String modulePath) {
         log.debug("createReadOnlyFileSystem({})", modulePath);

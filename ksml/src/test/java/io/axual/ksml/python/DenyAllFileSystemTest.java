@@ -49,8 +49,9 @@ class DenyAllFileSystemTest {
 
     @Test
     void setCurrentFolderChangesNothing() {
-        FILE_SYSTEM.setCurrentWorkingDirectory(Path.of("/tmp"));
-        assertThat(FILE_SYSTEM.toAbsolutePath(Path.of(""))).isEqualTo(Path.of("/"));
+        final var fileSystem = new DenyAllFileSystem();
+        fileSystem.setCurrentWorkingDirectory(Path.of("/tmp"));
+        assertThat(fileSystem.toAbsolutePath(Path.of(""))).isEqualTo(Path.of("/"));
     }
 
     @Test

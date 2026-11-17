@@ -30,6 +30,7 @@ import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
+import java.lang.management.ManagementFactory;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
@@ -236,13 +237,87 @@ class PythonContextTest {
         }
     }
 
+    // The limit of GraalPy 25.1+ that the docs describe: only one context per process can load C
+    // extension modules. Normal modules still work in the other contexts.
+    @Test
+    void onlyOneContextCanLoadNativeModules() throws Exception {
+        final var output = runInNewJvm(NativeLimitCheck.class);
+        assertThat(output)
+                .containsPattern("first=pid=[1-9][0-9]*")
+                .contains("second=not loaded")
+                .contains("IsolateNativeModules")
+                .contains("Only one Python context per KSML process can load C extension modules")
+                .contains("normal modules=ok");
+    }
+
+    static class NativeLimitCheck {
+        public static void main(String[] args) {
+            final var config = PythonContextConfig.builder().allowNativeAccess(true).build();
+            final var pyCode = """
+                    import polyglot
+                    import ctypes
+                    @polyglot.export_value
+                    def native_pid():
+                        return ctypes.CDLL(None).getpid()
+                    """;
+            try (var first = new PythonContext(config); var second = new PythonContext(config)) {
+                System.out.println("first=pid=" + first.registerFunction(pyCode, "native_pid").execute().asInt());
+                final var fn = second.registerFunction(pyCode, "native_pid");
+                System.out.println("second=" + (fn == null ? "not loaded" : "loaded"));
+                second.context().eval("python", "import json, decimal, uuid, hashlib, zlib");
+                System.out.println("normal modules=ok");
+            }
+        }
+    }
+
+    @Test
+    void testNativeModuleHint() {
+        final var limit = new RuntimeException("SystemError: Option python.IsolateNativeModules is set to 'false' and a second GraalPy context ...");
+        final var later = new RuntimeException("SystemError: The C API initialization has previously failed.");
+        try (var nativeOn = new PythonContext(PythonContextConfig.builder().allowNativeAccess(true).build());
+             var nativeOff = new PythonContext(PythonContextConfig.builder().build())) {
+            assertThat(nativeOn.nativeModuleHint(limit)).startsWith("Only one Python context per KSML process");
+            assertThat(nativeOn.nativeModuleHint(later)).startsWith("Only one Python context per KSML process");
+            assertThat(nativeOff.nativeModuleHint(limit)).contains("allowNativeAccess is false");
+            assertThat(nativeOn.nativeModuleHint(new RuntimeException("NameError: name 'x' is not defined"))).isNull();
+        }
+    }
+
+    // GraalPy 25.1+ asks for the current folder; the sandbox answers "/" and still denies relative paths.
+    @ParameterizedTest
+    @ValueSource(booleans = {true, false})
+    void currentFolderIsRootAndRelativePathsAreDenied(boolean withModulePath, @TempDir Path moduleDir) {
+        final var config = PythonContextConfig.builder()
+                .modulePath(withModulePath ? moduleDir.toString() : null)
+                .build();
+        try (var pythonContext = new PythonContext(config)) {
+            final var pyCode = """
+                    import polyglot
+                    @polyglot.export_value
+                    def check_current_folder():
+                        import os
+                        results = [os.getcwd()]
+                        for mode in ('r', 'w'):
+                            try:
+                                open('x', mode)
+                                results.append('allowed')
+                            except PermissionError:
+                                results.append('denied')
+                        return ' '.join(results)
+                    """;
+            assertThat(pythonContext.registerFunction(pyCode, "check_current_folder").execute().asString())
+                    .isEqualTo("/ denied denied");
+        }
+    }
+
     private static String runInNewJvm(Class<?> mainClass, String... args) throws Exception {
-        final var command = new ArrayList<>(List.of(
-                Path.of(System.getProperty("java.home"), "bin", "java").toString(),
-                "--enable-native-access=ALL-UNNAMED",
-                "--sun-misc-unsafe-memory-access=allow",
-                "-cp", System.getProperty("java.class.path"),
-                mainClass.getName()));
+        final var command = new ArrayList<String>();
+        command.add(Path.of(System.getProperty("java.home"), "bin", "java").toString());
+        // Same JVM flags as this test JVM (native access, JaCoCo), without the debugger
+        ManagementFactory.getRuntimeMXBean().getInputArguments().stream()
+                .filter(arg -> !arg.startsWith("-agentlib:jdwp"))
+                .forEach(command::add);
+        command.addAll(List.of("-cp", System.getProperty("java.class.path"), mainClass.getName()));
         command.addAll(List.of(args));
         final var outputFile = Files.createTempFile("native-access-check", ".log");
         try {
@@ -329,21 +404,9 @@ class PythonContextTest {
     }
 
     /**
-     * Companion to {@link #pythonCannotEscapeModulePathViaDotDot}: the read-only FileSystem
-     * built in {@link PythonContext} permits any path whose elements start with either
-     * {@code modulePath} or {@code sys.prefix}. The {@code sys.prefix} branch is the
-     * interesting one because GraalPy's python-home lives at a canonical, predictable
-     * location. A literal target like
-     * <pre>{@code <sys.prefix>/../../../../../}</pre>
-     * passes the element-wise {@code Path.startsWith} check (its leading elements <em>are</em>
-     * the elements of {@code sys.prefix}), so the only thing standing between the guest and
-     * the host filesystem is whether GraalVM normalizes the path before the selector predicate
-     * fires.
-     * <p>
-     * The {@code ..} chain is appended directly to {@code sys.prefix} - no intermediate
-     * directories - so the test has no dependency on the installed GraalPy version layout.
-     * The test fails (with the leaked directory listing) if the guest successfully read
-     * outside the sandbox.
+     * Companion to {@link #pythonCannotEscapeModulePathViaDotDot}: {@code sys.prefix} is in GraalVM's
+     * resource cache, which {@code FileSystem.allowInternalResources} makes readable. A {@code ../..}
+     * chain after it must not reach other host files.
      */
     @Test
     @DisplayName("Python cannot escape via sys.prefix prefix + ../.. when host file access is disabled")
