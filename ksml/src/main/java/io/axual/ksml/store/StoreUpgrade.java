@@ -240,7 +240,7 @@ public final class StoreUpgrade {
     }
 
     private static String unloggedProblem(StateStoreDefinition store, List<Path> tasks) {
-        return "- Store '" + store.name() + "' has local state in task " + taskNames(tasks)
+        return "- Store '" + store.name() + "'" + hasLocalStateIn(tasks)
                 + " and leaves out 'logging'. In KSML 1.x it had no changelog, now it gets a new, empty one."
                 + " Set 'logging: false' to keep the KSML 1.x behavior, or 'logging: true' to accept a changelog without the old data.";
     }
@@ -250,7 +250,7 @@ public final class StoreUpgrade {
                 .flatMap(task -> Stream.of(task.resolve(store.name()), task.resolve(store.name() + POSITION_FILE_SUFFIX)))
                 .map(Path::toString)
                 .collect(Collectors.joining(", "));
-        return "- Window store '" + store.name() + "' has local state in task " + taskNames(tasks)
+        return "- Window store '" + store.name() + "'" + hasLocalStateIn(tasks)
                 + " that KSML 1.x wrote in a format this version can't read, and no changelog to restore it from."
                 + " Delete " + paths + " (the data is lost), give the store a new name, or set 'logging: true' on KSML 1.x first.";
     }
@@ -259,7 +259,7 @@ public final class StoreUpgrade {
         final var thisStore = store.thisStore().name();
         final var otherStore = store.otherStore().name();
         return "- The shared store '" + store.name() + "' of the join of '" + thisStore + "' and '" + otherStore
-                + "' has local state in task " + taskNames(tasks)
+                + "'" + hasLocalStateIn(tasks)
                 + ". In KSML 1.x it had no changelog, now it gets a new, empty one."
                 + " Set 'logging: false' on both '" + thisStore + "' and '" + otherStore + "' to keep the KSML 1.x behavior,"
                 + " or 'logging: true' on '" + thisStore + "' to accept a changelog without the old data.";
@@ -275,6 +275,10 @@ public final class StoreUpgrade {
 
     private static String quoted(List<String> names) {
         return names.stream().map(name -> "'" + name + "'").collect(Collectors.joining(", "));
+    }
+
+    private static String hasLocalStateIn(List<Path> tasks) {
+        return " has local state in task " + taskNames(tasks);
     }
 
     private static String taskNames(List<Path> tasks) {
