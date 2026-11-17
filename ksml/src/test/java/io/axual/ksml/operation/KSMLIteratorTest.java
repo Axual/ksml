@@ -140,14 +140,16 @@ public class KSMLIteratorTest {
     @DisplayName("store iterators work with Python for, list(), next(), contextlib.closing and hasNext(), and are closed, also with the headers store format")
     void testPythonIterationWithHeadersStoreFormat() {
         testPythonIteration();
-        assertThat(driver.getAllStateStores().values()).anyMatch(store -> store instanceof TimestampedKeyValueStoreWithHeaders<?, ?> || store instanceof TimestampedWindowStoreWithHeaders<?, ?> || store instanceof SessionStoreWithHeaders<?, ?>);
+        assertHeadersAware("kv_rocksdb", TimestampedKeyValueStoreWithHeaders.class);
+        assertHeadersAware("window_rocksdb", TimestampedWindowStoreWithHeaders.class);
+        assertHeadersAware("session_rocksdb", SessionStoreWithHeaders.class);
     }
 
     @KSMLTest(topology = "pipelines/test-store-iterator-early-exit-python.yaml", headersStoreFormat = true)
     @DisplayName("store iterators left open are closed when the function returns, and close() closes only once, also with the headers store format")
     void testEarlyExitClosesIteratorsWithHeadersStoreFormat() {
         testEarlyExitClosesIterators();
-        assertThat(driver.getAllStateStores().values()).anyMatch(store -> store instanceof TimestampedKeyValueStoreWithHeaders<?, ?> || store instanceof TimestampedWindowStoreWithHeaders<?, ?> || store instanceof SessionStoreWithHeaders<?, ?>);
+        assertHeadersAware("early_exit_rocksdb", TimestampedKeyValueStoreWithHeaders.class);
     }
 
     /** The *_plain stores set timestamped: false, so they must stay plain stores, also with the headers store format. */
@@ -157,5 +159,9 @@ public class KSMLIteratorTest {
                     .isNotInstanceOf(TimestampedKeyValueStore.class).isNotInstanceOf(TimestampedKeyValueStoreWithHeaders.class)
                     .isNotInstanceOf(TimestampedWindowStore.class).isNotInstanceOf(TimestampedWindowStoreWithHeaders.class);
         }
+    }
+
+    private void assertHeadersAware(String name, Class<?> type) {
+        assertThat(driver.getAllStateStores().get(name)).as(name).isInstanceOf(type);
     }
 }

@@ -86,6 +86,8 @@ public class KSMLKeyValueStoreMethodsTest {
     @DisplayName("Key-value store methods work from Python on in-memory, RocksDB and cached stores, plain and timestamped, also with the headers store format")
     void testKeyValueStoreMethodsWithHeadersStoreFormat() {
         testKeyValueStoreMethods();
-        assertThat(driver.getAllStateStores().values()).anyMatch(store -> store instanceof TimestampedKeyValueStoreWithHeaders<?, ?>);
+        for (final var name : List.of("ts_rocksdb", "ts_rocksdb_copy", "ts_cached", "ts_cached_copy")) {
+            assertThat(driver.getAllStateStores().get(name)).as(name).isInstanceOf(TimestampedKeyValueStoreWithHeaders.class);
+        }
     }
 }

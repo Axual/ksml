@@ -30,6 +30,8 @@ import org.apache.kafka.streams.state.SessionStoreWithHeaders;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.extension.ExtendWith;
 
+import java.util.List;
+
 import static io.axual.ksml.testutil.StoreMetrics.openIterators;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -93,6 +95,8 @@ public class KSMLSessionStoreMethodsTest {
     @DisplayName("Session store methods work from Python on in-memory and RocksDB stores, and close their iterators, also with the headers store format")
     void testSessionStoreMethodsWithHeadersStoreFormat() {
         testSessionStoreMethods();
-        assertThat(driver.getAllStateStores().values()).anyMatch(store -> store instanceof SessionStoreWithHeaders<?, ?>);
+        for (final var name : List.of("session_rocksdb", "session_keys_rocksdb")) {
+            assertThat(driver.getAllStateStores().get(name)).as(name).isInstanceOf(SessionStoreWithHeaders.class);
+        }
     }
 }

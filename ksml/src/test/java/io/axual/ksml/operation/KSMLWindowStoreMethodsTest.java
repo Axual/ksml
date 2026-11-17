@@ -106,6 +106,6 @@ public class KSMLWindowStoreMethodsTest {
     @DisplayName("Window store methods work from Python on in-memory and RocksDB stores, and close their iterators, also with the headers store format")
     void testWindowStoreMethodsWithHeadersStoreFormat() {
         testWindowStoreMethods();
-        assertThat(driver.getAllStateStores().values()).anyMatch(store -> store instanceof TimestampedWindowStoreWithHeaders<?, ?>);
+        assertThat(driver.getAllStateStores().get("window_rocksdb")).as("window_rocksdb").isInstanceOf(TimestampedWindowStoreWithHeaders.class);
     }
 }

@@ -99,13 +99,13 @@ public class KSMLTimestampedWindowStoreMethodsTest {
     @DisplayName("Timestamped window stores have the window store API plus *WithTimestamp methods, on in-memory and RocksDB stores, also with the headers store format")
     void testTimestampedWindowStoreMethodsWithHeadersStoreFormat() {
         testTimestampedWindowStoreMethods();
-        assertThat(driver.getAllStateStores().values()).anyMatch(store -> store instanceof TimestampedWindowStoreWithHeaders<?, ?>);
+        assertThat(driver.getAllStateStores().get("window_rocksdb")).as("window_rocksdb").isInstanceOf(TimestampedWindowStoreWithHeaders.class);
     }
 
     @KSMLTest(topology = "pipelines/test-timestamped-window-store-avro-put-python.yaml", schemaDirectory = "schemas", headersStoreFormat = true)
     @DisplayName("put() writes an Avro value from Python to a timestamped window store, also with the headers store format")
     void testPutAvroValueWithHeadersStoreFormat() {
         testPutAvroValue();
-        assertThat(driver.getAllStateStores().values()).anyMatch(store -> store instanceof TimestampedWindowStoreWithHeaders<?, ?>);
+        assertThat(driver.getAllStateStores().get("window_avro")).as("window_avro").isInstanceOf(TimestampedWindowStoreWithHeaders.class);
     }
 }
