@@ -66,7 +66,6 @@ public class KSMLStreamJoinLoggingTest {
         generators.forEach(TopologyGenerator::close);
     }
 
-
     @KSMLTopic(topic = "input1")
     TestInputTopic<String, String> input1;
 
@@ -103,16 +102,10 @@ public class KSMLStreamJoinLoggingTest {
         final var log = stderrOf(() -> topology.set(buildTopology("pipelines/test-stream-join-logging-off.yaml")));
 
         assertThat(log).contains(warning("this_store")).contains(warning("other_store")).doesNotContain("shared store");
-        try (var driver = new TopologyTestDriver(topology.get())) {
-            driver.createInputTopic("input1", new StringSerializer(), new StringSerializer()).pipeInput("a", "left", 1000L);
-            driver.createInputTopic("input2", new StringSerializer(), new StringSerializer()).pipeInput("b", "right", 1000L);
-
-            final var changelogs = driver.producedTopicNames().stream().filter(topic -> topic.endsWith("-changelog")).toList();
-            assertThat(changelogs).hasSize(2)
-                    .anyMatch(topic -> topic.endsWith("-this_store-changelog"))
-                    .anyMatch(topic -> topic.endsWith("-other_store-changelog"))
-                    .noneMatch(topic -> topic.contains("outer-shared-join"));
-        }
+        assertThat(changelogsAfterUnmatchedRecords(topology.get())).hasSize(2)
+                .anyMatch(topic -> topic.endsWith("-this_store-changelog"))
+                .anyMatch(topic -> topic.endsWith("-other_store-changelog"))
+                .noneMatch(topic -> topic.contains("outer-shared-join"));
     }
 
     @Test
@@ -122,12 +115,48 @@ public class KSMLStreamJoinLoggingTest {
         final var log = stderrOf(() -> topology.set(buildTopology("pipelines/test-stream-join-logging-mixed.yaml")));
 
         assertThat(log).contains(warning("other_store")).doesNotContain("this_store").doesNotContain("shared store");
-        try (var driver = new TopologyTestDriver(topology.get())) {
+        assertThat(changelogsAfterUnmatchedRecords(topology.get())).hasSize(3)
+                .anyMatch(topic -> topic.contains("outer-shared-join"));
+    }
+
+    @Test
+    @DisplayName("a left join whose stores leave out logging logs its window stores and its shared store")
+    void leftJoinStoresLogByDefault() throws Exception {
+        final var topology = buildTopology("pipelines/test-stream-join-logging-left-default.yaml");
+
+        assertThat(changelogsAfterUnmatchedRecords(topology)).hasSize(3)
+                .anyMatch(topic -> topic.contains("left-shared-join"));
+    }
+
+    @Test
+    @DisplayName("a left join with logging: false on both stores has no changelog only for its shared store")
+    void leftJoinStoresWithoutLogging() throws Exception {
+        final var topology = new AtomicReference<Topology>();
+        final var log = stderrOf(() -> topology.set(buildTopology("pipelines/test-stream-join-logging-left-off.yaml")));
+
+        assertThat(log).contains(warning("this_store")).contains(warning("other_store"));
+        assertThat(changelogsAfterUnmatchedRecords(topology.get())).hasSize(2)
+                .noneMatch(topic -> topic.contains("shared-join"));
+    }
+
+    @Test
+    @DisplayName("an inner join with logging: false on both stores warns for each store, and its window stores still log")
+    void innerJoinStoresWithoutLogging() throws Exception {
+        final var topology = new AtomicReference<Topology>();
+        final var log = stderrOf(() -> topology.set(buildTopology("pipelines/test-stream-join-logging-inner-off.yaml")));
+
+        assertThat(log).contains(warning("this_store")).contains(warning("other_store"));
+        assertThat(changelogsAfterUnmatchedRecords(topology.get())).hasSize(2)
+                .anyMatch(topic -> topic.endsWith("-this_store-changelog"))
+                .anyMatch(topic -> topic.endsWith("-other_store-changelog"));
+    }
+
+    // Pipes a record without a match into each input, so every join store gets a write, and returns the changelogs
+    private static List<String> changelogsAfterUnmatchedRecords(Topology topology) {
+        try (var driver = new TopologyTestDriver(topology)) {
             driver.createInputTopic("input1", new StringSerializer(), new StringSerializer()).pipeInput("a", "left", 1000L);
             driver.createInputTopic("input2", new StringSerializer(), new StringSerializer()).pipeInput("b", "right", 1000L);
-
-            assertThat(driver.producedTopicNames())
-                    .anyMatch(topic -> topic.contains("outer-shared-join") && topic.endsWith("-changelog"));
+            return driver.producedTopicNames().stream().filter(topic -> topic.endsWith("-changelog")).toList();
         }
     }
 

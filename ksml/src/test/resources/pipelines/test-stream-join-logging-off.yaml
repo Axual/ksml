@@ -1,6 +1,6 @@
 # $schema: https://raw.githubusercontent.com/Axual/ksml/refs/heads/main/docs/ksml-language-spec.json
 
-# An outer join whose stores both set logging: false: none of the join stores log.
+# An outer join whose stores both set logging: false: only the shared store has no changelog.
 streams:
   test_input1:
     topic: input1
