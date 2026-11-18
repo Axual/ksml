@@ -32,6 +32,10 @@ import io.axual.ksml.operation.BaseOperation;
 import io.axual.ksml.parser.ParseNode;
 import io.axual.ksml.parser.StructsParser;
 
+import java.util.Optional;
+import java.util.Set;
+import java.util.function.Supplier;
+
 import static io.axual.ksml.dsl.KSMLDSL.Operations;
 
 // Shared parsing of join, leftJoin and outerJoin, which choose a variant by the stream, table or globalTable to join with
@@ -60,16 +64,18 @@ public abstract class BaseJoinOperationParser extends OperationParser<BaseOperat
         throw new ParseException(node, operation + " stream not found: " + description);
     }
 
-    // The variant that the target key picks, for the unknown-field check. Null if none fits
-    protected static StructsParser<?> variantByKey(ParseNode node,
-                                                   StructsParser<?> streamParser,
-                                                   StructsParser<?> tableParser,
-                                                   StructsParser<?> globalTableParser) {
+    // The known fields of the join kind that the target key picks, for the unknown-field check.
+    // Without a target key, or for a kind that this join does not have, all join fields
+    protected static Optional<Set<String>> knownFieldsByKey(ParseNode node,
+                                                            StructsParser<?> streamParser,
+                                                            StructsParser<?> tableParser,
+                                                            StructsParser<?> globalTableParser,
+                                                            Supplier<Optional<Set<String>>> allJoinFields) {
         final var key = JoinTargetDefinitionParser.keyOf(node);
-        if (Operations.Join.WITH_STREAM.equals(key)) return streamParser;
-        if (Operations.Join.WITH_TABLE.equals(key)) return tableParser;
-        if (Operations.Join.WITH_GLOBAL_TABLE.equals(key)) return globalTableParser;
-        return null;
+        if (Operations.Join.WITH_STREAM.equals(key)) return streamParser.knownFields(node);
+        if (Operations.Join.WITH_TABLE.equals(key)) return tableParser.knownFields(node);
+        if (Operations.Join.WITH_GLOBAL_TABLE.equals(key) && globalTableParser != null) return globalTableParser.knownFields(node);
+        return allJoinFields.get();
     }
 
     // By definition type, or by key for an "as" name. Null if none fits

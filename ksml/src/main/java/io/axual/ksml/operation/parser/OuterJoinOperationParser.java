@@ -71,8 +71,7 @@ public class OuterJoinOperationParser extends BaseJoinOperationParser {
             // Only the fields of the chosen join kind. Without a target key, all join fields
             @Override
             public Optional<Set<String>> knownFields(ParseNode node) {
-                final var variant = variantByKey(node, joinStreamParser, joinTableParser, null);
-                return variant != null ? variant.knownFields(node) : StructsParser.super.knownFields(node);
+                return knownFieldsByKey(node, joinStreamParser, joinTableParser, null, () -> StructsParser.super.knownFields(node));
             }
         };
     }
