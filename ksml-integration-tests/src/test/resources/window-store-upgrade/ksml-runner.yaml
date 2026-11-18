@@ -10,3 +10,6 @@ kafka:
   security.protocol: PLAINTEXT
   auto.offset.reset: earliest
   commit.interval.ms: 1000
+  # Kafka Streams doesn't leave the group when it stops, so the next run waits for the session of the last one to time out
+  session.timeout.ms: 6000
+  heartbeat.interval.ms: 2000
