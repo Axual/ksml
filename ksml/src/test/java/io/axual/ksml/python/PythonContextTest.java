@@ -219,10 +219,13 @@ class PythonContextTest {
                     .allowNativeAccess(Boolean.parseBoolean(args[0]))
                     .build();
             try (var pythonContext = new PythonContext(config)) {
+                // Undo KSML's ImportError patch, so only GraalVM's own native access check can block the import
                 final var pyCode = """
                         import polyglot
                         @polyglot.export_value
                         def test_native():
+                            import _imp, importlib.machinery as m
+                            m.ExtensionFileLoader.create_module = lambda self, spec: _imp.create_dynamic(spec)
                             import ctypes
                             lib = ctypes.CDLL(None)
                             return lib.getpid()
@@ -444,12 +447,13 @@ class PythonContextTest {
      * resource cache, which {@code FileSystem.allowInternalResources} makes readable. A {@code ../..}
      * chain after it must not reach other host files.
      */
-    @Test
+    @ParameterizedTest
+    @ValueSource(booleans = {true, false})
     @DisplayName("Python cannot escape via sys.prefix prefix + ../.. when host file access is disabled")
-    void pythonCannotEscapeViaSysPrefixDotDot(@TempDir Path moduleDir) {
+    void pythonCannotEscapeViaSysPrefixDotDot(boolean withModulePath, @TempDir Path moduleDir) {
         final var config = PythonContextConfig.builder()
                 .allowHostFileAccess(false)
-                .modulePath(moduleDir.toString())
+                .modulePath(withModulePath ? moduleDir.toString() : null)
                 .build();
         try (var pythonContext = new PythonContext(config)) {
             // The Python guest itself constructs the target from sys.prefix. It returns a
