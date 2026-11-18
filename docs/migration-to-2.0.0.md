@@ -1,6 +1,6 @@
 # Upgrading to KSML 2.0.0
 
-KSML 2.0.0 is a major release. It upgrades the core libraries that KSML is built on: Jackson (2 to 3), Apicurio Registry (2 to 3), Protobuf (4.x), Wire (6.x) and the Confluent serdes (8.x). It also upgrades Kafka Streams and the Kafka clients from 4.3 to 4.4.0.
+KSML 2.0.0 is a major release. It upgrades the core libraries that KSML is built on: Jackson (2 to 3), Apicurio Registry (2 to 3), Protobuf (4.x), Wire (6.x) and the Confluent serdes (8.x). It also upgrades Kafka Streams and the Kafka clients from 4.3 to 4.4.0. And it upgrades GraalVM from 25.0.2 to 25.5.5.0.3, which moves your Python code from Python 3.12 to 3.13.
 
 Most of these upgrades are internal, but a few of them change how you configure KSML. Please read this page before you upgrade a running deployment.
 
@@ -25,6 +25,8 @@ Before you upgrade, check each item below:
 * If Python code calls `put` or `remove` on a session store, check that each session key is a dict with `key`, `start` and `end`, with `int` times. A session key that is not valid now raises an error instead of being ignored.
 * Check `reduce` and `aggregate` functions that handle `None`, and functions that return `None`: tombstones are now handled like in Kafka Streams.
 * Check consumers of topics that get empty `json` or union keys or values, and `valueJoiner`s that read such a table: an empty key or value is no longer a `null` key or a tombstone.
+* Check your Python code and `modulePath` modules for modules that Python 3.13 removed, such as `cgi`, `telnetlib`, `imghdr` and `pipes`.
+* If you set `allowNativeAccess: true`, check that only one definition file imports C extension modules such as `ctypes`, and that this file does not have both pipelines and producers.
 * If you build your own code on top of the KSML libraries, update the Jackson package names.
 * If you use `KeyValueIteratorProxy` or `WindowStoreIteratorProxy`, use `StoreIteratorProxy` instead, and create store proxies with `ProxyUtil.wrapStateStore`.
 * If you extend `OperationProcessor` or `FixedKeyOperationProcessor`, implement `processRecord` instead of `process`.
@@ -353,6 +355,14 @@ Existing functions work without changes, with two exceptions:
 
 * If such a function uses a global variable called `headers` or `mappedKey`, for example from `globalCode`, rename that variable. The new parameter hides it, and `global headers` in the function code fails at startup.
 * If Python code calls a `streamPartitioner` function by position, for example `my_partitioner(topic, key, value, 4)`, pass `headers` before `numPartitions`, or call the function by name. A `generic` function with only `topic`, `key`, `value` and `numPartitions` still works as a partitioner.
+
+## Python 3.13 and C extension modules
+
+KSML 2.0.0 runs on GraalVM 25.5.5.0.3. Your Python code now runs on Python 3.13 instead of 3.12. Python 3.13 removed some old modules, for example `cgi`, `telnetlib`, `imghdr` and `pipes`. Check your Python code and your `modulePath` modules for them.
+
+With `allowNativeAccess: true`, only one Python context in a KSML process can load C extension modules, such as `ctypes`, `sqlite3` and `termios`. Before, `ctypes` worked in every context. KSML creates one context for the pipelines and one for the producers of each definition file, so even one file with both can hit this limit. See [Python Context Configuration](reference/configuration-reference.md#python-context-configuration).
+
+With the default `allowNativeAccess: false`, nothing changes: C extension modules stay blocked.
 
 ## Protobuf and Wire
 

@@ -41,7 +41,7 @@ public class PythonContextConfig {
     @JsonPropertyDescription("Allow Python code to open network sockets. Default is false.")
     private final boolean allowHostSocketAccess;
     @JsonProperty(value = "allowNativeAccess", required = false, defaultValue = "false")
-    @JsonPropertyDescription("Allow Graal native access / JNI. Default is false.")
+    @JsonPropertyDescription("Allow Graal native access / JNI. Only one Python context can load C extension modules. Default is false.")
     private final boolean allowNativeAccess;
     @JsonProperty(value = "allowCreateProcess", required = false, defaultValue = "false")
     @JsonPropertyDescription("Allow Python code to execute external processes. Default is false.")

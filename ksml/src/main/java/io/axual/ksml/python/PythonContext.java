@@ -67,9 +67,11 @@ public class PythonContext implements AutoCloseable {
     private final Context context;
     @Getter
     private final DataObjectConverter converter;
+    private final boolean allowNativeAccess;
 
     public PythonContext(PythonContextConfig config) {
         this.converter = new DataObjectConverter();
+        this.allowNativeAccess = config.allowNativeAccess();
 
         log.debug("Setting up new Python context: {}", config);
         try {
@@ -109,6 +111,10 @@ public class PythonContext implements AutoCloseable {
                     .allowIO(ioAccess)
                     .build();
 
+            if (!allowNativeAccess) {
+                blockCExtensions();
+            }
+
             if (!StringUtils.isEmpty(canonicalModulePath)) {
                 addModulePathToSysPath(Path.of(canonicalModulePath));
             }
@@ -132,9 +138,45 @@ public class PythonContext implements AutoCloseable {
         try {
             context.eval(script);
         } catch (Exception e) {
+            final var hint = nativeModuleHint(e);
+            if (hint != null) {
+                log.error(hint);
+            }
             log.error("Error loading Python code", e);
         }
         return context.getPolyglotBindings().getMember(callerName);
+    }
+
+    /**
+     * Makes every C extension import fail with an ImportError when native access is off. GraalPy 25.5
+     * takes its one C extension place for the whole process before it checks native access, so without
+     * this a denied import in one context makes the same import in every later context fail with a
+     * SystemError, which code like {@code import getpass} or {@code except ImportError} does not expect.
+     */
+    private void blockCExtensions() {
+        context.eval(PYTHON, """
+                import importlib.machinery as _m
+                def _ksml_no_c_ext(self, spec):
+                    raise ImportError("Cannot run any C extensions because native access is not allowed.", name=spec.name)
+                _m.ExtensionFileLoader.create_module = _ksml_no_c_ext
+                del _m, _ksml_no_c_ext
+                """);
+    }
+
+    /**
+     * Explains GraalPy's error when a C extension module cannot load because another Python context
+     * already loaded one. GraalPy's own text names an option that KSML users cannot set.
+     *
+     * @param e the error from Python.
+     * @return a hint for the log, or null when the error is about something else.
+     */
+    public String nativeModuleHint(Throwable e) {
+        final var message = String.valueOf(e.getMessage());
+        if (!allowNativeAccess
+                || (!message.contains("IsolateNativeModules") && !message.contains("C API initialization has previously failed"))) {
+            return null;
+        }
+        return "Only one Python context per KSML process can load C extension modules such as ctypes, sqlite3 or termios. See allowNativeAccess in the KSML configuration reference.";
     }
 
     /**
@@ -175,65 +217,52 @@ public class PythonContext implements AutoCloseable {
     private IOAccess createIOAccess(boolean allowHostFileAccess, boolean allowHostSocketAccess, String modulePath) {
         log.debug("createIOAccess({}, {}, {})", allowHostFileAccess, allowHostSocketAccess, modulePath);
 
-        if (allowHostFileAccess || StringUtils.isEmpty(modulePath)) {
-            // if host file access is allowed or no module path configured, then we don't need to set up an extra restricted file system for module access
+        if (allowHostFileAccess) {
             return IOAccess.newBuilder()
-                    .allowHostFileAccess(allowHostFileAccess)
-                    .allowHostSocketAccess(allowHostSocketAccess)
-                    .build();
-        } else {
-            // host file access is false, but modulePath is not empty: set up restricted file system for module access
-            FileSystem modulesReadOnly = createReadOnlyFileSystem(modulePath);
-            return IOAccess.newBuilder()
-                    .fileSystem(modulesReadOnly)
+                    .allowHostFileAccess(true)
                     .allowHostSocketAccess(allowHostSocketAccess)
                     .build();
         }
+        // Deny all files, or allow read-only modulePath. allowInternalResources adds read-only access
+        // to GraalVM's resource cache (all languages), which GraalPy needs for its own files.
+        FileSystem restricted = StringUtils.isEmpty(modulePath)
+                ? new DenyAllFileSystem()
+                : createReadOnlyFileSystem(modulePath);
+        return IOAccess.newBuilder()
+                .fileSystem(FileSystem.allowInternalResources(restricted))
+                .allowHostSocketAccess(allowHostSocketAccess)
+                .build();
     }
 
     /**
-     * Create an FileSystem object that allows read-only access to Python's home, and the given path and everything below it.
+     * Create a FileSystem with read-only access to the given path and everything below it.
+     * Python's own files are allowed by {@link FileSystem#allowInternalResources} before this one is asked.
      * <p>
-     * The selector predicate normalizes both the candidate path and the two allowed prefixes
-     * (the configured {@code modulePath} and Python's {@code sys.prefix}) before doing the
-     * element-wise {@link Path#startsWith(Path)} check, to prevent any literal {@code ../..}
-     * chain in the candidate path from escaping.
-     * <p>
-     * Normalization is purely lexical ({@link Path#normalize()}), not symlink-resolving
-     * ({@code toRealPath}). That is safe under the threat model "untrusted Python in the
-     * KSML definition" because the wrapping {@link FileSystem#newReadOnlyFileSystem} denies
-     * the guest any write capability - in particular it cannot create symlinks inside the
-     * allowed region to point outwards. Any symlinks that do exist in {@code modulePath} or
-     * {@code sys.prefix} were placed there by the operator/image author and are considered
-     * intentional. If write access to the allowed region is ever granted to the guest, this
-     * predicate needs to be upgraded to symlink-resolving canonicalization.
-     * <p>
-     * The {@code modulePath} string passed in is expected to already be canonical
-     * (resolved via {@link Path#toRealPath()} in the constructor).
+     * The selector normalizes paths (lexically), so {@code ../..} cannot escape. Symlinks are not resolved:
+     * that is safe only because the guest cannot write. Change it if write access is ever added.
      *
      * @param modulePath the canonical path where customer Python modules are located.
-     * @return an FileSystem for Python module access that allows read-only access to the given path and everything below it.
+     * @return a FileSystem with read-only access to the given path and everything below it.
      */
     private FileSystem createReadOnlyFileSystem(String modulePath) {
         log.debug("createReadOnlyFileSystem({})", modulePath);
         FileSystem modulesFileSystem = FileSystem.newDefaultFileSystem();
-        FileSystem denyAllAccess = FileSystem.newDenyIOFileSystem();
-        // Pre-normalize the allowed prefixes once - the per-call selector then only has to
-        // normalize the candidate path and run two startsWith checks.
+        FileSystem denyAllAccess = new DenyAllFileSystem();
+        // Pre-normalize the allowed prefix once - the per-call selector then only has to
+        // normalize the candidate path and run one startsWith check.
         final Path modulePathNormalized = Path.of(modulePath).toAbsolutePath().normalize();
-        final Path sysPrefixNormalized = Path.of(getPythonSysPrefix()).toAbsolutePath().normalize();
         FileSystem restricted = FileSystem.newCompositeFileSystem(
                 // the default/fallback file system is: deny access
                 denyAllAccess,
                 // add a selector that returns the modulesFileSystem only if the normalized path
-                // is within modulePath or sys.prefix
+                // is within modulePath
                 FileSystem.Selector.of(modulesFileSystem, path -> {
                     if (path == null || !path.isAbsolute()) {
                         return false;
                     }
                     Path normalized = path.toAbsolutePath().normalize();
-                    if (!normalized.startsWith(modulePathNormalized) && !normalized.startsWith(sysPrefixNormalized)) {
-                        log.warn("Refusing path {} which is outside of modulePath {} or sys.prefix {}", normalized, modulePathNormalized, sysPrefixNormalized);
+                    if (!normalized.startsWith(modulePathNormalized)) {
+                        log.warn("Refusing path {} which is outside of modulePath {}", normalized, modulePathNormalized);
                         return false;
                     }
                     return true;
@@ -241,20 +270,6 @@ public class PythonContext implements AutoCloseable {
         );
 
         return FileSystem.newReadOnlyFileSystem(restricted);
-    }
-
-    /**
-     * Get sys.prefix from GraalVM Python.
-     *
-     * @return the value of sys.prefix.
-     */
-    private String getPythonSysPrefix() {
-        log.debug("getPythonSysPrefix()");
-        var tempContext = Context.newBuilder(PYTHON).build();
-        var result = tempContext.eval(PYTHON, "import sys; sys.prefix").asString();
-        log.debug("getPythonSysPrefix() ---> {}", result);
-        tempContext.close();
-        return result;
     }
 
     /**

@@ -221,7 +221,7 @@ Control Python execution security and permissions:
 |-------------------------------|---------|---------|---------------------------------------------------|
 | `allowHostFileAccess`         | Boolean | false   | Allow Python code to access host file system      |
 | `allowHostSocketAccess`       | Boolean | false   | Allow Python code to open network sockets         |
-| `allowNativeAccess`           | Boolean | false   | Allow Graal native access / JNI                   |
+| `allowNativeAccess`           | Boolean | false   | Allow Graal native access / JNI. Only one Python context can load C extension modules, see below. |
 | `allowCreateProcess`          | Boolean | false   | Allow Python code to execute external processes   |
 | `allowCreateThread`           | Boolean | false   | Allow Python code to create new Java threads      |
 | `inheritEnvironmentVariables` | Boolean | false   | Inherit JVM process environment in Python context |
@@ -238,6 +238,8 @@ ksml:
     inheritEnvironmentVariables: false
     modulePath: /ksml
 ```
+
+KSML runs Python 3.13 (GraalPy 25.5). With `allowNativeAccess: true`, Python code can load C extension modules, such as `ctypes`, `sqlite3` and `termios` (which `getpass`, `tty` and `pty` load). Only one Python context per KSML process can do this. KSML creates one context for the pipelines of a definition file and one for its producers, and both load all functions of the file. A second context that imports such a module gets a `SystemError`. In `globalCode`, this stops KSML at startup. Which context is first does not follow the order in the runner config.
 
 ### Schema Registry Configuration
 
