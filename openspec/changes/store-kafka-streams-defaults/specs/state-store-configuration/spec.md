@@ -140,6 +140,10 @@ On the first start on an application state directory, before Kafka Streams start
 - **WHEN** with `processing.guarantee: exactly_once_v2` and without transactional state stores, KSML would delete the 1.x local state of a window store with `timestamped: true` and `logging: true`, and a store with `logging: false` has local state in the same task
 - **THEN** KSML stops with an error that names the task and both stores and asks to start once with `processing.guarantee: at_least_once`, and the local state is unchanged
 
+#### Scenario: Stores without data
+- **WHEN** a KSML 1.x application left RocksDB files without data (no `.sst` or `.blob` file) for a persistent store that leaves out `logging`, and this version starts on that state directory
+- **THEN** KSML starts, as there is nothing to lose
+
 #### Scenario: New application
 - **WHEN** this version starts on a state directory without local state for its stores
 - **THEN** KSML starts, and later starts do not check the state again

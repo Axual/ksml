@@ -66,6 +66,8 @@ public final class StoreUpgrade {
     public static final String MARKER_FILE = ".ksml-store-format";
     private static final String CHECKPOINT_FILE = ".checkpoint";
     private static final String POSITION_FILE_SUFFIX = ".position";
+    private static final String SST_FILE_SUFFIX = ".sst";
+    private static final String BLOB_FILE_SUFFIX = ".blob";
     // Kafka Streams keeps key-value and versioned stores in this subdirectory of the task, other stores in the task
     private static final String KEY_VALUE_STORE_DIRECTORY = "rocksdb";
     // Kafka Streams names task directories <subtopology>_<partition>
@@ -171,12 +173,27 @@ public final class StoreUpgrade {
         return Files.isDirectory(path) && TASK_DIRECTORY.matcher(path.getFileName().toString()).matches();
     }
 
+    // Any files of the store, which the delete before the restore clears
     private static boolean hasWindowState(Path task, String store) {
         return Files.exists(task.resolve(store)) || Files.exists(task.resolve(store + POSITION_FILE_SUFFIX));
     }
 
+    // Data that would be lost. RocksDB creates its other files when it opens a store, also an empty one
     private static boolean hasLocalState(Path task, String store) {
-        return Files.exists(task.resolve(store)) || Files.exists(task.resolve(KEY_VALUE_STORE_DIRECTORY).resolve(store));
+        return hasDataFiles(task.resolve(store)) || hasDataFiles(task.resolve(KEY_VALUE_STORE_DIRECTORY).resolve(store));
+    }
+
+    // Kafka Streams turns off the RocksDB write-ahead log, so saved data is always in .sst files, or in .blob files
+    // when a rocksdb.config.setter turns on BlobDB
+    private static boolean hasDataFiles(Path directory) {
+        if (!Files.isDirectory(directory)) return false;
+        try (var files = Files.walk(directory)) {
+            return files.map(file -> file.getFileName().toString())
+                    .anyMatch(name -> name.endsWith(SST_FILE_SUFFIX) || name.endsWith(BLOB_FILE_SUFFIX));
+        } catch (IOException e) {
+            // If unsure, treat it as state and stop
+            return true;
+        }
     }
 
     /** The tasks with 1.x state of unreadable window stores that have a changelog, with those stores. */
@@ -195,7 +212,7 @@ public final class StoreUpgrade {
         final var problems = new ArrayList<String>();
         for (final var store : unreadableStores) {
             if (Boolean.TRUE.equals(store.declaredLogging())) continue;
-            final var storeTasks = tasks.stream().filter(task -> hasWindowState(task, store.name())).toList();
+            final var storeTasks = tasks.stream().filter(task -> hasLocalState(task, store.name())).toList();
             if (!storeTasks.isEmpty()) problems.add(unreadableProblem(store, storeTasks));
         }
         return problems;

@@ -104,6 +104,15 @@ class StoreUpgradeTest {
         return storeDirectory;
     }
 
+    // The files that RocksDB creates when it opens a store, without data, as KSML 1.3.x leaves them after a clean stop
+    private static Path createEmptyRocksDb(Path directory) throws IOException {
+        Files.createDirectories(directory);
+        for (final var file : List.of("000004.log", "CURRENT", "IDENTITY", "LOCK", "LOG", "MANIFEST-000005", "OPTIONS-000007")) {
+            Files.writeString(directory.resolve(file), "");
+        }
+        return directory;
+    }
+
     private Path createCheckpoint(String task) throws IOException {
         Files.createDirectories(applicationDirectory().resolve(task));
         return Files.writeString(applicationDirectory().resolve(task).resolve(".checkpoint"), "checkpoint");
@@ -349,6 +358,54 @@ class StoreUpgradeTest {
                 keyValueStore("key_value_memory", false, null)));
 
         assertThat(marker()).exists();
+    }
+
+    @Test
+    @DisplayName("ignores stores whose RocksDB files hold no data, as KSML 1.3.x leaves them")
+    void ignoresStoresWithoutData() throws IOException {
+        final var task = applicationDirectory().resolve("0_0");
+        final var keyValue = createEmptyRocksDb(task.resolve("rocksdb").resolve("key_value"));
+        final var window = createEmptyRocksDb(task.resolve("window_plain").resolve("window_plain.1794319200000"));
+        final var unreadable = createEmptyRocksDb(task.resolve("window_unlogged").resolve("window_unlogged.1794319200000"));
+        final var shared = createEmptyRocksDb(task.resolve("rocksdb").resolve(SHARED_JOIN_STORE));
+
+        prepare(List.of(
+                        keyValueStore("key_value", true, null),
+                        windowStore("window_plain", true, null, null),
+                        windowStore("window_unlogged", true, true, false)),
+                List.of(sharedJoinStore(true, null, null)));
+
+        assertThat(keyValue).exists();
+        assertThat(window).exists();
+        assertThat(unreadable).exists();
+        assertThat(shared).exists();
+        assertThat(marker()).exists();
+    }
+
+    @Test
+    @DisplayName("with exactly-once, clears a window store next to a store that keeps its state but has no data")
+    void clearsWithExactlyOnceNextToStoreWithoutData() throws IOException {
+        final var window = createWindowStore("0_0", "window_timestamped");
+        final var kept = createEmptyRocksDb(applicationDirectory().resolve("0_0").resolve("rocksdb").resolve("key_value_unlogged"));
+
+        prepareWithExactlyOnce(List.of(windowStore("window_timestamped", true, true, true), keyValueStore("key_value_unlogged", true, false)));
+
+        assertThat(window).doesNotExist();
+        assertThat(kept).exists();
+        assertThat(marker()).exists();
+    }
+
+    @Test
+    @DisplayName("counts BlobDB files as data")
+    void stopsForBlobData() throws IOException {
+        final var keyValue = createEmptyRocksDb(applicationDirectory().resolve("0_0").resolve("rocksdb").resolve("key_value"));
+        Files.writeString(keyValue.resolve("000012.blob"), "data");
+        final var stores = List.of(keyValueStore("key_value", true, null));
+
+        assertThatThrownBy(() -> prepare(stores))
+                .isInstanceOf(ExecutionException.class)
+                .hasMessageContaining("Store 'key_value' has local state in task 0_0");
+        assertThat(marker()).doesNotExist();
     }
 
     @Test
