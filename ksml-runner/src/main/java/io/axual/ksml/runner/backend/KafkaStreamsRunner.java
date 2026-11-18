@@ -86,6 +86,8 @@ public class KafkaStreamsRunner implements Runner {
 
     @Getter
     private final KafkaStreams kafkaStreams;
+    // Holds the Python contexts that the topology runs in, closed after Kafka Streams; null without a generated topology
+    private final TopologyGenerator topologyGenerator;
     private final AtomicBoolean stopRunning = new AtomicBoolean(false);
     // Default sleep durations that can be overridden in tests
     private long startupSleepMs = 1000;
@@ -154,9 +156,15 @@ public class KafkaStreamsRunner implements Runner {
         final var topologyConfig = new TopologyConfig(streamsConfig);
         final var streamsBuilder = new StreamsBuilder(topologyConfig);
         var optimize = streamsProps.getOrDefault(StreamsConfig.TOPOLOGY_OPTIMIZATION_CONFIG, StreamsConfig.OPTIMIZE);
-        final var topologyGenerator = new TopologyGenerator(applicationId, (String) optimize, config.pythonContextConfig(), headersStoreFormat(streamsConfig));
-        final var topology = topologyGenerator.create(streamsBuilder, config.definitions);
-        checkKsml1StoreState(streamsConfig, applicationId, topologyGenerator.upgradeCheckedStores(), topologyGenerator.userStateStores(), topologyGenerator.sharedJoinStores());
+        topologyGenerator = new TopologyGenerator(applicationId, (String) optimize, config.pythonContextConfig(), headersStoreFormat(streamsConfig));
+        final Topology topology;
+        try {
+            topology = topologyGenerator.create(streamsBuilder, config.definitions);
+            checkKsml1StoreState(streamsConfig, applicationId, topologyGenerator.upgradeCheckedStores(), topologyGenerator.userStateStores(), topologyGenerator.sharedJoinStores());
+        } catch (RuntimeException e) {
+            topologyGenerator.close();
+            throw e;
+        }
         final var topologyDesc = topology.describe();
         final var ksmlTagEnricher = KsmlTagEnricher.from(topologyDesc);
 
@@ -281,7 +289,13 @@ public class KafkaStreamsRunner implements Runner {
      * @param tagEnricher         The tag enricher to use for metrics
      */
     KafkaStreamsRunner(Config config, BiFunction<Topology, Properties, KafkaStreams> kafkaStreamsFactory, KsmlTagEnricher tagEnricher) {
+        this(config, kafkaStreamsFactory, tagEnricher, null);
+    }
+
+    /** Like the test constructor above, with a topology generator that the runner closes after Kafka Streams. */
+    KafkaStreamsRunner(Config config, BiFunction<Topology, Properties, KafkaStreams> kafkaStreamsFactory, KsmlTagEnricher tagEnricher, TopologyGenerator topologyGenerator) {
         log.info("Constructing Kafka Backend (test mode)");
+        this.topologyGenerator = topologyGenerator;
 
         final var streamsProps = getStreamsConfig(config.kafkaConfig, config.storageDirectory, config.appServer);
 
@@ -385,6 +399,7 @@ public class KafkaStreamsRunner implements Runner {
      *     <li>Waits for a short period to allow asynchronous startup</li>
      *     <li>Continuously monitors the application state</li>
      *     <li>Closes the application when stopped or failed, waiting at most {@link #CLOSE_TIMEOUT}</li>
+     *     <li>Then closes the Python contexts of the topology, when Kafka Streams closed in time</li>
      *     <li>Throws an exception if the application fails</li>
      * </ul>
      */
@@ -412,12 +427,25 @@ public class KafkaStreamsRunner implements Runner {
                 log.info("Kafka Streams has stopped");
             }
             // Always close, also in ERROR: a failed client still holds resources and threads
-            if (!kafkaStreams.close(CloseOptions.timeout(CLOSE_TIMEOUT))) {
-                log.warn("Kafka Streams did not close within {}", CLOSE_TIMEOUT);
+            if (kafkaStreams.close(CloseOptions.timeout(CLOSE_TIMEOUT))) {
+                closeTopologyGenerator();
+            } else {
+                // Stream threads may still run Python functions, and a Python context in use can't be closed
+                log.warn("Kafka Streams did not close within {}, so its Python contexts stay open until the process exits", CLOSE_TIMEOUT);
             }
         }
         if (failed) {
             throw new RunnerException("Kafka Streams is in a failed state");
+        }
+    }
+
+    // Frees the Python contexts of the topology. A failure here must not hide the result of the run
+    private void closeTopologyGenerator() {
+        if (topologyGenerator == null) return;
+        try {
+            topologyGenerator.close();
+        } catch (RuntimeException e) {
+            log.warn("Could not close the Python contexts of the topology", e);
         }
     }
 

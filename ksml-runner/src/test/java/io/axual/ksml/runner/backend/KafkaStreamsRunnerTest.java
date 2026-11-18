@@ -29,6 +29,7 @@ import io.axual.ksml.definition.WindowStateStoreDefinition;
 import io.axual.ksml.execution.ExecutionErrorHandler;
 import io.axual.ksml.metric.KsmlTagEnricher;
 import io.axual.ksml.runner.config.ApplicationServerConfig;
+import io.axual.ksml.TopologyGenerator;
 import io.axual.ksml.runner.exception.RunnerException;
 import io.axual.ksml.store.StoreUpgrade;
 import io.axual.ksml.type.UserType;
@@ -47,6 +48,7 @@ import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -73,6 +75,7 @@ import java.util.stream.Stream;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Named.named;
 import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -645,6 +648,55 @@ class KafkaStreamsRunnerTest {
                     .withThrowableOfType(ExecutionException.class)
                     .havingCause()
                     .isInstanceOf(RunnerException.class);
+        } finally {
+            executor.shutdownNow();
+            executor.awaitTermination(5, TimeUnit.SECONDS);
+        }
+    }
+
+    @ParameterizedTest(name = "Kafka Streams closed in time: {0}")
+    @ValueSource(booleans = {true, false})
+    @DisplayName("closes the Python contexts of the topology only after Kafka Streams closed in time")
+    void closesTopologyGeneratorAfterKafkaStreams(boolean closedInTime) throws Exception {
+        final var mockStreams = mock(KafkaStreams.class);
+        when(mockStreams.state()).thenReturn(KafkaStreams.State.ERROR);
+        when(mockStreams.close(any(CloseOptions.class))).thenReturn(closedInTime);
+        final var generator = mock(TopologyGenerator.class);
+
+        assertThat(runToFailure(mockStreams, generator)).isInstanceOf(RunnerException.class);
+        // Stream threads that did not stop in time may still use the Python contexts
+        verify(generator, closedInTime ? Mockito.times(1) : never()).close();
+    }
+
+    @Test
+    @DisplayName("a failure to close the Python contexts doesn't hide the result of the run")
+    void topologyGeneratorCloseFailureKeepsResult() throws Exception {
+        final var mockStreams = mock(KafkaStreams.class);
+        when(mockStreams.state()).thenReturn(KafkaStreams.State.ERROR);
+        when(mockStreams.close(any(CloseOptions.class))).thenReturn(true);
+        final var generator = mock(TopologyGenerator.class);
+        doThrow(new IllegalStateException("context in use")).when(generator).close();
+
+        assertThat(runToFailure(mockStreams, generator))
+                .isInstanceOf(RunnerException.class)
+                .hasMessage("Kafka Streams is in a failed state");
+    }
+
+    // Runs a runner with the given Kafka Streams and generator until it fails, and returns the failure
+    private static Throwable runToFailure(KafkaStreams mockStreams, TopologyGenerator generator) throws Exception {
+        final var config = KafkaStreamsRunner.Config.builder()
+                .definitions(Map.of())
+                .kafkaConfig(INPUT_CONFIG_WITHOUT_PATTERNS)
+                .storageDirectory("tmp")
+                .build();
+        final var runner = new KafkaStreamsRunner(config, (_, _) -> mockStreams, mock(KsmlTagEnricher.class), generator);
+        runner.setSleepDurations(10, 10);
+
+        final var executor = Executors.newSingleThreadExecutor();
+        try {
+            final var future = CompletableFuture.runAsync(runner, executor);
+            assertThat(future).failsWithin(Duration.ofSeconds(5));
+            return future.handle((_, error) -> error.getCause()).get();
         } finally {
             executor.shutdownNow();
             executor.awaitTermination(5, TimeUnit.SECONDS);
