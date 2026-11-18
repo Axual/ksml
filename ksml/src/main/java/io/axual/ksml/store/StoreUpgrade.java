@@ -39,26 +39,9 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
- * Checks the local state that KSML 1.x left, once per application state directory, before Kafka Streams opens it.
- * <p>
- * KSML 1.x read a store option that the definition leaves out as {@code false}; this version reads it as {@code true}.
- * So the checks use the declared values:
- * <ul>
- *     <li>A persistent store that leaves out {@code logging} had no changelog in 1.x, and now gets a new, empty one.
- *     Its local state is lost when the task moves, and at once with exactly-once processing. KSML stops until the
- *     definition sets {@code logging}.</li>
- *     <li>A persistent window store for Python with {@code timestamped: true} was a timestamped RocksDB store in 1.x,
- *     with plain values in it. This version can't read them. With {@code logging: true}, KSML deletes the local state
- *     and Kafka Streams restores it from the changelog. Without, KSML stops and leaves the state to the user.</li>
- *     <li>The shared store of a stream-stream left or outer join was logged in 1.x only when {@code thisStore} set
- *     {@code logging: true}. Now it is logged unless both join stores set {@code logging: false}. KSML stops as for
- *     a store that leaves out {@code logging}.</li>
- * </ul>
- * With exactly-once processing, Kafka Streams deletes a whole task when a logged store in it has local state but no
- * changelog offset, as a deleted window store has. KSML stops when that would take the state of a store with
- * {@code logging: false} along.
- * <p>
- * Stores that leave out {@code timestamped} were plain stores in 1.x, which Kafka Streams converts itself.
+ * Checks the local state that KSML 1.x left, once per application state directory, before Kafka Streams starts.
+ * Stops when state would be lost, and clears 1.x window store state that has a changelog.
+ * See "Declared stores use the Kafka Streams defaults" in the migration guide.
  */
 @Slf4j
 public final class StoreUpgrade {

@@ -40,9 +40,7 @@ public abstract class StateStoreDefinition extends AbstractDefinition {
     // so the default depends on where the store is used
     private final Boolean caching;
     private final boolean logging;
-    // The values as declared, null when the definition leaves them out. KSML 1.x read null as false, so the upgrade
-    // checks of StoreUpgrade use these, and copies pass them along. They are not part of equals: a store that sets
-    // timestamped: true or logging: true is the same store as one that leaves them out
+    // As declared (null when left out), for the KSML 1.x upgrade check. Not part of equals
     @EqualsAndHashCode.Exclude
     private final Boolean declaredTimestamped;
     @EqualsAndHashCode.Exclude

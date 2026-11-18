@@ -50,7 +50,7 @@ Facts that shape the approach:
 
 - A Python API for reading or writing headers on stores.
 - Headers support for in-memory or versioned stores (Kafka Streams has none).
-- Supporting `dsl.store.format` in `ksml-test-runner`: it has no Kafka config, so it uses `DEFAULT`. `testing-your-pipeline.md` and the Store Format section of the state store reference say so (PR #767 review 03, item 11). Python gets the same results in both formats, so a new test file field is not worth it.
+- Supporting `dsl.store.format` in `ksml-test-runner`: it has no Kafka config, so it uses `DEFAULT`. `testing-your-pipeline.md` and the Store Format section of the state store reference say so. Python gets the same results in both formats, so a new test file field is not worth it.
 - Changing implicit table or globalTable stores, or stores of operations without a declared store.
 - Migrating existing state when users switch `dsl.store.format`. The upgrade of 1.x window store state is covered by D7.
 
@@ -75,7 +75,7 @@ Because of D1, `versioned: true` without `persistent` reaches the versioned bran
 
 ### D4. Plumb the store format as a headers flag
 
-`KafkaStreamsRunner` already builds a `StreamsConfig`, which validates `dsl.store.format` (case-insensitive `DEFAULT` or `HEADERS`). It reads `streamsConfig.getString(DSL_STORE_FORMAT_CONFIG).equalsIgnoreCase(DSL_STORE_FORMAT_HEADERS)`, the same check Kafka Streams makes. The resulting `boolean headersStoreFormat` goes through a new `TopologyGenerator` constructor argument, then `TopologyBuildContext`, then the `StoreUtil` calls. A boolean fits better than Kafka Streams' `DslStoreFormat` enum, which has no value for "default" (it has `PLAIN`, `TIMESTAMPED` and `HEADERS`). The `TopologyGenerator` constructors without the flag, `(applicationId)` and `(applicationId, optimization, pythonContextConfig)`, stay and use `false`, the Kafka Streams `DEFAULT` format, so `ksml-test-runner` and the tests compile unchanged. The lower-level `TopologyBuildContext` constructors and the `StoreUtil` methods lose their old signatures instead, also the `TopologyBuildContext(builder, resources)` constructor without a `PythonContextConfig` (PR #767 review 04, item 7): an old overload that passes `false` would build a non-headers store inside a topology that uses the headers format, and a compile error is safer than mixed formats. The release notes and the migration guide list the changed signatures (PR #767 review 03, item 10). Inside `StoreUtil`, one helper decides `useHeaders(store) = headersStoreFormat && persistent && timestamped && !versioned`, and each supplier/builder method branches on it:
+`KafkaStreamsRunner` already builds a `StreamsConfig`, which validates `dsl.store.format` (case-insensitive `DEFAULT` or `HEADERS`). It reads `streamsConfig.getString(DSL_STORE_FORMAT_CONFIG).equalsIgnoreCase(DSL_STORE_FORMAT_HEADERS)`, the same check Kafka Streams makes. The resulting `boolean headersStoreFormat` goes through a new `TopologyGenerator` constructor argument, then `TopologyBuildContext`, then the `StoreUtil` calls. A boolean fits better than Kafka Streams' `DslStoreFormat` enum, which has no value for "default" (it has `PLAIN`, `TIMESTAMPED` and `HEADERS`). The `TopologyGenerator` constructors without the flag, `(applicationId)` and `(applicationId, optimization, pythonContextConfig)`, stay and use `false`, the Kafka Streams `DEFAULT` format, so `ksml-test-runner` and the tests compile unchanged. The lower-level `TopologyBuildContext` constructors and the `StoreUtil` methods lose their old signatures instead, also the `TopologyBuildContext(builder, resources)` constructor without a `PythonContextConfig`: an old overload that passes `false` would build a non-headers store inside a topology that uses the headers format, and a compile error is safer than mixed formats. The release notes and the migration guide list the changed signatures. Inside `StoreUtil`, one helper decides `useHeaders(store) = headersStoreFormat && persistent && timestamped && !versioned`, and each supplier/builder method branches on it:
 
 | Store | Supplier (headers) | Processor builder (headers) |
 |---|---|---|
@@ -145,7 +145,7 @@ Then it writes the marker, creating the directory if needed. The marker is one f
 
 The cleanup decides on the declared values, not on the resolved defaults of D1, because the state was written with the 1.x defaults (`false`). Not touched: window stores that DSL operations materialize (1.x already built them as timestamped), and stores that leave out `timestamped` or set it to `false` (plain stores in 1.x, row 2, which Kafka Streams converts itself).
 
-An earlier version of this decision filtered on the resolved `timestamped` and logged on the resolved `logging`. It deleted the plain 1.x stores of row 2 too, and for a store that left out `logging` it logged that Kafka Streams restores it from the changelog, while that changelog was new and empty. Reviews 02 and 03 of PR #767 found it.
+An earlier version of this decision filtered on the resolved `timestamped` and logged on the resolved `logging`. It deleted the plain 1.x stores of row 2 too, and for a store that left out `logging` it logged that Kafka Streams restores it from the changelog, while that changelog was new and empty.
 
 ### D8. Stop on KSML 1.x local state that would be lost
 
@@ -190,7 +190,7 @@ Known limits:
 - [More tests run RocksDB, so the build gets slower] → Measure in group 1. Tests that don't care about persistence set `persistent: false`.
 - [The adapters must override every store method the proxies call, or Kafka Streams' throwing defaults surface] → Unit tests per adapter, and an end-to-end test that runs the same Python calls against both formats (the spec's "same calls" scenario).
 - [The first start after the upgrade restores these window stores from the changelog] → It happens once, it's logged, and the migration guide mentions it.
-- [Users put `state.dir` in the `kafka` section on a volume, but the runner always uses `ksml.storageDirectory`, so the persistent stores write to the working directory and are restored after every container restart] → The docs name `ksml.storageDirectory`, and the runner warns when the `kafka` section sets another `state.dir` (PR #767 review 03, item 6). Honoring `state.dir` was rejected: it would move the state directory of existing applications on upgrade, and give one setting two names.
+- [Users put `state.dir` in the `kafka` section on a volume, but the runner always uses `ksml.storageDirectory`, so the persistent stores write to the working directory and are restored after every container restart] → The docs name `ksml.storageDirectory`, and the runner warns when the `kafka` section sets another `state.dir`. Honoring `state.dir` was rejected: it would move the state directory of existing applications on upgrade, and give one setting two names.
 - [The first start stops on 1.x state that would be lost (D8)] → The error names each store and what to set or delete; the migration guide lists the cases. It only happens once per state directory, and only for stores with local state.
 
 ## Migration Plan
