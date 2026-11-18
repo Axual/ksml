@@ -127,6 +127,10 @@ public class NativeDataObjectMapper implements DataObjectMapper<Object> {
             case Float val -> convertFloatToDataObject(val, expected);
             case byte[] val -> convertByteArrayToDataObject(val, expected);
             case CharSequence val -> new DataString(val.toString());
+            // Use the expected element types when they match, so for example None becomes a typed null
+            case Tuple<?> val when expected instanceof TupleType expectedTuple
+                    && expectedTuple.subTypeCount() == val.elements().size() ->
+                convertTupleToDataTuple(val, expectedTuple);
             case Tuple<?> val -> convertTupleToDataTuple(val);
             case List<?> val -> convertListToDataObject(val, expected);
             case Map<?, ?> val -> convertMapToDataObject(val, expected);

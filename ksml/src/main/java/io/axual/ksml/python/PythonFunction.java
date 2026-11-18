@@ -26,29 +26,28 @@ import io.axual.ksml.data.object.DataNull;
 import io.axual.ksml.data.object.DataObject;
 import io.axual.ksml.data.object.DataString;
 import io.axual.ksml.definition.FunctionDefinition;
+import io.axual.ksml.definition.InjectedParameter;
 import io.axual.ksml.definition.ParameterDefinition;
 import io.axual.ksml.exception.ExecutionException;
 import io.axual.ksml.exception.TopologyException;
 import io.axual.ksml.execution.FatalError;
 import io.axual.ksml.proxy.store.StoreIteratorProxy;
-import io.axual.ksml.store.StateStores;
 import io.axual.ksml.user.UserFunction;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.kafka.streams.processor.StateStore;
 import org.graalvm.polyglot.Context;
 import org.graalvm.polyglot.Value;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import static io.axual.ksml.type.UserType.DEFAULT_NOTATION;
 
 @Slf4j
 public class PythonFunction extends UserFunction {
-    private static final Map<String, StateStore> EMPTY_STORES = new HashMap<>();
     private static final PythonNativeMapper NATIVE_MAPPER = new PythonNativeMapper();
     private static final String QUOTE = "\"";
     private final DataObjectConverter converter;
@@ -70,7 +69,7 @@ public class PythonFunction extends UserFunction {
     }
 
     private PythonFunction(PythonContext context, String namespace, String type, String name, FunctionDefinition definition) {
-        super(namespace, name, definition.parameters(), definition.resultType(), definition.storeNames());
+        super(namespace, name, definition.parameters(), definition.resultType(), definition.injectedParameters(), definition.storeNames());
         converter = context.converter();
         this.pythonContext = context;
         this.context = context.context();
@@ -94,7 +93,7 @@ public class PythonFunction extends UserFunction {
     }
 
     @Override
-    public DataObject call(StateStores stores, DataObject... parameters) {
+    public DataObject call(Map<String, Object> injections, DataObject... parameters) {
         // Validate that the defined parameter list matches the amount of passed in parameters
         if (this.fixedParameterCount > parameters.length) {
             throw new TopologyException("Function %s.%s - parameter list does not match function spec: minimally expected %d, got %d".formatted(namespace, name, this.parameters.length, parameters.length));
@@ -112,10 +111,12 @@ public class PythonFunction extends UserFunction {
             }
         }
 
-        // Check all parameters and copy them into the interpreter as prefixed globals
-        var globalVars = new HashMap<String, Object>();
-        globalVars.put("stores", stores != null ? stores : EMPTY_STORES);
-        var arguments = convertParameters(globalVars, parameters);
+        // Only the variables that the caller injects are set in Python
+        for (final var variable : injections.keySet()) {
+            if (!hasInjectedParameter(variable))
+                throw new ExecutionException("Python function %s.%s - can not inject unknown variable '%s'".formatted(namespace, name, variable));
+        }
+        var arguments = convertParameters(injections, parameters);
 
         final int iteratorMark = StoreIteratorProxy.beginCall();
         try {
@@ -131,7 +132,10 @@ public class PythonFunction extends UserFunction {
             if (resultType != null) {
                 DataObject result = dataObjectMapper.toDataObject(resultType.dataType(), pyResult);
                 logCall(parameters, result);
-                if (converter != null)
+                // toDataObject already converts to the result type where it can. Only a value that still does
+                // not fit gets the notations' converters; converting a fitting value would copy every list,
+                // map and struct again.
+                if (converter != null && resultType.dataType().isAssignableFrom(result).isNotAssignable())
                     result = converter.convert(DEFAULT_NOTATION, result, resultType);
                 checkType(resultType.dataType(), result);
                 return result;
@@ -150,9 +154,9 @@ public class PythonFunction extends UserFunction {
         }
     }
 
-    private Object[] convertParameters(Map<String, Object> globalVariables, DataObject... parameters) {
+    private Object[] convertParameters(Map<String, Object> injections, DataObject... parameters) {
         Object[] result = new Object[parameters.length + 1];
-        result[0] = NATIVE_MAPPER.toRealPythonValue(context, globalVariables);
+        result[0] = NATIVE_MAPPER.toRealPythonValue(context, injections);
         for (var index = 0; index < parameters.length; index++) {
             checkType(this.parameters[index], parameters[index]);
             // Convert DataObject to Python value
@@ -179,14 +183,14 @@ public class PythonFunction extends UserFunction {
         final var assignStores = definition.storeNames().stream()
                 .map(storeName -> "  " + storeName + " = stores[\"" + storeName + "\"]\n")
                 .collect(Collectors.joining());
-        // Code to copy / initialize all global variables
-        final var includeGlobals = """
-                  global stores
-                """;
-        // globalVars is now pre-converted to Python dict by PythonTypeConverter in Java
-        final var initializeGlobals = """
-                  stores = globalVars["stores"]
-                """;
+        // The Python classes that wrap injected objects, defined with the function that uses them
+        final var proxyCode = definition.injectedParameters().stream()
+                .map(InjectedParameter::proxyClassCode)
+                .filter(Objects::nonNull)
+                .distinct()
+                .collect(Collectors.joining("\n"));
+        // Code to read the injected parameters, including the stores, as local variables of the function
+        final var injectedParams = initializeInjectedParams(injectedParameters);
         // Code to initialize optional parameters with default values
         final var initializeOptionalParams = Arrays.stream(definition.parameters())
                 .filter(ParameterDefinition::isOptional)
@@ -203,7 +207,7 @@ public class PythonFunction extends UserFunction {
 
         // Compose the function (if any) and the return statement together
         final var functionAndExpression = "def " + name + "(" + String.join(",", defParams) + "):\n" +
-                includeGlobals +
+                injectedParams +
                 initFunctionLocalVariables(2, loggerName(namespace, type, name)) +
                 assignStores +
                 initializeOptionalParams +
@@ -213,18 +217,26 @@ public class PythonFunction extends UserFunction {
         // Prepare the actual caller for the code
         // Parameters are now pre-converted to Python types by PythonTypeConverter in Java
         // Return value is passed as-is; PythonDataObjectMapper handles GraalVM Value conversion
-        final var pyCallerCode = "def " + name + "_caller(globalVars," + String.join(",", defParams) + "):\n" +
-                includeGlobals +
-                initializeGlobals +
-                "  return " + name + "(" + String.join(",", callParams) + ")\n";
+        // Saves and restores the injected values, because calls can nest (a punctuator's context.forward runs a filter).
+        // Its own names start with _ksml_, so they do not hide a function or parameter.
+        final var pyCallerCode = "def " + name + "_caller(_ksml_injected," + String.join(",", defParams) + "):\n" +
+                "  global _ksml_injected_parameters\n" +
+                "  _ksml_previous = _ksml_injected_parameters\n" +
+                "  _ksml_injected_parameters = _ksml_injected\n" +
+                "  try:\n" +
+                "    return " + name + "(" + String.join(",", callParams) + ")\n" +
+                "  finally:\n" +
+                "    _ksml_injected_parameters = _ksml_previous\n";
 
         // Python code template - no longer needs convert_to_python/convert_from_python
         // as Java-side PythonTypeConverter handles all collection conversion
         final var pythonCodeTemplate =
                 """
                         import polyglot
-                        
-                        stores = None
+                        _ksml_injected_parameters = {}
+
+                        # Python classes for injected parameters go here (fourth argument)
+                        %4$s
                         
                         # global Python code goes here (first argument)
                         %1$s
@@ -237,11 +249,24 @@ public class PythonFunction extends UserFunction {
                         %3$s
                         """;
 
-        return pythonCodeTemplate.formatted(globalCode, functionAndExpression, pyCallerCode);
+        return pythonCodeTemplate.formatted(globalCode, functionAndExpression, pyCallerCode, proxyCode);
     }
 
     private static String[] getFunctionCode(String[] code, String spaces) {
         return Arrays.stream(code).map(line -> spaces + line).toArray(String[]::new);
+    }
+
+    private String initializeInjectedParams(List<InjectedParameter> params) {
+        final var result = new StringBuilder();
+        for (final var param : params) {
+            final var value = "_ksml_injected_parameters.get(\"" + param.name() + "\")";
+            result.append("  ").append(param.name()).append(" = ");
+            if (param.proxyClassName() != null)
+                result.append(param.proxyClassName()).append("(").append(value).append(") if ").append(value).append(" is not None else None\n");
+            else
+                result.append(value).append("\n");
+        }
+        return result.toString();
     }
 
     private String loggerName(String namespace, String type, String name) {

@@ -72,7 +72,7 @@ class PythonNativeConversionTest {
     @MethodSource("nativeConversionChecks")
     void valuesPassedToPythonAreGenuineNativeTypes(String description, String code) {
         var def = FunctionDefinition.as(KSMLDSL.Functions.TYPE_GENERIC, "check", new ParameterDefinition[]{valueParam},
-                PythonSource.of(null, code.split("\n"), new String[]{"'OK'"}), stringResultType, null);
+                PythonSource.of(null, code.split("\n"), new String[]{"'OK'"}), stringResultType, null, null);
         var fn = PythonFunction.forFunction(context, "test", "check", def);
 
         var result = fn.call(nestedPayload());

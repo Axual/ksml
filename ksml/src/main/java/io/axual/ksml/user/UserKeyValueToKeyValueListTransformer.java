@@ -60,7 +60,7 @@ public class UserKeyValueToKeyValueListTransformer extends Invoker implements Ke
         final var kr = tupleType.subType(0);
         final var vr = tupleType.subType(1);
 
-        final var result = timeExecutionOf(() -> function.call(stores, NATIVE_MAPPER.toDataObject(key), NATIVE_MAPPER.toDataObject(value)));
+        final var result = timeExecutionOf(() -> function.call(function.withStores(stores), NATIVE_MAPPER.toDataObject(key), NATIVE_MAPPER.toDataObject(value)));
         if (result == null) return Collections.emptyList();
 
         // We need to convert the resulting messages to KeyValue tuples as per the method signature

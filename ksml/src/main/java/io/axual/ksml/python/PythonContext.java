@@ -56,6 +56,7 @@ public class PythonContext implements AutoCloseable {
             "io.axual.ksml.proxy.metric.CounterBridge",
             "io.axual.ksml.proxy.metric.MeterBridge",
             "io.axual.ksml.proxy.metric.TimerBridge",
+            "io.axual.ksml.proxy.context.ProcessorContextProxy",
             "io.axual.ksml.proxy.store.KeyValueStoreProxy",
             "io.axual.ksml.proxy.store.SessionStoreProxy",
             "io.axual.ksml.proxy.store.WindowStoreProxy",

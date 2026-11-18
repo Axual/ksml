@@ -24,9 +24,11 @@ import io.apicurio.registry.resolver.client.RegistryClientFacade;
 import io.axual.ksml.data.notation.Notation;
 import io.axual.ksml.data.notation.NotationContext;
 import io.axual.ksml.data.notation.apicurio.ApicurioConfigChecks;
+import io.axual.ksml.data.notation.apicurio.ApicurioRegistryClientFactory;
 import io.axual.ksml.data.notation.jsonschema.JsonSchemaNotation;
 import io.axual.ksml.data.notation.vendor.VendorNotationContext;
 import io.axual.ksml.data.notation.vendor.VendorNotationProvider;
+import io.axual.ksml.data.util.MapUtil;
 
 /**
  * NotationProvider for JSON Schema using the Apicurio Registry vendor.
@@ -55,11 +57,12 @@ public class ApicurioJsonSchemaNotationProvider extends VendorNotationProvider {
     public Notation createNotation(NotationContext context) {
         if (context == null) context = new NotationContext();
         ApicurioConfigChecks.rejectV2Configs(context.serdeConfigs());
+        final var srClient = registryClient != null ? registryClient : ApicurioRegistryClientFactory.create(MapUtil.stringKeys(context.serdeConfigs()));
         return new JsonSchemaNotation(
                 new VendorNotationContext(
                         vendorName(),
                         context,
-                        new ApicurioJsonSchemaSerdeSupplier(registryClient),
+                        new ApicurioJsonSchemaSerdeSupplier(srClient),
                         new ApicurioJsonSchemaDataObjectMapper(context.nativeDataObjectMapper())));
     }
 }

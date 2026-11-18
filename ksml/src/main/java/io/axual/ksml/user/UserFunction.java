@@ -26,6 +26,7 @@ import io.axual.ksml.data.object.DataNull;
 import io.axual.ksml.data.object.DataObject;
 import io.axual.ksml.data.object.DataTuple;
 import io.axual.ksml.data.type.DataType;
+import io.axual.ksml.definition.InjectedParameter;
 import io.axual.ksml.definition.ParameterDefinition;
 import io.axual.ksml.exception.ExecutionException;
 import io.axual.ksml.exception.TopologyException;
@@ -35,24 +36,29 @@ import org.apache.kafka.streams.KeyValue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 public class UserFunction {
     private static final Logger LOG = LoggerFactory.getLogger(UserFunction.class);
+    /** Injects the state stores of the call; the function's code reads each store by its name. */
+    public static final String INJECT_STORES = "stores";
     private static final String[] TEMPLATE = new String[]{};
     public final String name;
     public final String namespace;
     public final ParameterDefinition[] parameters;
     public final int fixedParameterCount;
     public final UserType resultType;
+    public final List<InjectedParameter> injectedParameters;
     public final String[] storeNames;
 
-    public UserFunction(String namespace, String name, ParameterDefinition[] parameters, UserType resultType, List<String> storeNames) {
-        this(namespace, name, parameters, resultType, storeNames != null ? storeNames.toArray(TEMPLATE) : TEMPLATE);
+    public UserFunction(String namespace, String name, ParameterDefinition[] parameters, UserType resultType, List<InjectedParameter> injectedParams, List<String> storeNames) {
+        this(namespace, name, parameters, resultType, injectedParams, storeNames != null ? storeNames.toArray(TEMPLATE) : TEMPLATE);
     }
 
-    public UserFunction(String namespace, String name, ParameterDefinition[] parameters, UserType resultType, String[] storeNames) {
+    public UserFunction(String namespace, String name, ParameterDefinition[] parameters, UserType resultType, List<InjectedParameter> injectedParams, String[] storeNames) {
         if (namespace == null) {
             throw new TopologyException("Function namespace can not be null");
         }
@@ -64,8 +70,26 @@ public class UserFunction {
         this.parameters = parameters;
         this.fixedParameterCount = getFixedParameterCount(parameters);
         this.resultType = resultType;
+        final var injected = new ArrayList<InjectedParameter>();
+        if (storeNames != null && storeNames.length > 0)
+            injected.add(new InjectedParameter(INJECT_STORES));
+        if (injectedParams != null)
+            injectedParams.stream()
+                    .filter(param -> injected.stream().noneMatch(existing -> existing.name().equals(param.name())))
+                    .forEach(injected::add);
+        this.injectedParameters = List.copyOf(injected);
         this.storeNames = storeNames != null ? storeNames : TEMPLATE;
         LOG.info("Registered function '{}'", this);
+    }
+
+    /** The injections for a call with these state stores; empty when stores is null or the function uses none. */
+    public Map<String, Object> withStores(StateStores stores) {
+        return stores != null && hasInjectedParameter(INJECT_STORES) ? Map.of(INJECT_STORES, stores) : Map.of();
+    }
+
+    /** Whether the function declares an injected parameter with this name. */
+    public boolean hasInjectedParameter(String name) {
+        return injectedParameters.stream().anyMatch(param -> param.name().equals(name));
     }
 
     @Override
@@ -133,15 +157,17 @@ public class UserFunction {
     /**
      * Call the user-defined function and return the result.
      *
+     * @param injections variables to make available to the function's code, by name, such as {@link #INJECT_STORES}
+     *                   and {@link io.axual.ksml.proxy.context.ProcessorContextProxy#INJECT_CONTEXT}; a name that is not given gets its default value.
      * @param parameters parameters for the function.
      * @return the result of the call.
      */
-    public DataObject call(StateStores stores, DataObject... parameters) {
+    public DataObject call(Map<String, Object> injections, DataObject... parameters) {
         throw new ExecutionException("Can not call the call() method of the UserFunction %s.%s directly. Override this class and the call() method.".formatted(namespace, name));
     }
 
     public final DataObject call(DataObject... parameters) {
-        return call(null, parameters);
+        return call(Map.of(), parameters);
     }
 
     /** Returns the (key, value) result as a KeyValue. A None key or value becomes null, as Kafka Streams needs. */

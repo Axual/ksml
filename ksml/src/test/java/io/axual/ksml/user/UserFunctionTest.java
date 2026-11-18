@@ -41,14 +41,14 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 class UserFunctionTest {
 
     private static UserFunction function(ParameterDefinition[] parameters, List<String> storeNames) {
-        return new UserFunction("ns", "fn", parameters, UNKNOWN, storeNames);
+        return new UserFunction("ns", "fn", parameters, UNKNOWN, null, storeNames);
     }
 
     @Test
     @DisplayName("constructing a function with a null namespace throws TopologyException")
     void rejectsNullNamespace() {
         final var parameters = params(0);
-        assertThatThrownBy(() -> new UserFunction(null, "fn", parameters, UNKNOWN, List.of()))
+        assertThatThrownBy(() -> new UserFunction(null, "fn", parameters, UNKNOWN, null, List.of()))
                 .isInstanceOf(TopologyException.class)
                 .hasMessageContaining("namespace");
     }
@@ -57,7 +57,7 @@ class UserFunctionTest {
     @DisplayName("constructing a function with a null name throws TopologyException")
     void rejectsNullName() {
         final var parameters = params(0);
-        assertThatThrownBy(() -> new UserFunction("ns", null, parameters, UNKNOWN, List.of()))
+        assertThatThrownBy(() -> new UserFunction("ns", null, parameters, UNKNOWN, null, List.of()))
                 .isInstanceOf(TopologyException.class)
                 .hasMessageContaining("name");
     }

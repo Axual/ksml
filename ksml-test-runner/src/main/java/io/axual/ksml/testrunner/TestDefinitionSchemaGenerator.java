@@ -30,6 +30,7 @@ import java.lang.reflect.RecordComponent;
 import java.lang.reflect.Type;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -109,7 +110,7 @@ public class TestDefinitionSchemaGenerator {
             required.forEach(arr::add);
         }
 
-        // Apply type-level structural constraints (oneOfRequired / anyOfRequired)
+        // Apply type-level structural constraints (oneOfRequired / anyOfRequired / mutuallyExclusive)
         if (typeAnnotation != null) {
             applyTypeAnnotationConstraints(schema, typeAnnotation);
         }
@@ -134,6 +135,17 @@ public class TestDefinitionSchemaGenerator {
                 anyOf.add(variant);
             }
         }
+        final var exclusive = typeAnnotation.mutuallyExclusive();
+        if (exclusive.length > 1) {
+            var allOf = schema.putArray("allOf");
+            for (int first = 0; first < exclusive.length; first++) {
+                for (int second = first + 1; second < exclusive.length; second++) {
+                    var variant = MAPPER.createObjectNode();
+                    variant.putObject("not").putArray(REQUIRED).add(exclusive[first]).add(exclusive[second]);
+                    allOf.add(variant);
+                }
+            }
+        }
     }
 
     /**
@@ -155,6 +167,14 @@ public class TestDefinitionSchemaGenerator {
         if (rawType == Long.class || rawType == long.class
                 || rawType == Integer.class || rawType == int.class) {
             return MAPPER.createObjectNode().put("type", "integer");
+        }
+        if (rawType == Duration.class) {
+            // A KSML duration: a number of milliseconds, or a string such as "30s" or "1m"
+            var schema = MAPPER.createObjectNode();
+            var anyOf = schema.putArray("anyOf");
+            anyOf.addObject().put("type", "integer");
+            anyOf.addObject().put("type", "string");
+            return schema;
         }
         if (rawType == Boolean.class || rawType == boolean.class) {
             return MAPPER.createObjectNode().put("type", "boolean");

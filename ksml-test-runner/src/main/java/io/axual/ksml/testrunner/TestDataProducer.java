@@ -89,6 +89,10 @@ public class TestDataProducer {
                     count, block.to(), stream.topic());
             produceGeneratedMessages(block, stream, count);
         }
+        if (block.advanceWallClockTime() != null) {
+            log.debug("Advancing wall-clock time by {} after produce block to stream '{}'", block.advanceWallClockTime(), block.to());
+            driver.advanceWallClockTime(block.advanceWallClockTime());
+        }
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
@@ -124,7 +128,7 @@ public class TestDataProducer {
         var resultType = new UserType(new ListType(new UserTupleType(UserType.UNKNOWN, UserType.UNKNOWN)));
         var functionDef = FunctionDefinition.as(
                 "generator", generatorName, List.of(),
-                PythonSource.of(globalCode, code, expression), resultType, null);
+                PythonSource.of(globalCode, code, expression), resultType, null, null);
 
         // Create a PythonContext and register the generator function
         try (var pythonContext = new PythonContext(PythonContextConfig.builder().build())) {

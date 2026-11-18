@@ -21,6 +21,7 @@ Before you upgrade, check each item below:
 * Rename any `as` name that is also a name under `streams`, `tables` or `globalTables`.
 * Add `toTable` before any `join` or `leftJoin` with `foreignKeyExtractor` that has a stream as input.
 * Do not keep a store iterator in a global variable for a later function call.
+* If Python code uses the `stores` variable, read each store by its own name, or pass it to helper functions as an argument.
 * If Python code reads `get(key)["value"]` or `["timestamp"]` on a store with `timestamped: true`, or on the store of a `count`, `aggregate`, `reduce` or non-versioned table, use `getWithTimestamp(key)` instead. The same applies to the results of `delete` and `putIfAbsent`, and to `fetch(key, time)` on the store of a windowed aggregation (use `fetchWithTimestamp`).
 * If Python code calls `put` or `remove` on a session store, check that each session key is a dict with `key`, `start` and `end`, with `int` times. A session key that is not valid now raises an error instead of being ignored.
 * Check `reduce` and `aggregate` functions that handle `None`, and functions that return `None`: tombstones are now handled like in Kafka Streams.
@@ -109,6 +110,27 @@ If you deliberately want the header-based id format instead, set `apicurio.regis
 ### Resolving pre-registered schemas (issue #290)
 
 KSML keeps defaulting `apicurio.registry.find-latest` to `true`, so that with auto-register disabled and a pre-registered schema, the serializer resolves the artifact by its coordinates instead of by its content. This is the same default that was introduced in KSML 1.3.0, and it keeps working on Apicurio v3. You do not need to change anything for this. If you had set `find-latest` yourself, KSML still respects your value.
+
+### TLS and mutual TLS settings
+
+Apicurio v3 has its own TLS settings. The Apicurio v2 `apicurio.registry.request.ssl.*` keys are ignored, so move the trust store to the v3 keys:
+
+```yaml
+apicurio.registry.tls.truststore.location: /path/to/truststore.jks
+apicurio.registry.tls.truststore.password: my-secret
+apicurio.registry.tls.truststore.type: JKS   # JKS, PKCS12 or PEM
+```
+
+Apicurio v3 serdes have no setting for a client certificate. For a registry that requires mutual TLS, KSML adds these keys:
+
+```yaml
+apicurio.registry.tls.keystore.type: JKS     # JKS (default), PKCS12 or PEM
+apicurio.registry.tls.keystore.location: /path/to/keystore.jks
+apicurio.registry.tls.keystore.password: my-secret   # also unlocks the private key
+# For PEM, instead of the location and password:
+# apicurio.registry.tls.keystore.certificate: /path/to/client.crt   # file path or PEM content
+# apicurio.registry.tls.keystore.key: /path/to/client.key           # file path or PEM content
+```
 
 ## Stricter runner config validation
 
@@ -211,6 +233,24 @@ while it.hasNext():
 # After (KSML 2.0.0)
 for entry in store.all():
   ...
+```
+
+## The `stores` variable is gone outside the function
+
+On the 1.x line, every function also had a global variable `stores`, a dict with its state stores. Helper functions in `globalCode` could read it too. This was never documented.
+
+In KSML 2.0.0, a function only has the stores it declares in `stores`, each as a variable with the store's name. `stores` is no longer a global, so a helper function in `globalCode` that reads it raises a `NameError`.
+
+What you need to do: pass the store to the helper function as an argument.
+
+```python
+# Before (KSML 1.x): globalCode
+def get_total(key):
+  return stores["totals"].get(key)
+
+# After (KSML 2.0.0): globalCode, called as get_total(totals, key)
+def get_total(store, key):
+  return store.get(key)
 ```
 
 ## Timestamped stores return the value

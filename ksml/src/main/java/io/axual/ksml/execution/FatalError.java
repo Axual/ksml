@@ -20,6 +20,7 @@ package io.axual.ksml.execution;
  * =========================LICENSE_END==================================
  */
 
+import io.apicurio.registry.rest.client.models.ProblemDetails;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -49,7 +50,12 @@ public class FatalError {
             messageBuilder.append(LOG_ITEM_SEPARATOR).append(NEW_LINE);
             messageBuilder.append("Above error caused: ").append(t.getMessage()).append(NEW_LINE);
         } else {
-            messageBuilder.append("Description: ").append(t.getMessage()).append(NEW_LINE);
+            final String message = switch (t) {
+                case ProblemDetails pd -> pd.getDetail() + "(" + pd.getStatus() + ")";
+                default -> t.getMessage();
+            };
+
+            messageBuilder.append("Description: ").append(message).append(NEW_LINE);
         }
         messageBuilder.append("Stack trace: ").append(NEW_LINE);
         for (var ste : t.getStackTrace()) {

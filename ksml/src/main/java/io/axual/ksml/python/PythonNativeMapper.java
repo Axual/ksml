@@ -44,9 +44,12 @@ import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class PythonNativeMapper {
+    // The type names of floating point numbers: a Python float, or a Java Double or Float
+    private static final Set<String> FLOATING_POINT_TYPES = Set.of("float", "Double", "Float");
     private final Map<Context, PythonTypes> typesByContext = new ConcurrentHashMap<>();
 
     private record PythonTypes(Value dict, Value list, Value none) {
@@ -108,12 +111,20 @@ public class PythonNativeMapper {
                 final var result = polyglotExpectedNumberToNative(expected, object);
                 if (result != null) return result;
             }
-            // Return a long by default
+            // Without a numeric expected type, a float becomes a double and an int a long, whatever its value.
+            // asLong() rejects an int too large for a long, instead of losing precision as a double.
+            // Not a ternary: that would turn the long into a double too
+            if (isFloatingPoint(object)) return object.asDouble();
             return object.asLong();
         } catch (ClassCastException | UnsupportedOperationException e) {
             throw new DataException("Python value " + object + " does not fit in expected type "
                     + (expected != null ? expected : DataLong.DATATYPE), e);
         }
+    }
+
+    private static boolean isFloatingPoint(Value number) {
+        final var type = number.getMetaObject();
+        return type != null && FLOATING_POINT_TYPES.contains(type.getMetaSimpleName());
     }
 
     /**
@@ -126,7 +137,9 @@ public class PythonNativeMapper {
         if (expected == DataShort.DATATYPE) return object.asShort();
         if (expected == DataInteger.DATATYPE) return object.asInt();
         if (expected == DataLong.DATATYPE) return object.asLong();
-        if (expected == DataFloat.DATATYPE) return object.asFloat();
+        // asFloat() rejects any double that a float can not hold exactly, such as 3.14
+        if (expected == DataFloat.DATATYPE)
+            return object.fitsInFloat() ? object.asFloat() : NumericRangeChecker.convertDoubleToFloat(object.asDouble());
         if (expected == DataDouble.DATATYPE) return object.asDouble();
         return null;
     }

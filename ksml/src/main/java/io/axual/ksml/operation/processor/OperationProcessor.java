@@ -36,13 +36,17 @@ public abstract class OperationProcessor implements Processor<Object, Object, Ob
     private final String name;
     private final String[] storeNames;
     protected final StateStores stores = new StateStores();
-    // The timestamp of the record that is being processed, null between records
-    private Long recordTimestamp;
+    // The timestamp of the record or punctuation that is being processed, null in between
+    private Long currentTimestamp;
     private Function<String, StateStoreDefinition> storeDefinitions = storeName -> null;
 
     protected OperationProcessor(String name, String[] storeNames) {
         this.name = name;
         this.storeNames = storeNames;
+    }
+
+    protected String name() {
+        return name;
     }
 
     /** Sets where {@link #init} looks up the definitions, and so the declared types, of the stores it wraps. */
@@ -60,18 +64,23 @@ public abstract class OperationProcessor implements Processor<Object, Object, Ob
                 throw new ExecutionException("Could not connect processor '" + name + "' to state store '" + storeName + "'");
             }
             // Wrap the store in a proxy for security
-            stores.put(storeName, ProxyUtil.wrapStateStore(store, storeDefinitions.apply(storeName), () -> recordTimestamp != null ? recordTimestamp : ProxyUtil.noRecordTimestamp()));
+            stores.put(storeName, ProxyUtil.wrapStateStore(store, storeDefinitions.apply(storeName), () -> currentTimestamp != null ? currentTimestamp : ProxyUtil.noRecordTimestamp()));
         }
     }
 
     /** Remembers the timestamp of the record, so Python writes to timestamped stores can use it, then processes it. */
     @Override
     public final void process(Record<Object, Object> rec) {
+        runAt(rec.timestamp(), () -> processRecord(rec));
+    }
+
+    /** Runs an action, such as a punctuation, with the given timestamp as the time for Python writes to timestamped stores. */
+    protected final void runAt(long timestamp, Runnable action) {
         try {
-            recordTimestamp = rec.timestamp();
-            processRecord(rec);
+            currentTimestamp = timestamp;
+            action.run();
         } finally {
-            recordTimestamp = null;
+            currentTimestamp = null;
         }
     }
 

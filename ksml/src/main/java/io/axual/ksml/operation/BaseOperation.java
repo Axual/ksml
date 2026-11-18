@@ -108,6 +108,8 @@ public abstract class BaseOperation implements StreamOperation {
 
     private static final DataObjectFlattener DATA_OBJECT_FLATTENER = new DataObjectFlattener();
     protected final String name;
+    // The name as written in the definition, or null when it was generated
+    private final String definedName;
     protected final MetricTags tags;
 
     protected BaseOperation(OperationConfig config) {
@@ -118,7 +120,13 @@ public abstract class BaseOperation implements StreamOperation {
         } else {
             name = config.name();
         }
+        definedName = name != null ? config.definedName() : null;
         tags = config.tags().append("operation-name", name);
+    }
+
+    /** The name as written in the definition, or null when the definition gives none. */
+    public String definedName() {
+        return definedName;
     }
 
     @Override

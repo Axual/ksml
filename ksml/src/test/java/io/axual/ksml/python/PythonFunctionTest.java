@@ -34,6 +34,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class PythonFunctionTest {
     @BeforeAll
@@ -57,7 +58,7 @@ class PythonFunctionTest {
     @ParameterizedTest
     @CsvSource({"1, 2, 3", "100,100,200", "100, -1, 99", "99, -100, -1"})
     void testAdditionExpression(Integer i1, Integer i2, Integer sum) {
-        final var adderDef = FunctionDefinition.as(KSMLDSL.Functions.TYPE_GENERIC, "adder", params, PythonSource.of(null, null, "one + two"), resultType, null);
+        final var adderDef = FunctionDefinition.as(KSMLDSL.Functions.TYPE_GENERIC, "adder", params, PythonSource.of(null, null, "one + two"), resultType, null, null);
         final var adder = PythonFunction.forFunction(context, "test", "adder", adderDef);
 
         final var arg1 = new DataInteger(i1);
@@ -79,7 +80,7 @@ class PythonFunctionTest {
                   return one + two
                 
                 """;
-        final var adderDef = FunctionDefinition.as(KSMLDSL.Functions.TYPE_GENERIC, "adder", params, PythonSource.of(null, pythonCode.split("\n"), new String[]{"myAddFunc(one, two)"}), resultType, null);
+        final var adderDef = FunctionDefinition.as(KSMLDSL.Functions.TYPE_GENERIC, "adder", params, PythonSource.of(null, pythonCode.split("\n"), new String[]{"myAddFunc(one, two)"}), resultType, null, null);
         final var adder = PythonFunction.forFunction(context, "test", "adder", adderDef);
 
         final var arg1 = new DataInteger(i1);
@@ -101,7 +102,7 @@ class PythonFunctionTest {
                   return one + two
                 
                 """;
-        final var adderDef = FunctionDefinition.as(KSMLDSL.Functions.TYPE_GENERIC, "adder", params, PythonSource.of(pythonCode.split("\n"), null, new String[]{"myAddFunc(one, two)"}), resultType, null);
+        final var adderDef = FunctionDefinition.as(KSMLDSL.Functions.TYPE_GENERIC, "adder", params, PythonSource.of(pythonCode.split("\n"), null, new String[]{"myAddFunc(one, two)"}), resultType, null, null);
         final var adder = PythonFunction.forFunction(context, "test", "adder", adderDef);
 
         final var arg1 = new DataInteger(i1);
@@ -118,7 +119,7 @@ class PythonFunctionTest {
      */
     void testNullKeyValue() {
         final var stringResultType = new UserType(UserType.DEFAULT_NOTATION, DataString.DATATYPE);
-        final var concatDef = FunctionDefinition.as(KSMLDSL.Functions.TYPE_GENERIC, "concat", params, PythonSource.of(null, null, "str(one is None) + ' ' + str(two is None)"), stringResultType, null);
+        final var concatDef = FunctionDefinition.as(KSMLDSL.Functions.TYPE_GENERIC, "concat", params, PythonSource.of(null, null, "str(one is None) + ' ' + str(two is None)"), stringResultType, null, null);
         final var concat = PythonFunction.forFunction(context, "test", "adder", concatDef);
 
         final var nullArg = DataNull.INSTANCE;
@@ -139,5 +140,35 @@ class PythonFunctionTest {
         assertThat(resultNullKeyValue).isInstanceOf(DataString.class);
         assertThat(((DataString) resultNullKeyValue).value()).isEqualTo(expectedResultNullKeyValue);
 
+    }
+
+    @Test
+    void injectedVariablesDefaultToNoneAndUnknownNamesAreRejected() {
+        final var stringType = new UserType(UserType.DEFAULT_NOTATION, DataString.DATATYPE);
+        final var definition = FunctionDefinition.as(KSMLDSL.Functions.TYPE_GENERIC, "injected", new ParameterDefinition[0], PythonSource.of(null, null, "str(context)"), stringType, java.util.List.of(io.axual.ksml.proxy.context.ProcessorContextProxy.INJECT_CONTEXT), null);
+        final var function = PythonFunction.forFunction(context, "test", "injected", definition);
+
+        assertThat(function.call()).isEqualTo(new DataString("None"));
+        // An injected variable is set during the call only; a later call that does not inject it does not see it
+        final var storesDefinition = FunctionDefinition.as(KSMLDSL.Functions.TYPE_GENERIC, "injectedStores", new ParameterDefinition[0], PythonSource.of(null, null, "str(type(stores).__name__)"), stringType, java.util.List.of(new io.axual.ksml.definition.InjectedParameter(io.axual.ksml.user.UserFunction.INJECT_STORES, null, null)), null);
+        final var storesFunction = PythonFunction.forFunction(context, "test", "injectedStores", storesDefinition);
+        assertThat(storesFunction.call(storesFunction.withStores(new io.axual.ksml.store.StateStores()))).isEqualTo(new DataString("dict"));
+        assertThat(storesFunction.call()).isEqualTo(new DataString("NoneType"));
+        assertThatThrownBy(() -> function.call(java.util.Map.of("unknown", 1)))
+                .isInstanceOf(io.axual.ksml.exception.ExecutionException.class)
+                .hasMessageContaining("can not inject unknown variable 'unknown'");
+        // A function only gets the variables it declares
+        assertThatThrownBy(() -> storesFunction.call(java.util.Map.of(io.axual.ksml.proxy.context.ProcessorContextProxy.INJECT_CONTEXT.name(), 1)))
+                .isInstanceOf(io.axual.ksml.exception.ExecutionException.class)
+                .hasMessageContaining("can not inject unknown variable 'context'");
+        assertThat(function.withStores(new io.axual.ksml.store.StateStores())).isEmpty();
+    }
+
+    @Test
+    void returnsFloatsWithAFraction() {
+        final var doubleType = new UserType(UserType.DEFAULT_NOTATION, io.axual.ksml.data.object.DataDouble.DATATYPE);
+        final var definition = FunctionDefinition.as(KSMLDSL.Functions.TYPE_GENERIC, "half", new ParameterDefinition[0], PythonSource.of(null, null, "1.5"), doubleType, null, null);
+        final var function = PythonFunction.forFunction(context, "test", "half", definition);
+        assertThat(function.call()).isEqualTo(new io.axual.ksml.data.object.DataDouble(1.5));
     }
 }

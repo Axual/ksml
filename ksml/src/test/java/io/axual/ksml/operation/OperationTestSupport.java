@@ -195,6 +195,7 @@ final class OperationTestSupport {
                 List.of(),
                 PythonSource.of((String) null, (String) null, (String) null),
                 resultType,
+                List.of(),
                 List.of());
     }
 
@@ -322,7 +323,7 @@ final class OperationTestSupport {
         final var context = mock(TopologyBuildContext.class);
         when(context.createUserFunction(any())).thenAnswer(invocation -> {
             final FunctionDefinition definition = invocation.getArgument(0);
-            return new UserFunction("test", definition.name(), definition.parameters(), definition.resultType(), definition.storeNames());
+            return new UserFunction("test", definition.name(), definition.parameters(), definition.resultType(), definition.injectedParameters(), definition.storeNames());
         });
         when(context.getStreamWrapper(any(StreamDefinition.class))).thenReturn(kStream());
         when(context.getStreamWrapper(any(TableDefinition.class))).thenReturn(kTable());

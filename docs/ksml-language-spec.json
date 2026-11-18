@@ -327,6 +327,9 @@
               "$ref" : "#/$defs/PeekOperation",
               "type" : "object"
             }, {
+              "$ref" : "#/$defs/PunctuateOperation",
+              "type" : "object"
+            }, {
               "$ref" : "#/$defs/ReduceOperationWithAdderAndSubtractor",
               "type" : "object"
             }, {
@@ -3242,6 +3245,9 @@
               "$ref" : "#/$defs/PeekOperation",
               "type" : "object"
             }, {
+              "$ref" : "#/$defs/PunctuateOperation",
+              "type" : "object"
+            }, {
               "$ref" : "#/$defs/ReduceOperationWithAdderAndSubtractor",
               "type" : "object"
             }, {
@@ -3528,6 +3534,183 @@
       },
       "required" : [ "generator", "to" ],
       "title" : "ProducerDefinition",
+      "type" : "object"
+    },
+    "PunctuateOperation" : {
+      "additionalProperties" : false,
+      "description" : "Run a punctuator on a schedule, which can forward records to the next operation; records from the stream pass unchanged",
+      "properties" : {
+        "interval" : {
+          "anyOf" : [ {
+            "type" : "integer"
+          }, {
+            "type" : "string"
+          } ],
+          "description" : "The time between two punctuations, at least 1 millisecond"
+        },
+        "name" : {
+          "description" : "*(optional)* The name of the operation processor",
+          "type" : "string"
+        },
+        "punctuationType" : {
+          "description" : "The time that schedules the punctuator: wallClockTime (system time, also without input) or streamTime (record timestamps)",
+          "enum" : [ "wallClockTime", "streamTime" ]
+        },
+        "punctuator" : {
+          "anyOf" : [ {
+            "type" : "string"
+          }, {
+            "$ref" : "#/$defs/PunctuatorDefinitionWithImplicitStoreType",
+            "type" : "object"
+          } ],
+          "description" : "The function that is called on each punctuation"
+        },
+        "type" : {
+          "description" : "The type of the operation",
+          "enum" : [ "punctuate" ]
+        }
+      },
+      "required" : [ "interval", "punctuationType", "punctuator", "type" ],
+      "title" : "PunctuateOperation",
+      "type" : "object"
+    },
+    "PunctuatorDefinition" : {
+      "additionalProperties" : false,
+      "description" : "Defines a punctuator function, that gets injected into the Kafka Streams topology",
+      "properties" : {
+        "code" : {
+          "anyOf" : [ {
+            "type" : "boolean"
+          }, {
+            "type" : "integer"
+          }, {
+            "type" : "number"
+          }, {
+            "type" : "string"
+          } ],
+          "description" : "*(optional)* The (multiline) code of the punctuator."
+        },
+        "expression" : {
+          "anyOf" : [ {
+            "type" : "boolean"
+          }, {
+            "type" : "integer"
+          }, {
+            "type" : "number"
+          }, {
+            "type" : "string"
+          } ],
+          "description" : "*(optional)* The (multiline) expression returned by the punctuator. Used as an alternative for 'return' statements in the code."
+        },
+        "globalCode" : {
+          "anyOf" : [ {
+            "type" : "boolean"
+          }, {
+            "type" : "integer"
+          }, {
+            "type" : "number"
+          }, {
+            "type" : "string"
+          } ],
+          "description" : "*(optional)* Global (multiline) code that gets loaded into the Python context outside of the punctuator. Can be used for defining eg. global variables."
+        },
+        "name" : {
+          "description" : "*(optional)* The name of the punctuator. If this field is not defined, then the name is derived from the context.",
+          "type" : "string"
+        },
+        "parameters" : {
+          "description" : "*(optional)* A list of parameters to be passed into the punctuator",
+          "items" : {
+            "$ref" : "#/$defs/ParameterDefinition",
+            "type" : "object"
+          },
+          "type" : "array"
+        },
+        "resultType" : {
+          "description" : "*(optional)* The data type returned by the punctuator. Only required for function types, which are not pre-defined.",
+          "type" : "string"
+        },
+        "stores" : {
+          "description" : "*(optional)* A list of store names that the punctuator uses. Only required if the function wants to use a state store.",
+          "items" : {
+            "type" : "string"
+          },
+          "type" : "array"
+        },
+        "type" : {
+          "description" : "The type of the function",
+          "enum" : [ "punctuator" ]
+        }
+      },
+      "required" : [ "type" ],
+      "title" : "PunctuatorDefinition",
+      "type" : "object"
+    },
+    "PunctuatorDefinitionWithImplicitStoreType" : {
+      "additionalProperties" : false,
+      "description" : "Defines a punctuator function, that gets injected into the Kafka Streams topology",
+      "properties" : {
+        "code" : {
+          "anyOf" : [ {
+            "type" : "boolean"
+          }, {
+            "type" : "integer"
+          }, {
+            "type" : "number"
+          }, {
+            "type" : "string"
+          } ],
+          "description" : "*(optional)* The (multiline) code of the punctuator."
+        },
+        "expression" : {
+          "anyOf" : [ {
+            "type" : "boolean"
+          }, {
+            "type" : "integer"
+          }, {
+            "type" : "number"
+          }, {
+            "type" : "string"
+          } ],
+          "description" : "*(optional)* The (multiline) expression returned by the punctuator. Used as an alternative for 'return' statements in the code."
+        },
+        "globalCode" : {
+          "anyOf" : [ {
+            "type" : "boolean"
+          }, {
+            "type" : "integer"
+          }, {
+            "type" : "number"
+          }, {
+            "type" : "string"
+          } ],
+          "description" : "*(optional)* Global (multiline) code that gets loaded into the Python context outside of the punctuator. Can be used for defining eg. global variables."
+        },
+        "name" : {
+          "description" : "*(optional)* The name of the punctuator. If this field is not defined, then the name is derived from the context.",
+          "type" : "string"
+        },
+        "parameters" : {
+          "description" : "*(optional)* A list of parameters to be passed into the punctuator",
+          "items" : {
+            "$ref" : "#/$defs/ParameterDefinition",
+            "type" : "object"
+          },
+          "type" : "array"
+        },
+        "resultType" : {
+          "description" : "*(optional)* The data type returned by the punctuator. Only required for function types, which are not pre-defined.",
+          "type" : "string"
+        },
+        "stores" : {
+          "description" : "*(optional)* A list of store names that the punctuator uses. Only required if the function wants to use a state store.",
+          "items" : {
+            "type" : "string"
+          },
+          "type" : "array"
+        }
+      },
+      "title" : "PunctuatorDefinitionWithImplicitStoreType",
       "type" : "object"
     },
     "ReduceOperationWithAdderAndSubtractor" : {
@@ -5452,6 +5635,9 @@
           "type" : "object"
         }, {
           "$ref" : "#/$defs/PredicateDefinition",
+          "type" : "object"
+        }, {
+          "$ref" : "#/$defs/PunctuatorDefinition",
           "type" : "object"
         }, {
           "$ref" : "#/$defs/ReducerDefinition",

@@ -1,0 +1,64 @@
+name: "Wall-clock punctuation with advanceWallClockTime"
+definition: pipelines/test-punctuate.yaml
+
+streams:
+  numbers:
+    topic: ksml_numbers
+    keyType: string
+    valueType: string
+  totals:
+    topic: ksml_totals
+    keyType: string
+    valueType: string
+
+tests:
+  totals_after_one_minute:
+    description: "The punctuator runs once after the messages, and its records reach the assertions"
+    produce:
+      - to: numbers
+        messages:
+          - key: "a"
+            value: "1"
+          - key: "a"
+            value: "2"
+          - key: "b"
+            value: "5"
+        advanceWallClockTime: 1m
+    assert:
+      - on: totals
+        code: |
+          totals = {r["key"]: r["value"] for r in records}
+          assert len(records) == 2, f"Expected 2 totals, got {records}"
+          assert totals == {"a": "3", "b": "5"}, f"Unexpected totals {totals}"
+
+  interleaved_time_steps:
+    description: "A punctuation runs between two produce blocks; a block without messages only advances the time"
+    produce:
+      - to: numbers
+        messages:
+          - key: "a"
+            value: "1"
+        advanceWallClockTime: 1m
+      - to: numbers
+        messages:
+          - key: "a"
+            value: "10"
+      - to: numbers
+        advanceWallClockTime: 60s
+    assert:
+      - on: totals
+        code: |
+          values = [r["value"] for r in records]
+          assert values == ["1", "10"], f"Expected one total per punctuation, got {records}"
+
+  no_time_step_no_punctuation:
+    description: "Without advanceWallClockTime the punctuator does not run"
+    produce:
+      - to: numbers
+        messages:
+          - key: "a"
+            value: "1"
+    assert:
+      - on: totals
+        code: |
+          assert len(records) == 0, f"Expected no totals, got {records}"
