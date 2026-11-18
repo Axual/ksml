@@ -485,10 +485,14 @@ public abstract class BaseOperation implements StreamOperation {
         return result;
     }
 
-    protected StreamJoined<Object, Object, Object> streamJoinedOf(TopologyBuildContext context, WindowStateStoreDefinition thisStore, WindowStateStoreDefinition otherStore, StreamDataType k, StreamDataType v, StreamDataType vo, JoinWindows joinWindows) {
+    /**
+     * @param hasSharedStore whether the join has a shared store for records without a match: {@code true} for a left
+     *                       or outer join, {@code false} for an inner join
+     */
+    protected StreamJoined<Object, Object, Object> streamJoinedOf(TopologyBuildContext context, WindowStateStoreDefinition thisStore, WindowStateStoreDefinition otherStore, StreamDataType k, StreamDataType v, StreamDataType vo, JoinWindows joinWindows, boolean hasSharedStore) {
         var result = StreamJoined.with(k.serde(), v.serde(), vo.serde());
         if (name != null) result = result.withName(name);
-        result = streamJoinedLogging(thisStore, otherStore) ? result.withLoggingEnabled(new HashMap<>()) : result.withLoggingDisabled();
+        result = streamJoinedLogging(thisStore, otherStore, hasSharedStore) ? result.withLoggingEnabled(new HashMap<>()) : result.withLoggingDisabled();
         if (thisStore != null) {
             if (thisStore.name() != null) result = result.withStoreName(thisStore.name());
             result = result.withThisStoreSupplier(StoreUtil.validatedWindowStore(thisStore, joinWindows, context.headersStoreFormat()));
@@ -503,19 +507,32 @@ public abstract class BaseOperation implements StreamOperation {
      * Kafka Streams always logs join stores built from given suppliers, and applies the {@link StreamJoined} logging
      * only to the shared store of a left or outer join. That store is logged unless both join stores turn logging off.
      */
-    private static boolean streamJoinedLogging(WindowStateStoreDefinition thisStore, WindowStateStoreDefinition otherStore) {
-        warnIfJoinStoreLoggingDisabled(thisStore);
-        warnIfJoinStoreLoggingDisabled(otherStore);
-        return !(loggingDisabled(thisStore) && loggingDisabled(otherStore));
+    private static boolean streamJoinedLogging(WindowStateStoreDefinition thisStore, WindowStateStoreDefinition otherStore, boolean hasSharedStore) {
+        final var thisOff = loggingDisabled(thisStore);
+        final var otherOff = loggingDisabled(otherStore);
+        if (hasSharedStore && thisOff && otherOff) {
+            // What the state store reference says to do, so not a warning
+            log.info("Join stores '{}' and '{}' set 'logging: false': the shared store of the join has no changelog topic, and Kafka Streams keeps the changelog topics of the join stores",
+                    thisStore.name(), otherStore.name());
+        } else {
+            if (thisOff) warnJoinStoreLoggingWithoutEffect(thisStore, otherStore, hasSharedStore);
+            if (otherOff) warnJoinStoreLoggingWithoutEffect(otherStore, thisStore, hasSharedStore);
+        }
+        return !(thisOff && otherOff);
     }
 
     private static boolean loggingDisabled(WindowStateStoreDefinition store) {
         return store != null && !store.logging();
     }
 
-    private static void warnIfJoinStoreLoggingDisabled(WindowStateStoreDefinition store) {
-        if (loggingDisabled(store)) {
-            log.warn("Join store '{}' sets 'logging: false', but Kafka Streams always logs join stores (see 'For Stream-Stream Joins' in the state store reference)", store.name());
+    private static void warnJoinStoreLoggingWithoutEffect(WindowStateStoreDefinition store, WindowStateStoreDefinition otherStore, boolean hasSharedStore) {
+        if (hasSharedStore) {
+            final var other = otherStore != null ? "'" + otherStore.name() + "'" : "the other join store";
+            log.warn("Join store '{}' sets 'logging: false', which has no effect unless {} sets it too: Kafka Streams always gives join stores a changelog topic, and only then turns off the one of the shared store (see 'For Stream-Stream Joins' in the state store reference)",
+                    store.name(), other);
+        } else {
+            log.warn("Join store '{}' sets 'logging: false', which has no effect: Kafka Streams always gives join stores a changelog topic (see 'For Stream-Stream Joins' in the state store reference)",
+                    store.name());
         }
     }
 

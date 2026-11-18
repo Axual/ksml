@@ -295,7 +295,8 @@ of the two window stores decides whether the shared store gets a changelog topic
 - Both `logging: false`: the shared store has no changelog topic.
 - Otherwise (the default): the shared store has a changelog topic.
 
-KSML logs a warning for each window store with `logging: false`, because its own changelog topic stays.
+KSML logs a warning for a window store with `logging: false` when the setting has no effect: on a `join`, which has
+no shared store, or when the other window store of a `leftJoin` or `outerJoin` doesn't set it too.
 
 Kafka Streams names the shared store `<thisStore>-outer-shared-join-store` or `<thisStore>-left-shared-join-store`,
 and keeps it in RocksDB when `thisStore` is persistent. KSML 1.x gave it a changelog topic only when `thisStore` set

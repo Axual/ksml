@@ -96,12 +96,12 @@ public class KSMLStreamJoinLoggingTest {
     }
 
     @Test
-    @DisplayName("with logging: false on both stores, only the shared store has no changelog, and each store gets a warning")
+    @DisplayName("with logging: false on both stores, only the shared store has no changelog, and KSML says so without a warning")
     void joinStoresWithoutLogging() throws Exception {
         final var topology = new AtomicReference<Topology>();
         final var log = stderrOf(() -> topology.set(buildTopology("pipelines/test-stream-join-logging-off.yaml")));
 
-        assertThat(log).contains(warning("this_store")).contains(warning("other_store")).doesNotContain("shared store");
+        assertThat(log).contains(sharedStoreUnlogged()).doesNotContain("WARN");
         assertThat(changelogsAfterUnmatchedRecords(topology.get())).hasSize(2)
                 .anyMatch(topic -> topic.endsWith("-this_store-changelog"))
                 .anyMatch(topic -> topic.endsWith("-other_store-changelog"))
@@ -109,12 +109,13 @@ public class KSMLStreamJoinLoggingTest {
     }
 
     @Test
-    @DisplayName("with logging: false on one store, the shared store keeps its changelog, and that store gets a warning")
+    @DisplayName("with logging: false on one store, the shared store keeps its changelog, and that store gets a warning that names the other store")
     void mixedLoggingKeepsSharedChangelog() throws Exception {
         final var topology = new AtomicReference<Topology>();
         final var log = stderrOf(() -> topology.set(buildTopology("pipelines/test-stream-join-logging-mixed.yaml")));
 
-        assertThat(log).contains(warning("other_store")).doesNotContain("this_store").doesNotContain("shared store");
+        assertThat(log).contains(warningUnlessOther("other_store", "this_store"))
+                .doesNotContain("Join store 'this_store'").doesNotContain(sharedStoreUnlogged());
         assertThat(changelogsAfterUnmatchedRecords(topology.get())).hasSize(3)
                 .anyMatch(topic -> topic.contains("outer-shared-join"));
     }
@@ -129,12 +130,12 @@ public class KSMLStreamJoinLoggingTest {
     }
 
     @Test
-    @DisplayName("a left join with logging: false on both stores has no changelog only for its shared store")
+    @DisplayName("a left join with logging: false on both stores has no changelog only for its shared store, without a warning")
     void leftJoinStoresWithoutLogging() throws Exception {
         final var topology = new AtomicReference<Topology>();
         final var log = stderrOf(() -> topology.set(buildTopology("pipelines/test-stream-join-logging-left-off.yaml")));
 
-        assertThat(log).contains(warning("this_store")).contains(warning("other_store"));
+        assertThat(log).contains(sharedStoreUnlogged()).doesNotContain("WARN");
         assertThat(changelogsAfterUnmatchedRecords(topology.get())).hasSize(2)
                 .noneMatch(topic -> topic.contains("shared-join"));
     }
@@ -145,7 +146,8 @@ public class KSMLStreamJoinLoggingTest {
         final var topology = new AtomicReference<Topology>();
         final var log = stderrOf(() -> topology.set(buildTopology("pipelines/test-stream-join-logging-inner-off.yaml")));
 
-        assertThat(log).contains(warning("this_store")).contains(warning("other_store"));
+        assertThat(log).contains(warningWithoutEffect("this_store")).contains(warningWithoutEffect("other_store"))
+                .doesNotContain(sharedStoreUnlogged());
         assertThat(changelogsAfterUnmatchedRecords(topology.get())).hasSize(2)
                 .anyMatch(topic -> topic.endsWith("-this_store-changelog"))
                 .anyMatch(topic -> topic.endsWith("-other_store-changelog"));
@@ -169,8 +171,18 @@ public class KSMLStreamJoinLoggingTest {
         return generator.create(new StreamsBuilder(), Map.of("definition", definition));
     }
 
-    /** The warning for a join store with logging: false, true for inner, left and outer joins alike. */
-    private static String warning(String store) {
-        return "Join store '" + store + "' sets 'logging: false', but Kafka Streams always logs join stores";
+    /** The warning for a store of an inner join with logging: false, which changes nothing. */
+    private static String warningWithoutEffect(String store) {
+        return "Join store '" + store + "' sets 'logging: false', which has no effect: Kafka Streams always gives join stores a changelog topic";
+    }
+
+    /** The warning for a store of a left or outer join with logging: false, when the other store doesn't set it. */
+    private static String warningUnlessOther(String store, String otherStore) {
+        return "Join store '" + store + "' sets 'logging: false', which has no effect unless '" + otherStore + "' sets it too";
+    }
+
+    /** The info for a left or outer join whose stores both set logging: false. */
+    private static String sharedStoreUnlogged() {
+        return "Join stores 'this_store' and 'other_store' set 'logging: false': the shared store of the join has no changelog topic";
     }
 }

@@ -115,7 +115,7 @@ KSML requires both `thisStore` and `otherStore` on a stream-stream join (the par
 | false | false | off |
 | different values | | on |
 
-- A join store with `logging: false` logs a warning at build time: Kafka Streams always logs join stores. The warning points to the state store reference for the shared store rule, and doesn't describe it: `streamJoinedOf` doesn't know whether the join is an inner join, which has no shared store, and with mixed values the shared store is logged (PR #767 review 03, item 8).
+- A join store with `logging: false` logs a warning at build time when the setting has no effect: on an inner join, which has no shared store, or on one store of a left or outer join when the other store doesn't set it, so the shared store is still logged. When both stores of a left or outer join set it, KSML logs one info line instead: that is the documented way to turn off the changelog of the shared store, so a warning there can't be fixed. `streamJoinedOf` takes whether the join has a shared store.
 
 Values are the ones D1 resolved, so a store without `logging` counts as `true`. Different values are accepted: they worked in 1.x, an inner join has no shared store so its `logging` has no effect, and keeping the changelog is the safe choice. Changelog and store names stay Kafka Streams' own (for example `<thisStore>-outer-shared-join-store` and `<app>-<store>-changelog`). Tests assert on the produced changelog topics, not on hard-coded names that KSML doesn't control.
 
