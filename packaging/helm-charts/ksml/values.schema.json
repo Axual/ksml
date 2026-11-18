@@ -312,7 +312,20 @@
             }
         },
         "store": {
-            "type": "object"
+            "type": "object",
+            "properties": {
+                "emptyDir": {
+                    "type": "object",
+                    "properties": {
+                        "sizeLimit": {
+                            "type": ["string", "null"]
+                        }
+                    }
+                },
+                "spec": {
+                    "type": "object"
+                }
+            }
         },
         "serviceMonitor": {
             "type": "object",

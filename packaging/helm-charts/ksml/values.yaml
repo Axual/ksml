@@ -352,6 +352,10 @@ logging:
 store:
   # -- Specifications of the volumeClaimTemplate.
   spec: {}
+  emptyDir:
+    # -- Size limit of the emptyDir that holds the state stores when `store.spec` is not set, and always for a Job.
+    # Kubernetes evicts the pod when the stores use more. Leave empty for no limit.
+    sizeLimit: 1Gi
 #    accessModes: [ "ReadWriteOnce" ]
 #    resources:
 #      requests:

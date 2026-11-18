@@ -83,8 +83,12 @@ spec:
           configMap:
             name: {{ include "ksml.fullname" . }}-logging
         - name: ksml-store
+          {{- with .Values.store.emptyDir.sizeLimit }}
           emptyDir:
-            sizeLimit: 10Mi
+            sizeLimit: {{ . }}
+          {{- else }}
+          emptyDir: {}
+          {{- end }}
       {{- with .Values.volumes }}
         {{- toYaml . | nindent 8 }}
       {{- end }}
