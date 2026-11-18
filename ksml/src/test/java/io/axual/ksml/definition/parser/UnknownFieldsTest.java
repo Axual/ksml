@@ -99,7 +99,10 @@ class UnknownFieldsTest {
             "left-join-table-with-other-store.yaml,       otherStore",
             "left-join-global-table-with-grace.yaml,      grace",
             "outer-join-stream-with-store.yaml,           store",
-            "outer-join-table-with-grace.yaml,            grace"
+            "outer-join-table-with-grace.yaml,            grace",
+            // Without a target key, all join fields are known, so a wrong key is still named
+            "join-without-target.yaml,                    with",
+            "outer-join-global-table.yaml,                globalTable;mapper"
     })
     @DisplayName("An unknown field is rejected and named in the error")
     void unknownFieldIsRejected(String file, String unknownFields) {
