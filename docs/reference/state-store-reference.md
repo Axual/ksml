@@ -124,7 +124,7 @@ application or give it a new `application.id`. Switching back from `HEADERS` to 
 **Important:** Versioned stores (`versioned: true`) do not support caching. When an operation materializes a
 versioned store, Kafka Streams ignores caching. For a versioned store that Python functions use, do not set
 `caching: true`. Like other stores, a versioned store is persistent unless it sets `persistent: false`, in which case
-it becomes a plain in-memory store without versions.
+it becomes an in-memory store without versions.
 
 **Note:** Key-value stores have no `retention`: an entry stays until it is deleted or overwritten. For a versioned store, `historyRetention` sets how long old versions are kept.
 
