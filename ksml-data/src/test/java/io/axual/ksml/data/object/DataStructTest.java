@@ -158,4 +158,21 @@ class DataStructTest {
                 .as("Structs with different keys should NOT be equal")
                 .isTrue();
     }
+
+    @Test
+    @DisplayName("Unknown fields are kept with the struct, but are not part of its contents or equality")
+    void unknownFieldsAreNotContents() {
+        var a = new DataStruct();
+        a.put("k1", new DataInteger(1));
+        a.unknownFields("unknown");
+
+        var b = new DataStruct();
+        b.put("k1", new DataInteger(1));
+
+        assertThat(a.unknownFields()).isEqualTo("unknown");
+        assertThat(a.size()).isEqualTo(1);
+        assertThat(a).isEqualTo(b).hasSameHashCodeAs(b);
+        assertThat(a.equals(b, EqualityFlags.EMPTY).isEqual()).isTrue();
+        assertThat(b.unknownFields()).isNull();
+    }
 }

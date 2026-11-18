@@ -913,6 +913,26 @@ streams:
     valueType: protobuf
 ```
 
+#### Fields that the local schema does not have
+
+A producer can add a field to a Protobuf schema before the `.proto` file of your KSML definition gets the field. KSML
+still reads these records with its own `.proto` file. Python functions do not see the new fields, also not in nested
+messages.
+
+KSML keeps the new fields with the record, and writes them back unchanged when it writes the record as the same
+Protobuf message type. So consumers that have the newer schema still get them. This works when the record goes through
+steps that do not replace it, such as `filter`, `peek`, `branch` and `to`. So your `.proto` file is not a filter: the
+new fields reach the output topic, although Python functions and the KSML logs do not show them.
+
+A Python function always gets a copy of the record. When a function returns a value, for example in `mapValues` or
+`transformValue`, KSML writes that value, and it does not have the new fields. This is also true when the function
+changes the record it got and returns it. To remove the new fields, return a new value from a Python function, for
+example with `mapValues`.
+
+KSML matches Protobuf fields by name. It only keeps the new fields when the schema of the record uses the same number
+as your `.proto` file for each field name, and the new fields use numbers that your `.proto` file does not use.
+Otherwise KSML reads the fields by name, drops the new fields and logs a warning.
+
 ### XML
 
 XML (Extensible Markup Language) is used for complex hierarchical data.

@@ -1,0 +1,30 @@
+streams:
+  events:
+    topic: protobuf_in
+    keyType: string
+    valueType: protobuf:ProtobufEvent
+  kept_events:
+    topic: protobuf_kept
+    keyType: string
+    valueType: protobuf:ProtobufEvent
+  rebuilt_events:
+    topic: protobuf_rebuilt
+    keyType: string
+    valueType: protobuf:ProtobufEvent
+
+pipelines:
+  keep_unknown_fields:
+    from: events
+    via:
+      - type: filter
+        if:
+          expression: value["name"] != "skip"
+    to: kept_events
+  rebuild_value:
+    from: events
+    via:
+      - type: mapValues
+        mapper:
+          expression: value
+          resultType: protobuf:ProtobufEvent
+    to: rebuilt_events

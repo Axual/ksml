@@ -1,0 +1,11 @@
+syntax = "proto3";
+package io.axual.ksml.test;
+
+message ProtobufEventInner {
+  string a = 1;
+}
+
+message ProtobufEvent {
+  string name = 1;
+  ProtobufEventInner inner = 2;
+}

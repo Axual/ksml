@@ -40,6 +40,7 @@ import io.axual.ksml.data.object.DataShort;
 import io.axual.ksml.data.object.DataString;
 import io.axual.ksml.data.object.DataStruct;
 import io.axual.ksml.data.object.DataTuple;
+import io.axual.ksml.data.schema.StructSchema;
 import io.axual.ksml.data.type.DataType;
 import io.axual.ksml.data.type.EnumType;
 import io.axual.ksml.data.type.ListType;
@@ -482,7 +483,15 @@ public class ConvertUtil {
     private DataStruct convertStruct(StructType expected, DataStruct value, boolean allowFail) {
         final var result = new DataStruct(expected.schema(), value.isNull());
         value.forEach(structFiller(expected, result, allowFail));
+        // Unknown fields only have a meaning in the same type
+        if (value.unknownFields() != null && sameStructName(expected.schema(), value.type().schema())) {
+            result.unknownFields(value.unknownFields());
+        }
         return result;
+    }
+
+    private static boolean sameStructName(StructSchema left, StructSchema right) {
+        return left != null && right != null && left.fullName().equals(right.fullName());
     }
 
     private BiConsumer<String, Object> structFiller(StructType expected, DataStruct result, boolean allowFail) {

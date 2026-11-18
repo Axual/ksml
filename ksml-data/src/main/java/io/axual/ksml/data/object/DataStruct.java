@@ -32,6 +32,7 @@ import io.axual.ksml.data.util.ValuePrinter;
 import io.axual.ksml.data.value.Struct;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.Setter;
 
 import java.util.Collections;
 import java.util.Map;
@@ -79,6 +80,15 @@ public class DataStruct implements DataObject {
      */
     @JsonIgnore
     private final StructType type;
+
+    /**
+     * Fields of the source record that its schema does not have, in the form of the notation that read them, for
+     * example a Protobuf {@code UnknownFieldSet}. They are not part of the contents, but that notation writes them back.
+     */
+    @JsonIgnore
+    @EqualsAndHashCode.Exclude
+    @Setter
+    private Object unknownFields;
 
     /**
      * Constructs a {@code DataStruct} with no schema and an empty content map.
