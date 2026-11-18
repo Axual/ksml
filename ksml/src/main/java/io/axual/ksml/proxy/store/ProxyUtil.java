@@ -31,6 +31,7 @@ import io.axual.ksml.python.PythonErrors;
 import io.axual.ksml.python.PythonNativeMapper;
 import io.axual.ksml.type.UserType;
 import org.apache.kafka.common.header.Headers;
+import org.apache.kafka.common.header.internals.RecordHeaders;
 import org.apache.kafka.common.serialization.Serializer;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.apache.kafka.streams.KeyValue;
@@ -259,21 +260,39 @@ public class ProxyUtil {
     }
 
     /**
+     * Like {@link #wrapStateStore(StateStore, StateStoreDefinition, LongSupplier, Supplier)}, for use outside record
+     * processing: writes to headers-aware stores keep no headers.
+     */
+    public static StateStore wrapStateStore(StateStore store, StateStoreDefinition definition, LongSupplier recordTimestamp) {
+        return wrapStateStore(store, definition, recordTimestamp, RecordHeaders::new);
+    }
+
+    /**
      * Static method for creating proxy wrappers around Kafka Streams state stores.
      * The proxies delegate all operations to the underlying store while providing
      * a controlled interface that can be safely exposed to user code (e.g., Python functions).
+     * The other overloads call this one, so every store type is wrapped in one place.
      *
      * @param store           the state store to wrap
      * @param definition      the store's definition, which declares its key and value types, or {@code null}
      * @param recordTimestamp the timestamp of the record that is being processed, used by timestamped stores when
      *                        Python writes without a timestamp
+     * @param recordHeaders   the headers of the record that is being processed, which writes to headers-aware stores keep
      * @return a proxy wrapper around the store, or the original store if no proxy is available
      */
     @SuppressWarnings("unchecked")
-    public static StateStore wrapStateStore(StateStore store, StateStoreDefinition definition, LongSupplier recordTimestamp) {
+    public static StateStore wrapStateStore(StateStore store, StateStoreDefinition definition, LongSupplier recordTimestamp, Supplier<Headers> recordHeaders) {
         final var keyType = definition != null ? dataTypeOf(definition.keyType()) : null;
         final var valueType = definition != null ? dataTypeOf(definition.valueType()) : null;
-        if (store instanceof VersionedKeyValueStore<?, ?> versionedStore) {
+        // A headers-aware store is shown as the store type without headers, so Python gets the same methods and results.
+        // Check these first: each also extends the store type without headers, with the headers in the values
+        if (store instanceof TimestampedKeyValueStoreWithHeaders<?, ?> headersStore) {
+            return new TimestampedKeyValueStoreProxy(new HeadersKeyValueStoreAdapter((TimestampedKeyValueStoreWithHeaders<Object, Object>) headersStore, recordHeaders), keyType, valueType, recordTimestamp);
+        } else if (store instanceof TimestampedWindowStoreWithHeaders<?, ?> headersStore) {
+            return new TimestampedWindowStoreProxy(new HeadersWindowStoreAdapter((TimestampedWindowStoreWithHeaders<Object, Object>) headersStore, recordHeaders), keyType, valueType, recordTimestamp);
+        } else if (store instanceof SessionStoreWithHeaders<?, ?> headersStore) {
+            return new SessionStoreProxy(new HeadersSessionStoreAdapter((SessionStoreWithHeaders<Object, Object>) headersStore, recordHeaders), keyType, valueType);
+        } else if (store instanceof VersionedKeyValueStore<?, ?> versionedStore) {
             return new VersionedKeyValueStoreProxy((VersionedKeyValueStore<Object, Object>) versionedStore, keyType, valueType);
         } else if (store instanceof TimestampedKeyValueStore<?, ?> timestampedKeyValueStore) {
             return new TimestampedKeyValueStoreProxy((TimestampedKeyValueStore<Object, Object>) timestampedKeyValueStore, keyType, valueType, recordTimestamp);
@@ -288,27 +307,6 @@ public class ProxyUtil {
         }
         // Return unwrapped for unknown store types
         return store;
-    }
-
-    /**
-     * Like {@link #wrapStateStore(StateStore, StateStoreDefinition, LongSupplier)}, and writes to headers-aware stores
-     * keep the headers of the record that is being processed.
-     *
-     * @param recordHeaders the headers of the record that is being processed
-     */
-    @SuppressWarnings("unchecked")
-    public static StateStore wrapStateStore(StateStore store, StateStoreDefinition definition, LongSupplier recordTimestamp, Supplier<Headers> recordHeaders) {
-        // A headers-aware store is shown as the store type without headers, so Python gets the same methods and results
-        final var keyType = definition != null ? dataTypeOf(definition.keyType()) : null;
-        final var valueType = definition != null ? dataTypeOf(definition.valueType()) : null;
-        if (store instanceof TimestampedKeyValueStoreWithHeaders<?, ?> headersStore) {
-            return new TimestampedKeyValueStoreProxy(new HeadersKeyValueStoreAdapter((TimestampedKeyValueStoreWithHeaders<Object, Object>) headersStore, recordHeaders), keyType, valueType, recordTimestamp);
-        } else if (store instanceof TimestampedWindowStoreWithHeaders<?, ?> headersStore) {
-            return new TimestampedWindowStoreProxy(new HeadersWindowStoreAdapter((TimestampedWindowStoreWithHeaders<Object, Object>) headersStore, recordHeaders), keyType, valueType, recordTimestamp);
-        } else if (store instanceof SessionStoreWithHeaders<?, ?> headersStore) {
-            return new SessionStoreProxy(new HeadersSessionStoreAdapter((SessionStoreWithHeaders<Object, Object>) headersStore, recordHeaders), keyType, valueType);
-        }
-        return wrapStateStore(store, definition, recordTimestamp);
     }
 
     private static DataType dataTypeOf(UserType type) {

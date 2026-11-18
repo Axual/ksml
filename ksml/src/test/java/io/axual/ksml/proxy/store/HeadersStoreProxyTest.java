@@ -99,6 +99,38 @@ class HeadersStoreProxyTest {
         return header != null ? new String(header.value(), StandardCharsets.UTF_8) : null;
     }
 
+    // --- overloads -------------------------------------------------------------------------------
+
+    @Test
+    @DisplayName("the overloads without record headers wrap headers-aware stores the same way, with reads that return values")
+    void overloadsWithoutHeadersWrapHeadersStores() {
+        final var store = (org.apache.kafka.streams.processor.StateStore) keyValueStore;
+        assertThat(ProxyUtil.wrapStateStore(store)).isInstanceOf(TimestampedKeyValueStoreProxy.class);
+        assertThat(ProxyUtil.wrapStateStore(store, null)).isInstanceOf(TimestampedKeyValueStoreProxy.class);
+        assertThat(ProxyUtil.wrapStateStore((org.apache.kafka.streams.processor.StateStore) windowStore, null)).isInstanceOf(TimestampedWindowStoreProxy.class);
+        assertThat(ProxyUtil.wrapStateStore((org.apache.kafka.streams.processor.StateStore) sessionStore, null)).isInstanceOf(SessionStoreProxy.class);
+
+        when(keyValueStore.get("key")).thenReturn(ValueTimestampHeaders.make("value", 100L, traceHeaders()));
+        assertThat(runPython(ProxyUtil.wrapStateStore(store, null, () -> RECORD_TIMESTAMP), """
+                [store.get("key")]
+                """)).containsExactly("value");
+    }
+
+    @Test
+    @DisplayName("a write through an overload without record headers stores no headers")
+    @SuppressWarnings("unchecked")
+    void overloadWithoutHeadersPutHasNoHeaders() {
+        runPython(ProxyUtil.wrapStateStore((org.apache.kafka.streams.processor.StateStore) keyValueStore, null), """
+                store.put("key", "value", 500)
+                []
+                """);
+
+        final ArgumentCaptor<ValueTimestampHeaders<Object>> captor = ArgumentCaptor.captor();
+        verify(keyValueStore).put(eq(new DataString("key")), captor.capture());
+        assertThat(captor.getValue().timestamp()).isEqualTo(500L);
+        assertThat(captor.getValue().headers().toArray()).isEmpty();
+    }
+
     // --- keyValue ---------------------------------------------------------------------------------
 
     @Test
