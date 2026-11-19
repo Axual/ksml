@@ -291,6 +291,12 @@ volumes: []
 #     secretName: mysecret
 #     optional: false
 
+# -- Additional environment variables for the KSML container. The chart sets `KSML_K8S_POD_NAME`,
+# `KSML_GROUP_INSTANCE_ID` and `LOGBACK_CONFIGURATION_FILE` itself; setting one of them here fails the render.
+env: []
+# - name: TZ
+#   value: "Europe/Amsterdam"
+
 # -- Additional volumeMounts on the output Deployment definition.
 volumeMounts: []
 # - name: foo
