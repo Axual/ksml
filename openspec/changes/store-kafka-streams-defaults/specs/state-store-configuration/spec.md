@@ -143,6 +143,10 @@ On the first start on an application state directory, before Kafka Streams start
 - **WHEN** a KSML 1.x application left local state for a persistent store that leaves out `logging`, and this version starts on that state directory
 - **THEN** KSML stops with an error that names the store and asks to set `logging`, and the local state is unchanged
 
+#### Scenario: Persistent store without logging with exactly-once
+- **WHEN** the same happens with `processing.guarantee: exactly_once_v2` and without transactional state stores, and a store with `logging: false` has local state in the same task
+- **THEN** the error also says that `logging: true` makes Kafka Streams delete the task, names that store, and asks to run with `processing.guarantee: at_least_once` until the store has written to its new changelog
+
 #### Scenario: Logging set after the stop
 - **WHEN** the store then sets `logging: false` and this version starts again
 - **THEN** KSML starts and Python reads the values that KSML 1.x left in the local state

@@ -210,6 +210,39 @@ class StoreUpgradeTest {
     }
 
     @Test
+    @DisplayName("with exactly-once, says that logging: true deletes the task, with the stores of the task that keep their state")
+    void warnsThatExactlyOnceWipesUnloggedTask() throws IOException {
+        createKeyValueStore("0_1", "key_value");
+        createKeyValueStore("0_1", "key_value_unlogged");
+        createKeyValueStore("1_0", "other_task_unlogged");
+        final var stores = List.of(
+                keyValueStore("key_value", true, null),
+                keyValueStore("key_value_unlogged", true, false),
+                keyValueStore("other_task_unlogged", true, false));
+
+        assertThatThrownBy(() -> prepareWithExactlyOnce(stores))
+                .isInstanceOf(ExecutionException.class)
+                .hasMessageContaining("With exactly-once processing, 'logging: true' makes Kafka Streams delete all state of task 0_1,"
+                        + " also of 'key_value_unlogged' with 'logging: false', until 'key_value' has written to its new changelog there.")
+                .hasMessageContaining("Run with 'processing.guarantee: at_least_once' until then.")
+                .hasMessageNotContaining("other_task_unlogged");
+        assertThat(marker()).doesNotExist();
+    }
+
+    @Test
+    @DisplayName("with at-least-once, does not warn that logging: true deletes the task")
+    void doesNotWarnAboutWipeWithAtLeastOnce() throws IOException {
+        createKeyValueStore("0_1", "key_value");
+        createKeyValueStore("0_1", "key_value_unlogged");
+        final var stores = List.of(keyValueStore("key_value", true, null), keyValueStore("key_value_unlogged", true, false));
+
+        assertThatThrownBy(() -> prepare(stores))
+                .isInstanceOf(ExecutionException.class)
+                .hasMessageContaining("Store 'key_value' has local state in task 0_1")
+                .hasMessageNotContaining("exactly-once");
+    }
+
+    @Test
     @DisplayName("keeps the local state of a store that sets logging explicitly")
     void keepsStateWithExplicitLogging() throws IOException {
         final var unlogged = createKeyValueStore("0_0", "key_value_unlogged");
@@ -323,6 +356,19 @@ class StoreUpgradeTest {
         assertThat(shared).exists();
         assertThat(checkpoint).exists();
         assertThat(marker()).doesNotExist();
+    }
+
+    @Test
+    @DisplayName("with exactly-once, says that logging: true on thisStore deletes the task of the shared join store")
+    void warnsThatExactlyOnceWipesSharedJoinTask() throws IOException {
+        createKeyValueStore("1_0", SHARED_JOIN_STORE);
+        final var sharedJoinStores = List.of(sharedJoinStore(true, null, null));
+
+        assertThatThrownBy(() -> prepareWithExactlyOnce(List.of(), sharedJoinStores))
+                .isInstanceOf(ExecutionException.class)
+                .hasMessageContaining("'logging: true' on 'this_store'")
+                .hasMessageContaining("With exactly-once processing, 'logging: true' makes Kafka Streams delete all state of task 1_0,"
+                        + " until '" + SHARED_JOIN_STORE + "' has written to its new changelog there.");
     }
 
     @ParameterizedTest(name = "thisStore logging: {0}, otherStore logging: {1}")

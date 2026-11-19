@@ -126,8 +126,11 @@ public final class StoreUpgrade {
             final var restorable = restorableTasks(unreadableStores, tasks);
             final var problems = new ArrayList<String>();
             problems.addAll(unreadableProblems(unreadableStores, tasks));
-            problems.addAll(unloggedProblems(unloggedStores, tasks));
-            problems.addAll(unloggedSharedJoinProblems(unloggedSharedJoinStores, tasks));
+            final WipeWarning wipeWarning = wipesTasks
+                    ? (store, storeTasks) -> wipeWarning(store, storeTasks, stores, sharedJoinStores)
+                    : (store, storeTasks) -> "";
+            problems.addAll(unloggedProblems(unloggedStores, tasks, wipeWarning));
+            problems.addAll(unloggedSharedJoinProblems(unloggedSharedJoinStores, tasks, wipeWarning));
             if (wipesTasks) problems.addAll(wipedTaskProblems(restorable, stores, sharedJoinStores));
             if (!problems.isEmpty()) {
                 throw new ExecutionException("KSML 1.x left local state in " + applicationDirectory
@@ -201,22 +204,28 @@ public final class StoreUpgrade {
         return problems;
     }
 
-    private static List<String> unloggedProblems(List<? extends StateStoreDefinition> unloggedStores, List<Path> tasks) {
+    private static List<String> unloggedProblems(List<? extends StateStoreDefinition> unloggedStores, List<Path> tasks, WipeWarning wipeWarning) {
         final var problems = new ArrayList<String>();
         for (final var store : unloggedStores) {
             final var storeTasks = tasks.stream().filter(task -> hasLocalState(task, store.name())).toList();
-            if (!storeTasks.isEmpty()) problems.add(unloggedProblem(store, storeTasks));
+            if (!storeTasks.isEmpty()) problems.add(unloggedProblem(store, storeTasks) + wipeWarning.of(store.name(), storeTasks));
         }
         return problems;
     }
 
-    private static List<String> unloggedSharedJoinProblems(List<SharedJoinStore> sharedJoinStores, List<Path> tasks) {
+    private static List<String> unloggedSharedJoinProblems(List<SharedJoinStore> sharedJoinStores, List<Path> tasks, WipeWarning wipeWarning) {
         final var problems = new ArrayList<String>();
         for (final var store : sharedJoinStores) {
             final var storeTasks = tasks.stream().filter(task -> hasLocalState(task, store.name())).toList();
-            if (!storeTasks.isEmpty()) problems.add(unloggedSharedJoinProblem(store, storeTasks));
+            if (!storeTasks.isEmpty()) problems.add(unloggedSharedJoinProblem(store, storeTasks) + wipeWarning.of(store.name(), storeTasks));
         }
         return problems;
+    }
+
+    /** What exactly-once processing deletes when the user chooses a new changelog for a store with local state. */
+    @FunctionalInterface
+    private interface WipeWarning {
+        String of(String store, List<Path> tasks);
     }
 
     private static List<String> wipedTaskProblems(Map<Path, List<StateStoreDefinition>> restorable,
@@ -225,18 +234,38 @@ public final class StoreUpgrade {
         final var problems = new ArrayList<String>();
         for (final var entry : restorable.entrySet()) {
             final var task = entry.getKey();
-            final var keptStores = Stream.concat(
-                            stores.stream()
-                                    .filter(store -> store.persistent() && !store.logging())
-                                    .map(StateStoreDefinition::name),
-                            sharedJoinStores.stream()
-                                    .filter(store -> store.persistent() && !store.logging())
-                                    .map(SharedJoinStore::name))
-                    .filter(name -> hasLocalState(task, name))
-                    .toList();
+            final var keptStores = keptStores(List.of(task), stores, sharedJoinStores);
             if (!keptStores.isEmpty()) problems.add(wipedTaskProblem(task, entry.getValue(), keptStores));
         }
         return problems;
+    }
+
+    /** The stores with 'logging: false' that have local state in the tasks, which a wipe of the tasks loses. */
+    private static List<String> keptStores(List<Path> tasks,
+                                           Collection<? extends StateStoreDefinition> stores,
+                                           Collection<SharedJoinStore> sharedJoinStores) {
+        return Stream.concat(
+                        stores.stream()
+                                .filter(store -> store.persistent() && !store.logging())
+                                .map(StateStoreDefinition::name),
+                        sharedJoinStores.stream()
+                                .filter(store -> store.persistent() && !store.logging())
+                                .map(SharedJoinStore::name))
+                .filter(name -> tasks.stream().anyMatch(task -> hasLocalState(task, name)))
+                .distinct()
+                .toList();
+    }
+
+    // Kafka Streams has no changelog offset for the store until it writes to its new changelog in a task, and with
+    // exactly-once it wipes a task where a logged store has local state but no offset
+    private static String wipeWarning(String store, List<Path> tasks,
+                                      Collection<? extends StateStoreDefinition> stores,
+                                      Collection<SharedJoinStore> sharedJoinStores) {
+        final var keptStores = keptStores(tasks, stores, sharedJoinStores);
+        return " With exactly-once processing, 'logging: true' makes Kafka Streams delete all state of task " + taskNames(tasks)
+                + (keptStores.isEmpty() ? "" : ", also of " + quoted(keptStores) + " with 'logging: false'")
+                + ", until '" + store + "' has written to its new changelog there."
+                + " Run with 'processing.guarantee: at_least_once' until then.";
     }
 
     private static String unloggedProblem(StateStoreDefinition store, List<Path> tasks) {
