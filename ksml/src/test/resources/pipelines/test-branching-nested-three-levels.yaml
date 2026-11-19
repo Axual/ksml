@@ -1,0 +1,39 @@
+# A branch inside a branch inside a branch
+streams:
+  input_stream:
+    topic: input
+    keyType: string
+    valueType: json
+  level1_out:
+    topic: level1_out
+    keyType: string
+    valueType: json
+  level2_out:
+    topic: level2_out
+    keyType: string
+    valueType: json
+  level3_yes:
+    topic: level3_yes
+    keyType: string
+    valueType: json
+  level3_no:
+    topic: level3_no
+    keyType: string
+    valueType: json
+
+pipelines:
+  three_levels:
+    from: input_stream
+    branch:
+      - if:
+          expression: value.get("a")
+        branch:
+          - if:
+              expression: value.get("b")
+            branch:
+              - if:
+                  expression: value.get("c")
+                to: level3_yes
+              - to: level3_no
+          - to: level2_out
+      - to: level1_out

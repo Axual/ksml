@@ -4050,7 +4050,7 @@
       "type" : "object"
     },
     "StringOrInlinePredicateDefinitionWithImplicitStoreType" : {
-      "additionalProperties" : false,
+      "additionalProperties" : true,
       "description" : "Defines the condition under which messages get sent down this branch",
       "properties" : {
         "if" : {

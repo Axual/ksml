@@ -75,7 +75,7 @@ class UnknownFieldsTest {
     }
 
     @ParameterizedTest(name = "{0} parses")
-    @ValueSource(strings = {"valid-definition.yaml", "valid-name-version-description.yaml"})
+    @ValueSource(strings = {"valid-definition.yaml", "valid-name-version-description.yaml", "valid-nested-branch.yaml"})
     @DisplayName("A valid definition parses")
     void validDefinitionParses(String file) {
         assertThatCode(() -> parse(file)).doesNotThrowAnyException();
@@ -91,6 +91,7 @@ class UnknownFieldsTest {
             "inline-topic-unknown-field.yaml,      valuetype",
             "inline-function-unknown-field.yaml,   resultTyp",
             "print-unknown-field.yaml,             labl",
+            "nested-branch-unknown-field.yaml,     too",
             // A join accepts only the fields of the join kind that its target key picks
             "join-stream-with-store.yaml,                 store",
             "join-table-with-time-difference.yaml,        timeDifference",
@@ -127,13 +128,6 @@ class UnknownFieldsTest {
         assertThat(causeMessages(thrown))
                 .contains("Unknown operation \"fliter\"")
                 .doesNotContain("Unknown field");
-    }
-
-    @Test
-    @DisplayName("A branch inside a branch is reported as not supported")
-    void nestedBranchIsNotSupported() {
-        assertThatThrownBy(() -> parse("nested-branch.yaml"))
-                .hasStackTraceContaining("A branch inside a branch is not supported yet");
     }
 
     @Test
