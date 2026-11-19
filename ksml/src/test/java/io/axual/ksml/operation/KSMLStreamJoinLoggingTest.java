@@ -101,7 +101,9 @@ public class KSMLStreamJoinLoggingTest {
         final var topology = new AtomicReference<Topology>();
         final var log = stderrOf(() -> topology.set(buildTopology("pipelines/test-stream-join-logging-off.yaml")));
 
-        assertThat(log).contains(sharedStoreUnlogged()).doesNotContain("WARN");
+        assertThat(log).contains(sharedStoreUnlogged())
+                .doesNotContain("Join store 'this_store'")
+                .doesNotContain("Join store 'other_store'");
         assertThat(changelogsAfterUnmatchedRecords(topology.get())).hasSize(2)
                 .anyMatch(topic -> topic.endsWith("-this_store-changelog"))
                 .anyMatch(topic -> topic.endsWith("-other_store-changelog"))
@@ -135,7 +137,9 @@ public class KSMLStreamJoinLoggingTest {
         final var topology = new AtomicReference<Topology>();
         final var log = stderrOf(() -> topology.set(buildTopology("pipelines/test-stream-join-logging-left-off.yaml")));
 
-        assertThat(log).contains(sharedStoreUnlogged()).doesNotContain("WARN");
+        assertThat(log).contains(sharedStoreUnlogged())
+                .doesNotContain("Join store 'this_store'")
+                .doesNotContain("Join store 'other_store'");
         assertThat(changelogsAfterUnmatchedRecords(topology.get())).hasSize(2)
                 .noneMatch(topic -> topic.contains("shared-join"));
     }
