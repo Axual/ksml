@@ -461,22 +461,18 @@ kafka:
   environment: "dev"
 ```
 
-## Environment Variable Substitution
+## Environment Variables in the Kafka Configuration
 
-KSML supports environment variable substitution in configuration values using `${VARIABLE_NAME}` syntax:
+KSML does not replace `${NAME}` in the runner configuration. In the `kafka` section, use a Kafka config provider:
 
 ```yaml
 kafka:
-  bootstrap.servers: "${KAFKA_BROKERS}"
-  application.id: "${APP_ID:-default-app-id}"  # With default value
-
-ksml:
-  schemaRegistries:
-    confluent:
-      config:
-        schema.registry.url: "${SCHEMA_REGISTRY_URL}"
-        schema.registry.ssl.keystore.password: "${KEYSTORE_PASSWORD}"
+  config.providers: env
+  config.providers.env.class: org.apache.kafka.common.config.provider.EnvVarConfigProvider
+  bootstrap.servers: "${env:KAFKA_BROKERS}"
 ```
+
+The Helm chart sets the two `config.providers` lines for you.
 
 ## Complete Configuration Example
 
