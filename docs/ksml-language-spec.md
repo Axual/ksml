@@ -1467,7 +1467,7 @@
   - **`parameters`** *(array)*: *(optional)* A list of parameters to be passed into the stream partitioner.
     - **Items** *(object)*: Refer to *[#/$defs/ParameterDefinition](#%24defs/ParameterDefinition)*.
   - **`resultType`** *(string)*: *(optional)* The data type returned by the stream partitioner. Only required for function types, which are not pre-defined.
-- <a id="%24defs/StringOrInlinePredicateDefinitionWithImplicitStoreType"></a>**`StringOrInlinePredicateDefinitionWithImplicitStoreType`** *(object)*: Defines the condition under which messages get sent down this branch. Cannot contain additional properties.
+- <a id="%24defs/StringOrInlinePredicateDefinitionWithImplicitStoreType"></a>**`StringOrInlinePredicateDefinitionWithImplicitStoreType`** *(object)*: Defines the condition under which messages get sent down this branch. Can contain additional properties.
   - **`if`**: *(optional)* Defines the condition under which messages get sent down this branch.
     - **Any of**
       - *string*
