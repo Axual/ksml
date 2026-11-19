@@ -1,0 +1,44 @@
+# The nested branching example from docs/tutorials/intermediate/branching.md
+streams:
+  input_stream:
+    topic: input
+    keyType: string
+    valueType: json
+  expensive_electronics:
+    topic: expensive_electronics
+    keyType: string
+    valueType: json
+  affordable_electronics:
+    topic: affordable_electronics
+    keyType: string
+    valueType: json
+  clothing_items:
+    topic: clothing_items
+    keyType: string
+    valueType: json
+
+functions:
+  enrich_electronics:
+    type: valueTransformer
+    code: |
+      value["enriched"] = True
+    expression: value
+    resultType: json
+
+pipelines:
+  nested_example:
+    from: input_stream
+    branch:
+      - if:
+          expression: value.get("category") == "electronics"
+        via:
+          - type: transformValue
+            mapper: enrich_electronics
+        branch:
+          - if:
+              expression: value.get("price") > 500
+            to: expensive_electronics
+          - to: affordable_electronics
+      - if:
+          expression: value.get("category") == "clothing"
+        to: clothing_items

@@ -247,33 +247,30 @@ graph TB
 
 ### Nested Branching
 
-A `branch` inside a branch is not supported yet: KSML stops at start-up with the error "A branch inside a branch is not supported yet". To split messages again inside a branch, save the branch result with `as`, and branch again in a second pipeline:
+You can create nested branching by having branches that contain their own branching logic:
 
 ```yaml
 pipelines:
-  split_by_category:
+  nested_example:
     from: input_stream
     branch:
-      - if:
+      - if: 
           expression: value.get("category") == "electronics"
         via:
           - type: transformValue
             mapper: enrich_electronics
-        as: electronics
+        branch:
+          - if:
+              expression: value.get("price") > 500
+            to: expensive_electronics
+          - to: affordable_electronics
+      
       - if:
-          expression: value.get("category") == "clothing"
+          expression: value.get("category") == "clothing" 
         to: clothing_items
-
-  split_electronics_by_price:
-    from: electronics
-    branch:
-      - if:
-          expression: value.get("price") > 500
-        to: expensive_electronics
-      - to: affordable_electronics
 ```
 
-The first pipeline saves the enriched electronics under the name `electronics`. The second pipeline reads them with `from: electronics` and splits them by price. The first pipeline has no default branch, so messages from any other category are dropped:
+The electronics branch has its own `branch` section that splits electronics by price. The outer branching has no default branch, so messages from any other category are dropped:
 
 ```mermaid
 --8<-- "snippets/mermaid-init.txt"
@@ -282,8 +279,7 @@ graph LR
     InputStream[(input_stream)]
     Category{"<code>branch</code><br/>on category"}
     Enrich[<code>transformValue</code><br/>enrich_electronics]
-    Saved["<code>as</code><br/>electronics"]
-    Price{"<code>branch</code> in second pipeline<br/>price > 500"}
+    Price{"nested <code>branch</code><br/>price > 500"}
 
     %% Outputs
     Expensive[(expensive_electronics)]
@@ -293,8 +289,7 @@ graph LR
     %% Data Flow
     InputStream --> Category
     Category -->|"electronics"| Enrich
-    Enrich --> Saved
-    Saved --> Price
+    Enrich --> Price
     Price -->|"yes"| Expensive
     Price -.->|"no: default"| Affordable
     Category -->|"clothing"| Clothing
@@ -304,7 +299,7 @@ graph LR
     --8<-- "snippets/mermaid-classes.txt"
 
     class InputStream,Expensive,Affordable,Clothing topic
-    class Category,Enrich,Saved,Price operation
+    class Category,Enrich,Price operation
     class Drop dropped
 ```
 

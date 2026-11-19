@@ -1,5 +1,5 @@
 # Test definition for unknown-field validation, see UnknownFieldsTest
-# A branch inside a branch is not supported yet
+# A misspelled field in a branch inside a branch
 streams:
   input_stream:
     topic: input
@@ -23,5 +23,5 @@ pipelines:
         branch:
           - if:
               expression: key == "expensive"
-            to: expensive_electronics
+            too: expensive_electronics
           - to: affordable_electronics
