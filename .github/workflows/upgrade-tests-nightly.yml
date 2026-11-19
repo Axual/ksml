@@ -1,0 +1,65 @@
+name: Upgrade tests
+
+# Runs the upgrade tests (*UpgradeIT) every night: state written by older KSML versions, which run as containers
+# from registry.axual.io, must read correctly in this version. They run nightly, not on pull requests, because
+# they take about 7 minutes and the upgrade code changes rarely. Run this workflow by hand before a release.
+# See developerdocs/upgrade-tests.md.
+
+on:
+  schedule:
+    - cron: '0 3 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  upgrade-tests:
+    name: Upgrade tests
+    if: github.repository == 'Axual/ksml'
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+
+      - name: Read GraalVM version
+        id: graalvm
+        run: |
+          version=$(cat .graalvm-jdk-version)
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "java=${version%%.*}" >> "$GITHUB_OUTPUT"
+
+      - name: Set up GraalVM
+        # actions/setup-java cannot find GraalVM Community 25.1+ (files named graalvm-community-jdk-25iN-...).
+        uses: graalvm/setup-graalvm@d6eca2595046623d69d636041513c80abf745406  # v1.6.9
+        with:
+          distribution: 'graalvm-community'
+          version: ${{ steps.graalvm.outputs.version }}
+          java-version: ${{ steps.graalvm.outputs.java }}
+          cache: 'maven'
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@8aa5831fb8d48d8f76594c7ddde61ae58019f550  # v4.8.0
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Run the upgrade tests
+        timeout-minutes: 40
+        # -Dtest=none skips the unit tests of the modules that are built
+        run: |
+          mvn -T1C clean verify -pl ksml-integration-tests -am -Pupgrade-tests \
+            -Dtest=none -Dsurefire.failIfNoSpecifiedTests=false --no-transfer-progress
+        env:
+          TESTCONTAINERS_RYUK_DISABLED: false
+
+      - name: Keep the test reports
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: upgrade-test-reports-${{ github.run_number }}
+          path: ksml-integration-tests/target/failsafe-reports/
+          retention-days: 30
+          if-no-files-found: warn
