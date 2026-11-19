@@ -152,8 +152,7 @@ mode does not fail a test. When that difference is gone, the report shows
 | F27 | The runner does not close Kafka Streams on SIGTERM, so a static member cannot join again | C53 (Docker only) |
 
 Some problems have no case of their own. The runner keeps running after Kafka Streams
-fails (see the notes of C14, C21, C43 and others in Docker mode), and unknown fields in a
-definition are ignored (usability probes u03, u11 and u12).
+fails (see the notes of C14, C21, C43 and others in Docker mode).
 
 Fixed so far, and now guarded by their cases:
 
@@ -166,6 +165,7 @@ Fixed so far, and now guarded by their cases:
 - Tombstones are a real `null` inside Kafka Streams (F01) (C12, C14, C15, C15b, C21c,
   C33, C35, C36e), and a global table join no longer throws when the key mapper returns
   `None` (F07) (C34).
+- Unknown fields in a definition stop KSML at startup (usability probes u03, u11 and u12).
 
 ## Add a case
 

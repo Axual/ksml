@@ -88,6 +88,8 @@ Define directly within operations for custom configurations:
 
 **Important:** Versioned stores (`versioned: true`) cannot have caching enabled (`caching: false` is required).
 
+**Note:** Key-value stores have no `retention`: an entry stays until it is deleted or overwritten. For a versioned store, `historyRetention` sets how long old versions are kept.
+
 ### Session Store Specific Parameters
 
 | Parameter | Type | Required | Default | Description |
@@ -109,7 +111,6 @@ pipelines:
       - type: aggregate
         store:
           type: keyValue
-          retention: 1h
           caching: false
 ```
 
@@ -130,7 +131,6 @@ stores:
     valueType: json
     persistent: true
     logging: true
-    retention: 1h
 ```
 
 

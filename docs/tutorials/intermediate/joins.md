@@ -51,7 +51,6 @@ All join operations require a valueJoiner function to combine data from both sid
 
 ```yaml
 valueJoiner:
-  type: valueJoiner
   code: |
     # value1: left stream/table value
     # value2: right stream/table value

@@ -1,0 +1,23 @@
+# Test definition for unknown-field validation, see UnknownFieldsTest
+streams:
+  clicks:
+    topic: clicks_in
+    keyType: string
+    valueType: string
+  counts:
+    topic: counts_out
+    keyType: string
+    valueType: long
+
+pipelines:
+  count_clicks:
+    from: clicks
+    via:
+      - type: groupByKey
+      - type: windowByTime
+        windowType: tumbling
+        duration: 1m
+        grase: 5s           # should be "grace"
+      - type: count
+      - type: toStream
+    to: counts

@@ -1,0 +1,9 @@
+# Test definition for unknown-field validation, see UnknownFieldsTest
+# "loging" should be "logging"
+stores:
+  count_store:
+    type: keyValue
+    keyType: string
+    valueType: long
+    persistent: true
+    loging: true

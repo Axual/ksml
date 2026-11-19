@@ -1,0 +1,57 @@
+# Test definition for unknown-field validation, see UnknownFieldsTest
+streams:
+  orders:
+    topic: orders
+    keyType: string
+    valueType: string
+  payments:
+    topic: payments
+    keyType: string
+    valueType: string
+  joined:
+    topic: joined
+    keyType: string
+    valueType: string
+
+tables:
+  notes:
+    topic: notes
+    keyType: string
+    valueType: string
+
+globalTables:
+  customers:
+    topic: customers
+    keyType: string
+    valueType: string
+
+stores:
+  orders_store:
+    type: window
+    keyType: string
+    valueType: string
+    retainDuplicates: true
+    windowSize: 1m
+    retention: 2m
+  payments_store:
+    type: window
+    keyType: string
+    valueType: string
+    retainDuplicates: true
+    windowSize: 1m
+    retention: 2m
+
+pipelines:
+  joining:
+    from: orders
+    via:
+      - type: join
+        stream: payments
+        timeDifference: 1m
+        thisStore: orders_store
+        otherStore: payments_store
+        valueJoiner:
+          resultType: string
+          expression: str(value1) + "|" + str(value2)
+        store: join_store       # only for a join with a table
+    to: joined

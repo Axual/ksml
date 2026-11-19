@@ -1,0 +1,38 @@
+# Test definition for unknown-field validation, see UnknownFieldsTest
+streams:
+  orders:
+    topic: orders
+    keyType: string
+    valueType: string
+  payments:
+    topic: payments
+    keyType: string
+    valueType: string
+  joined:
+    topic: joined
+    keyType: string
+    valueType: string
+
+tables:
+  notes:
+    topic: notes
+    keyType: string
+    valueType: string
+
+globalTables:
+  customers:
+    topic: customers
+    keyType: string
+    valueType: string
+
+pipelines:
+  joining:
+    from: orders
+    via:
+      - type: leftJoin
+        table: notes
+        valueJoiner:
+          resultType: string
+          expression: str(value1) + "|" + str(value2)
+        otherStore: join_store  # only for a join with a stream
+    to: joined

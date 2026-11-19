@@ -25,7 +25,10 @@ import io.axual.ksml.data.schema.StructSchema;
 import io.axual.ksml.data.schema.UnionSchema;
 import io.axual.ksml.execution.FatalError;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
@@ -35,6 +38,22 @@ public interface StructsParser<T> extends ParserWithSchemas<T> {
     default DataSchema schema() {
         final var schemas = schemas();
         return schemas.size() == 1 ? schemas.getFirst() : new UnionSchema(schemas.stream().map(UnionSchema.Member::new).toArray(UnionSchema.Member[]::new));
+    }
+
+    /**
+     * The field names this parser accepts on the given object. By default these are the fields of all
+     * its schemas.
+     *
+     * @param node the object to parse
+     * @return the known field names, or empty when any field is allowed
+     */
+    default Optional<Set<String>> knownFields(ParseNode node) {
+        final var result = new HashSet<String>();
+        for (final var schema : schemas()) {
+            if (schema.additionalFieldsAllowed()) return Optional.empty();
+            schema.fields().forEach(field -> result.add(field.name()));
+        }
+        return Optional.of(result);
     }
 
     static <T> StructsParser<T> of(final Function<ParseNode, T> parseFunc, StructSchema schema) {
@@ -88,6 +107,11 @@ public interface StructsParser<T> extends ParserWithSchemas<T> {
             @Override
             public List<StructSchema> schemas() {
                 return delegate().schemas();
+            }
+
+            @Override
+            public Optional<Set<String>> knownFields(ParseNode node) {
+                return delegate().knownFields(node);
             }
         };
     }

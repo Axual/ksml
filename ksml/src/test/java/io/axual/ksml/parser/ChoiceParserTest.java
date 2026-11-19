@@ -51,9 +51,9 @@ class ChoiceParserTest {
                 "state store",
                 "keyValue",
                 Map.of(
-                        "keyValue", StructsParser.of(node -> "parsed:keyValue", schema("KeyValueStore")),
-                        "session", StructsParser.of(node -> "parsed:session", schema("SessionStore")),
-                        "window", StructsParser.of(node -> "parsed:window", schema("WindowStore"))));
+                        "keyValue", StructsParser.of(_ -> "parsed:keyValue", schema("KeyValueStore")),
+                        "session", StructsParser.of(_ -> "parsed:session", schema("SessionStore")),
+                        "window", StructsParser.of(_ -> "parsed:window", schema("WindowStore"))));
     }
 
     private static StructSchema schema(String name) {
@@ -79,7 +79,7 @@ class ChoiceParserTest {
 
         assertThatThrownBy(() -> parser.parse(node))
                 .isInstanceOf(ParseException.class)
-                .hasMessageContaining("Unknown state store \"type\"")
+                .hasMessageContaining("Unknown state store \"notAStoreType\"")
                 .hasMessageContaining("choose one of keyValue, session, window");
     }
 
@@ -125,6 +125,19 @@ class ChoiceParserTest {
 
         assertThatThrownBy(() -> parser.parse(node))
                 .isInstanceOf(ParseException.class)
-                .hasMessageContaining("Unknown state store \"type\"");
+                .hasMessageContaining("Unknown state store \"5\"");
+    }
+
+    @Test
+    @DisplayName("A missing type without a default names the missing field, at the path of the object")
+    void missingTypeWithoutDefaultIsReported() throws Exception {
+        final var noDefault = new ChoiceParser<>("type", "StoreType", "state store", null,
+                Map.of("keyValue", StructsParser.of(_ -> "parsed:keyValue", schema("KeyValueStore")),
+                        "session", StructsParser.of(_ -> "parsed:session", schema("SessionStore"))));
+        final var node = nodeOf("someOtherField: value");
+
+        assertThatThrownBy(() -> noDefault.parse(node))
+                .isInstanceOf(ParseException.class)
+                .hasMessageContaining("test: Missing \"type\", choose one of keyValue, session");
     }
 }
