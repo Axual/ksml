@@ -100,11 +100,26 @@ The shared store of a stream-stream left or outer join SHALL NOT log to a change
 - **THEN** the topology is built and the outer join's shared store has a changelog topic
 
 ### Requirement: Join window stores always log
-The two declared window stores of a stream-stream join SHALL always log to changelog topics, as Kafka Streams does for join stores that the application provides. When a join store sets `logging: false`, KSML SHALL log a warning that names the store and says that Kafka Streams always logs join stores. The warning SHALL NOT describe the shared store, because it is true for inner, left and outer joins alike.
+The two declared window stores of a stream-stream join SHALL always log to changelog topics, as Kafka Streams does for join stores that the application provides.
 
 #### Scenario: Window stores with logging off
 - **WHEN** an outer join between two streams declares `thisStore` and `otherStore` with `logging: false`
-- **THEN** both window stores have changelog topics and a warning naming each store is logged
+- **THEN** both window stores have changelog topics
+
+### Requirement: Join store logging is reported
+When `logging: false` on a join store has no effect, KSML SHALL log a warning that names the store: on an inner join always, and on a left or outer join when the other join store does not set `logging: false`, and then the warning also names that other store. When both join stores of a left or outer join set it, KSML SHALL log an info line, and no warning, that says only the shared store has no changelog topic.
+
+#### Scenario: Inner join stores with logging off
+- **WHEN** an inner join between two streams declares `thisStore` and `otherStore` with `logging: false`
+- **THEN** a warning naming each store is logged
+
+#### Scenario: Outer join stores with logging off
+- **WHEN** an outer join between two streams declares `thisStore` and `otherStore` with `logging: false`
+- **THEN** an info line and no warning is logged
+
+#### Scenario: Outer join store with logging off on one side
+- **WHEN** an outer join between two streams declares `thisStore` with `logging: true` and `otherStore` with `logging: false`
+- **THEN** a warning naming `otherStore` and `thisStore` is logged
 
 ### Requirement: Existing window store state reads correctly after the upgrade
 Window store state that KSML 1.x wrote from Python with a changelog SHALL read correctly after the upgrade to this version: the local state of a plain store as it is, the state of a store with `timestamped: true` after KSML deletes its local state once and Kafka Streams restores it from the changelog topic, and every store after a restore without local state. KSML SHALL decide on the store options as declared, because KSML 1.x read options that a definition leaves out as `false`.

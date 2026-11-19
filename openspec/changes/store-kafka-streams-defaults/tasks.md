@@ -18,10 +18,10 @@ Each implementation task follows TDD: first commit the failing test, then the fi
 
 ## 2. Stream-stream join store logging (design D6)
 
-- [x] 2.1 Add failing topology tests: an outer stream-stream join whose two declared stores leave out `logging` has changelog topics for its window stores and its shared store; with both stores at `logging: false` the window stores still have changelog topics, the shared store has none, and a warning names each store; with different `logging` values, the shared store keeps its changelog. Verify the tests fail.
+- [x] 2.1 Add failing topology tests: an outer stream-stream join whose two declared stores leave out `logging` has changelog topics for its window stores and its shared store; with both stores at `logging: false` the window stores still have changelog topics, the shared store has none, and an info line and no warning is logged; with different `logging` values, the shared store keeps its changelog. Verify the tests fail.
 - [x] 2.2 Change `BaseOperation.streamJoinedOf` to use the logging rule from D6 instead of the unconditional `withLoggingDisabled()`. Verify the 2.1 tests pass and the existing join tests still pass.
 - [x] 2.3 Document the join changelog behavior (window stores always log, `logging` controls the shared store, and the warning) in `docs/reference/state-store-reference.md` (or the join operation reference) and in the migration guide section from 1.8. Verify the docs build.
-- [x] 2.4 Make the join store warning true for every join: "Kafka Streams always logs join stores", with a pointer to the state store reference, without a claim about the shared store. Check the text in `KSMLStreamJoinLoggingTest`. Verify it passes.
+- [x] 2.4 Warn only when a join store's `logging: false` has no effect (inner join, or a left or outer join where the other store doesn't set it, naming that store), with a pointer to the state store reference. Log one info line instead when both stores of a left or outer join set it. Check the texts in `KSMLStreamJoinLoggingTest`. Verify it passes.
 
 ## 3. Headers store format (design D4)
 
