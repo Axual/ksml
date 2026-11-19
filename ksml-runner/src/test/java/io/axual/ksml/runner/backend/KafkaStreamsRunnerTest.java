@@ -49,7 +49,6 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.ValueSource;
-import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.stubbing.Answer;
@@ -79,6 +78,7 @@ import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -665,7 +665,7 @@ class KafkaStreamsRunnerTest {
 
         assertThat(runToFailure(mockStreams, generator)).isInstanceOf(RunnerException.class);
         // Stream threads that did not stop in time may still use the Python contexts
-        verify(generator, closedInTime ? Mockito.times(1) : never()).close();
+        verify(generator, closedInTime ? times(1) : never()).close();
     }
 
     @Test
@@ -836,7 +836,7 @@ class KafkaStreamsRunnerTest {
 
             Awaitility.await("Wait for start() to be called")
                     .atMost(Duration.ofSeconds(30))
-                    .untilAsserted(() -> verify(mockStreams, Mockito.times(1)).start());
+                    .untilAsserted(() -> verify(mockStreams, times(1)).start());
             assertThat(future)
                     .as("Future should not have finished yet")
                     .isNotDone();

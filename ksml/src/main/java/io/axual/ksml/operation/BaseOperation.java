@@ -489,8 +489,8 @@ public abstract class BaseOperation implements StreamOperation {
      * @param hasSharedStore whether the join has a shared store for records without a match: {@code true} for a left
      *                       or outer join, {@code false} for an inner join
      */
-    protected StreamJoined<Object, Object, Object> streamJoinedOf(TopologyBuildContext context, WindowStateStoreDefinition thisStore, WindowStateStoreDefinition otherStore, StreamDataType k, StreamDataType v, StreamDataType vo, JoinWindows joinWindows, boolean hasSharedStore) {
-        var result = StreamJoined.with(k.serde(), v.serde(), vo.serde());
+    protected StreamJoined<Object, Object, Object> streamJoinedOf(TopologyBuildContext context, WindowStateStoreDefinition thisStore, WindowStateStoreDefinition otherStore, KStreamWrapper thisStream, KStreamWrapper otherStream, JoinWindows joinWindows, boolean hasSharedStore) {
+        var result = StreamJoined.with(thisStream.keyType().serde(), thisStream.valueType().serde(), otherStream.valueType().serde());
         if (name != null) result = result.withName(name);
         result = streamJoinedLogging(thisStore, otherStore, hasSharedStore) ? result.withLoggingEnabled(new HashMap<>()) : result.withLoggingDisabled();
         if (thisStore != null) {

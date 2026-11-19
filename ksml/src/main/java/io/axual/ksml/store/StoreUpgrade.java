@@ -173,7 +173,7 @@ public final class StoreUpgrade {
         try (var files = Files.walk(directory)) {
             return files.map(file -> file.getFileName().toString())
                     .anyMatch(name -> name.endsWith(SST_FILE_SUFFIX) || name.endsWith(BLOB_FILE_SUFFIX));
-        } catch (IOException e) {
+        } catch (IOException _) {
             // If unsure, treat it as state and stop
             return true;
         }
