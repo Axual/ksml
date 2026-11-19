@@ -286,14 +286,15 @@ public final class StoreUpgrade {
     }
 
     private static void deleteWindowState(Path task, List<StateStoreDefinition> stores) throws IOException {
+        // Kafka Streams would load the offsets of the deleted stores from the checkpoint and skip their restore.
+        // Deleted first, so a crash halfway leaves the stores, which the next start finds and deletes again.
+        Files.deleteIfExists(task.resolve(CHECKPOINT_FILE));
         for (final var store : stores) {
             deleteRecursively(task.resolve(store.name()));
             Files.deleteIfExists(task.resolve(store.name() + POSITION_FILE_SUFFIX));
             log.info("Deleted the KSML 1.x local state of window store '{}' in task '{}': Kafka Streams restores it from the changelog",
                     store.name(), task.getFileName());
         }
-        // Kafka Streams would load the offsets of the deleted stores from the checkpoint and skip their restore
-        Files.deleteIfExists(task.resolve(CHECKPOINT_FILE));
     }
 
     private static void deleteRecursively(Path path) throws IOException {

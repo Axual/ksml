@@ -138,7 +138,7 @@ Result of task 5.3: KSML 1.1.0 (Kafka Streams 4.0) leaves RocksDB data and a `.c
 
 Decision: clean up 1.x local state once, as part of the upgrade check of D8. Before Kafka Streams starts, `KafkaStreamsRunner` calls `StoreUpgrade.prepare(<state.dir>/<application.id>, stores, pythonStores)`. If the application state directory has no `.ksml-store-format` marker, `prepare` looks in every task directory (`<n>_<n>`) for the local state of each persistent window store for Python that **declares** `timestamped: true` (row 3 of the table):
 
-- with a declared `logging: true`, it deletes `<task>/<store>` and `<task>/<store>.position`, logs it at INFO, and deletes the task's `.checkpoint`, because Kafka Streams would otherwise load the old offsets and skip the restore; the other stores of that task are then restored from their changelogs too
+- with a declared `logging: true`, it deletes the task's `.checkpoint`, because Kafka Streams would otherwise load the old offsets and skip the restore, then `<task>/<store>` and `<task>/<store>.position`, and logs it at INFO; the other stores of that task are then restored from their changelogs too. The checkpoint goes first, so a crash halfway leaves the stores, which the next start finds and deletes again, and never old offsets for an empty store
 - without a declared `logging: true`, the store had no changelog in 1.x, so its state can't be restored: KSML stops, see D8
 
 Then it writes the marker, creating the directory if needed. The marker is one file per application state directory, so it survives Kafka Streams deleting and recreating task directories. Kafka Streams ignores unknown files there; only `KafkaStreams.cleanUp()`, which KSML doesn't call, warns about them.

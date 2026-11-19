@@ -36,6 +36,8 @@ import org.junit.jupiter.params.provider.CsvSource;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.attribute.PosixFileAttributeView;
+import java.nio.file.attribute.PosixFilePermissions;
 import java.time.Duration;
 import java.util.Comparator;
 import java.util.List;
@@ -43,6 +45,7 @@ import java.util.List;
 import static io.axual.ksml.testutil.LogCapture.stderrOf;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 /**
  * The one-time check of the local state that KSML 1.x left: it stops when state would be lost, and clears window
@@ -150,6 +153,34 @@ class StoreUpgradeTest {
         assertThat(keyValue).exists();
         assertThat(otherCheckpoint).exists();
         assertThat(notATask).exists();
+        assertThat(marker()).exists();
+    }
+
+    @Test
+    @DisplayName("deletes the checkpoint before the stores, so a stop halfway leaves no old offsets for an empty store")
+    void deletesCheckpointFirst() throws IOException {
+        final var store = createWindowStore("0_0", "window_timestamped");
+        final var checkpoint = createCheckpoint("0_0");
+        final var segment = store.resolve("window_timestamped.1794319200000");
+        final var stores = List.of(windowStore("window_timestamped", true, true, true));
+        // A segment that can't be deleted stops the delete halfway, as a crash would
+        assumeTrue(Files.getFileStore(segment).supportsFileAttributeView(PosixFileAttributeView.class));
+        final var permissions = Files.getPosixFilePermissions(segment);
+        Files.setPosixFilePermissions(segment, PosixFilePermissions.fromString("r-x------"));
+        try {
+            assumeTrue(!Files.isWritable(segment), "the user can delete files from a read-only directory");
+
+            assertThatThrownBy(() -> prepare(stores)).isInstanceOf(ExecutionException.class);
+            assertThat(checkpoint).doesNotExist();
+            assertThat(store).exists();
+            assertThat(marker()).doesNotExist();
+        } finally {
+            Files.setPosixFilePermissions(segment, permissions);
+        }
+
+        prepare(stores);
+
+        assertThat(store).doesNotExist();
         assertThat(marker()).exists();
     }
 
