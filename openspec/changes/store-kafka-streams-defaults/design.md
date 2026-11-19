@@ -93,14 +93,14 @@ Session stores have no timestamped variant, so for them `useHeaders` checks only
 Three package-private adapters show a headers-aware store as the store type without headers: `HeadersKeyValueStoreAdapter` as a `TimestampedKeyValueStore`, `HeadersWindowStoreAdapter` as a `TimestampedWindowStore` and `HeadersSessionStoreAdapter` as a `SessionStore`. `ProxyUtil.wrapStateStore` checks for `TimestampedKeyValueStoreWithHeaders`, `TimestampedWindowStoreWithHeaders` and `SessionStoreWithHeaders` **before** the generic store checks, and wraps the adapter in the existing `TimestampedKeyValueStoreProxy`, `TimestampedWindowStoreProxy` or `SessionStoreProxy`.
 
 - On read: the adapters turn `ValueTimestampHeaders` into `ValueAndTimestamp` and `AggregationWithHeaders` into the aggregate, also inside iterators (`ValueMappingIterator`). The existing proxies then give Python exactly what they give for timestamped and session stores.
-- On write: the adapters turn `ValueAndTimestamp` into `ValueTimestampHeaders.make(value, timestamp, headers)` and an aggregate into `AggregationWithHeaders.make(aggregate, headers)`.
+- On write: the adapters turn `ValueAndTimestamp` into `ValueTimestampHeaders.make(value, timestamp, headers)` and an aggregate into `AggregationWithHeaders.make(aggregate, headers)`, with empty headers.
 - Kafka Streams' default methods for `prefixScan`, `reverseRange`, `backwardFetch` and `findSessions` throw, so the adapters override every method that the proxies call.
 
 - *Alternative: new proxy classes for headers stores.* Rejected: they would copy every Python-facing method of the three proxies, and the copies could drift apart. With adapters, Python gets the same methods and results by construction, and the existing proxy tests keep covering them.
 
-Where the headers come from: `OperationProcessor` and `FixedKeyOperationProcessor` already remember `recordTimestamp` while processing. They also remember `rec.headers()` and pass a `Supplier<Headers>` to a new `wrapStateStore` overload, next to the timestamp supplier. Outside record processing the supplier returns empty `RecordHeaders`. The adapters copy the headers before storing them, so later changes to the record don't change stored entries.
+Writes store empty headers, as Kafka Streams 4.4 does in its aggregations, reductions, windowed and session aggregations and table operations (`new RecordHeaders()` in `KStreamAggregate`, `KTableSource` and the others). Only its internal join stores keep the record headers (`KStreamJoinWindow`, the foreign-key subscription store), because the join result needs them. The headers-aware changelog logger sends the stored headers as the headers of the changelog record, so record headers that Python stored would also go to the changelog topic, with tracing ids or personal data that upstream systems put there. Nothing in KSML could read them: reads drop the headers, there is no Python headers API (non-goal), and interactive queries for the plain store types drop them too.
 
-- *Alternative: always store empty headers.* Rejected: Kafka Streams' own DSL processors keep record headers, and parity with them is the point of the HEADERS format.
+- *Alternative: store the headers of the record that is being processed.* Rejected: Kafka Streams' own aggregations don't, and it copies record headers into the store and its changelog topic without a reader. A later Python API can let a function pass headers explicitly, as the Processor API does with `ValueTimestampHeaders.make`.
 
 ### D6. Stream-stream join logging rule
 

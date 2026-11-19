@@ -1,6 +1,6 @@
 # $schema: https://raw.githubusercontent.com/Axual/ksml/refs/heads/main/docs/ksml-language-spec.json
 
-# Python writes each record into a store. With the headers store format, the store keeps the record headers.
+# Python writes each record into a store. With the headers store format, the store keeps no record headers.
 streams:
   headers_store_input:
     topic: headers_store_input

@@ -20,7 +20,6 @@ package io.axual.ksml.proxy.store;
  * =========================LICENSE_END==================================
  */
 
-import org.apache.kafka.common.header.Headers;
 import org.apache.kafka.common.serialization.Serializer;
 import org.apache.kafka.streams.KeyValue;
 import org.apache.kafka.streams.state.KeyValueIterator;
@@ -30,16 +29,15 @@ import org.apache.kafka.streams.state.ValueAndTimestamp;
 import org.apache.kafka.streams.state.ValueTimestampHeaders;
 
 import java.util.List;
-import java.util.function.Supplier;
 
 /**
  * Shows a headers-aware key-value store as a timestamped key-value store, so {@link TimestampedKeyValueStoreProxy}
- * gives Python the same methods and results on both. Writes keep the headers of the record that is being processed.
+ * gives Python the same methods and results on both. Writes store no headers.
  */
 class HeadersKeyValueStoreAdapter extends AbstractHeadersStoreAdapter<TimestampedKeyValueStoreWithHeaders<Object, Object>> implements TimestampedKeyValueStore<Object, Object> {
 
-    HeadersKeyValueStoreAdapter(TimestampedKeyValueStoreWithHeaders<Object, Object> delegate, Supplier<Headers> recordHeaders) {
-        super(delegate, recordHeaders);
+    HeadersKeyValueStoreAdapter(TimestampedKeyValueStoreWithHeaders<Object, Object> delegate) {
+        super(delegate);
     }
 
     static ValueAndTimestamp<Object> withoutHeaders(ValueTimestampHeaders<Object> value) {
@@ -47,7 +45,7 @@ class HeadersKeyValueStoreAdapter extends AbstractHeadersStoreAdapter<Timestampe
     }
 
     private ValueTimestampHeaders<Object> withHeaders(ValueAndTimestamp<Object> value) {
-        return value != null ? ValueTimestampHeaders.make(value.value(), value.timestamp(), recordHeaders()) : null;
+        return value != null ? ValueTimestampHeaders.make(value.value(), value.timestamp(), storedHeaders()) : null;
     }
 
     private static KeyValueIterator<Object, ValueAndTimestamp<Object>> withoutHeaders(KeyValueIterator<Object, ValueTimestampHeaders<Object>> iterator) {

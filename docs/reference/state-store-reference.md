@@ -81,7 +81,7 @@ Tables and globalTables without a `store` are not affected: their stores stay in
 ### Store Format
 
 With `dsl.store.format: HEADERS` in the `kafka` section of the runner config, KSML builds declared stores in the
-headers-aware format of Kafka Streams, which keeps the record headers with each value:
+headers-aware format of Kafka Streams, which can keep headers with each value:
 
 ```yaml
 kafka:
@@ -499,7 +499,7 @@ A negative timestamp in `put` raises a `ValueError`, as on a timestamped key-val
 
 ### Headers-Aware Stores
 
-With [`dsl.store.format: HEADERS`](#store-format), the stores that [Store Format](#store-format) lists keep the record
+With [`dsl.store.format: HEADERS`](#store-format), the stores that [Store Format](#store-format) lists can keep
 headers with each value. Python
 uses them with the same methods, and gets the same results, as without headers:
 
@@ -508,9 +508,10 @@ uses them with the same methods, and gets the same results, as without headers:
   `*WithTimestamp` methods.
 - A session store has the methods of a [session store](#session-store-methods).
 
-Reads never return headers. A write from Python stores the value with the headers of the record that is being
-processed, so the headers stay with the value in the store and its changelog topic, as Kafka Streams does for its own
-operations. A write while no record is being processed stores no headers.
+Reads never return headers. A write from Python stores the value with no headers, as Kafka Streams' own aggregations
+do, so the headers of the record that is being processed don't go to the store and its changelog topic. A delete is
+the exception: Kafka Streams sends the headers of the record that is being processed with the tombstone in the
+changelog topic, also for its own stores.
 
 ### Versioned Key-Value Stores
 

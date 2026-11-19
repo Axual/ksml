@@ -30,8 +30,6 @@ import io.axual.ksml.python.PythonDataObjectMapper;
 import io.axual.ksml.python.PythonErrors;
 import io.axual.ksml.python.PythonNativeMapper;
 import io.axual.ksml.type.UserType;
-import org.apache.kafka.common.header.Headers;
-import org.apache.kafka.common.header.internals.RecordHeaders;
 import org.apache.kafka.common.serialization.Serializer;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.apache.kafka.streams.KeyValue;
@@ -54,7 +52,6 @@ import org.graalvm.polyglot.Value;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.LongSupplier;
-import java.util.function.Supplier;
 import java.util.function.BiFunction;
 
 /**
@@ -260,38 +257,28 @@ public class ProxyUtil {
     }
 
     /**
-     * Like {@link #wrapStateStore(StateStore, StateStoreDefinition, LongSupplier, Supplier)}, for use outside record
-     * processing: writes to headers-aware stores keep no headers.
-     */
-    public static StateStore wrapStateStore(StateStore store, StateStoreDefinition definition, LongSupplier recordTimestamp) {
-        return wrapStateStore(store, definition, recordTimestamp, RecordHeaders::new);
-    }
-
-    /**
      * Static method for creating proxy wrappers around Kafka Streams state stores.
      * The proxies delegate all operations to the underlying store while providing
      * a controlled interface that can be safely exposed to user code (e.g., Python functions).
-     * The other overloads call this one, so every store type is wrapped in one place.
      *
      * @param store           the state store to wrap
      * @param definition      the store's definition, which declares its key and value types, or {@code null}
      * @param recordTimestamp the timestamp of the record that is being processed, used by timestamped stores when
      *                        Python writes without a timestamp
-     * @param recordHeaders   the headers of the record that is being processed, which writes to headers-aware stores keep
      * @return a proxy wrapper around the store, or the original store if no proxy is available
      */
     @SuppressWarnings("unchecked")
-    public static StateStore wrapStateStore(StateStore store, StateStoreDefinition definition, LongSupplier recordTimestamp, Supplier<Headers> recordHeaders) {
+    public static StateStore wrapStateStore(StateStore store, StateStoreDefinition definition, LongSupplier recordTimestamp) {
         final var keyType = definition != null ? dataTypeOf(definition.keyType()) : null;
         final var valueType = definition != null ? dataTypeOf(definition.valueType()) : null;
         // A headers-aware store is shown as the store type without headers, so Python gets the same methods and results.
         // Check these first: each also extends the store type without headers, with the headers in the values
         if (store instanceof TimestampedKeyValueStoreWithHeaders<?, ?> headersStore) {
-            return new TimestampedKeyValueStoreProxy(new HeadersKeyValueStoreAdapter((TimestampedKeyValueStoreWithHeaders<Object, Object>) headersStore, recordHeaders), keyType, valueType, recordTimestamp);
+            return new TimestampedKeyValueStoreProxy(new HeadersKeyValueStoreAdapter((TimestampedKeyValueStoreWithHeaders<Object, Object>) headersStore), keyType, valueType, recordTimestamp);
         } else if (store instanceof TimestampedWindowStoreWithHeaders<?, ?> headersStore) {
-            return new TimestampedWindowStoreProxy(new HeadersWindowStoreAdapter((TimestampedWindowStoreWithHeaders<Object, Object>) headersStore, recordHeaders), keyType, valueType, recordTimestamp);
+            return new TimestampedWindowStoreProxy(new HeadersWindowStoreAdapter((TimestampedWindowStoreWithHeaders<Object, Object>) headersStore), keyType, valueType, recordTimestamp);
         } else if (store instanceof SessionStoreWithHeaders<?, ?> headersStore) {
-            return new SessionStoreProxy(new HeadersSessionStoreAdapter((SessionStoreWithHeaders<Object, Object>) headersStore, recordHeaders), keyType, valueType);
+            return new SessionStoreProxy(new HeadersSessionStoreAdapter((SessionStoreWithHeaders<Object, Object>) headersStore), keyType, valueType);
         } else if (store instanceof VersionedKeyValueStore<?, ?> versionedStore) {
             return new VersionedKeyValueStoreProxy((VersionedKeyValueStore<Object, Object>) versionedStore, keyType, valueType);
         } else if (store instanceof TimestampedKeyValueStore<?, ?> timestampedKeyValueStore) {

@@ -24,12 +24,12 @@ Values that Python functions read from a headers-aware store SHALL be the stored
 - **WHEN** a Python function stores the value `{"count": 1}` in a headers-aware keyValue store and then calls `get` for that key
 - **THEN** the call returns `{"count": 1}`
 
-### Requirement: Python writes store the current record's headers
-When a Python function writes to a headers-aware store while processing a record, the store SHALL keep that record's headers with the value. A write made while no record is being processed SHALL store empty headers.
+### Requirement: Python writes store no headers
+When a Python function writes to a headers-aware store, the store SHALL keep empty headers with the value, as Kafka Streams' aggregations do, also while a record is being processed.
 
 #### Scenario: Write while processing a record
 - **WHEN** a Python function processes a record with header `trace=abc` and puts a value into a headers-aware keyValue store
-- **THEN** the stored entry keeps header `trace=abc`, as seen through Kafka Streams interactive queries for the headers-aware store type
+- **THEN** the stored entry has no headers, as seen through Kafka Streams interactive queries for the headers-aware store type
 
 #### Scenario: Write without a record
 - **WHEN** a Python function writes to a headers-aware store outside of record processing

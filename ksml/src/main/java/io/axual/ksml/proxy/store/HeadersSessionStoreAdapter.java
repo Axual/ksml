@@ -20,23 +20,20 @@ package io.axual.ksml.proxy.store;
  * =========================LICENSE_END==================================
  */
 
-import org.apache.kafka.common.header.Headers;
 import org.apache.kafka.streams.kstream.Windowed;
 import org.apache.kafka.streams.state.AggregationWithHeaders;
 import org.apache.kafka.streams.state.KeyValueIterator;
 import org.apache.kafka.streams.state.SessionStore;
 import org.apache.kafka.streams.state.SessionStoreWithHeaders;
 
-import java.util.function.Supplier;
-
 /**
  * Shows a headers-aware session store as a session store, so {@link SessionStoreProxy} gives Python the same methods
- * and results on both. Writes keep the headers of the record that is being processed.
+ * and results on both. Writes store no headers.
  */
 class HeadersSessionStoreAdapter extends AbstractHeadersStoreAdapter<SessionStoreWithHeaders<Object, Object>> implements SessionStore<Object, Object> {
 
-    HeadersSessionStoreAdapter(SessionStoreWithHeaders<Object, Object> delegate, Supplier<Headers> recordHeaders) {
-        super(delegate, recordHeaders);
+    HeadersSessionStoreAdapter(SessionStoreWithHeaders<Object, Object> delegate) {
+        super(delegate);
     }
 
     private static KeyValueIterator<Windowed<Object>, Object> withoutHeaders(KeyValueIterator<Windowed<Object>, AggregationWithHeaders<Object>> iterator) {
@@ -45,7 +42,7 @@ class HeadersSessionStoreAdapter extends AbstractHeadersStoreAdapter<SessionStor
 
     @Override
     public void put(Windowed<Object> sessionKey, Object aggregate) {
-        delegate.put(sessionKey, aggregate != null ? AggregationWithHeaders.make(aggregate, recordHeaders()) : null);
+        delegate.put(sessionKey, aggregate != null ? AggregationWithHeaders.make(aggregate, storedHeaders()) : null);
     }
 
     @Override

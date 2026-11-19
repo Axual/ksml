@@ -25,27 +25,23 @@ import org.apache.kafka.common.header.internals.RecordHeaders;
 import org.apache.kafka.streams.processor.StateStore;
 import org.apache.kafka.streams.processor.StateStoreContext;
 
-import java.util.function.Supplier;
-
 /**
  * Base for the adapters that show a headers-aware store as the store type without headers that Python already knows,
- * so the same store proxy and the same Python code work on both. Reads drop the headers; writes add a copy of the
- * headers of the record that is being processed.
+ * so the same store proxy and the same Python code work on both. Reads drop the headers; writes store empty headers,
+ * as the aggregations and tables of Kafka Streams do.
  *
  * @param <S> the headers-aware store type
  */
 abstract class AbstractHeadersStoreAdapter<S extends StateStore> implements StateStore {
     protected final S delegate;
-    private final Supplier<Headers> recordHeaders;
 
-    protected AbstractHeadersStoreAdapter(S delegate, Supplier<Headers> recordHeaders) {
+    protected AbstractHeadersStoreAdapter(S delegate) {
         this.delegate = delegate;
-        this.recordHeaders = recordHeaders;
     }
 
-    /** A copy of the headers of the record that is being processed, so later changes to the record do not change the store. */
-    protected Headers recordHeaders() {
-        return new RecordHeaders(recordHeaders.get().toArray());
+    /** The headers that a write stores: none, so the record headers don't go to the store and its changelog topic. */
+    protected static Headers storedHeaders() {
+        return new RecordHeaders();
     }
 
     @Override

@@ -37,7 +37,8 @@ import java.time.Instant;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * With the headers store format, a store that Python writes to keeps the headers of the record that was processed.
+ * With the headers store format, a store that Python writes to stores no headers, as Kafka Streams' aggregations do, so
+ * the record headers don't go to the store and its changelog topic.
  * Interactive queries can read it as a headers-aware store and as a plain key-value store (AXPD-12445).
  */
 @ExtendWith(KSMLTestExtension.class)
@@ -51,15 +52,15 @@ public class KSMLHeadersStoreTest {
     TopologyTestDriver driver;
 
     @KSMLTest(topology = "pipelines/test-headers-store-python.yaml", headersStoreFormat = true)
-    @DisplayName("a Python write keeps the record headers, and the store can be queried as a plain key-value store")
-    void pythonWriteKeepsRecordHeaders() {
+    @DisplayName("a Python write stores no headers, and the store can be queried as a plain key-value store")
+    void pythonWriteStoresNoHeaders() {
         final var headers = new RecordHeaders().add("trace", "abc".getBytes(StandardCharsets.UTF_8));
         input.pipeInput(new TestRecord<>("k", "v", headers, Instant.ofEpochMilli(1000L)));
 
         final var stored = driver.<Object, Object>getTimestampedKeyValueStoreWithHeaders("headers_store").get("k");
         assertThat(stored.value()).isEqualTo("v");
         assertThat(stored.timestamp()).isEqualTo(1000L);
-        assertThat(new String(stored.headers().lastHeader("trace").value(), StandardCharsets.UTF_8)).isEqualTo("abc");
+        assertThat(stored.headers().toArray()).isEmpty();
 
         assertThat(driver.<Object, Object>getKeyValueStore("headers_store").get("k")).isEqualTo("v");
     }

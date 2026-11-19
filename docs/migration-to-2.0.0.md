@@ -320,7 +320,7 @@ On the first start, KSML checks the local state that 1.x left, before Kafka Stre
 
 KSML now also follows the Kafka Streams setting `dsl.store.format`. With `dsl.store.format: HEADERS` in the `kafka`
 section of the runner config, declared key-value and window stores that are persistent and timestamped, and persistent
-session stores, keep the record headers with each value. The default (`DEFAULT`) changes nothing, so you only need to act if you set it: switch the format only on a new
+session stores, can keep headers with each value; writes from Python store none. The default (`DEFAULT`) changes nothing, so you only need to act if you set it: switch the format only on a new
 application or after a reset, because existing state keeps its old format. See
 [Store Format](reference/state-store-reference.md#store-format).
 

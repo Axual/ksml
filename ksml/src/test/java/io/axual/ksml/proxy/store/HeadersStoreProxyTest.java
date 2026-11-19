@@ -54,8 +54,8 @@ import static org.mockito.Mockito.when;
 
 /**
  * Python uses headers-aware stores with the same methods and results as timestamped stores (keyValue and window) and
- * session stores. Reads return values, never headers. Writes keep the headers of the record that is being processed,
- * or no headers when there is none (AXPD-12445).
+ * session stores. Reads return values, never headers. Writes store no headers, also while a record is
+ * being processed (AXPD-12445).
  */
 @ExtendWith(MockitoExtension.class)
 class HeadersStoreProxyTest {
@@ -86,17 +86,12 @@ class HeadersStoreProxyTest {
         return new RecordHeaders().add("trace", "abc".getBytes(StandardCharsets.UTF_8));
     }
 
-    private static Object wrap(Object store, Headers recordHeaders) {
-        return ProxyUtil.wrapStateStore((org.apache.kafka.streams.processor.StateStore) store, null, () -> RECORD_TIMESTAMP, () -> recordHeaders);
+    private static Object wrap(Object store) {
+        return ProxyUtil.wrapStateStore((org.apache.kafka.streams.processor.StateStore) store, null, () -> RECORD_TIMESTAMP);
     }
 
     private static List<String> runPython(Object proxy, String code) {
         return StoreProxyTestUtil.runPython(pythonContext.context(), proxy, code);
-    }
-
-    private static String headerValue(Headers headers, String key) {
-        final var header = headers.lastHeader(key);
-        return header != null ? new String(header.value(), StandardCharsets.UTF_8) : null;
     }
 
     // --- overloads -------------------------------------------------------------------------------
@@ -137,7 +132,7 @@ class HeadersStoreProxyTest {
     @DisplayName("get returns only the value, and getWithTimestamp the value and timestamp, never headers")
     void keyValueReadsReturnValues() {
         when(keyValueStore.get("key")).thenReturn(ValueTimestampHeaders.make("value", 100L, traceHeaders()));
-        assertThat(runPython(wrap(keyValueStore, new RecordHeaders()), """
+        assertThat(runPython(wrap(keyValueStore), """
                 [store.get("key"), str(store.getWithTimestamp("key"))]
                 """)).containsExactly("value", "{'timestamp': 100, 'value': 'value'}");
     }
@@ -148,35 +143,32 @@ class HeadersStoreProxyTest {
     void keyValueAllReturnsEntries() {
         final List<KeyValue<Object, Object>> entries = List.of(KeyValue.pair("a", ValueTimestampHeaders.make("value-a", 100L, traceHeaders())));
         when(keyValueStore.all()).thenReturn((KeyValueIterator) new FakeKeyValueIterator<>(entries));
-        assertThat(runPython(wrap(keyValueStore, new RecordHeaders()), """
+        assertThat(runPython(wrap(keyValueStore), """
                 [str(e) for e in store.all()]
                 """)).containsExactly("{'key': 'a', 'value': 'value-a'}");
     }
 
     @Test
-    @DisplayName("put stores the value with the record timestamp and a copy of the record headers")
+    @DisplayName("put stores the value with the record timestamp and no headers, as Kafka Streams' aggregations do")
     @SuppressWarnings("unchecked")
-    void keyValuePutKeepsRecordHeaders() {
-        final var recordHeaders = traceHeaders();
-        runPython(wrap(keyValueStore, recordHeaders), """
+    void keyValuePutStoresNoHeaders() {
+        runPython(wrap(keyValueStore), """
                 store.put("key", "value")
                 []
                 """);
-        recordHeaders.add("later", "x".getBytes(StandardCharsets.UTF_8));
 
         final ArgumentCaptor<ValueTimestampHeaders<Object>> captor = ArgumentCaptor.captor();
         verify(keyValueStore).put(eq(new DataString("key")), captor.capture());
         assertThat(captor.getValue().value()).isEqualTo(new DataString("value"));
         assertThat(captor.getValue().timestamp()).isEqualTo(RECORD_TIMESTAMP);
-        assertThat(headerValue(captor.getValue().headers(), "trace")).isEqualTo("abc");
-        assertThat(captor.getValue().headers().lastHeader("later")).isNull();
+        assertThat(captor.getValue().headers().toArray()).isEmpty();
     }
 
     @Test
     @DisplayName("a write without a record being processed stores no headers")
     @SuppressWarnings("unchecked")
     void keyValuePutWithoutRecordHasNoHeaders() {
-        runPython(wrap(keyValueStore, new RecordHeaders()), """
+        runPython(wrap(keyValueStore), """
                 store.put("key", "value", 500)
                 []
                 """);
@@ -191,7 +183,7 @@ class HeadersStoreProxyTest {
     @DisplayName("delete returns only the old value")
     void keyValueDeleteReturnsValue() {
         when(keyValueStore.delete("key")).thenReturn(ValueTimestampHeaders.make("old", 100L, traceHeaders()));
-        assertThat(runPython(wrap(keyValueStore, new RecordHeaders()), """
+        assertThat(runPython(wrap(keyValueStore), """
                 [store.delete("key")]
                 """)).containsExactly("old");
     }
@@ -202,16 +194,16 @@ class HeadersStoreProxyTest {
     @DisplayName("window fetch returns only the value, and fetchWithTimestamp the value and timestamp")
     void windowReadsReturnValues() {
         when(windowStore.fetch("key", 1000L)).thenReturn(ValueTimestampHeaders.make("value", 100L, traceHeaders()));
-        assertThat(runPython(wrap(windowStore, new RecordHeaders()), """
+        assertThat(runPython(wrap(windowStore), """
                 [store.fetch("key", 1000), str(store.fetchWithTimestamp("key", 1000))]
                 """)).containsExactly("value", "{'timestamp': 100, 'value': 'value'}");
     }
 
     @Test
-    @DisplayName("window put stores the value with the record timestamp and the record headers")
+    @DisplayName("window put stores the value with the record timestamp and no headers")
     @SuppressWarnings("unchecked")
-    void windowPutKeepsRecordHeaders() {
-        runPython(wrap(windowStore, traceHeaders()), """
+    void windowPutStoresNoHeaders() {
+        runPython(wrap(windowStore), """
                 store.put("key", "value", 1000)
                 []
                 """);
@@ -220,7 +212,7 @@ class HeadersStoreProxyTest {
         verify(windowStore).put(eq("key"), captor.capture(), eq(1000L));
         assertThat(captor.getValue().value()).isEqualTo("value");
         assertThat(captor.getValue().timestamp()).isEqualTo(RECORD_TIMESTAMP);
-        assertThat(headerValue(captor.getValue().headers(), "trace")).isEqualTo("abc");
+        assertThat(captor.getValue().headers().toArray()).isEmpty();
     }
 
     // --- session ----------------------------------------------------------------------------------
@@ -229,16 +221,16 @@ class HeadersStoreProxyTest {
     @DisplayName("session fetchSession returns only the aggregate")
     void sessionFetchSessionReturnsAggregate() {
         when(sessionStore.fetchSession("key", 10L, 20L)).thenReturn(AggregationWithHeaders.make("agg", traceHeaders()));
-        assertThat(runPython(wrap(sessionStore, new RecordHeaders()), """
+        assertThat(runPython(wrap(sessionStore), """
                 [store.fetchSession("key", 10, 20)]
                 """)).containsExactly("agg");
     }
 
     @Test
-    @DisplayName("session put stores the aggregate with the record headers")
+    @DisplayName("session put stores the aggregate with no headers")
     @SuppressWarnings("unchecked")
-    void sessionPutKeepsRecordHeaders() {
-        runPython(wrap(sessionStore, traceHeaders()), """
+    void sessionPutStoresNoHeaders() {
+        runPython(wrap(sessionStore), """
                 store.put({"key": "key", "start": 10, "end": 20}, "agg")
                 []
                 """);
@@ -246,6 +238,6 @@ class HeadersStoreProxyTest {
         final ArgumentCaptor<AggregationWithHeaders<Object>> captor = ArgumentCaptor.captor();
         verify(sessionStore).put(eq(new Windowed<>("key", new SessionWindow(10L, 20L))), captor.capture());
         assertThat(captor.getValue().aggregation()).isEqualTo("agg");
-        assertThat(headerValue(captor.getValue().headers(), "trace")).isEqualTo("abc");
+        assertThat(captor.getValue().headers().toArray()).isEmpty();
     }
 }

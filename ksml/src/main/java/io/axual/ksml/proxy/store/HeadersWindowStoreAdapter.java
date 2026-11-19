@@ -20,7 +20,6 @@ package io.axual.ksml.proxy.store;
  * =========================LICENSE_END==================================
  */
 
-import org.apache.kafka.common.header.Headers;
 import org.apache.kafka.streams.kstream.Windowed;
 import org.apache.kafka.streams.state.KeyValueIterator;
 import org.apache.kafka.streams.state.TimestampedWindowStore;
@@ -30,16 +29,15 @@ import org.apache.kafka.streams.state.ValueTimestampHeaders;
 import org.apache.kafka.streams.state.WindowStoreIterator;
 
 import java.time.Instant;
-import java.util.function.Supplier;
 
 /**
  * Shows a headers-aware window store as a timestamped window store, so {@link TimestampedWindowStoreProxy} gives
- * Python the same methods and results on both. Writes keep the headers of the record that is being processed.
+ * Python the same methods and results on both. Writes store no headers.
  */
 class HeadersWindowStoreAdapter extends AbstractHeadersStoreAdapter<TimestampedWindowStoreWithHeaders<Object, Object>> implements TimestampedWindowStore<Object, Object> {
 
-    HeadersWindowStoreAdapter(TimestampedWindowStoreWithHeaders<Object, Object> delegate, Supplier<Headers> recordHeaders) {
-        super(delegate, recordHeaders);
+    HeadersWindowStoreAdapter(TimestampedWindowStoreWithHeaders<Object, Object> delegate) {
+        super(delegate);
     }
 
     private static WindowStoreIterator<ValueAndTimestamp<Object>> withoutHeaders(WindowStoreIterator<ValueTimestampHeaders<Object>> iterator) {
@@ -52,7 +50,7 @@ class HeadersWindowStoreAdapter extends AbstractHeadersStoreAdapter<TimestampedW
 
     @Override
     public void put(Object key, ValueAndTimestamp<Object> value, long windowStartTimestamp) {
-        final var stored = value != null ? ValueTimestampHeaders.make(value.value(), value.timestamp(), recordHeaders()) : null;
+        final var stored = value != null ? ValueTimestampHeaders.make(value.value(), value.timestamp(), storedHeaders()) : null;
         delegate.put(key, stored, windowStartTimestamp);
     }
 
