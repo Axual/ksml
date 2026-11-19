@@ -25,11 +25,10 @@ jobs:
   build-push-helm:
     runs-on: ubuntu-latest
     steps:
-      # Helm is preinstalled on the runner image
-      - name: Show Helm version
-        shell: bash
-        run: |
-          helm version
+      - name: Install Helm
+        uses: azure/setup-helm@v5
+        with:
+          version: v4.3.2
 
       - name: Checkout
         uses: actions/checkout@v7
