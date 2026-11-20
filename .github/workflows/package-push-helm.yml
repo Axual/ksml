@@ -26,9 +26,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Install Helm
-        shell: bash
-        run: |
-          curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3
+        uses: azure/setup-helm@v5
+        with:
+          version: v4.3.2
 
       - name: Checkout
         uses: actions/checkout@v7
@@ -38,10 +38,14 @@ jobs:
         run: |
           helm package --version '${{ inputs.version }}' --app-version '${{ inputs.app-version }}' ./packaging/helm-charts/ksml && ls ksml*.tgz
 
+      # Registry login and logout take the registry host only, not the repository path
       - name: Login to registry
         shell: bash
+        env:
+          REGISTRY_USER: ${{ secrets.AXUAL_REGISTRY_USER }}
+          REGISTRY_TOKEN: ${{ secrets.AXUAL_REGISTRY_TOKEN }}
         run: |
-          helm registry login registry.axual.io/opensource/charts -u '${{ secrets.AXUAL_REGISTRY_USER }}' -p '${{ secrets.AXUAL_REGISTRY_TOKEN }}'
+          echo "$REGISTRY_TOKEN" | helm registry login registry.axual.io -u "$REGISTRY_USER" --password-stdin
 
       - name: Push to registry
         shell: bash
@@ -53,4 +57,4 @@ jobs:
         if: ${{ always() }}
 
         run: |
-          helm registry logout registry.axual.io/opensource/charts &
+          helm registry logout registry.axual.io &
