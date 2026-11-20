@@ -369,17 +369,19 @@ class WindowStoreUpgradeIT {
     }
 
     /**
-     * Waits until a new member of the consumer group has the input partition. A member that KSML 1.x left when it was
-     * stopped keeps the partition until its session times out, so a get sent before that is not read in time.
+     * Waits until the consumer group is stable without the members of earlier runs, and a new member has the input
+     * partition. Kafka Streams does not leave the group when it stops, so an earlier member stays until its session
+     * times out. While it has the partition, a get is not read in time, and when it drops out, the group rebalances,
+     * which a stop of this version must not interrupt.
      */
     private void waitForInputAssignment(String bootstrapServers, Set<String> membersBefore) {
         final var input = new TopicPartition(topic("input"), 0);
         try (var admin = AdminClient.create(Map.of(AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers))) {
             Awaitility.await().atMost(PROCESSING_TIMEOUT).pollInterval(Duration.ofSeconds(1)).ignoreExceptions().until(() -> {
                 final var group = admin.describeConsumerGroups(List.of(applicationId())).all().get().get(applicationId());
-                return group.groupState() == GroupState.STABLE && group.members().stream()
-                        .anyMatch(member -> !membersBefore.contains(member.consumerId())
-                                && member.assignment().topicPartitions().contains(input));
+                return group.groupState() == GroupState.STABLE
+                        && group.members().stream().noneMatch(member -> membersBefore.contains(member.consumerId()))
+                        && group.members().stream().anyMatch(member -> member.assignment().topicPartitions().contains(input));
             });
         }
     }
