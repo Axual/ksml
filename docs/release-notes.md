@@ -76,6 +76,7 @@ Major dependency upgrades. This release moves KSML to Jackson 3, Apicurio Regist
 * Breaking change: tombstones are now handled like in Kafka Streams. `count`, `reduce` and `aggregate` skip them, a join between tables writes a delete, and a function that returns `None` gives a tombstone. An empty `json` or union key or value is now written as empty bytes, not as a `null` key or a tombstone. See [Upgrading to 2.0.0](migration-to-2.0.0.md#tombstones-are-handled-like-in-kafka-streams).
 * Breaking change: an unknown or misspelled field in a KSML definition now stops KSML at startup with an error that names the field. Before, it was silently ignored, so a typo like `loging: true` on a store quietly turned off the changelog topic. See [Upgrading to 2.0.0](migration-to-2.0.0.md#stricter-validation-of-runner-config-and-definitions).
 * The language schema now lists the optional top-level fields `name`, `version` and `description` of a definition.
+* The Helm chart has a new `env` value to add environment variables to the KSML container, in both the StatefulSet and the Job.
 
 ## 1.3.0 (2026-06-23)
 

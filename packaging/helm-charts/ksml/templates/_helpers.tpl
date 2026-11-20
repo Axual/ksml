@@ -60,3 +60,17 @@ Create the name of the service account to use
 {{- default "default" .Values.serviceAccount.name }}
 {{- end }}
 {{- end }}
+
+{{/*
+Extra container env from .Values.env. The templates add it after the chart's own env, so entries can reference those with $(NAME).
+*/}}
+{{- define "ksml.env" -}}
+{{- range .Values.env }}
+{{- if has .name (list "KSML_K8S_POD_NAME" "KSML_GROUP_INSTANCE_ID" "LOGBACK_CONFIGURATION_FILE") }}
+{{- fail (printf "env: %s is set by the chart and cannot be overridden" .name) }}
+{{- end }}
+{{- end }}
+{{- with .Values.env }}
+{{- toYaml . }}
+{{- end }}
+{{- end }}
