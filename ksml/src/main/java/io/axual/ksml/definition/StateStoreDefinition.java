@@ -36,20 +36,30 @@ public abstract class StateStoreDefinition extends AbstractDefinition {
     private final boolean timestamped;
     private final UserType keyType;
     private final UserType valueType;
-    private final boolean caching;
+    // Null when the definition leaves caching out: Kafka Streams caches DSL stores but not processor stores,
+    // so the default depends on where the store is used
+    private final Boolean caching;
     private final boolean logging;
+    // As declared (null when left out), for the KSML 1.x upgrade check. Not part of equals
+    @EqualsAndHashCode.Exclude
+    private final Boolean declaredTimestamped;
+    @EqualsAndHashCode.Exclude
+    private final Boolean declaredLogging;
 
     protected StateStoreDefinition(StoreType type, String name, Boolean persistent, Boolean timestamped, UserType keyType, UserType valueType, Boolean caching, Boolean logging) {
         Objects.requireNonNull(type, "State stores must have a defined type");
         Objects.requireNonNull(name, "State stores must have a defined name");
         this.type = type;
         this.name = name;
-        this.persistent = persistent != null && persistent;
-        this.timestamped = timestamped != null && timestamped;
+        // Like Kafka Streams, stores are persistent, timestamped and logged unless the definition says otherwise
+        this.persistent = persistent == null || persistent;
+        this.timestamped = timestamped == null || timestamped;
         this.keyType = keyType;
         this.valueType = valueType;
-        this.caching = caching != null && caching;
-        this.logging = logging != null && logging;
+        this.caching = caching;
+        this.logging = logging == null || logging;
+        this.declaredTimestamped = timestamped;
+        this.declaredLogging = logging;
     }
 
     @Override

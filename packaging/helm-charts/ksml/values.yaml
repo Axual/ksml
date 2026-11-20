@@ -366,6 +366,10 @@ store:
 #    resources:
 #      requests:
 #        storage: 1Gi
+  emptyDir:
+    # -- Size limit of the emptyDir that holds the state stores when `store.spec` is not set, and always for a Job.
+    # Kubernetes evicts the pod when the stores use more. Leave empty for no limit.
+    sizeLimit: 1Gi
 
 prometheus:
   # -- KSML prometheus server port defined in the StatefulSet/Job. Note that this must match the port defined in ksmlRunnerConfig.

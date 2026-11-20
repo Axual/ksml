@@ -26,8 +26,11 @@ import io.axual.ksml.testutil.KSMLTopic;
 import org.apache.kafka.streams.TestInputTopic;
 import org.apache.kafka.streams.TestOutputTopic;
 import org.apache.kafka.streams.TopologyTestDriver;
+import org.apache.kafka.streams.state.SessionStoreWithHeaders;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.extension.ExtendWith;
+
+import java.util.List;
 
 import static io.axual.ksml.testutil.StoreMetrics.openIterators;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -86,5 +89,14 @@ public class KSMLSessionStoreMethodsTest {
 
         assertThat(openIterators(driver, "session_memory")).isZero();
         assertThat(openIterators(driver, "session_rocksdb")).isZero();
+    }
+
+    @KSMLTest(topology = "pipelines/test-session-store-methods-python.yaml", modulesDirectory = "pipelines", headersStoreFormat = true)
+    @DisplayName("Session store methods work from Python on in-memory and RocksDB stores, and close their iterators, also with the headers store format")
+    void testSessionStoreMethodsWithHeadersStoreFormat() {
+        testSessionStoreMethods();
+        for (final var name : List.of("session_rocksdb", "session_keys_rocksdb")) {
+            assertThat(driver.getAllStateStores().get(name)).as(name).isInstanceOf(SessionStoreWithHeaders.class);
+        }
     }
 }

@@ -23,6 +23,10 @@ Before you upgrade, check each item below:
 * Add `toTable` before any `join` or `leftJoin` with `foreignKeyExtractor` that has a stream as input.
 * Do not keep a store iterator in a global variable for a later function call.
 * If Python code reads `get(key)["value"]` or `["timestamp"]` on a store with `timestamped: true`, or on the store of a `count`, `aggregate`, `reduce` or non-versioned table, use `getWithTimestamp(key)` instead. The same applies to the results of `delete` and `putIfAbsent`, and to `fetch(key, time)` on the store of a windowed aggregation (use `fetchWithTimestamp`).
+* Check every store you declare under `stores` or in an operation: it is now persistent, timestamped and has a changelog topic unless it sets `persistent`, `timestamped` or `logging` to `false`. Make sure the application can create the changelog topics (or create them yourself) and that `ksml.storageDirectory` is on a volume that has room for RocksDB. On the first start, KSML stops if a persistent store with local state leaves out `logging`, or if the persistent `thisStore` of a `leftJoin` or `outerJoin` between two streams doesn't set `logging: true`, until you set it. See [Declared stores use the Kafka Streams defaults](#declared-stores-use-the-kafka-streams-defaults).
+* Stop all KSML 1.x instances of an application before you start 2.0.0, and don't do a rolling upgrade. A 1.x instance does not create the new changelog topics, so a 2.0.0 instance in the same group can't start its tasks. Before you start 2.0.0, wait until the consumer group of the application has no members (`kafka-consumer-groups.sh --describe --group <application.id> --members`). This takes up to `session.timeout.ms` (45 seconds by default), because Kafka Streams doesn't leave the group when it stops. If the application sets `group.instance.id` (static membership, which the KSML Helm chart does), an instance that comes back sooner gets its 1.x assignment again and is stuck. With the KSML Helm chart, scale the StatefulSet to 0 replicas, wait until the group is empty, and then run `helm upgrade`.
+* If a store sets `versioned: true` without `persistent: true`, check the Python code that uses it, or set `persistent: false`.
+* If you rely on every update of an `aggregate`, `count`, `reduce` or table being emitted, set `caching: false` on its store.
 * If Python code calls `put` or `remove` on a session store, check that each session key is a dict with `key`, `start` and `end`, with `int` times. A session key that is not valid now raises an error instead of being ignored.
 * Check `reduce` and `aggregate` functions that handle `None`, and functions that return `None`: tombstones are now handled like in Kafka Streams.
 * Check consumers of topics that get empty `json` or union keys or values, and `valueJoiner`s that read such a table: an empty key or value is no longer a `null` key or a tombstone.
@@ -32,6 +36,8 @@ Before you upgrade, check each item below:
 * If you use `KeyValueIteratorProxy` or `WindowStoreIteratorProxy`, use `StoreIteratorProxy` instead, and create store proxies with `ProxyUtil.wrapStateStore`.
 * If you extend `OperationProcessor` or `FixedKeyOperationProcessor`, implement `processRecord` instead of `process`.
 * If you create a `TimestampedKeyValueStoreProxy` or `TimestampedWindowStoreProxy` yourself, pass a `LongSupplier` that gives the timestamp of the record that is being processed.
+* If you create a `TopologyBuildContext` yourself, or call `StoreUtil.getStoreBuilder`, `StoreUtil.materialize` or `StoreUtil.validatedWindowStore`, pass `headersStoreFormat`: `true` when `dsl.store.format` is `HEADERS`, and the same value for the whole topology. If you call `BaseOperation.streamJoinedOf` in a subclass, pass the `TopologyBuildContext` first, and last whether the join has a shared store: `true` for a `leftJoin` or `outerJoin`, `false` for a `join`.
+* If you call `StateStoreDefinition.caching()`, handle `null`: it means the definition does not set `caching`.
 * If you call `TimestampedWindowStoreProxy.put(key, ValueAndTimestamp, windowStart)`, call `put(key, value, windowStart, timestamp)` instead. A `ValueAndTimestamp` still compiles as the value, but is then stored inside another `ValueAndTimestamp`.
 
 ## Apicurio Registry 3
@@ -279,6 +285,60 @@ In KSML 2.0.0, any `int` time from 0 works and `start` may equal `end`. A sessio
 What you need to do: if a Python function writes or removes sessions, check that each session key is a dict with `key`, `start` and `end`, with `int` times, `start` not negative and not after `end`. Code that passed other keys wrote nothing before, so fixing it can change what your application stores.
 
 Keys and values of stores are now also converted to the store's `keyType` and `valueType`. Code that worked before keeps working; see [Keys and Values](reference/state-store-reference.md#keys-and-values).
+
+## Declared stores use the Kafka Streams defaults
+
+In KSML 1.x, a store you declared was kept in memory, had no changelog topic, was not timestamped and was not cached, unless you switched these options on. Its state was lost when the application restarted. In KSML 2.0.0, declared stores get the same defaults as in Kafka Streams:
+
+| Option | KSML 1.x default | KSML 2.0.0 default |
+|---|---|---|
+| `persistent` | `false` | `true` |
+| `logging` | `false` | `true` |
+| `timestamped` | `false` | `true` |
+| `caching` | `false` | `true` when an operation such as `aggregate`, `count`, `reduce` or a table materializes the store, `false` when Python functions use it |
+
+This applies to stores under `stores` and to stores declared inside an operation or on a table. Tables and globalTables without a `store`, and operations without a `store`, do not change. An option you set explicitly keeps its value.
+
+What changes for a running application:
+
+* Each declared store gets a changelog topic named `<application.id>-<store name>-changelog`. If topics are created by hand or need ACLs in your cluster, create them or let the application create topics before the upgrade. A table with a `store` uses its input topic as changelog when `topology.optimization` is `all`, the runner's default.
+* Persistent stores keep their state in RocksDB under `storageDirectory` in the `ksml` section of the runner config (see [Directory Configuration](reference/configuration-reference.md#directory-configuration)). KSML uses it as the Kafka Streams `state.dir` and ignores a `state.dir` in the `kafka` section, with a warning. Put it on a volume with enough room that is kept between restarts, or the stores are restored from their changelog at every start.
+* With the KSML Helm chart, set `store.spec` to put `storageDirectory` on a persistent volume. Without it, the stores are in an `emptyDir`, which is empty after every pod restart and limited to `store.emptyDir.sizeLimit` (`1Gi`, before `10Mi`). Kubernetes evicts the pod when the stores use more.
+* With caching, an `aggregate`, `count`, `reduce` or table emits the latest result for a key when Kafka Streams commits (`commit.interval.ms`) or when the cache is full (`statestore.cache.max.bytes`), instead of every update. Set `caching: false` on the store if you need every update.
+* RocksDB and changelog topics cost time and broker traffic: each write goes to local disk, and each write that isn't cached also to the changelog. Pipelines with many stores or many distinct keys can become noticeably slower, so test the throughput before you upgrade production. A store that doesn't need to survive a restart can set `persistent: false` and `logging: false`, as in 1.x. See [Performance Considerations](reference/state-store-reference.md#performance-considerations).
+* A store with `versioned: true` but without `persistent: true` was an in-memory key-value store in 1.x, and is now a versioned store: in Python, `get` returns a dict with `value` and `timestamp`, and `put` and `delete` take a timestamp (see [Versioned Key-Value Stores](reference/state-store-reference.md#versioned-key-value-stores)). A table with this store is a versioned table, which changes stream-table join lookups. Set `persistent: false` and `timestamped: false` to keep the plain in-memory store of 1.x (KSML logs a warning).
+* A window store under `stores` is timestamped unless it sets `timestamped: false`, so Python functions get the `*WithTimestamp` methods. See [Timestamped Window Stores](reference/state-store-reference.md#timestamped-window-stores).
+* A RocksDB store of a `count`, `aggregate`, `reduce` or table keeps timestamps, so `getWithTimestamp` and `fetchWithTimestamp` return the record timestamp instead of `-1`.
+* `timestamped: true` on a session store logs a warning, because session stores are not timestamped.
+* The shared store of a `leftJoin` or `outerJoin` between two streams has a changelog topic unless both `thisStore` and `otherStore` set `logging: false`. In 1.x it had one only when `thisStore` set `logging: true`. The two window stores of the join always have a changelog topic, so `logging: false` on them logs a warning when it has no effect. See [Changelog topics of stream-stream joins](reference/state-store-reference.md#for-stream-stream-joins).
+
+On the first start, KSML checks the local state that 1.x left, before Kafka Streams starts:
+
+* A persistent store that leaves out `logging` had no changelog in 1.x, and a new, empty changelog can't restore its state. So KSML stops when such a store has local state, and changes nothing. Set `logging: false` to keep the 1.x behavior, or `logging: true` to start a changelog with only the new updates. With `exactly_once_v2`, `logging: true` makes Kafka Streams delete the old state of all stores in the same task, until the store has written to its new changelog there: run with `processing.guarantee: at_least_once` until then. The error names these tasks and stores. To keep the old state in the changelog, set `logging: true` while still on 1.x, and upgrade once the changelog has the state you need. For the shared store of a stream-stream `leftJoin` or `outerJoin`, set `logging: false` on both join stores, or `logging: true` on `thisStore`.
+* KSML 2.0.0 can't read the 1.x state of a persistent window store for Python with `timestamped: true`. With `logging: true`, KSML deletes this state once, and Kafka Streams restores it from the changelog. Without it, KSML stops: delete the files that the error names, or rename the store. With `exactly_once_v2`, KSML also stops when this delete would take a store with `logging: false` along: start once with `processing.guarantee: at_least_once`.
+* The check runs once. It reads `logging` and `timestamped` in your YAML as the 1.x options, so do the first start with the 1.x options. Then KSML writes `.ksml-store-format` in `<storageDirectory>/<application.id>`. If you go back to 1.x and upgrade again, delete this file first.
+
+KSML now also follows the Kafka Streams setting `dsl.store.format`. With `dsl.store.format: HEADERS` in the `kafka`
+section of the runner config, declared key-value and window stores that are persistent and timestamped, and persistent
+session stores, can keep headers with each value; writes from Python store none. The default (`DEFAULT`) changes nothing, so you only need to act if you set it: switch the format only on a new
+application or after a reset, because existing state keeps its old format. See
+[Store Format](reference/state-store-reference.md#store-format).
+
+To keep the KSML 1.x behavior for a store, set the options explicitly:
+
+```yaml
+stores:
+  my_store:
+    type: keyValue
+    keyType: string
+    valueType: json
+    persistent: false
+    logging: false
+    timestamped: false
+    caching: false
+```
+
+A store that was in memory without a changelog in 1.x started empty after every restart. After the upgrade, it starts empty once more, because there is no earlier state to restore, and from then on it keeps its state.
 
 ## Tombstones are handled like in Kafka Streams
 

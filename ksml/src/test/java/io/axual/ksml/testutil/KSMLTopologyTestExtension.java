@@ -80,6 +80,8 @@ public class KSMLTopologyTestExtension implements ExecutionCondition, BeforeEach
     private final Set<Field> modifiedFields = new HashSet<>();
 
     private TopologyTestDriver topologyTestDriver;
+    // Closed after the test driver, to free the Python contexts of the topology
+    private TopologyGenerator topologyGenerator;
 
     /**
      * Map of annotated {@link TestInputTopic} field names to their annotation.
@@ -190,7 +192,7 @@ public class KSMLTopologyTestExtension implements ExecutionCondition, BeforeEach
         PythonContextConfig pythonContextConfig = PythonContextConfig.builder()
                 .modulePath(modulesDirectoryAbsolute)
                 .build();
-        final var topologyGenerator = new TopologyGenerator(methodName + ".app", null,
+        topologyGenerator = new TopologyGenerator(methodName + ".app", null,
                 pythonContextConfig);
         final var topology = topologyGenerator.create(streamsBuilder, definitions);
         final var description = topology.describe();
@@ -249,6 +251,10 @@ public class KSMLTopologyTestExtension implements ExecutionCondition, BeforeEach
         if (topologyTestDriver != null) {
             topologyTestDriver.close();
             topologyTestDriver = null;
+        }
+        if (topologyGenerator != null) {
+            topologyGenerator.close();
+            topologyGenerator = null;
         }
 
         // clear any set fields

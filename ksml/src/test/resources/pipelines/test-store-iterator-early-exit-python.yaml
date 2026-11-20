@@ -2,6 +2,7 @@
 
 # Python leaves store iterators open with return, break, an exception and next(). KSML closes them when the function returns.
 # Iterators that Python closes itself with close() are not closed again.
+# The stores are timestamped key-value stores (the default) and plain ones (the *_plain stores).
 streams:
   early_exit_input:
     topic: store_iterator_early_exit_input
@@ -20,11 +21,27 @@ stores:
     persistent: false
     caching: false
     logging: false
+  early_exit_memory_plain:
+    type: keyValue
+    keyType: string
+    valueType: string
+    persistent: false
+    timestamped: false
+    caching: false
+    logging: false
   early_exit_rocksdb:
     type: keyValue
     keyType: string
     valueType: string
     persistent: true
+    caching: false
+    logging: false
+  early_exit_rocksdb_plain:
+    type: keyValue
+    keyType: string
+    valueType: string
+    persistent: true
+    timestamped: false
     caching: false
     logging: false
 
@@ -69,7 +86,8 @@ functions:
         return first
     code: |
       lines = []
-      for name, store in [("memory", early_exit_memory), ("rocksdb", early_exit_rocksdb)]:
+      for name, store in [("memory", early_exit_memory), ("rocksdb", early_exit_rocksdb),
+                          ("memory_plain", early_exit_memory_plain), ("rocksdb_plain", early_exit_rocksdb_plain)]:
         store.put(key, value)
         lines.append(name + " return=" + with_return(store) + " break=" + with_break(store)
                      + " exception=" + with_exception(store) + " next=" + with_next(store)
@@ -80,6 +98,8 @@ functions:
     stores:
       - early_exit_memory
       - early_exit_rocksdb
+      - early_exit_memory_plain
+      - early_exit_rocksdb_plain
 
 pipelines:
   early_exit_pipeline:

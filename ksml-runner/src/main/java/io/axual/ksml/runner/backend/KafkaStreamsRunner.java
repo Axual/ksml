@@ -23,6 +23,7 @@ package io.axual.ksml.runner.backend;
 
 import io.axual.ksml.TopologyGenerator;
 import io.axual.ksml.client.resolving.ResolvingClientConfig;
+import io.axual.ksml.definition.StateStoreDefinition;
 import io.axual.ksml.execution.ExecutionContext;
 import io.axual.ksml.execution.ExecutionErrorHandler;
 import io.axual.ksml.generator.TopologyDefinition;
@@ -32,6 +33,8 @@ import io.axual.ksml.python.PythonContextConfig;
 import io.axual.ksml.runner.config.ApplicationServerConfig;
 import io.axual.ksml.runner.exception.RunnerException;
 import io.axual.ksml.runner.streams.KSMLClientSupplier;
+import io.axual.ksml.store.StoreUpgrade;
+import io.axual.ksml.store.StoreUpgrade.SharedJoinStore;
 import io.axual.utils.headers.cleaning.AxualHeaderCleaningInterceptor;
 import lombok.Builder;
 import lombok.Getter;
@@ -46,7 +49,9 @@ import org.apache.kafka.streams.StreamsConfig;
 import org.apache.kafka.streams.Topology;
 import org.apache.kafka.streams.TopologyConfig;
 
+import java.nio.file.Path;
 import java.time.Duration;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -81,6 +86,8 @@ public class KafkaStreamsRunner implements Runner {
 
     @Getter
     private final KafkaStreams kafkaStreams;
+    // Holds the Python contexts that the topology runs in, closed after Kafka Streams; null without a generated topology
+    private final TopologyGenerator topologyGenerator;
     private final AtomicBoolean stopRunning = new AtomicBoolean(false);
     // Default sleep durations that can be overridden in tests
     private long startupSleepMs = 1000;
@@ -149,8 +156,15 @@ public class KafkaStreamsRunner implements Runner {
         final var topologyConfig = new TopologyConfig(streamsConfig);
         final var streamsBuilder = new StreamsBuilder(topologyConfig);
         var optimize = streamsProps.getOrDefault(StreamsConfig.TOPOLOGY_OPTIMIZATION_CONFIG, StreamsConfig.OPTIMIZE);
-        final var topologyGenerator = new TopologyGenerator(applicationId, (String) optimize, config.pythonContextConfig());
-        final var topology = topologyGenerator.create(streamsBuilder, config.definitions);
+        topologyGenerator = new TopologyGenerator(applicationId, (String) optimize, config.pythonContextConfig(), headersStoreFormat(streamsConfig));
+        final Topology topology;
+        try {
+            topology = topologyGenerator.create(streamsBuilder, config.definitions);
+            checkKsml1StoreState(streamsConfig, applicationId, topologyGenerator.upgradeCheckedStores(), topologyGenerator.userStateStores(), topologyGenerator.sharedJoinStores());
+        } catch (RuntimeException e) {
+            topologyGenerator.close();
+            throw e;
+        }
         final var topologyDesc = topology.describe();
         final var ksmlTagEnricher = KsmlTagEnricher.from(topologyDesc);
 
@@ -162,6 +176,47 @@ public class KafkaStreamsRunner implements Runner {
         kafkaStreams = kafkaStreamsFactory.apply(topology, mapToProperties(streamsProps));
         kafkaStreams.setStateListener(this::logStreamsStateChange);
         kafkaStreams.setUncaughtExceptionHandler(ExecutionContext.INSTANCE.errorHandling()::uncaughtException);
+    }
+
+    /**
+     * Checks the local state that KSML 1.x left, before Kafka Streams opens it. Stops when the state would be lost,
+     * and clears window store state that this version can't read, so Kafka Streams restores it from the changelog.
+     * This happens once per application state directory.
+     *
+     * @param streamsConfig    the validated Kafka Streams configuration, with the state directory
+     * @param applicationId    the application id, which names the state directory of the application
+     * @param stores           the stores to check, see {@link TopologyGenerator#upgradeCheckedStores()}
+     * @param pythonStores     the stores built for Python functions
+     * @param sharedJoinStores the shared stores of stream-stream left and outer joins
+     */
+    static void checkKsml1StoreState(StreamsConfig streamsConfig, String applicationId,
+                                     Collection<? extends StateStoreDefinition> stores,
+                                     Collection<? extends StateStoreDefinition> pythonStores,
+                                     Collection<SharedJoinStore> sharedJoinStores) {
+        StoreUpgrade.prepare(Path.of(streamsConfig.getString(StreamsConfig.STATE_DIR_CONFIG), applicationId), stores, pythonStores, sharedJoinStores, wipesTasks(streamsConfig));
+    }
+
+    /**
+     * Whether Kafka Streams deletes a whole task when a logged store in it has local state but no changelog offset.
+     * It does with exactly-once processing, unless transactional state stores keep uncommitted data out of the stores.
+     *
+     * @param streamsConfig the validated Kafka Streams configuration
+     * @return {@code true} when Kafka Streams wipes such a task
+     */
+    static boolean wipesTasks(StreamsConfig streamsConfig) {
+        return !StreamsConfig.AT_LEAST_ONCE.equals(streamsConfig.getString(StreamsConfig.PROCESSING_GUARANTEE_CONFIG))
+                && !streamsConfig.getBoolean(StreamsConfig.TRANSACTIONAL_STATE_STORES_CONFIG);
+    }
+
+    /**
+     * Whether declared stores are built in the headers-aware format, as {@code dsl.store.format: HEADERS} asks for.
+     *
+     * @param streamsConfig the validated Kafka Streams configuration
+     * @return {@code true} for the headers-aware format
+     */
+    static boolean headersStoreFormat(StreamsConfig streamsConfig) {
+        // The same check that Kafka Streams makes; StreamsConfig already validated the value
+        return StreamsConfig.DSL_STORE_FORMAT_HEADERS.equalsIgnoreCase(streamsConfig.getString(StreamsConfig.DSL_STORE_FORMAT_CONFIG));
     }
 
     /**
@@ -234,7 +289,13 @@ public class KafkaStreamsRunner implements Runner {
      * @param tagEnricher         The tag enricher to use for metrics
      */
     KafkaStreamsRunner(Config config, BiFunction<Topology, Properties, KafkaStreams> kafkaStreamsFactory, KsmlTagEnricher tagEnricher) {
+        this(config, kafkaStreamsFactory, tagEnricher, null);
+    }
+
+    /** Like the test constructor above, with a topology generator that the runner closes after Kafka Streams. */
+    KafkaStreamsRunner(Config config, BiFunction<Topology, Properties, KafkaStreams> kafkaStreamsFactory, KsmlTagEnricher tagEnricher, TopologyGenerator topologyGenerator) {
         log.info("Constructing Kafka Backend (test mode)");
+        this.topologyGenerator = topologyGenerator;
 
         final var streamsProps = getStreamsConfig(config.kafkaConfig, config.storageDirectory, config.appServer);
 
@@ -261,7 +322,7 @@ public class KafkaStreamsRunner implements Runner {
      *     <li>Sets default values for optimization if not explicitly configured</li>
      *     <li>Sets exception handlers for production and deserialization errors</li>
      *     <li>Adds cleanup interceptors to all consumer configurations</li>
-     *     <li>Sets the state directory for Kafka Streams</li>
+     *     <li>Sets the state directory for Kafka Streams, and warns when the Kafka config sets another one</li>
      *     <li>Configures the application server if enabled</li>
      * </ul>
      *
@@ -285,6 +346,12 @@ public class KafkaStreamsRunner implements Runner {
         addCleanupInterceptor(StreamsConfig.RESTORE_CONSUMER_PREFIX, result, false);
         addCleanupInterceptor(StreamsConfig.GLOBAL_CONSUMER_PREFIX, result, false);
 
+        // ksml.storageDirectory wins over a state.dir in the Kafka config, so say so instead of ignoring it silently
+        final var configuredStateDir = result.get(StreamsConfig.STATE_DIR_CONFIG);
+        if (configuredStateDir != null && !configuredStateDir.equals(storageDirectory)) {
+            log.warn("Ignoring {} '{}' in the kafka config: Kafka Streams state is kept in ksml.storageDirectory '{}'",
+                    StreamsConfig.STATE_DIR_CONFIG, configuredStateDir, storageDirectory);
+        }
         result.put(StreamsConfig.STATE_DIR_CONFIG, storageDirectory);
         if (appServer != null && appServer.enabled()) {
             result.put(StreamsConfig.APPLICATION_SERVER_CONFIG, appServer.getApplicationServer());
@@ -332,6 +399,7 @@ public class KafkaStreamsRunner implements Runner {
      *     <li>Waits for a short period to allow asynchronous startup</li>
      *     <li>Continuously monitors the application state</li>
      *     <li>Closes the application when stopped or failed, waiting at most {@link #CLOSE_TIMEOUT}</li>
+     *     <li>Then closes the Python contexts of the topology, when Kafka Streams closed in time</li>
      *     <li>Throws an exception if the application fails</li>
      * </ul>
      */
@@ -359,12 +427,25 @@ public class KafkaStreamsRunner implements Runner {
                 log.info("Kafka Streams has stopped");
             }
             // Always close, also in ERROR: a failed client still holds resources and threads
-            if (!kafkaStreams.close(CloseOptions.timeout(CLOSE_TIMEOUT))) {
-                log.warn("Kafka Streams did not close within {}", CLOSE_TIMEOUT);
+            if (kafkaStreams.close(CloseOptions.timeout(CLOSE_TIMEOUT))) {
+                closeTopologyGenerator();
+            } else {
+                // Stream threads may still run Python functions, and a Python context in use can't be closed
+                log.warn("Kafka Streams did not close within {}, so its Python contexts stay open until the process exits", CLOSE_TIMEOUT);
             }
         }
         if (failed) {
             throw new RunnerException("Kafka Streams is in a failed state");
+        }
+    }
+
+    // Frees the Python contexts of the topology. A failure here must not hide the result of the run
+    private void closeTopologyGenerator() {
+        if (topologyGenerator == null) return;
+        try {
+            topologyGenerator.close();
+        } catch (RuntimeException e) {
+            log.warn("Could not close the Python contexts of the topology", e);
         }
     }
 

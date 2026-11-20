@@ -73,9 +73,7 @@ class DockerOnlyParityTest {
 
     @Test
     void c44aCountAcrossRestartWithDefaultStore() {
-        countAcrossRestart("C44a", "count survives a restart: KSML store with default options", "parity/c12-count.yaml")
-                .knownDifference("F06", "a store with default options is in memory and has no changelog, so the count starts again at 0")
-                .check();
+        countAcrossRestart("C44a", "count survives a restart: KSML store with default options", "parity/c12-count.yaml").check();
     }
 
     @Test

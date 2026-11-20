@@ -93,8 +93,12 @@ spec:
             name: {{ include "ksml.fullname" . }}-logging
         {{- if not .Values.store.spec }}
         - name: ksml-store
+          {{- with dig "emptyDir" "sizeLimit" "" .Values.store }}
           emptyDir:
-            sizeLimit: 10Mi
+            sizeLimit: {{ . }}
+          {{- else }}
+          emptyDir: {}
+          {{- end }}
         {{- end }}
       {{- with .Values.volumes }}
         {{- toYaml . | nindent 8 }}

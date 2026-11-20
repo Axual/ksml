@@ -311,6 +311,7 @@ public class PythonContext implements AutoCloseable {
 
     @Override
     public void close() {
+        PythonNativeMapper.forget(context);
         context.close();
     }
 }

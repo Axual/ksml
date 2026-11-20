@@ -103,19 +103,21 @@ final class ParityRunner {
     static SideResult runKsml(ParityCase parityCase, String optimization) {
         final var result = new SideResult("ksml");
         result.printFile = parityCase.ksmlPrintFile;
-        final Topology topology;
-        try {
-            final var uri = ClassLoader.getSystemResource(parityCase.ksmlResource).toURI();
-            final var definition = YAMLObjectMapper.INSTANCE.readValue(Files.readString(Paths.get(uri)), JsonNode.class);
-            final Map<String, TopologyDefinition> definitions = Map.of("definition",
-                    new TopologyDefinitionParser("parity").parse(ParseNode.fromRoot(definition, parityCase.id)));
-            final var generator = new TopologyGenerator(APP_ID, optimization, PythonContextConfig.builder().build());
-            topology = generator.create(streamsBuilder(parityCase, optimization), definitions);
-        } catch (Throwable e) {
-            result.buildError = describe(e);
-            return result;
+        // The generator stays open while the driver runs the topology, which calls its Python contexts
+        try (final var generator = new TopologyGenerator(APP_ID, optimization, PythonContextConfig.builder().build())) {
+            final Topology topology;
+            try {
+                final var uri = ClassLoader.getSystemResource(parityCase.ksmlResource).toURI();
+                final var definition = YAMLObjectMapper.INSTANCE.readValue(Files.readString(Paths.get(uri)), JsonNode.class);
+                final Map<String, TopologyDefinition> definitions = Map.of("definition",
+                        new TopologyDefinitionParser("parity").parse(ParseNode.fromRoot(definition, parityCase.id)));
+                topology = generator.create(streamsBuilder(parityCase, optimization), definitions);
+            } catch (Throwable e) {
+                result.buildError = describe(e);
+                return result;
+            }
+            return execute(parityCase, optimization, topology, result);
         }
-        return execute(parityCase, optimization, topology, result);
     }
 
     private static SideResult execute(ParityCase parityCase, String optimization, Topology topology, SideResult result) {

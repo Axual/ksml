@@ -47,7 +47,9 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class PythonNativeMapper {
-    private final Map<Context, PythonTypes> typesByContext = new ConcurrentHashMap<>();
+    // Shared by all mappers, so that PythonContext.close() can remove a closed context. The types refer to their
+    // context, so a kept entry would keep the whole Python context in memory.
+    private static final Map<Context, PythonTypes> TYPES_BY_CONTEXT = new ConcurrentHashMap<>();
 
     private record PythonTypes(Value dict, Value list, Value none) {
         static PythonTypes of(Context context) {
@@ -56,6 +58,11 @@ public class PythonNativeMapper {
                     context.eval(PythonContext.PYTHON, "list"),
                     context.eval(PythonContext.PYTHON, "type(None)").execute());
         }
+    }
+
+    /** Forgets the Python types of a context that is closed. */
+    static void forget(Context context) {
+        TYPES_BY_CONTEXT.remove(context);
     }
 
     public Object fromPython(Object object) {
@@ -232,7 +239,7 @@ public class PythonNativeMapper {
         if (object instanceof AbstractProxy proxy) return Value.asValue(proxy);
         final var scalar = scalarToPythonValue(object);
         if (scalar != null) return scalar;
-        final var types = typesByContext.computeIfAbsent(context, PythonTypes::of);
+        final var types = TYPES_BY_CONTEXT.computeIfAbsent(context, PythonTypes::of);
         if (object == null) return types.none();
         return switch (object) {
             case byte[] value -> {
