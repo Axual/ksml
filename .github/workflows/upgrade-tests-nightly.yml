@@ -2,7 +2,7 @@ name: Upgrade tests
 
 # Runs the upgrade tests (*UpgradeIT) every night: state written by older KSML versions, which run as containers
 # from registry.axual.io, must read correctly in this version. They run nightly, not on pull requests, because
-# they take about 7 minutes and the upgrade code changes rarely. Run this workflow by hand before a release.
+# they take about 2 to 3 minutes and the upgrade code changes rarely. Run this workflow by hand before a release.
 # See developerdocs/upgrade-tests.md.
 
 on:

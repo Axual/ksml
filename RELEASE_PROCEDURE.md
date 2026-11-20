@@ -240,7 +240,7 @@ This script will:
   ```
   Then check `ksml/target/parity-report-docker/summary.tsv`: it must have no `DIFF`, `HARNESS-ERROR`
   or `MARKER-GONE` lines. See [Parity tests](developerdocs/parity-tests.md).
-- For 2.0.0 and later: run the upgrade tests (about 7 minutes, Docker must be running). The nightly upgrade
+- For 2.0.0 and later: run the upgrade tests (about 2 to 3 minutes, Docker must be running). The nightly upgrade
   job only runs on `main`, so it does not check release branches:
   ```bash
   mvn verify -pl ksml-integration-tests -am -Pupgrade-tests -Dtest=none -Dsurefire.failIfNoSpecifiedTests=false

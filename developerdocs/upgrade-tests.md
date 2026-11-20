@@ -10,7 +10,7 @@ The tests are the integration tests whose class name ends in `UpgradeIT`, in
 
 ## When they run
 
-They take about 7 minutes and pull older KSML images, so they don't run with the
+They take about 2 to 3 minutes and pull older KSML images, so they don't run with the
 other integration tests in the normal build. Instead:
 
 - the workflow `.github/workflows/upgrade-tests-nightly.yml` runs them every night on `main`;
