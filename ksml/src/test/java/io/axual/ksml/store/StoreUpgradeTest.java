@@ -184,6 +184,49 @@ class StoreUpgradeTest {
         assertThat(marker()).exists();
     }
 
+    // Runs the check on a store whose segment folder can't be read, which Files.walk reports while it iterates
+    private static void withUnreadableSegment(Path segment, Runnable check) throws IOException {
+        assumeTrue(Files.getFileStore(segment).supportsFileAttributeView(PosixFileAttributeView.class));
+        final var permissions = Files.getPosixFilePermissions(segment);
+        Files.setPosixFilePermissions(segment, PosixFilePermissions.fromString("---------"));
+        try {
+            assumeTrue(!Files.isReadable(segment), "the user can read an unreadable directory");
+            check.run();
+        } finally {
+            Files.setPosixFilePermissions(segment, permissions);
+        }
+    }
+
+    @Test
+    @DisplayName("counts a store with an unreadable segment folder as state, and stops")
+    void stopsForUnreadableSegment() throws IOException {
+        final var store = applicationDirectory().resolve("0_0").resolve("window_plain");
+        final var segment = createEmptyRocksDb(store.resolve("window_plain.1794319200000"));
+        final var stores = List.of(windowStore("window_plain", true, null, null));
+
+        withUnreadableSegment(segment, () ->
+                assertThatThrownBy(() -> prepare(stores))
+                        .isInstanceOf(ExecutionException.class)
+                        .hasMessageContaining("Store 'window_plain' has local state in task 0_0"));
+        assertThat(segment).exists();
+        assertThat(marker()).doesNotExist();
+    }
+
+    @Test
+    @DisplayName("stops with the KSML error when a segment folder of a store to delete can't be read")
+    void stopsWhenSegmentToDeleteIsUnreadable() throws IOException {
+        final var store = createWindowStore("0_0", "window_timestamped");
+        final var segment = store.resolve("window_timestamped.1794319200000");
+        final var stores = List.of(windowStore("window_timestamped", true, true, true));
+
+        withUnreadableSegment(segment, () ->
+                assertThatThrownBy(() -> prepare(stores))
+                        .isInstanceOf(ExecutionException.class)
+                        .hasMessageContaining("Could not check the KSML 1.x store state in"));
+        assertThat(segment).exists();
+        assertThat(marker()).doesNotExist();
+    }
+
     @Test
     @DisplayName("stops for a persistent store with local state that leaves out logging, and changes nothing")
     void stopsForUnloggedState() throws IOException {

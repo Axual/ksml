@@ -26,6 +26,7 @@ import io.axual.ksml.exception.ExecutionException;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -176,8 +177,9 @@ public final class StoreUpgrade {
         try (var files = Files.walk(directory)) {
             return files.map(file -> file.getFileName().toString())
                     .anyMatch(name -> name.endsWith(SST_FILE_SUFFIX) || name.endsWith(BLOB_FILE_SUFFIX));
-        } catch (IOException _) {
-            // If unsure, treat it as state and stop
+        } catch (IOException | UncheckedIOException _) {
+            // If unsure, treat it as state and stop. Files.walk reports an unreadable sub-folder, such as a segment of a
+            // window store, as an UncheckedIOException
             return true;
         }
     }
@@ -332,6 +334,9 @@ public final class StoreUpgrade {
             for (final var file : paths.sorted(Comparator.reverseOrder()).toList()) {
                 Files.delete(file);
             }
+        } catch (UncheckedIOException e) {
+            // An unreadable sub-folder
+            throw e.getCause();
         }
     }
 }
