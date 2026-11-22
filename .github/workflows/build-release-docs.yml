@@ -12,7 +12,7 @@ permissions:
   contents: write
 concurrency:
   group: pages-deployment
-  cancel-in-progress: true
+  cancel-in-progress: false
 jobs:
   deploy:
     runs-on: ubuntu-latest
