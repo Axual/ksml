@@ -23,7 +23,7 @@
       
       
       <link rel="icon" href="../../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.1">
     
     
       
@@ -31,7 +31,7 @@
       
     
     
-      <link rel="stylesheet" href="../../assets/stylesheets/main.ec1eaa64.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.57a0d79d.min.css">
       
       
 
@@ -2686,7 +2686,7 @@ Confluent wire format rather than Apicurio's.</p>
 </tr>
 </tbody>
 </table>
-<p>When <code>on:</code> is set, <code>records</code> is a list of dicts with <code>key</code>, <code>value</code>, and <code>timestamp</code> fields. When <code>stores:</code> is set, each store is available as a Python variable with the same API as in pipeline functions (e.g. <code>store.get(key)</code>, <code>store.put(key, value)</code>).</p>
+<p>When <code>on:</code> is set, <code>records</code> is a list of dicts with <code>key</code>, <code>value</code>, and <code>timestamp</code> fields. When <code>stores:</code> is set, each key-value store is available as a Python variable with the key-value store API (e.g. <code>store.get(key)</code>, <code>store.put(key, value)</code>). A timestamped store works like a plain one there: it has no <code>*WithTimestamp</code> methods. Keys and values are converted to the store's declared types the same way, so <code>counts.get(1)</code> works on a store with <code>keyType: long</code>.</p>
 <p><strong>Note:</strong>  Avro output streams must declare the correct <code>valueType</code>"
 <code>records[i]["value"]</code> is a dict only when the stream's <code>valueType</code> in <code>streams:</code> matches what the pipeline actually writes. If the pipeline writes Avro but the stream is declared as <code>valueType: string</code> (or the field is omitted), the runner falls back to <code>StringDeserializer</code>. The raw Confluent wire bytes — magic byte + 4-byte schema ID + Avro payload — are returned as a string, and indexing into <code>records[i]["value"]</code> with a field name fails with <code>TypeError: string indices must be integers</code>.</p>
 <div class="highlight"><pre><span></span><code>Always declare `valueType: "avro:SchemaName"` (or `confluent_avro:SchemaName`) in `streams:` for any output topic that your pipeline serializes as Avro, and provide the matching `.avsc` file via `schemaDirectory`.
@@ -3017,10 +3017,10 @@ Confluent wire format rather than Apicurio's.</p>
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["content.code.copy"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"default": "latest", "provider": "mike"}}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["content.code.copy"], "search": "../../assets/javascripts/workers/search.a7633da7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"default": "latest", "provider": "mike"}}</script>
     
     
-      <script src="../../assets/javascripts/bundle.d7400e89.min.js"></script>
+      <script src="../../assets/javascripts/bundle.a5f9d56c.min.js"></script>
       
     
   </body>

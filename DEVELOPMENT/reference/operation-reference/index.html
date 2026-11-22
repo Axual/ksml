@@ -23,7 +23,7 @@
       
       
       <link rel="icon" href="../../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.1">
     
     
       
@@ -31,7 +31,7 @@
       
     
     
-      <link rel="stylesheet" href="../../assets/stylesheets/main.ec1eaa64.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.57a0d79d.min.css">
       
       
 
@@ -2481,6 +2481,17 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
+  <a href="#tombstones-in-joins" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tombstones in joins
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#join" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -4239,6 +4250,17 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
+  <a href="#tombstones-in-joins" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tombstones in joins
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#join" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -5812,16 +5834,18 @@
 </thead>
 <tbody>
 <tr>
-<td><code>keySelector</code></td>
+<td><code>mapper</code></td>
 <td>Object</td>
 <td>Yes</td>
 <td>Specifies how to select the new key</td>
 </tr>
 </tbody>
 </table>
-<p>The <code>keySelector</code> can be defined using:
+<p>The <code>mapper</code> can be defined using:
 - <code>expression</code>: A simple expression returning the grouping key
 - <code>code</code>: A Python code block returning the grouping key</p>
+<p>A <code>mapper</code> that returns <code>None</code> gives a <code>null</code> key, so the next <code>count</code>, <code>reduce</code> or <code>aggregate</code> skips the record, like
+in Kafka Streams.</p>
 <h4 id="example_11">Example</h4>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">groupBy</span>
 <a id="__codelineno-17-2" name="__codelineno-17-2" href="#__codelineno-17-2"></a><span class="w">        </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">group_by_sensor_type</span>
@@ -5842,6 +5866,7 @@
 <p>Groups records by their existing key for subsequent aggregation operations.</p>
 <h4 id="parameters_12">Parameters</h4>
 <p>None. This operation is typically followed by an aggregation operation.</p>
+<p>A record with a <code>null</code> key is skipped by the next <code>count</code>, <code>reduce</code> or <code>aggregate</code>, like in Kafka Streams.</p>
 <h4 id="example_12">Example</h4>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">groupByKey</span>
 </code></pre></div>
@@ -6111,6 +6136,9 @@
 <li><code>expression</code>: A simple expression</li>
 <li><code>code</code>: A Python code block</li>
 </ul>
+<p>A record with a <code>null</code> key or a <code>null</code> value (a tombstone) is skipped, like in Kafka Streams: the <code>aggregator</code> is not
+called for it. An <code>aggregator</code> that returns <code>None</code> deletes the key from the store. See
+<a href="../function-reference/#tombstones-and-none">Tombstones and <code>None</code></a>.</p>
 <h4 id="example_14">Example</h4>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-23-1" name="__codelineno-23-1" href="#__codelineno-23-1"></a><span class="w">          </span><span class="nt">windowSize</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1m</span>
 <a id="__codelineno-23-2" name="__codelineno-23-2" href="#__codelineno-23-2"></a><span class="w">          </span><span class="nt">retention</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">10m</span>
@@ -6193,6 +6221,7 @@
 <p>Counts the number of records for each key.</p>
 <h4 id="parameters_16">Parameters</h4>
 <p>None.</p>
+<p>A record with a <code>null</code> key or a <code>null</code> value (a tombstone) is not counted, like in Kafka Streams.</p>
 <h4 id="example_16">Example</h4>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-25-1" name="__codelineno-25-1" href="#__codelineno-25-1"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">count</span>
 </code></pre></div>
@@ -6226,6 +6255,9 @@
 <li><code>expression</code>: A simple expression</li>
 <li><code>code</code>: A Python code block</li>
 </ul>
+<p>A record with a <code>null</code> key or a <code>null</code> value (a tombstone) is skipped, like in Kafka Streams: the <code>reducer</code> is not
+called for it. A <code>reducer</code> that returns <code>None</code> deletes the key from the store. See
+<a href="../function-reference/#tombstones-and-none">Tombstones and <code>None</code></a>.</p>
 <h4 id="example_17">Example</h4>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-26-1" name="__codelineno-26-1" href="#__codelineno-26-1"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">reduce</span>
 <a id="__codelineno-26-2" name="__codelineno-26-2" href="#__codelineno-26-2"></a><span class="w">        </span><span class="nt">reducer</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">sum_amounts</span>
@@ -6237,6 +6269,85 @@
 <h2 id="join-operations">Join Operations</h2>
 <p>Join operations combine data from multiple streams or tables based on matching keys, enabling you to correlate related events from different data sources.</p>
 <p>The stream or table to join with can be defined under <code>streams</code> or <code>tables</code>, or be the result of an earlier pipeline in the same definition file, saved with <code>as</code>. A <code>globalTable</code> must always be defined under <code>globalTables</code>, because Kafka Streams can not make a GlobalKTable from a pipeline result. See <a href="../../tutorials/intermediate/joins/#joining-with-the-result-of-another-pipeline">Joining with the Result of Another Pipeline</a>.</p>
+<h3 id="tombstones-in-joins">Tombstones in joins</h3>
+<p>A tombstone is a record with a <code>null</code> value: a delete. Joins handle tombstones and <code>None</code> like Kafka Streams:</p>
+<table>
+<thead>
+<tr>
+<th>Join</th>
+<th>Tombstone, empty value or <code>None</code></th>
+<th>Result</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Two streams</td>
+<td>Tombstone on either stream</td>
+<td>The record is skipped, also in <code>leftJoin</code> and <code>outerJoin</code></td>
+</tr>
+<tr>
+<td>Stream with a table</td>
+<td>Tombstone on the stream</td>
+<td>The record is skipped</td>
+</tr>
+<tr>
+<td>Stream with a table</td>
+<td>Tombstone on the table</td>
+<td>Later stream records find no row: <code>join</code> skips them, <code>leftJoin</code> gets <code>None</code> for <code>value2</code></td>
+</tr>
+<tr>
+<td>Stream with a table</td>
+<td>Empty value on the table (<code>json</code> or union)</td>
+<td>The row stays, with the value <code>None</code>: <code>join</code> and <code>leftJoin</code> get <code>None</code> for <code>value2</code></td>
+</tr>
+<tr>
+<td>Stream with a global table</td>
+<td>Tombstone on the stream</td>
+<td>The record is skipped</td>
+</tr>
+<tr>
+<td>Stream with a global table</td>
+<td>The <code>mapper</code> returns <code>None</code></td>
+<td>Nothing to look up: <code>join</code> skips the record, <code>leftJoin</code> gets <code>None</code> for <code>value2</code></td>
+</tr>
+<tr>
+<td>Two tables (<code>join</code>)</td>
+<td>Tombstone on one side</td>
+<td>The joined row is deleted</td>
+</tr>
+<tr>
+<td>Two tables (<code>leftJoin</code>)</td>
+<td>Tombstone on the left</td>
+<td>The joined row is deleted</td>
+</tr>
+<tr>
+<td>Two tables (<code>leftJoin</code>)</td>
+<td>Tombstone on the right</td>
+<td><code>value2</code> is <code>None</code></td>
+</tr>
+<tr>
+<td>Two tables (<code>outerJoin</code>)</td>
+<td>Tombstone on one side</td>
+<td>The deleted side is <code>None</code>. The row is deleted when both sides are gone</td>
+</tr>
+<tr>
+<td>Foreign-key join</td>
+<td>Tombstone on the input table</td>
+<td>The joined row is deleted. The <code>foreignKeyExtractor</code> is not called</td>
+</tr>
+<tr>
+<td>Foreign-key join</td>
+<td>Tombstone on the joined table</td>
+<td><code>join</code> deletes the joined rows, <code>leftJoin</code> gets <code>None</code> for <code>value2</code></td>
+</tr>
+<tr>
+<td>Foreign-key join</td>
+<td>The <code>foreignKeyExtractor</code> returns <code>None</code></td>
+<td><code>join</code> leaves the row out, <code>leftJoin</code> joins it with <code>None</code></td>
+</tr>
+</tbody>
+</table>
+<p>A <code>valueJoiner</code> that returns <code>None</code> gives a tombstone. See <a href="../function-reference/#tombstones-and-none">Tombstones and <code>None</code></a>.</p>
 <h3 id="join"><code>join</code></h3>
 <p>Performs an inner join with a stream, table or global table.</p>
 <h4 id="parameters_18">Parameters</h4>
@@ -7547,10 +7658,10 @@ to the same session.</p>
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["content.code.copy"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"default": "latest", "provider": "mike"}}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["content.code.copy"], "search": "../../assets/javascripts/workers/search.a7633da7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"default": "latest", "provider": "mike"}}</script>
     
     
-      <script src="../../assets/javascripts/bundle.d7400e89.min.js"></script>
+      <script src="../../assets/javascripts/bundle.a5f9d56c.min.js"></script>
       
     
   </body>

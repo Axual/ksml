@@ -23,7 +23,7 @@
       
       
       <link rel="icon" href="../../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.1">
     
     
       
@@ -31,7 +31,7 @@
       
     
     
-      <link rel="stylesheet" href="../../assets/stylesheets/main.ec1eaa64.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.57a0d79d.min.css">
       
       
 
@@ -1777,6 +1777,45 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#tombstones-and-none" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tombstones and None
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Tombstones and None">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#functions-that-are-not-called-for-a-tombstone" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Functions that are not called for a tombstone
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#returning-none" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Returning None
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#function-types-overview" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -3404,6 +3443,45 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#tombstones-and-none" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tombstones and None
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Tombstones and None">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#functions-that-are-not-called-for-a-tombstone" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Functions that are not called for a tombstone
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#returning-none" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Returning None
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#function-types-overview" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -4903,6 +4981,69 @@ available in your function code without needing to declare them:</p>
 </code></pre></div>
 <p><strong>Important:</strong> The <code>parameters</code> property <strong>adds to</strong> the built-in parameters - it doesn't replace them. Built-in
 parameters like <code>key</code> and <code>value</code> are still available in your function code.</p>
+<h2 id="tombstones-and-none">Tombstones and <code>None</code></h2>
+<p>A tombstone is a record with a key but no value. It means "delete this key". In Python, the value of a tombstone is
+<code>None</code>. KSML handles tombstones like Kafka Streams does.</p>
+<p>An empty value (zero bytes) is not a tombstone. With <code>valueType: json</code> (without a schema) or a union type, it reaches
+your functions as <code>None</code>, but it is a value: <code>count</code>, <code>reduce</code> and <code>aggregate</code> do not skip it, also after a <code>groupBy</code>.
+On a table it is a row with the value <code>None</code>, so a <code>join</code> with the table calls the <code>valueJoiner</code> with <code>None</code>. With
+<code>valueType: string</code> it is an empty string. Other types, like <code>long</code>, <code>avro</code> or <code>json</code> with a schema, can not read an
+empty value and give an error. A <code>convertValue</code> of an empty value to such a type gives a tombstone.</p>
+<p>An empty key works the same way. With <code>keyType: json</code> (without a schema) or a union type, it reaches your functions as
+<code>None</code>, but it is not a <code>null</code> key: <code>groupByKey</code>, <code>count</code>, <code>reduce</code> and <code>aggregate</code> do not skip it, and it is written
+as an empty key. A function that returns it, like a <code>groupBy</code> mapper, gives a <code>null</code> key.</p>
+<h3 id="functions-that-are-not-called-for-a-tombstone">Functions that are not called for a tombstone</h3>
+<table>
+<thead>
+<tr>
+<th>Function</th>
+<th>Operation</th>
+<th>What happens with a tombstone</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>reducer</code></td>
+<td><code>reduce</code> after <code>groupBy</code> or <code>groupByKey</code></td>
+<td>The record is skipped</td>
+</tr>
+<tr>
+<td><code>aggregator</code></td>
+<td><code>aggregate</code> after <code>groupBy</code> or <code>groupByKey</code></td>
+<td>The record is skipped</td>
+</tr>
+<tr>
+<td><code>foreignKeyExtractor</code></td>
+<td>foreign-key <code>join</code> and <code>leftJoin</code></td>
+<td>The joined row is deleted</td>
+</tr>
+<tr>
+<td><code>valueJoiner</code></td>
+<td>a join of a stream with a stream, table or global table</td>
+<td>The stream record is skipped</td>
+</tr>
+<tr>
+<td><code>valueJoiner</code></td>
+<td><code>join</code> of two tables</td>
+<td>The joined row is deleted. For <code>leftJoin</code> and <code>outerJoin</code>, see <a href="../operation-reference/#tombstones-in-joins">Tombstones in joins</a></td>
+</tr>
+</tbody>
+</table>
+<p><code>count</code> also skips tombstones. On a table, <code>filter</code> and <code>filterNot</code> do not call the <code>predicate</code> for a tombstone: the
+delete is passed on. Other functions, like a <code>predicate</code> or a <code>valueTransformer</code> on a stream, still get <code>None</code> for a
+tombstone.</p>
+<h3 id="returning-none">Returning <code>None</code></h3>
+<p>A function that returns <code>None</code> gives Kafka Streams a real <code>null</code>:</p>
+<ul>
+<li>As a <strong>value</strong>, for example from a <code>valueTransformer</code> or <code>valueJoiner</code>, it is a tombstone. A later <code>count</code>, <code>reduce</code>
+  or <code>aggregate</code> skips it, and a topic gets a tombstone. A <code>None</code> in the list of a <code>flatMap</code> or <code>flatMapValues</code> is a
+  tombstone too.</li>
+<li>From a <code>reducer</code> or <code>aggregator</code>, it deletes the key from the store, and the next step gets a tombstone.</li>
+<li>As a <strong>key</strong>, for example from a <code>keyTransformer</code>, it is a <code>null</code> key.</li>
+<li>From the <code>mapper</code> (a <code>keyValueMapper</code>) of a join with a global table, there is nothing to look up. A <code>join</code> skips the
+  record, and a <code>leftJoin</code> calls the <code>valueJoiner</code> with <code>None</code> for <code>value2</code>.</li>
+<li>From a <code>foreignKeyExtractor</code>, a <code>join</code> leaves the row out, and a <code>leftJoin</code> joins it with <code>None</code>.</li>
+</ul>
 <h2 id="function-types-overview">Function Types Overview</h2>
 <p>Below is a table with all 21 function types in KSML.</p>
 <table>
@@ -7708,6 +7849,7 @@ relationship helps you leverage Kafka Streams documentation and concepts:</p>
 <li><code>store.put(key, value)</code> - Store a value</li>
 <li><code>store.delete(key)</code> - Remove a value</li>
 <li>Must be declared in the function's <code>stores</code> parameter</li>
+<li>See <a href="../state-store-reference/#python-store-methods">Python Store Methods</a> for all methods</li>
 </ul>
 </li>
 </ul>
@@ -7761,10 +7903,10 @@ relationship helps you leverage Kafka Streams documentation and concepts:</p>
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["content.code.copy"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"default": "latest", "provider": "mike"}}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["content.code.copy"], "search": "../../assets/javascripts/workers/search.a7633da7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"default": "latest", "provider": "mike"}}</script>
     
     
-      <script src="../../assets/javascripts/bundle.d7400e89.min.js"></script>
+      <script src="../../assets/javascripts/bundle.a5f9d56c.min.js"></script>
       
     
   </body>
