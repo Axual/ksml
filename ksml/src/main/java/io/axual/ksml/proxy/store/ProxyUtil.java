@@ -38,8 +38,11 @@ import org.apache.kafka.streams.processor.StateStore;
 import org.apache.kafka.streams.state.KeyValueIterator;
 import org.apache.kafka.streams.state.KeyValueStore;
 import org.apache.kafka.streams.state.SessionStore;
+import org.apache.kafka.streams.state.SessionStoreWithHeaders;
 import org.apache.kafka.streams.state.TimestampedKeyValueStore;
+import org.apache.kafka.streams.state.TimestampedKeyValueStoreWithHeaders;
 import org.apache.kafka.streams.state.TimestampedWindowStore;
+import org.apache.kafka.streams.state.TimestampedWindowStoreWithHeaders;
 import org.apache.kafka.streams.state.ValueAndTimestamp;
 import org.apache.kafka.streams.state.VersionedKeyValueStore;
 import org.apache.kafka.streams.state.VersionedRecord;
@@ -268,7 +271,15 @@ public class ProxyUtil {
     public static StateStore wrapStateStore(StateStore store, StateStoreDefinition definition, LongSupplier recordTimestamp) {
         final var keyType = definition != null ? dataTypeOf(definition.keyType()) : null;
         final var valueType = definition != null ? dataTypeOf(definition.valueType()) : null;
-        if (store instanceof VersionedKeyValueStore<?, ?> versionedStore) {
+        // A headers-aware store is shown as the store type without headers, so Python gets the same methods and results.
+        // Check these first: each also extends the store type without headers, with the headers in the values
+        if (store instanceof TimestampedKeyValueStoreWithHeaders<?, ?> headersStore) {
+            return new TimestampedKeyValueStoreProxy(new HeadersKeyValueStoreAdapter((TimestampedKeyValueStoreWithHeaders<Object, Object>) headersStore), keyType, valueType, recordTimestamp);
+        } else if (store instanceof TimestampedWindowStoreWithHeaders<?, ?> headersStore) {
+            return new TimestampedWindowStoreProxy(new HeadersWindowStoreAdapter((TimestampedWindowStoreWithHeaders<Object, Object>) headersStore), keyType, valueType, recordTimestamp);
+        } else if (store instanceof SessionStoreWithHeaders<?, ?> headersStore) {
+            return new SessionStoreProxy(new HeadersSessionStoreAdapter((SessionStoreWithHeaders<Object, Object>) headersStore), keyType, valueType);
+        } else if (store instanceof VersionedKeyValueStore<?, ?> versionedStore) {
             return new VersionedKeyValueStoreProxy((VersionedKeyValueStore<Object, Object>) versionedStore, keyType, valueType);
         } else if (store instanceof TimestampedKeyValueStore<?, ?> timestampedKeyValueStore) {
             return new TimestampedKeyValueStoreProxy((TimestampedKeyValueStore<Object, Object>) timestampedKeyValueStore, keyType, valueType, recordTimestamp);

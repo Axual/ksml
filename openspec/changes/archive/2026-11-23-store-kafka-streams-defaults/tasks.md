@@ -1,0 +1,82 @@
+# Tasks
+
+Each implementation task follows TDD: first commit the failing test, then the fix that makes it pass.
+
+## 1. Declared store defaults (design D1-D3)
+
+- [x] 1.1 Add failing tests in `StoreUtilTest` and the definition parser tests: a keyValue, window and session store declared without options is persistent, timestamped and logged; explicit `false` values are kept; a versioned store without `persistent` is a persistent versioned store. Verify the tests fail for the right reason.
+- [x] 1.2 Change `StateStoreDefinition` (and subclasses, `with(...)`, `BaseOperation.validate*Store`) so `persistent`/`logging`/`timestamped` turn `null` into `true` and `caching` stays a nullable `Boolean`. Verify the 1.1 tests pass.
+- [x] 1.3 Add failing tests for caching: a store without `caching` is cached when materialized by `aggregate`/`count` and not cached when built for Python functions; explicit `caching` wins in both cases. Then resolve caching in `StoreUtil.materialize` (null -> true) and `getStoreBuilder` (null -> false). Verify the tests pass.
+- [x] 1.4 Add a failing test that a session store with `timestamped` logs a warning naming the store and still builds. Then add the warning in `SessionStateStoreDefinitionParser`. Verify the test passes.
+- [x] 1.5 Run the full `ksml` module tests. Fix tests that relied on the old defaults with explicit flags or new expectations, and record the build time before and after to measure the RocksDB cost (design Open Question). Verify `mvn -pl ksml test` passes.
+- [x] 1.6 Check that `TableDefinition`/`GlobalTableDefinition` stores without a declared store still build in memory without logging. Verify with an existing or new test in `TopologyBuildContext` tests.
+- [x] 1.7 Update the parser field descriptions (defaults in the descriptions) and regenerate `docs/ksml-language-spec.json`/`.md` if the build generates them. Update the default values and the caching-per-use explanation in `docs/reference/state-store-reference.md`, `docs/reference/definition-reference.md` and `docs/tutorials/intermediate/state-stores.md`. Verify the documented YAML examples still parse (an existing docs-example test, or by running them through the test runner).
+- [x] 1.8 Add the "new store defaults" section to `docs/migration-to-2.0.0.md` (changelog topics and ACLs, `state.dir`, caching emission timing, the table of explicit flags that restore the old behavior, the versioned store fix, the session `timestamped` warning) and to `docs/release-notes.md`, and add caching notes (`statestore.cache.max.bytes`, `commit.interval.ms`) to `docs/tutorials/advanced/performance-optimization.md`. Verify the docs build (mkdocs) shows no broken links.
+- [x] 1.9 Keep Python test coverage for plain key-value stores and plain iterators, which the new `timestamped` default turned into timestamped tests: set `timestamped: false` on the `kv_*` stores in `test-keyvalue-store-methods-python.yaml`, add `*_plain` copies of the key-value and window stores to `test-store-iterator-python.yaml` and `test-store-iterator-early-exit-python.yaml`, and assert in `KSMLKeyValueStoreMethodsTest` and `KSMLIteratorTest` that these stores stay plain, also with the headers store format. Verify the tests pass.
+- [x] 1.10 Fix `docs/use-cases/real-time-analytics.md`, which said that KSML stores have caching off by default: set `caching: false` on `category_store` in the example, so every update is still written, and say in the text that a store an operation materializes is cached by default. Verify `AllDefinitionsSchemaValidationTest` passes.
+- [x] 1.11 Name `ksml.storageDirectory` instead of `state.dir` in `docs/migration-to-2.0.0.md` and say in `docs/reference/configuration-reference.md` that it is the Kafka Streams `state.dir`. Have `KafkaStreamsRunner.getStreamsConfig` log a warning when the `kafka` section sets another `state.dir`, with a runner test, and add it to `docs/release-notes.md`. Verify the test passes.
+
+## 2. Stream-stream join store logging (design D6)
+
+- [x] 2.1 Add failing topology tests: an outer stream-stream join whose two declared stores leave out `logging` has changelog topics for its window stores and its shared store; with both stores at `logging: false` the window stores still have changelog topics, the shared store has none, and an info line and no warning is logged; with different `logging` values, the shared store keeps its changelog. Verify the tests fail.
+- [x] 2.2 Change `BaseOperation.streamJoinedOf` to use the logging rule from D6 instead of the unconditional `withLoggingDisabled()`. Verify the 2.1 tests pass and the existing join tests still pass.
+- [x] 2.3 Document the join changelog behavior (window stores always log, `logging` controls the shared store, and the warning) in `docs/reference/state-store-reference.md` (or the join operation reference) and in the migration guide section from 1.8. Verify the docs build.
+- [x] 2.4 Warn only when a join store's `logging: false` has no effect (inner join, or a left or outer join where the other store doesn't set it, naming that store), with a pointer to the state store reference. Log one info line instead when both stores of a left or outer join set it. Check the texts in `KSMLStreamJoinLoggingTest`. Verify it passes.
+
+## 3. Headers store format (design D4)
+
+- [x] 3.1 Add failing `StoreUtilTest` cases: with the headers format on, default keyValue, window and session stores get headers-aware suppliers and builders (for both materialized and processor use); in-memory, `timestamped: false` and versioned stores do not; with the headers format off, nothing changes. Verify the tests fail.
+- [x] 3.2 Add the `headersStoreFormat` flag to `StoreUtil`, `TopologyBuildContext` and `TopologyGenerator` (the existing `TopologyGenerator` constructors default to `false`; see D4 for why the `TopologyBuildContext` constructors and `StoreUtil` methods don't keep their old signatures), and pick the suppliers and builders from the D4 table. Verify the 3.1 tests pass.
+- [x] 3.3 Add a failing `KafkaStreamsRunner` test that `dsl.store.format: HEADERS` (any case) in the Kafka config builds a topology with headers-aware stores and that an absent value does not. Then pass the flag on from `KafkaStreamsRunner`. Verify the test passes.
+- [x] 3.4 Add a test that a stream-stream join with declared stores still builds and joins correctly with the headers format on. Verify it passes.
+- [x] 3.5 Document `dsl.store.format: HEADERS` (which stores it affects, which it doesn't, and the caution about switching formats on existing state) in `docs/reference/state-store-reference.md`, the runner configuration docs and the migration guide. Verify the docs build.
+- [x] 3.6 List the changed Java signatures (`TopologyBuildContext`, `StoreUtil.getStoreBuilder`, `materialize`, `validatedWindowStore`, `BaseOperation.streamJoinedOf`) in the Java bullet of `docs/release-notes.md` and the checklist of `docs/migration-to-2.0.0.md`. Verify the docs build.
+- [x] 3.7 Say in `docs/getting-started/testing-your-pipeline.md` and in the Store Format section of `docs/reference/state-store-reference.md` that the test runner always uses the default store format, and what that means for the tests. Verify the docs build.
+
+## 4. Python access to headers-aware stores (design D5)
+
+- [x] 4.1 Add failing unit tests for Python on headers-aware keyValue, window and session stores (`HeadersStoreProxyTest`, through `ProxyUtil.wrapStateStore`): reads return plain values (or `{value, timestamp}` for the `*WithTimestamp` methods) and never headers; writes store empty headers, also while a record is being processed (design D5). Verify the tests fail.
+- [x] 4.2 Keep `OperationProcessor` and `FixedKeyOperationProcessor` as they are: writes store no headers, so the processors pass none to `ProxyUtil.wrapStateStore`. Verify the existing proxy and processor tests still pass.
+- [x] 4.3 Implement the three adapters (`HeadersKeyValueStoreAdapter`, `HeadersWindowStoreAdapter`, `HeadersSessionStoreAdapter`) with `ValueMappingIterator`, and the headers checks in `wrapStateStore` before the generic store checks. Verify the 4.1 tests pass.
+- [x] 4.4 Add a parameterized end-to-end test (KSML definition plus Python in `TopologyTestDriver`) that runs the same keyValue, window and session store calls with the headers format off and on, and asserts the same Python results (spec "Same calls for both formats"). Verify it passes.
+- [x] 4.5 Add the test for the ticket's comment criterion: Python `store.get(key)` and `store.all()` on a keyValue store declared without options return the same results as on a `persistent: false, timestamped: false` store. Verify it passes.
+- [x] 4.6 Add an interactive query test (through `ksml-query` or the Kafka Streams IQ types) that a headers-aware keyValue store written from Python stores no headers and can be queried as a plain keyValue store. Verify it passes.
+- [x] 4.7 Document in `docs/reference/state-store-reference.md` (Python store API section) that headers-aware stores have the same Python API, that reads return values only, and that writes store no headers. Verify the docs build.
+
+## 5. Window store builder and upgrade (design D7)
+
+- [x] 5.1 Add failing tests: a window store without options, used by Python with the headers format off, is built as a timestamped window store and Python gets `fetchWithTimestamp` with the record's timestamp; a window store with `timestamped: false` stays a plain window store. Verify the tests fail.
+- [x] 5.2 Change `StoreUtil.getWindowStateStoreBuilder` to use `Stores.timestampedWindowStoreBuilder` for timestamped stores without the headers format. Verify the 5.1 tests and the existing window store tests pass.
+- [x] 5.3 Add an upgrade test in `ksml-integration-tests`: run a KSML 1.x image with persistent window stores (`timestamped: true` and `timestamped` unset) written from Python, stop it, then run this build with the same application id, topics and state directory, and check what Python reads; repeat without the local state (changelog restore). Record the result in design Open Questions.
+- [x] 5.4 Add failing unit tests for `WindowStoreUpgrade` on temp directories: an unmarked directory loses the directories and `.position` files of persistent timestamped window stores and the `.checkpoint` of their tasks, keeps the other stores, and gets the marker; a marked directory is left alone; a missing directory is created and marked; a store with `logging: false` logs a warning. Verify the tests fail.
+- [x] 5.5 Implement `WindowStoreUpgrade` (design D7), have `TopologyGenerator` remember the stores it builds for Python functions, and call `prepare` from `KafkaStreamsRunner` before `KafkaStreams` is created, with a runner test for that call. Verify the 5.4 tests and the runner test pass.
+- [x] 5.6 Finish the upgrade test from 5.3: run it from KSML 1.1.0 and 1.3.2, assert correct reads from local state and after the changelog restore, and check that a second start keeps the local state. Verify it passes.
+- [x] 5.7 Document the window store change: in `docs/reference/state-store-reference.md`, remove "Without `HEADERS`, a window store under `stores` has the methods of a plain window store" and say that window stores used by Python have the timestamped methods unless `timestamped: false`; add the one-time cleanup and restore of 1.x window store state to `docs/migration-to-2.0.0.md` and `docs/release-notes.md`. Verify the docs build.
+
+## 5a. Decide the upgrade on the declared values, and stop on 1.x state that would be lost (design D7, D8)
+
+- [x] 5a.1 Keep the declared `timestamped` and `logging` in `StateStoreDefinition` (`declaredTimestamped()`, `declaredLogging()`), and pass them along in copies (`KeyValueStateStoreDefinition.with`, `BaseOperation.validate*Store`). Add a parser test.
+- [x] 5a.2 Rename `WindowStoreUpgrade` to `StoreUpgrade`. Delete only window stores for Python that declare `timestamped: true` and `logging: true`; stop, without changing anything, for a declared store with local state that leaves out `logging`, and for a window store for Python with `timestamped: true` and without `logging: true`. Write the marker when the topology has any persistent store. Rewrite the unit tests.
+- [x] 5a.3 Have `TopologyGenerator` give the declared stores without stream-stream join stores (`upgradeCheckedStores()`), and pass them from `KafkaStreamsRunner`. Add a generator test.
+- [x] 5a.4 Extend `WindowStoreUpgradeIT`: the plain store of KSML 1.x keeps its RocksDB databases on the first start, and from KSML 1.1.0 a store without `logging` stops this version, then reads its 1.x values with `logging: false`. Verify it passes.
+- [x] 5a.5 Update `docs/migration-to-2.0.0.md` and `docs/release-notes.md`.
+- [x] 5a.6 With exactly-once processing without transactional state stores (`KafkaStreamsRunner.wipesTasks`), stop when a task where KSML would delete a window store also has local state of a store with `logging: false`. Add unit tests for both, and document starting once with `at_least_once`.
+- [x] 5a.7 Make the spec requirement "Existing window store state reads correctly after the upgrade" match D7 and D8: only window stores used by Python are cleaned, the plain store reads its local state, and the store with `timestamped: true` reads its values after the restore from the changelog. The stops are in the requirement of D8. Verify `openspec validate --strict` passes.
+- [x] 5a.8 Leave the stores of tables out of `upgradeCheckedStores()` when `topology.optimization` reuses table input topics, and always the stores of global tables. Kafka Streams then restores them from the input topic, also in 1.x. Extend the generator test with a table and a global table, with and without the optimization.
+- [x] 5a.9 Check the shared store of left and outer stream-stream joins (design D8): `TopologyGenerator.sharedJoinStores()` gives it with the Kafka Streams name, and `StoreUpgrade.prepare` stops when `thisStore` is persistent without `logging: true` and the store now gets a changelog, and counts it as kept state for the exactly-once check. Add unit tests, a generator test against the built topology, and update the migration guide, release notes and state store reference.
+- [x] 5a.10 Count only RocksDB data files (`.sst`, `.blob`) as local state in the upgrade check, so that the empty stores that KSML 1.3.x leaves at shutdown don't stop the first start. Keep the delete of D7 on any files of the store. Add unit tests with the files of an empty RocksDB store.
+- [x] 5a.11 Warn for `logging: false` on a join store only when it has no effect (an inner join, or one store of a left or outer join), and log one info line when both stores of a left or outer join set it. Pass whether the join has a shared store to `BaseOperation.streamJoinedOf`. Update the join logging tests, the state store reference, the migration guide and the release notes.
+
+## 6. Integration verification
+
+- [x] 6.1 Run the full Maven build (`mvn clean verify`) for all modules. Verify it passes.
+- [x] 6.2 Run the ticket's Docker reproduction with the KSML runner: confirm that declared stores create changelog topics, survive a restart, and that with `dsl.store.format: HEADERS` the stores are headers-aware. Verify by inspecting topics and the logged topology.
+- [x] 6.3 Run the parity cases C30, C32, C44a, C49, C50 and C50b from AXPD-12447 against this build. Verify they pass, or record each difference on the ticket.
+- [x] 6.4 Run `openspec validate store-kafka-streams-defaults --strict`. Verify it reports no issues.
+- [x] 6.5 Rebase on `main` with #751 (tombstones). Add a headers store format variant of `KSMLTimestampedStoreTombstoneTest.putNoneWithTimestampDeletes`, because `TimestampedKeyValueStoreProxy.put` with `None` now runs on `HeadersKeyValueStoreAdapter`. Run `mvn clean verify` again. Verify it passes.
+
+## Workflow follow-up
+
+- Rebase on `main` once AXPD-11068 is merged, then re-run 6.1.
+- Share the change with the ticket reporter for review before or alongside the PR.
+- Archive the change (`/opsx:archive`) in the ticket's PR after review.

@@ -28,6 +28,7 @@ import io.axual.ksml.definition.ParameterDefinition;
 import io.axual.ksml.definition.PythonSource;
 import io.axual.ksml.dsl.KSMLDSL;
 import io.axual.ksml.type.UserType;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -42,17 +43,23 @@ class PythonFunctionTest {
         // error ("Error decoding exception: [B@..."). Build one throwaway context here so the
         // field initializer below always runs against a warm libgraal isolate.
         try {
-            new PythonContext(PythonContextConfig.builder().build());
+            new PythonContext(PythonContextConfig.builder().build()).close();
         } catch (Exception _) {
             // Warmup only — the real assertions happen in the @Test methods.
         }
     }
 
     final PythonContext context = new PythonContext(PythonContextConfig.builder().build());
+
     final ParameterDefinition one = new ParameterDefinition("one", DataInteger.DATATYPE);
     final ParameterDefinition two = new ParameterDefinition("two", DataInteger.DATATYPE);
     final ParameterDefinition[] params = new ParameterDefinition[]{one, two};
     final UserType resultType = new UserType(UserType.DEFAULT_NOTATION, DataInteger.DATATYPE);
+
+    @AfterEach
+    void closeContext() {
+        context.close();
+    }
 
     @ParameterizedTest
     @CsvSource({"1, 2, 3", "100,100,200", "100, -1, 99", "99, -100, -1"})

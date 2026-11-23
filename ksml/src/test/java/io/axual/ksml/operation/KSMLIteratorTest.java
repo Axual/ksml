@@ -27,6 +27,11 @@ import io.axual.ksml.testutil.KSMLTopic;
 import org.apache.kafka.streams.TestInputTopic;
 import org.apache.kafka.streams.TestOutputTopic;
 import org.apache.kafka.streams.TopologyTestDriver;
+import org.apache.kafka.streams.state.SessionStoreWithHeaders;
+import org.apache.kafka.streams.state.TimestampedKeyValueStore;
+import org.apache.kafka.streams.state.TimestampedKeyValueStoreWithHeaders;
+import org.apache.kafka.streams.state.TimestampedWindowStore;
+import org.apache.kafka.streams.state.TimestampedWindowStoreWithHeaders;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.extension.ExtendWith;
 
@@ -68,24 +73,38 @@ public class KSMLIteratorTest {
         assertThat(List.of(values.get(0).split("\n"))).containsExactly(
                 "kv_memory.all for=a:1 list=a:1 next=a:1 closing=a:1 hasNext=a:1",
                 "kv_rocksdb.all for=a:1 list=a:1 next=a:1 closing=a:1 hasNext=a:1",
+                "kv_memory_plain.all for=a:1 list=a:1 next=a:1 closing=a:1 hasNext=a:1",
+                "kv_rocksdb_plain.all for=a:1 list=a:1 next=a:1 closing=a:1 hasNext=a:1",
                 "window_memory.all for=a@0:1 list=a@0:1 next=a@0:1 closing=a@0:1 hasNext=a@0:1",
                 "window_memory.fetch for=0:1 list=0:1 next=0:1 closing=0:1 hasNext=0:1",
                 "window_rocksdb.all for=a@0:1 list=a@0:1 next=a@0:1 closing=a@0:1 hasNext=a@0:1",
                 "window_rocksdb.fetch for=0:1 list=0:1 next=0:1 closing=0:1 hasNext=0:1",
+                "window_memory_plain.all for=a@0:1 list=a@0:1 next=a@0:1 closing=a@0:1 hasNext=a@0:1",
+                "window_memory_plain.fetch for=0:1 list=0:1 next=0:1 closing=0:1 hasNext=0:1",
+                "window_rocksdb_plain.all for=a@0:1 list=a@0:1 next=a@0:1 closing=a@0:1 hasNext=a@0:1",
+                "window_rocksdb_plain.fetch for=0:1 list=0:1 next=0:1 closing=0:1 hasNext=0:1",
                 "session_memory.fetch for=a@3000000000:1 list=a@3000000000:1 next=a@3000000000:1 closing=a@3000000000:1 hasNext=a@3000000000:1",
                 "session_rocksdb.fetch for=a@3000000000:1 list=a@3000000000:1 next=a@3000000000:1 closing=a@3000000000:1 hasNext=a@3000000000:1");
         assertThat(List.of(values.get(1).split("\n"))).containsExactly(
                 "kv_memory.all for=a:1,b:2 list=a:1,b:2 next=a:1 closing=a:1,b:2 hasNext=a:1,b:2",
                 "kv_rocksdb.all for=a:1,b:2 list=a:1,b:2 next=a:1 closing=a:1,b:2 hasNext=a:1,b:2",
+                "kv_memory_plain.all for=a:1,b:2 list=a:1,b:2 next=a:1 closing=a:1,b:2 hasNext=a:1,b:2",
+                "kv_rocksdb_plain.all for=a:1,b:2 list=a:1,b:2 next=a:1 closing=a:1,b:2 hasNext=a:1,b:2",
                 "window_memory.all for=a@0:1,b@0:2 list=a@0:1,b@0:2 next=a@0:1 closing=a@0:1,b@0:2 hasNext=a@0:1,b@0:2",
                 "window_memory.fetch for=0:2 list=0:2 next=0:2 closing=0:2 hasNext=0:2",
                 "window_rocksdb.all for=a@0:1,b@0:2 list=a@0:1,b@0:2 next=a@0:1 closing=a@0:1,b@0:2 hasNext=a@0:1,b@0:2",
                 "window_rocksdb.fetch for=0:2 list=0:2 next=0:2 closing=0:2 hasNext=0:2",
+                "window_memory_plain.all for=a@0:1,b@0:2 list=a@0:1,b@0:2 next=a@0:1 closing=a@0:1,b@0:2 hasNext=a@0:1,b@0:2",
+                "window_memory_plain.fetch for=0:2 list=0:2 next=0:2 closing=0:2 hasNext=0:2",
+                "window_rocksdb_plain.all for=a@0:1,b@0:2 list=a@0:1,b@0:2 next=a@0:1 closing=a@0:1,b@0:2 hasNext=a@0:1,b@0:2",
+                "window_rocksdb_plain.fetch for=0:2 list=0:2 next=0:2 closing=0:2 hasNext=0:2",
                 "session_memory.fetch for=b@3000000000:2 list=b@3000000000:2 next=b@3000000000:2 closing=b@3000000000:2 hasNext=b@3000000000:2",
                 "session_rocksdb.fetch for=b@3000000000:2 list=b@3000000000:2 next=b@3000000000:2 closing=b@3000000000:2 hasNext=b@3000000000:2");
-        for (final var store : List.of("kv_memory", "kv_rocksdb", "window_memory", "window_rocksdb", "session_memory", "session_rocksdb")) {
+        for (final var store : List.of("kv_memory", "kv_rocksdb", "kv_memory_plain", "kv_rocksdb_plain", "window_memory", "window_rocksdb",
+                "window_memory_plain", "window_rocksdb_plain", "session_memory", "session_rocksdb")) {
             assertThat(openIterators(driver, store)).as(store).isZero();
         }
+        assertPlain("kv_memory_plain", "kv_rocksdb_plain", "window_memory_plain", "window_rocksdb_plain");
     }
 
     @KSMLTest(topology = "pipelines/test-store-iterator-early-exit-python.yaml")
@@ -95,16 +114,54 @@ public class KSMLIteratorTest {
         earlyExitInput.pipeInput("a", "1");
         assertThat(List.of(earlyExitOutput.readValue().split("\n"))).containsExactly(
                 "memory return=a break=a exception=a next=a close=a closeEarly=a",
-                "rocksdb return=a break=a exception=a next=a close=a closeEarly=a");
+                "rocksdb return=a break=a exception=a next=a close=a closeEarly=a",
+                "memory_plain return=a break=a exception=a next=a close=a closeEarly=a",
+                "rocksdb_plain return=a break=a exception=a next=a close=a closeEarly=a");
         assertThat(openIterators(driver, "early_exit_memory")).isZero();
         assertThat(openIterators(driver, "early_exit_rocksdb")).isZero();
+        assertThat(openIterators(driver, "early_exit_memory_plain")).isZero();
+        assertThat(openIterators(driver, "early_exit_rocksdb_plain")).isZero();
 
         earlyExitInput.pipeInput("b", "2");
         assertThat(List.of(earlyExitOutput.readValue().split("\n"))).containsExactly(
                 "memory return=a break=a exception=a next=a close=a,b closeEarly=a",
-                "rocksdb return=a break=a exception=a next=a close=a,b closeEarly=a");
+                "rocksdb return=a break=a exception=a next=a close=a,b closeEarly=a",
+                "memory_plain return=a break=a exception=a next=a close=a,b closeEarly=a",
+                "rocksdb_plain return=a break=a exception=a next=a close=a,b closeEarly=a");
         assertThat(openIterators(driver, "early_exit_memory")).isZero();
         assertThat(openIterators(driver, "early_exit_rocksdb")).isZero();
+        assertThat(openIterators(driver, "early_exit_memory_plain")).isZero();
+        assertThat(openIterators(driver, "early_exit_rocksdb_plain")).isZero();
         assertThat(earlyExitOutput.isEmpty()).isTrue();
+        assertPlain("early_exit_memory_plain", "early_exit_rocksdb_plain");
+    }
+
+    @KSMLTest(topology = "pipelines/test-store-iterator-python.yaml", modulesDirectory = "pipelines", headersStoreFormat = true)
+    @DisplayName("store iterators work with Python for, list(), next(), contextlib.closing and hasNext(), and are closed, also with the headers store format")
+    void testPythonIterationWithHeadersStoreFormat() {
+        testPythonIteration();
+        assertHeadersAware("kv_rocksdb", TimestampedKeyValueStoreWithHeaders.class);
+        assertHeadersAware("window_rocksdb", TimestampedWindowStoreWithHeaders.class);
+        assertHeadersAware("session_rocksdb", SessionStoreWithHeaders.class);
+    }
+
+    @KSMLTest(topology = "pipelines/test-store-iterator-early-exit-python.yaml", headersStoreFormat = true)
+    @DisplayName("store iterators left open are closed when the function returns, and close() closes only once, also with the headers store format")
+    void testEarlyExitClosesIteratorsWithHeadersStoreFormat() {
+        testEarlyExitClosesIterators();
+        assertHeadersAware("early_exit_rocksdb", TimestampedKeyValueStoreWithHeaders.class);
+    }
+
+    /** The *_plain stores set timestamped: false, so they must stay plain stores, also with the headers store format. */
+    private void assertPlain(String... storeNames) {
+        for (final var name : storeNames) {
+            assertThat(driver.getAllStateStores().get(name)).as(name).isNotNull()
+                    .isNotInstanceOf(TimestampedKeyValueStore.class).isNotInstanceOf(TimestampedKeyValueStoreWithHeaders.class)
+                    .isNotInstanceOf(TimestampedWindowStore.class).isNotInstanceOf(TimestampedWindowStoreWithHeaders.class);
+        }
+    }
+
+    private void assertHeadersAware(String name, Class<?> type) {
+        assertThat(driver.getAllStateStores().get(name)).as(name).isInstanceOf(type);
     }
 }

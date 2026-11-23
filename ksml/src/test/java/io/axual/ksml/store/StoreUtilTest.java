@@ -32,6 +32,15 @@ import org.apache.kafka.common.serialization.Deserializer;
 import org.apache.kafka.common.serialization.Serde;
 import org.apache.kafka.common.serialization.Serializer;
 import org.apache.kafka.streams.kstream.JoinWindows;
+import org.apache.kafka.streams.kstream.internals.MaterializedInternal;
+import org.apache.kafka.streams.processor.StateStore;
+import org.apache.kafka.streams.state.HeadersBytesStoreSupplier;
+import org.apache.kafka.streams.state.SessionStoreWithHeaders;
+import org.apache.kafka.streams.state.StoreSupplier;
+import org.apache.kafka.streams.state.TimestampedKeyValueStoreWithHeaders;
+import org.apache.kafka.streams.state.TimestampedWindowStore;
+import org.apache.kafka.streams.state.TimestampedWindowStoreWithHeaders;
+import org.apache.kafka.streams.state.internals.WrappedStateStore;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -93,7 +102,7 @@ class StoreUtilTest {
     @DisplayName("builds a store builder for each key/value store variant")
     @MethodSource("keyValueStoreVariants")
     void buildsKeyValueStore(String name, KeyValueStateStoreDefinition definition) {
-        assertThat(StoreUtil.getStoreBuilder(definition)).isNotNull();
+        assertThat(StoreUtil.getStoreBuilder(definition, false)).isNotNull();
     }
 
     // --- getStoreBuilder: session & window -------------------------------------------------------
@@ -101,23 +110,33 @@ class StoreUtilTest {
     @Test
     @DisplayName("builds a store builder for persistent and in-memory session stores")
     void buildsSessionStore() {
-        assertThat(StoreUtil.getStoreBuilder(sessionStore(true, true, true))).isNotNull();
-        assertThat(StoreUtil.getStoreBuilder(sessionStore(false, false, false))).isNotNull();
+        assertThat(StoreUtil.getStoreBuilder(sessionStore(true, true, true), false)).isNotNull();
+        assertThat(StoreUtil.getStoreBuilder(sessionStore(false, false, false), false)).isNotNull();
     }
 
     @Test
     @DisplayName("builds a store builder for persistent, timestamped and in-memory window stores")
     void buildsWindowStore() {
-        assertThat(StoreUtil.getStoreBuilder(windowStore(true, false, false, Duration.ofSeconds(60), Duration.ofSeconds(10)))).isNotNull();
-        assertThat(StoreUtil.getStoreBuilder(windowStore(true, true, false, Duration.ofSeconds(60), Duration.ofSeconds(10)))).isNotNull();
-        assertThat(StoreUtil.getStoreBuilder(windowStore(false, false, false, Duration.ofSeconds(60), Duration.ofSeconds(10)))).isNotNull();
+        assertThat(StoreUtil.getStoreBuilder(windowStore(true, false, false, Duration.ofSeconds(60), Duration.ofSeconds(10)), false)).isNotNull();
+        assertThat(StoreUtil.getStoreBuilder(windowStore(true, true, false, Duration.ofSeconds(60), Duration.ofSeconds(10)), false)).isNotNull();
+        assertThat(StoreUtil.getStoreBuilder(windowStore(false, false, false, Duration.ofSeconds(60), Duration.ofSeconds(10)), false)).isNotNull();
+    }
+
+    @Test
+    @DisplayName("builds timestamped window stores for Python, unless the store sets timestamped: false")
+    void buildsTimestampedWindowStoreForProcessors() {
+        assertThat(StoreUtil.getStoreBuilder(windowStore(true, true, false, Duration.ofSeconds(60), Duration.ofSeconds(10)), false).build()).isInstanceOf(TimestampedWindowStore.class);
+        assertThat(StoreUtil.getStoreBuilder(windowStore(false, true, false, Duration.ofSeconds(60), Duration.ofSeconds(10)), false).build()).isInstanceOf(TimestampedWindowStore.class);
+        assertThat(StoreUtil.getStoreBuilder(defaultWindowStore(), false).build()).isInstanceOf(TimestampedWindowStore.class);
+        assertThat(StoreUtil.getStoreBuilder(windowStore(true, false, false, Duration.ofSeconds(60), Duration.ofSeconds(10)), false).build()).isNotInstanceOf(TimestampedWindowStore.class);
+        assertThat(StoreUtil.getStoreBuilder(windowStore(false, false, false, Duration.ofSeconds(60), Duration.ofSeconds(10)), false).build()).isNotInstanceOf(TimestampedWindowStore.class);
     }
 
     @Test
     @DisplayName("getStoreBuilder rejects an unrecognised store definition type")
     void rejectsUnknownStoreType() {
         final var unknown = mock(StateStoreDefinition.class);
-        assertThatThrownBy(() -> StoreUtil.getStoreBuilder(unknown))
+        assertThatThrownBy(() -> StoreUtil.getStoreBuilder(unknown, false))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("Unknown store type");
     }
@@ -127,19 +146,137 @@ class StoreUtilTest {
     @Test
     @DisplayName("materialize produces a materialized key/value store")
     void materializesKeyValueStore() {
-        assertThat(StoreUtil.materialize(keyValueStore(false, false, false, false, false)).materialized()).isNotNull();
+        assertThat(StoreUtil.materialize(keyValueStore(false, false, false, false, false), false).materialized()).isNotNull();
     }
 
     @Test
     @DisplayName("materialize produces a materialized session store")
     void materializesSessionStore() {
-        assertThat(StoreUtil.materialize(sessionStore(true, false, false)).materialized()).isNotNull();
+        assertThat(StoreUtil.materialize(sessionStore(true, false, false), false).materialized()).isNotNull();
     }
 
     @Test
     @DisplayName("materialize produces a materialized window store")
     void materializesWindowStore() {
-        assertThat(StoreUtil.materialize(windowStore(true, false, false, Duration.ofSeconds(60), Duration.ofSeconds(10))).materialized()).isNotNull();
+        assertThat(StoreUtil.materialize(windowStore(true, false, false, Duration.ofSeconds(60), Duration.ofSeconds(10)), false).materialized()).isNotNull();
+    }
+
+    // --- caching defaults ------------------------------------------------------------------------
+
+    private static KeyValueStateStoreDefinition keyValueStoreWithCaching(Boolean caching) {
+        return new KeyValueStateStoreDefinition("store", null, null, null, null, null, UNKNOWN, UNKNOWN, caching, null);
+    }
+
+    // Every wrapper layer implements CachedStateStore, so look for the caching layer by its class name
+    private static boolean isCached(StateStore store) {
+        StateStore current = store;
+        while (current instanceof WrappedStateStore<?, ?, ?> wrapped) {
+            if (current.getClass().getSimpleName().startsWith("Caching")) return true;
+            current = wrapped.wrapped();
+        }
+        return false;
+    }
+
+    @Test
+    @DisplayName("a store without caching is cached when a DSL operation materializes it")
+    void materializedStoreIsCachedByDefault() {
+        final var materialized = new MaterializedInternal<>(StoreUtil.materialize(keyValueStoreWithCaching(null), false).materialized());
+        assertThat(materialized.cachingEnabled()).isTrue();
+    }
+
+    @Test
+    @DisplayName("a store without caching is not cached when built for Python functions")
+    void processorStoreIsNotCachedByDefault() {
+        assertThat(isCached(StoreUtil.getStoreBuilder(keyValueStoreWithCaching(null), false).build())).isFalse();
+    }
+
+    @Test
+    @DisplayName("an explicit caching value wins for both materialized and processor stores")
+    void explicitCachingWins() {
+        final var materialized = new MaterializedInternal<>(StoreUtil.materialize(keyValueStoreWithCaching(false), false).materialized());
+        assertThat(materialized.cachingEnabled()).isFalse();
+        assertThat(isCached(StoreUtil.getStoreBuilder(keyValueStoreWithCaching(true), false).build())).isTrue();
+    }
+
+    // --- headers store format --------------------------------------------------------------------
+
+    private static KeyValueStateStoreDefinition defaultKeyValueStore() {
+        return new KeyValueStateStoreDefinition("store", null, null, null, null, null, UNKNOWN, UNKNOWN, null, null);
+    }
+
+    private static WindowStateStoreDefinition defaultWindowStore() {
+        return new WindowStateStoreDefinition("store", null, null, Duration.ofSeconds(60), Duration.ofSeconds(10), null, UNKNOWN, UNKNOWN, null, null);
+    }
+
+    private static SessionStateStoreDefinition defaultSessionStore() {
+        return new SessionStateStoreDefinition("store", null, null, Duration.ofSeconds(60), UNKNOWN, UNKNOWN, null, null);
+    }
+
+    private static StoreSupplier<?> materializedSupplier(StoreUtil.MaterializedStore<?, ?> store) {
+        return new MaterializedInternal<>(store.materialized()).storeSupplier();
+    }
+
+    @Test
+    @DisplayName("with the headers format, default stores that operations materialize get headers-aware suppliers")
+    void headersFormatMaterializedStores() {
+        assertThat(materializedSupplier(StoreUtil.materialize(defaultKeyValueStore(), true))).isInstanceOf(HeadersBytesStoreSupplier.class);
+        assertThat(materializedSupplier(StoreUtil.materialize(defaultWindowStore(), true))).isInstanceOf(HeadersBytesStoreSupplier.class);
+        assertThat(materializedSupplier(StoreUtil.materialize(defaultSessionStore(), true))).isInstanceOf(HeadersBytesStoreSupplier.class);
+    }
+
+    @Test
+    @DisplayName("with the headers format, default stores for Python functions are headers-aware stores")
+    void headersFormatProcessorStores() {
+        assertThat(StoreUtil.getStoreBuilder(defaultKeyValueStore(), true).build()).isInstanceOf(TimestampedKeyValueStoreWithHeaders.class);
+        assertThat(StoreUtil.getStoreBuilder(defaultWindowStore(), true).build()).isInstanceOf(TimestampedWindowStoreWithHeaders.class);
+        assertThat(StoreUtil.getStoreBuilder(defaultSessionStore(), true).build()).isInstanceOf(SessionStoreWithHeaders.class);
+    }
+
+    @Test
+    @DisplayName("with the headers format, a persistent session store with timestamped: false is headers-aware, as session stores are not timestamped")
+    void headersFormatSessionStoreIgnoresTimestamped() {
+        final var store = new SessionStateStoreDefinition("store", null, false, Duration.ofSeconds(60), UNKNOWN, UNKNOWN, null, null);
+        assertThat(StoreUtil.getStoreBuilder(store, true).build()).isInstanceOf(SessionStoreWithHeaders.class);
+        assertThat(materializedSupplier(StoreUtil.materialize(store, true))).isInstanceOf(HeadersBytesStoreSupplier.class);
+    }
+
+    @Test
+    @DisplayName("with the headers format, a join window store gets a headers-aware supplier")
+    void headersFormatJoinStore() {
+        final var store = new WindowStateStoreDefinition("store", null, null, Duration.ofSeconds(2), Duration.ofSeconds(2), true, UNKNOWN, UNKNOWN, null, null);
+        assertThat(StoreUtil.validatedWindowStore(store, joinWindows(), true)).isInstanceOf(HeadersBytesStoreSupplier.class);
+    }
+
+    private static Stream<Arguments> storesWithoutHeaders() {
+        return Stream.of(
+                Arguments.of("in-memory", new KeyValueStateStoreDefinition("store", false, null, null, null, null, UNKNOWN, UNKNOWN, null, null)),
+                Arguments.of("not timestamped", new KeyValueStateStoreDefinition("store", null, false, null, null, null, UNKNOWN, UNKNOWN, null, null)),
+                Arguments.of("versioned", new KeyValueStateStoreDefinition("store", null, null, true, Duration.ofHours(1), null, UNKNOWN, UNKNOWN, null, null)),
+                Arguments.of("in-memory window", new WindowStateStoreDefinition("store", false, null, Duration.ofSeconds(60), Duration.ofSeconds(10), null, UNKNOWN, UNKNOWN, null, null)),
+                Arguments.of("not timestamped window", new WindowStateStoreDefinition("store", null, false, Duration.ofSeconds(60), Duration.ofSeconds(10), null, UNKNOWN, UNKNOWN, null, null)),
+                Arguments.of("in-memory session", new SessionStateStoreDefinition("store", false, null, Duration.ofSeconds(60), UNKNOWN, UNKNOWN, null, null)));
+    }
+
+    @ParameterizedTest(name = "a {0} store is not headers-aware")
+    @DisplayName("with the headers format, in-memory, not timestamped and versioned stores are not headers-aware")
+    @MethodSource("storesWithoutHeaders")
+    void headersFormatSkipsUnsupportedStores(String name, StateStoreDefinition store) {
+        assertThat(isHeadersAware(StoreUtil.getStoreBuilder(store, true).build())).isFalse();
+    }
+
+    @Test
+    @DisplayName("without the headers format, default stores are not headers-aware")
+    void defaultFormatHasNoHeaders() {
+        assertThat(isHeadersAware(StoreUtil.getStoreBuilder(defaultKeyValueStore(), false).build())).isFalse();
+        assertThat(isHeadersAware(StoreUtil.getStoreBuilder(defaultWindowStore(), false).build())).isFalse();
+        assertThat(isHeadersAware(StoreUtil.getStoreBuilder(defaultSessionStore(), false).build())).isFalse();
+        assertThat(materializedSupplier(StoreUtil.materialize(defaultKeyValueStore(), false))).isNotInstanceOf(HeadersBytesStoreSupplier.class);
+    }
+
+    private static boolean isHeadersAware(StateStore store) {
+        return store instanceof TimestampedKeyValueStoreWithHeaders<?, ?>
+                || store instanceof TimestampedWindowStoreWithHeaders<?, ?>
+                || store instanceof SessionStoreWithHeaders<?, ?>;
     }
 
     // --- validatedWindowStore --------------------------------------------------------------------
@@ -152,7 +289,7 @@ class StoreUtilTest {
     @DisplayName("validatedWindowStore accepts a store matching the join window settings")
     void validatesMatchingWindowStore() {
         final var store = windowStore(false, false, true, Duration.ofSeconds(2), Duration.ofSeconds(2));
-        assertThat(StoreUtil.validatedWindowStore(store, joinWindows())).isNotNull();
+        assertThat(StoreUtil.validatedWindowStore(store, joinWindows(), false)).isNotNull();
     }
 
     @Test
@@ -160,7 +297,7 @@ class StoreUtilTest {
     void rejectsWindowStoreWithoutRetainDuplicates() {
         final var store = windowStore(false, false, false, Duration.ofSeconds(2), Duration.ofSeconds(2));
         final var windows = joinWindows();
-        assertThatThrownBy(() -> StoreUtil.validatedWindowStore(store, windows))
+        assertThatThrownBy(() -> StoreUtil.validatedWindowStore(store, windows, false))
                 .isInstanceOf(TopologyException.class)
                 .hasMessageContaining("retainDuplicates");
     }
@@ -171,7 +308,7 @@ class StoreUtilTest {
         // windowSize (3s) differs from the join window size (2s); retention stays >= windowSize.
         final var store = windowStore(false, false, true, Duration.ofSeconds(4), Duration.ofSeconds(3));
         final var windows = joinWindows();
-        assertThatThrownBy(() -> StoreUtil.validatedWindowStore(store, windows))
+        assertThatThrownBy(() -> StoreUtil.validatedWindowStore(store, windows, false))
                 .isInstanceOf(TopologyException.class)
                 .hasMessageContaining("windowSize");
     }
@@ -181,7 +318,7 @@ class StoreUtilTest {
     void rejectsWindowStoreWithWrongRetention() {
         final var store = windowStore(false, false, true, Duration.ofSeconds(10), Duration.ofSeconds(2));
         final var windows = joinWindows();
-        assertThatThrownBy(() -> StoreUtil.validatedWindowStore(store, windows))
+        assertThatThrownBy(() -> StoreUtil.validatedWindowStore(store, windows, false))
                 .isInstanceOf(TopologyException.class)
                 .hasMessageContaining("retention");
     }

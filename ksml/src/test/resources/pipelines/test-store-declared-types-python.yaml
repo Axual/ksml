@@ -19,9 +19,19 @@ stores:
     keyType: long
     valueType: long
     persistent: false
+    timestamped: false
     caching: false
     logging: false
   kv_long_rocksdb:
+    type: keyValue
+    keyType: long
+    valueType: long
+    persistent: true
+    timestamped: false
+    caching: false
+    logging: false
+  # Timestamped by default, and headers-aware with the headers store format
+  kv_default_long_rocksdb:
     type: keyValue
     keyType: long
     valueType: long
@@ -53,6 +63,7 @@ stores:
     windowSize: 1m
     retention: 1h
     persistent: false
+    timestamped: false
     caching: false
     logging: false
   window_timestamped_long:
@@ -237,6 +248,7 @@ functions:
       lines = [
         check_kv("keyValue", kv_long),
         check_kv("keyValueRocksdb", kv_long_rocksdb),
+        check_kv("defaultRocksdb", kv_default_long_rocksdb),
         check_kv("timestamped", kv_timestamped_long),
         check("versioned", lambda k, v: kv_versioned_long.put(k, v, 1000), lambda k: versioned_get(kv_versioned_long, k)),
         check("window", lambda k, v: window_long.put(k, v, 0), lambda k: window_long.fetch(k, 0)),
@@ -252,6 +264,7 @@ functions:
     stores:
       - kv_long
       - kv_long_rocksdb
+      - kv_default_long_rocksdb
       - kv_timestamped_long
       - kv_versioned_long
       - window_long

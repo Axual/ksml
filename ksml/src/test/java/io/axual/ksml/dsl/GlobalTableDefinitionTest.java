@@ -27,6 +27,7 @@ import io.axual.ksml.execution.ExecutionContext;
 import io.axual.ksml.generator.TopologyBuildContext;
 import io.axual.ksml.generator.TopologyResources;
 import io.axual.ksml.parser.UserTypeParser;
+import io.axual.ksml.python.PythonContextConfig;
 import io.axual.ksml.stream.GlobalKTableWrapper;
 import io.axual.ksml.type.UserType;
 import org.apache.kafka.streams.StreamsBuilder;
@@ -61,15 +62,16 @@ class GlobalTableDefinitionTest {
         final var tableDefinition = new GlobalTableDefinition("topic", stringType, stringType, null, null, null, new KeyValueStateStoreDefinition("storename", stringType, stringType));
         final var resources = new TopologyResources("test");
 
-        final var context = new TopologyBuildContext(builder, resources);
-        // when it adds itself to Builder
-        final var streamWrapper = context.getStreamWrapper(tableDefinition);
+        try (final var context = new TopologyBuildContext(builder, resources, PythonContextConfig.builder().build(), false)) {
+            // when it adds itself to Builder
+            final var streamWrapper = context.getStreamWrapper(tableDefinition);
 
-        // it adds a KTable to the builder with key and value dataType and returns a KTableWrapper instance
-        verify(mockNotation).serde(stringType.dataType(), true);
-        verify(mockNotation).serde(stringType.dataType(), false);
+            // it adds a KTable to the builder with key and value dataType and returns a KTableWrapper instance
+            verify(mockNotation).serde(stringType.dataType(), true);
+            verify(mockNotation).serde(stringType.dataType(), false);
 
-        verify(builder).globalTable(eq("topic"), isA(Consumed.class), isA(Materialized.class));
-        assertThat(streamWrapper).isInstanceOf(GlobalKTableWrapper.class);
+            verify(builder).globalTable(eq("topic"), isA(Consumed.class), isA(Materialized.class));
+            assertThat(streamWrapper).isInstanceOf(GlobalKTableWrapper.class);
+        }
     }
 }

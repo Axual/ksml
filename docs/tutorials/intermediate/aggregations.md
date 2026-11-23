@@ -110,8 +110,8 @@ store:
   name: my_aggregate_store
   type: keyValue
   caching: true           # Enable caching to reduce downstream updates
-  logging: true           # Keep changelog for fault tolerance (default: false)
-  persistent: true        # Use RocksDB for persistence (default: false)
+  logging: true           # Keep changelog for fault tolerance (default: true)
+  persistent: true        # Use RocksDB for persistence (default: true)
 ```
 
 #### Window Stores

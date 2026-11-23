@@ -50,4 +50,7 @@ public @interface KSMLTest {
     /** Optional boolean to allow KSML host file access; default false. */
     boolean allowHostFileAccess() default false;
 
+    /** Optional boolean to build declared stores in the headers-aware format, as dsl.store.format: HEADERS does; default false. */
+    boolean headersStoreFormat() default false;
+
 }

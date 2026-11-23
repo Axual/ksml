@@ -19,11 +19,14 @@ package io.axual.ksml.operation;
  * limitations under the License.
  * =========================LICENSE_END==================================
  */
+import io.axual.ksml.testutil.KSMLDriver;
 import io.axual.ksml.testutil.KSMLTest;
 import io.axual.ksml.testutil.KSMLTestExtension;
 import io.axual.ksml.testutil.KSMLTopic;
 import org.apache.kafka.streams.TestInputTopic;
 import org.apache.kafka.streams.TestOutputTopic;
+import org.apache.kafka.streams.TopologyTestDriver;
+import org.apache.kafka.streams.state.TimestampedKeyValueStoreWithHeaders;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.extension.ExtendWith;
 
@@ -51,6 +54,9 @@ public class KSMLTimestampedStoreTombstoneTest {
     @KSMLTopic(topic = "table_store_output")
     TestOutputTopic<String, String> tableOutput;
 
+    @KSMLDriver
+    TopologyTestDriver driver;
+
     @KSMLTest(topology = "pipelines/test-timestamped-store-put-none.yaml")
     @DisplayName("put(key, None, timestamp) deletes the key, so the *WithTimestamp methods do not see it")
     void putNoneWithTimestampDeletes() {
@@ -62,6 +68,16 @@ public class KSMLTimestampedStoreTombstoneTest {
         final var json = expected.formatted("{'v': 2}");
         assertThat(List.of(putNoneOutput.readValue().split("\\n"))).containsExactly(
                 "string_memory" + string, "string_rocksdb" + string, "json_memory" + json, "json_rocksdb" + json);
+    }
+
+    @KSMLTest(topology = "pipelines/test-timestamped-store-put-none.yaml", headersStoreFormat = true)
+    @DisplayName("put(key, None, timestamp) deletes the key, also from a headers-aware store")
+    void putNoneWithTimestampDeletesWithHeadersStoreFormat() {
+        putNoneWithTimestampDeletes();
+        // The RocksDB stores are headers-aware, so the None goes through HeadersKeyValueStoreAdapter
+        for (final var store : List.of("string_rocksdb", "json_rocksdb")) {
+            assertThat(driver.getAllStateStores().get(store)).as(store).isInstanceOf(TimestampedKeyValueStoreWithHeaders.class);
+        }
     }
 
     @KSMLTest(topology = "pipelines/test-table-store-tombstone-empty-value.yaml")

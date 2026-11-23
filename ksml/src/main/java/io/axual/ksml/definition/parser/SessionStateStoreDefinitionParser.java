@@ -26,7 +26,9 @@ import io.axual.ksml.dsl.KSMLDSL;
 import io.axual.ksml.parser.DefinitionParser;
 import io.axual.ksml.parser.NamedObjectParser;
 import io.axual.ksml.parser.StructsParser;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 public class SessionStateStoreDefinitionParser extends DefinitionParser<SessionStateStoreDefinition> implements NamedObjectParser {
     private final boolean requireStoreType;
     private final boolean requireKeyValueType;
@@ -40,13 +42,13 @@ public class SessionStateStoreDefinitionParser extends DefinitionParser<SessionS
     @Override
     protected StructsParser<SessionStateStoreDefinition> parser() {
         final var nameField = FieldParsers.optional(FieldParsers.stringField(KSMLDSL.Stores.NAME, false, "The name of the session store. If this field is not defined, then the name is derived from the context."));
-        final var persistentField = FieldParsers.optional(FieldParsers.booleanField(KSMLDSL.Stores.PERSISTENT, "\"true\" if this session store needs to be stored on disk, \"false\" otherwise"));
-        final var timestampedField = FieldParsers.optional(FieldParsers.booleanField(KSMLDSL.Stores.TIMESTAMPED, "\"true\" if elements in the store are timestamped, \"false\" otherwise"));
+        final var persistentField = FieldParsers.optional(FieldParsers.booleanField(KSMLDSL.Stores.PERSISTENT, "\"true\" if this session store needs to be stored on disk, \"false\" otherwise. Defaults to \"true\""));
+        final var timestampedField = FieldParsers.optional(FieldParsers.booleanField(KSMLDSL.Stores.TIMESTAMPED, "Has no effect: session stores are not timestamped. \"true\" logs a warning"));
         final var retentionField = FieldParsers.optional(FieldParsers.durationField(KSMLDSL.Stores.RETENTION, "The duration for which elements in the session store are retained"));
         final var keyTypeField = FieldParsers.userTypeField(KSMLDSL.Stores.KEY_TYPE, "The key type of the session store", false);
         final var valueTypeField = FieldParsers.userTypeField(KSMLDSL.Stores.VALUE_TYPE, "The value type of the session store", false);
-        final var cachingField = FieldParsers.optional(FieldParsers.booleanField(KSMLDSL.Stores.CACHING, "\"true\" if changed to the session store need to be buffered and periodically released, \"false\" to emit all changes directly"));
-        final var loggingField = FieldParsers.optional(FieldParsers.booleanField(KSMLDSL.Stores.LOGGING, "\"true\" if a changelog topic should be set up on Kafka for this session store, \"false\" otherwise"));
+        final var cachingField = FieldParsers.optional(FieldParsers.booleanField(KSMLDSL.Stores.CACHING, "\"true\" if changes to the session store need to be buffered and periodically released, \"false\" to emit all changes directly. Defaults to \"true\" when an operation materializes the store, and to \"false\" when functions use it"));
+        final var loggingField = FieldParsers.optional(FieldParsers.booleanField(KSMLDSL.Stores.LOGGING, "\"true\" if a changelog topic should be set up on Kafka for this session store, \"false\" otherwise. Defaults to \"true\""));
 
         // Determine this parser's name by the two input booleans
         final var parserPostfix = (requireStoreType ? "" : KSMLDSL.Types.WITH_IMPLICIT_STORE_TYPE_POSTFIX)
@@ -66,6 +68,7 @@ public class SessionStateStoreDefinitionParser extends DefinitionParser<SessionS
                 loggingField,
                 (name, persistent, timestamped, retention, keyType, valueType, caching, logging, tags) -> {
                     name = FieldParsers.validateName("Session state store", name, defaultShortName);
+                    warnIfTimestamped(name, timestamped);
                     return new SessionStateStoreDefinition(name, persistent, timestamped, retention, keyType, valueType, caching, logging);
                 });
 
@@ -81,8 +84,16 @@ public class SessionStateStoreDefinitionParser extends DefinitionParser<SessionS
                 loggingField,
                 (name, persistent, timestamped, retention, caching, logging, tags) -> {
                     name = FieldParsers.validateName("Session state store", name, defaultShortName);
+                    warnIfTimestamped(name, timestamped);
                     return new SessionStateStoreDefinition(name, persistent, timestamped, retention, null, null, caching, logging);
                 });
+    }
+
+    // Kafka Streams has no timestamped session store. false is fine: users set it to keep the 1.x behavior
+    private static void warnIfTimestamped(String name, Boolean timestamped) {
+        if (Boolean.TRUE.equals(timestamped)) {
+            log.warn("Session state store '{}' sets 'timestamped: true', which has no effect on session stores", name);
+        }
     }
 
     @Override

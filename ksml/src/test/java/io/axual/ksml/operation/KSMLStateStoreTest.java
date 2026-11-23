@@ -55,7 +55,8 @@ public class KSMLStateStoreTest {
     @KSMLDriver
     TopologyTestDriver topologyTestDriver;
 
-    // The second file has timestamped: true; the Python code and results must stay the same
+    // The first file has timestamped: false, the second leaves it out (timestamped by default); the Python code and
+    // results must stay the same
     @KSMLTopologyTest(topologies = {"pipelines/test-state-store.yaml", "pipelines/test-state-store-default-timestamped.yaml"},
             schemaDirectory = "schemas")
     @DisplayName("Test messages are stored in a key/value store, plain and timestamped")

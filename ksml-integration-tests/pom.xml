@@ -129,6 +129,10 @@
                     <includes>
                         <include>**/*IT.java</include>
                     </includes>
+                    <!-- The upgrade tests take minutes and pull older KSML images; they run in the upgrade-tests profile -->
+                    <excludes>
+                        <exclude>**/*UpgradeIT.java</exclude>
+                    </excludes>
                 </configuration>
                 <executions>
                     <execution>
@@ -149,6 +153,27 @@
             <properties>
                 <skipITs>false</skipITs>
             </properties>
+        </profile>
+        <!-- Runs only the upgrade tests. See developerdocs/upgrade-tests.md. -->
+        <profile>
+            <id>upgrade-tests</id>
+            <properties>
+                <skipITs>false</skipITs>
+            </properties>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-failsafe-plugin</artifactId>
+                        <configuration>
+                            <includes combine.self="override">
+                                <include>**/*UpgradeIT.java</include>
+                            </includes>
+                            <excludes combine.self="override"/>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
         </profile>
     </profiles>
 </project>

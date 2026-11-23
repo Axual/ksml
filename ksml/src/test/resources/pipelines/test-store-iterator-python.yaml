@@ -1,6 +1,7 @@
 # $schema: https://raw.githubusercontent.com/Axual/ksml/refs/heads/main/docs/ksml-language-spec.json
 
 # Python iteration (for, list(), next(), contextlib.closing, hasNext() without close()) over in-memory and RocksDB stores.
+# The key-value and window stores are timestamped (the default) and plain (the *_plain stores).
 streams:
   iterator_input:
     topic: store_iterator_input
@@ -19,11 +20,27 @@ stores:
     persistent: false
     caching: false
     logging: false
+  kv_memory_plain:
+    type: keyValue
+    keyType: string
+    valueType: string
+    persistent: false
+    timestamped: false
+    caching: false
+    logging: false
   kv_rocksdb:
     type: keyValue
     keyType: string
     valueType: string
     persistent: true
+    caching: false
+    logging: false
+  kv_rocksdb_plain:
+    type: keyValue
+    keyType: string
+    valueType: string
+    persistent: true
+    timestamped: false
     caching: false
     logging: false
   window_memory:
@@ -35,6 +52,16 @@ stores:
     persistent: false
     caching: false
     logging: false
+  window_memory_plain:
+    type: window
+    keyType: string
+    valueType: string
+    retention: 1h
+    windowSize: 1m
+    persistent: false
+    timestamped: false
+    caching: false
+    logging: false
   window_rocksdb:
     type: window
     keyType: string
@@ -42,6 +69,16 @@ stores:
     retention: 1h
     windowSize: 1m
     persistent: true
+    caching: false
+    logging: false
+  window_rocksdb_plain:
+    type: window
+    keyType: string
+    valueType: string
+    retention: 1h
+    windowSize: 1m
+    persistent: true
+    timestamped: false
     caching: false
     logging: false
   session_memory:
@@ -88,19 +125,23 @@ functions:
       def window_fetch_entry(e):
         return str(e["key"]) + ":" + e["value"]
     code: |
-      kv_memory.put(key, value)
-      kv_rocksdb.put(key, value)
-      window_memory.put(key, value, 0)
-      window_rocksdb.put(key, value, 0)
+      kv_stores = [("kv_memory", kv_memory), ("kv_rocksdb", kv_rocksdb),
+                   ("kv_memory_plain", kv_memory_plain), ("kv_rocksdb_plain", kv_rocksdb_plain)]
+      window_stores = [("window_memory", window_memory), ("window_rocksdb", window_rocksdb),
+                       ("window_memory_plain", window_memory_plain), ("window_rocksdb_plain", window_rocksdb_plain)]
+      for store_name, store in kv_stores:
+        store.put(key, value)
+      for store_name, store in window_stores:
+        store.put(key, value, 0)
       # Session times above the int range, like real epoch millis
       session_key = {"key": key, "start": 3000000000, "end": 3000000001}
       session_memory.put(session_key, value)
       session_rocksdb.put(session_key, value)
 
       lines = []
-      for store_name, store in [("kv_memory", kv_memory), ("kv_rocksdb", kv_rocksdb)]:
+      for store_name, store in kv_stores:
         lines.append(styles(store_name + ".all", store.all, kv_entry))
-      for store_name, store in [("window_memory", window_memory), ("window_rocksdb", window_rocksdb)]:
+      for store_name, store in window_stores:
         lines.append(styles(store_name + ".all", store.all, windowed_entry))
         lines.append(styles(store_name + ".fetch", lambda s=store: s.fetch(key, 0, 60000), window_fetch_entry))
       for store_name, store in [("session_memory", session_memory), ("session_rocksdb", session_rocksdb)]:
@@ -111,8 +152,12 @@ functions:
     stores:
       - kv_memory
       - kv_rocksdb
+      - kv_memory_plain
+      - kv_rocksdb_plain
       - window_memory
       - window_rocksdb
+      - window_memory_plain
+      - window_rocksdb_plain
       - session_memory
       - session_rocksdb
 

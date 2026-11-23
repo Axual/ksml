@@ -141,7 +141,6 @@ mode does not fail a test. When that difference is gone, the report shows
 | Finding | What is different | Cases |
 |---|---|---|
 | F05 | The KTable `aggregate` subtractor has the wrong parameter type | C21, C21b |
-| F06 | A store with default options is in memory and has no changelog, so it loses its state on restart | C44a (Docker only) |
 | F08 | The stream-stream `outerJoin` passes no key to the joiner | C32, C42 |
 | F09 | `toStream` with a `mapper` fails on a windowed table | C24b |
 | F10 | `shutdownWhenFull` is ignored for `suppress` with `until: timeLimit` | C22b |
@@ -166,6 +165,8 @@ Fixed so far, and now guarded by their cases:
   C33, C35, C36e), and a global table join no longer throws when the key mapper returns
   `None` (F07) (C34).
 - Unknown fields in a definition stop KSML at startup (usability probes u03, u11 and u12).
+- A store with default options is persistent and has a changelog, so it keeps its state
+  after a restart (F06, C44a in Docker mode).
 
 ## Add a case
 
