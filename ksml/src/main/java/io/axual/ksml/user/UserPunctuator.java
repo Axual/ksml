@@ -53,7 +53,7 @@ public class UserPunctuator extends Invoker {
         final var result = timeExecutionOf(() -> function.call(injections, new DataLong(timestamp)));
         if (result != null && !(result instanceof DataNull) && !warnedAboutResult) {
             warnedAboutResult = true;
-            log.warn("Punctuator {} returned a value, which is ignored: punctuators emit records with context.forward", function.name);
+            log.warn("Punctuator {} returned a value, which is ignored: punctuators emit records with context.forward", function.definition.name());
         }
     }
 

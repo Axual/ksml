@@ -78,17 +78,15 @@ public class ProducerStrategy {
         interval = definition.interval() != null ? definition.interval() : Duration.ofMillis(0);
 
         // Set up the message validator
-        condition = userPredicateFrom(definition.condition(), context, namespace, name, tags);
+        condition = userPredicateFrom(definition.condition(), context, name, tags);
 
         // Set up the user function that - when returns true - halts the producer
-        until = userPredicateFrom(definition.until(), context, namespace, name, tags);
+        until = userPredicateFrom(definition.until(), context, name, tags);
     }
 
-    private UserPredicate userPredicateFrom(FunctionDefinition function, PythonContext context, String namespace, String name, MetricTags tags) {
+    private UserPredicate userPredicateFrom(FunctionDefinition function, PythonContext context, String name, MetricTags tags) {
         if (function == null) return null;
-        return new UserPredicate(
-                PythonFunction.forPredicate(context, namespace, function.name() != null ? function.name() : name, function),
-                tags);
+        return new UserPredicate(PythonFunction.forPredicate(context, function.withNameIfNotSet(name)), tags);
     }
 
     public boolean shouldReschedule() {

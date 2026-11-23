@@ -55,11 +55,16 @@ public class ParseNode {
     private String getPathInternal(boolean includeRoot, String separator) {
         if (parent == null) return includeRoot ? name : "";
         final var parentPath = parent.getPathInternal(includeRoot, separator);
-        return !parentPath.isEmpty() ? parentPath + separator + name : name;
+        return parentPath.isEmpty() ? name : parentPath + separator + name;
     }
 
     public String longName() {
         return getPathInternal(false, "_");
+    }
+
+    public String namespace() {
+        if (parent == null) return name;
+        return parent.namespace();
     }
 
     @Override

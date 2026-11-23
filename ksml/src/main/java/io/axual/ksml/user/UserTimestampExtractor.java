@@ -62,6 +62,6 @@ public class UserTimestampExtractor extends Invoker implements TimestampExtracto
         if (result instanceof DataLong dataLong) {
             return dataLong.value();
         }
-        throw new ExecutionException("Expected long result from function: " + function.name);
+        throw new ExecutionException("Expected long result from function: " + function.definition.name());
     }
 }

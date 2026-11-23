@@ -47,7 +47,7 @@ class ToOperationParsersTest {
         resources.register("outStream",
                 new StreamDefinition("out_topic", UserType.UNKNOWN, UserType.UNKNOWN, null, null, null));
         resources.register("myExtractor", FunctionDefinition.as(
-                "generic", "myExtractor", List.of(), PythonSource.of(null, null, "topic"), new UserType(io.axual.ksml.data.object.DataString.DATATYPE), List.of(), List.of()));
+                "generic", null, "myExtractor", List.of(), PythonSource.of(null, null, "topic"), new UserType(io.axual.ksml.data.object.DataString.DATATYPE), List.of(), List.of()));
     }
 
     @Test

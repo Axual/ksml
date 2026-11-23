@@ -31,14 +31,13 @@ import io.axual.ksml.metric.MetricTags;
 import io.axual.ksml.metric.Metrics;
 import io.axual.ksml.type.UserType;
 import io.axual.ksml.user.UserFunction;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.Arrays;
 import java.util.function.Supplier;
 
+@Slf4j
 public abstract class Invoker {
-    private static final Logger LOG = LoggerFactory.getLogger(Invoker.class);
     protected final UserFunction function;
     private final Timer timer;
 
@@ -48,7 +47,7 @@ public abstract class Invoker {
         }
         this.function = function;
 
-        final var metricTags = tags.append("function-type", functionType).append("function-name", this.function.name);
+        final var metricTags = tags.append("function-type", functionType).append("function-name", this.function.definition().name());
         final var metricName = new MetricName("execution-time", metricTags);
         if (Metrics.registry().getTimer(metricName) == null) {
             timer = Metrics.registry().registerTimer(metricName);
@@ -81,10 +80,10 @@ public abstract class Invoker {
      * @return the number of arguments to pass: {@code minCount}, or the position of the optional parameter plus one
      */
     protected int verifyParameterCount(int minCount, String optionalParameter) {
-        verify(function.fixedParameterCount <= minCount, "Function can have at most " + minCount + " required parameters, but has " + function.fixedParameterCount);
-        verify(function.parameters.length >= minCount, "Function needs at least " + minCount + " parameters, but has " + function.parameters.length);
-        for (int index = minCount; optionalParameter != null && index < function.parameters.length; index++) {
-            if (optionalParameter.equals(function.parameters[index].name())) return index + 1;
+        verify(function.definition().fixedParameterCount() <= minCount, "Function can have at most " + minCount + " required parameters, but has " + function.definition().fixedParameterCount());
+        verify(function.definition().parameters().length >= minCount, "Function needs at least " + minCount + " parameters, but has " + function.definition().parameters().length);
+        for (int index = minCount; optionalParameter != null && index < function.definition().parameters().length; index++) {
+            if (optionalParameter.equals(function.definition().parameters()[index].name())) return index + 1;
         }
         return minCount;
     }
@@ -102,17 +101,17 @@ public abstract class Invoker {
     }
 
     protected void verifyNoResult() {
-        verifyNoResultInternal(function.resultType);
+        verifyNoResultInternal(function.definition().resultType());
     }
 
     private void verifyNoResultInternal(UserType type) {
         if (type != null && type.dataType() != DataNull.DATATYPE) {
-            LOG.warn("Function {} used as {}: Function return value of type {} will be ignored", function.name, getClass().getSimpleName(), type);
+            log.warn("Function {} used as {}: Function return value of type {} will be ignored", function.definition().name(), getClass().getSimpleName(), type);
         }
     }
 
     protected void verifyResultType(DataType expected) {
-        verifyTypeInternal(function.resultType, expected);
+        verifyTypeInternal(function.definition().resultType(), expected);
     }
 
     private void verifyTypeInternal(UserType type, DataType expected) {
@@ -121,6 +120,6 @@ public abstract class Invoker {
     }
 
     protected void verifyNoStoresUsed() {
-        verify(function.storeNames.length == 0, getClass().getSimpleName() + " function uses state stores in a context where it can not: " + String.join(",", function.storeNames));
+        verify(function.definition().storeNames().isEmpty(), getClass().getSimpleName() + " function uses state stores in a context where it can not: " + String.join(",", function.definition().storeNames()));
     }
 }

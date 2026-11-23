@@ -46,11 +46,11 @@ public abstract class FunctionDefinitionParser<T extends FunctionDefinition> ext
     }
 
     protected StructsParser<T> parserWithStores(Class<T> resultClass, String type, String description, FieldParsers.Constructor1<T, FunctionDefinition> constructor) {
-        return parser(resultClass, description, true, (name, params, globalCode, code, expression, resultType, stores, tags) -> FunctionDefinition.as(type, name, params, PythonSource.of(globalCode, code, expression), resultType, null, stores), constructor);
+        return parser(resultClass, description, true, ( name, params, globalCode, code, expression, resultType, stores, tags) -> FunctionDefinition.as(type, null, name, params, PythonSource.of(globalCode, code, expression), resultType, null, stores), constructor);
     }
 
     protected StructsParser<T> parserWithoutStores(Class<T> resultClass, String type, String description, FieldParsers.Constructor1<T, FunctionDefinition> constructor) {
-        return parser(resultClass, description, false, (name, params, globalCode, code, expression, resultType, stores, tags) -> FunctionDefinition.as(type, name, params, PythonSource.of(globalCode, code, expression), resultType, null, null), constructor);
+        return parser(resultClass, description, false, ( name, params, globalCode, code, expression, resultType, stores, tags) -> FunctionDefinition.as(type, null, name, params, PythonSource.of(globalCode, code, expression), resultType, null, null), constructor);
     }
 
     private StructsParser<T> parser(Class<T> resultClass, String description, boolean includeStores, FieldParsers.Constructor7<FunctionDefinition, String, List<ParameterDefinition>, String, String, String, UserType, List<String>> innerConstructor, FieldParsers.Constructor1<T, FunctionDefinition> outerConstructor) {
@@ -72,10 +72,11 @@ public abstract class FunctionDefinitionParser<T extends FunctionDefinition> ext
             public T parse(ParseNode node) {
                 var rawFunction = parser.parse(node);
                 if (rawFunction != null) {
-                    if (rawFunction.name() == null)
-                        rawFunction = rawFunction.withName(node.longName());
-                    if (rawFunction.globalCode().length > 0 || rawFunction.code().length > 0 || rawFunction.expression() != null) {
-                        return outerConstructor.construct(rawFunction, node.tags());
+                    final var namedFunction = rawFunction
+                            .withNamespaceIfNotSet(node.namespace())
+                            .withNameIfNotSet(node.longName());
+                    if (namedFunction.globalCode().length > 0 || namedFunction.code().length > 0 || namedFunction.expression() != null) {
+                        return outerConstructor.construct(namedFunction, node.tags());
                     }
                     return null;
                 }

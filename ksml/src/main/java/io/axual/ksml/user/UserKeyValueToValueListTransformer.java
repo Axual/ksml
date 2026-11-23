@@ -59,6 +59,6 @@ public class UserKeyValueToValueListTransformer extends Invoker implements Value
             list.forEach(element -> newList.add(nullIfNone(element)));
             return newList;
         }
-        throw new ExecutionException("Expected list result from keyValueToKeyValueList transformer: " + function.name);
+        throw new ExecutionException("Expected list result from keyValueToKeyValueList transformer: " + function.definition.name());
     }
 }

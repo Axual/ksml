@@ -26,60 +26,36 @@ import io.axual.ksml.data.object.DataNull;
 import io.axual.ksml.data.object.DataObject;
 import io.axual.ksml.data.object.DataTuple;
 import io.axual.ksml.data.type.DataType;
+import io.axual.ksml.definition.FunctionDefinition;
 import io.axual.ksml.definition.InjectedParameter;
 import io.axual.ksml.definition.ParameterDefinition;
 import io.axual.ksml.exception.ExecutionException;
 import io.axual.ksml.exception.TopologyException;
 import io.axual.ksml.store.StateStores;
-import io.axual.ksml.type.UserType;
+import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.streams.KeyValue;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 import java.util.Map;
 
+@Slf4j
 public class UserFunction {
-    private static final Logger LOG = LoggerFactory.getLogger(UserFunction.class);
     /** Injects the state stores of the call; the function's code reads each store by its name. */
     public static final String INJECT_STORES = "stores";
-    private static final String[] TEMPLATE = new String[]{};
-    public final String name;
-    public final String namespace;
-    public final ParameterDefinition[] parameters;
-    public final int fixedParameterCount;
-    public final UserType resultType;
-    public final List<InjectedParameter> injectedParameters;
-    public final String[] storeNames;
+    @Getter
+    protected final FunctionDefinition definition;
 
-    public UserFunction(String namespace, String name, ParameterDefinition[] parameters, UserType resultType, List<InjectedParameter> injectedParams, List<String> storeNames) {
-        this(namespace, name, parameters, resultType, injectedParams, storeNames != null ? storeNames.toArray(TEMPLATE) : TEMPLATE);
-    }
-
-    public UserFunction(String namespace, String name, ParameterDefinition[] parameters, UserType resultType, List<InjectedParameter> injectedParams, String[] storeNames) {
-        if (namespace == null) {
+    public UserFunction(FunctionDefinition definition) {
+        if (definition.namespace() == null)
             throw new TopologyException("Function namespace can not be null");
-        }
-        if (name == null) {
+        if (definition.name() == null)
             throw new TopologyException("Function name can not be null");
-        }
-        this.namespace = namespace;
-        this.name = name;
-        this.parameters = parameters;
-        this.fixedParameterCount = getFixedParameterCount(parameters);
-        this.resultType = resultType;
-        final var injected = new ArrayList<InjectedParameter>();
-        if (storeNames != null && storeNames.length > 0)
-            injected.add(new InjectedParameter(INJECT_STORES));
-        if (injectedParams != null)
-            injectedParams.stream()
-                    .filter(param -> injected.stream().noneMatch(existing -> existing.name().equals(param.name())))
-                    .forEach(injected::add);
-        this.injectedParameters = List.copyOf(injected);
-        this.storeNames = storeNames != null ? storeNames : TEMPLATE;
-        LOG.info("Registered function '{}'", this);
+        // A function that uses state stores gets them injected as stores
+        this.definition = definition.storeNames().isEmpty() ? definition : definition.withInjectedParameter(new InjectedParameter(INJECT_STORES));
+        // Call to check for proper order of fixed and optional parameters
+        this.definition.fixedParameterCount();
+        log.info("Registered function '{}'", this);
     }
 
     /** The injections for a call with these state stores; empty when stores is null or the function uses none. */
@@ -89,38 +65,20 @@ public class UserFunction {
 
     /** Whether the function declares an injected parameter with this name. */
     public boolean hasInjectedParameter(String name) {
-        return injectedParameters.stream().anyMatch(param -> param.name().equals(name));
+        return definition.injectedParameters().stream().anyMatch(param -> param.name().equals(name));
     }
 
     @Override
     public String toString() {
-        String[] params = Arrays.stream(parameters).map(p -> p.name() + ":" + (p.type() != null ? p.type() : "?")).toArray(String[]::new);
-        final var plural = storeNames.length > 1 ? "s" : "";
-        final var storeSuffix = storeNames.length > 0
-                ? " using store" + plural + " " + String.join(",", storeNames)
-                : "";
-        return namespace + "." + name
+        String[] params = Arrays.stream(definition.parameters()).map(p -> p.name() + ":" + (p.type() != null ? p.type() : "?")).toArray(String[]::new);
+        final var plural = definition.storeNames().size() > 1 ? "s" : "";
+        final var storeSuffix = definition.storeNames().isEmpty()
+                ? ""
+                : " using store" + plural + " " + String.join(",", definition.storeNames());
+        return definition.namespace() + "." + definition.name()
                 + "(" + String.join(", ", params) + ")"
-                + (resultType != null ? " ==> " + resultType : "")
+                + (definition.resultType() != null ? " ==> " + definition.resultType() : "")
                 + storeSuffix;
-    }
-
-    // Count the number of fixed parameters. Throw an error if the ordering is illegal (ie. fixed parameters should
-    // always come before optional parameters in the params list)
-    private int getFixedParameterCount(ParameterDefinition[] parameters) {
-        var inOptionals = false;
-        var fixedParamCount = 0;
-        for (final var param : parameters) {
-            if (!param.isOptional()) {
-                if (inOptionals) {
-                    throw new TopologyException("Error in parameter list of %s.%s, fixed parameters should be listed first: %s".formatted(namespace, name, Arrays.toString(parameters)));
-                }
-                fixedParamCount++;
-            } else {
-                inOptionals = true;
-            }
-        }
-        return fixedParamCount;
     }
 
     protected void checkType(DataType expected, DataObject value) {
@@ -139,17 +97,17 @@ public class UserFunction {
 
     protected void logCall(DataObject[] parameters, Object result) {
         // Log the called function in debug
-        if (LOG.isDebugEnabled()) {
+        if (log.isDebugEnabled()) {
             // Check all parameters and copy them into the interpreter as prefixed globals
             StringBuilder paramsAndValues = new StringBuilder();
             for (int index = 0; index < parameters.length; index++) {
-                paramsAndValues.append(!paramsAndValues.isEmpty() ? ", " : "");
-                paramsAndValues.append(this.parameters[index].name()).append("=").append(parameters[index] != null ? parameters[index].toString(DataObject.Printer.EXTERNAL_ALL_SCHEMA) : "null");
+                paramsAndValues.append(paramsAndValues.isEmpty() ? "" : ", ");
+                paramsAndValues.append(definition.parameters()[index].name()).append("=").append(parameters[index] != null ? parameters[index].toString(DataObject.Printer.EXTERNAL_ALL_SCHEMA) : "null");
             }
             if (result != null) {
-                LOG.debug("User function {}.{}({}) returned {}", namespace, name, paramsAndValues, result);
+                log.debug("User function {}.{}({}) returned {}", definition.namespace(), definition.name(), paramsAndValues, result);
             } else {
-                LOG.debug("User function {}.{}({}) called", namespace, name, paramsAndValues);
+                log.debug("User function {}.{}({}) called", definition.namespace(), definition.name(), paramsAndValues);
             }
         }
     }
@@ -163,7 +121,7 @@ public class UserFunction {
      * @return the result of the call.
      */
     public DataObject call(Map<String, Object> injections, DataObject... parameters) {
-        throw new ExecutionException("Can not call the call() method of the UserFunction %s.%s directly. Override this class and the call() method.".formatted(namespace, name));
+        throw new ExecutionException("Can not call the call() method of the UserFunction %s.%s directly. Override this class and the call() method.".formatted(definition.namespace(), definition.name()));
     }
 
     public final DataObject call(DataObject... parameters) {
@@ -186,6 +144,6 @@ public class UserFunction {
             return new KeyValue<>(DataObject.nullIfNone(tuple.elements().get(0)), DataObject.nullIfNone(tuple.elements().get(1)));
         }
 
-        throw new TopologyException("Function %s.%s - Expected (key, value) from function {} but got: %s".formatted(namespace, name, (result != null ? result : "null")));
+        throw new TopologyException("Function %s.%s - Expected (key, value) from function {} but got: %s".formatted(definition.namespace(), definition.name(), (result != null ? result : "null")));
     }
 }

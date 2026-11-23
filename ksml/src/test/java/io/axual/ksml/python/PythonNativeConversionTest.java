@@ -71,9 +71,9 @@ class PythonNativeConversionTest {
     @ParameterizedTest(name = "{0}")
     @MethodSource("nativeConversionChecks")
     void valuesPassedToPythonAreGenuineNativeTypes(String description, String code) {
-        var def = FunctionDefinition.as(KSMLDSL.Functions.TYPE_GENERIC, "check", new ParameterDefinition[]{valueParam},
+        var def = FunctionDefinition.as(KSMLDSL.Functions.TYPE_GENERIC, "ns", "check", new ParameterDefinition[]{valueParam},
                 PythonSource.of(null, code.split("\n"), new String[]{"'OK'"}), stringResultType, null, null);
-        var fn = PythonFunction.forFunction(context, "test", "check", def);
+        var fn = PythonFunction.forFunction(context, def);
 
         var result = fn.call(nestedPayload());
         assertThat(result).isInstanceOf(DataString.class);

@@ -114,7 +114,7 @@ public class KafkaProducerRunner implements Runner {
                 // Set up the Python context for this definition
                 final var context = new PythonContext(config.pythonContextConfig());
                 // Pre-register all functions in the Python context
-                definition.functions().forEach((name, function) -> PythonFunction.forFunction(context, definition.namespace(), name, function));
+                definition.functions().forEach((name, function) -> PythonFunction.forFunction(context, function.withName(name)));
                 // Schedule all defined producers
                 definition.producers().forEach((name, producer) -> {
                     var ep = ExecutableProducer.forProducer(context, definition.namespace(), name, producer, config.kafkaConfig);

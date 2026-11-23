@@ -34,8 +34,8 @@ public class UserMerger extends Invoker implements Merger<Object, Object> {
     public UserMerger(UserFunction function, MetricTags tags) {
         super(function, tags, KSMLDSL.Functions.TYPE_MERGER);
         verifyParameterCount(3);
-        verify(function.parameters[1].type().equals(function.parameters[2].type()), "Merger should take two value parameters of the same dataType");
-        verifyResultType(function.parameters[1].type());
+        verify(function.definition.parameters()[1].type().equals(function.definition.parameters()[2].type()), "Merger should take two value parameters of the same dataType");
+        verifyResultType(function.definition.parameters()[1].type());
     }
 
     @Override

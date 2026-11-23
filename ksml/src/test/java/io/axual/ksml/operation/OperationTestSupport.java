@@ -191,9 +191,10 @@ final class OperationTestSupport {
     static FunctionDefinition genericFunction(UserType resultType) {
         return FunctionDefinition.as(
                 "generic",
+                "ns",
                 "fn",
                 List.of(),
-                PythonSource.of((String) null, (String) null, (String) null),
+                PythonSource.of(null, null, (String) null),
                 resultType,
                 List.of(),
                 List.of());
@@ -323,7 +324,7 @@ final class OperationTestSupport {
         final var context = mock(TopologyBuildContext.class);
         when(context.createUserFunction(any())).thenAnswer(invocation -> {
             final FunctionDefinition definition = invocation.getArgument(0);
-            return new UserFunction("test", definition.name(), definition.parameters(), definition.resultType(), definition.injectedParameters(), definition.storeNames());
+            return new UserFunction(definition.withNamespace("test"));
         });
         when(context.getStreamWrapper(any(StreamDefinition.class))).thenReturn(kStream());
         when(context.getStreamWrapper(any(TableDefinition.class))).thenReturn(kTable());

@@ -84,9 +84,9 @@ class UserPunctuatorTest {
     }
 
     private static UserPunctuator punctuator(String... code) {
-        final var function = FunctionDefinition.as(KSMLDSL.Functions.TYPE_PUNCTUATOR, "emit", new ParameterDefinition[0], PythonSource.of(new String[0], code, new String[0]), null, null, null);
+        final var function = FunctionDefinition.as(KSMLDSL.Functions.TYPE_PUNCTUATOR, "test", "emit", new ParameterDefinition[0], PythonSource.of(new String[0], code, new String[0]), null, null, null);
         final var definition = new PunctuatorDefinition(function).withInjectedParameter(ProcessorContextProxy.INJECT_CONTEXT);
-        return new UserPunctuator(PythonFunction.forFunction(pythonContext, "test", "emit", definition), tags());
+        return new UserPunctuator(PythonFunction.forFunction(pythonContext, definition), tags());
     }
 
     private ProcessorContextProxy proxy() {
@@ -131,7 +131,7 @@ class UserPunctuatorTest {
     @Test
     @DisplayName("a function with more than two required parameters can not be a punctuator")
     void tooManyParameters() {
-        final var function = new UserFunction("ns", "fn", UserTestSupport.params(3), null, null, (String[]) null);
+        final var function = new UserFunction(UserTestSupport.definition(UserTestSupport.params(3), null, null));
         final var tags = tags();
         assertThatThrownBy(() -> new UserPunctuator(function, tags)).isInstanceOf(TopologyException.class);
     }

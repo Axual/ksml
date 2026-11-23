@@ -84,7 +84,7 @@ public class ExecutableProducer {
                        MetricTags tags,
                        UserFunction partitioner,
                        ProducerTarget target) {
-        this.name = generator.name;
+        this.name = generator.definition().name();
         this.generator = new UserGenerator(generator, tags);
         this.producerStrategy = producerStrategy;
         this.topic = target.topic();
@@ -130,11 +130,9 @@ public class ExecutableProducer {
         if (gen == null) {
             throw new TopologyException("Missing generator function for producer \"" + name + "\"");
         }
-        final var generator = gen.name() != null
-                ? PythonFunction.forGenerator(context, namespace, gen.name(), gen)
-                : PythonFunction.forGenerator(context, namespace, name, gen);
+        final var generator = PythonFunction.forGenerator(context, gen.withNameIfNotSet(name));
         final var partitioner = target.partitioner() != null
-                ? PythonFunction.forFunction(context, namespace, target.partitioner().name(), target.partitioner())
+                ? PythonFunction.forFunction(context, target.partitioner())
                 : null;
 
         // Initialize the producer strategy

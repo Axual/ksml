@@ -52,6 +52,6 @@ public class UserPredicate extends Invoker implements Predicate<Object, Object> 
         if (result instanceof DataBoolean dataBoolean) {
             return dataBoolean.value();
         }
-        throw new ExecutionException("Expected a boolean back from the predicate function: " + function.name);
+        throw new ExecutionException("Expected a boolean back from the predicate function: " + function.definition.name());
     }
 }
