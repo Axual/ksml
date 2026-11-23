@@ -573,7 +573,7 @@ graph LR
 - **The extractor gets the record**: The `foreignKeyExtractor` gets `value`, and also `key` when the join key is in the record key. See the [function reference](../../reference/function-reference.md#foreignkeyextractor).
 - **Return `None` to skip a record**: With `join` the record is left out, with `leftJoin` it is joined with `None`.
 - **No key in the `valueJoiner`**: In a join between two tables, `key` is `None` in the `valueJoiner`. Take what you need from `value1` and `value2`.
-- **Deletes**: A deleted order, or a deleted customer, sends the order key with a `None` value. Handle `None` in the operations after the join, as the `peek` in the example does.
+- **Deletes**: A deleted order sends the order key with a `None` value. A deleted customer does the same in a `join`; in a `leftJoin` the `valueJoiner` gets `value2` as `None` instead. Handle `None` in the operations after the join, as the `peek` in the example does, and in the `valueJoiner` of a `leftJoin`.
 - **Partitioners**: Only needed when a topic does not use the default partitioning. `partitioner` must match the partitioning of the input table and `otherPartitioner` that of the other table. See [Partitioners](../../reference/function-reference.md#partitioners).
 
 ## Stream-Table Left Join

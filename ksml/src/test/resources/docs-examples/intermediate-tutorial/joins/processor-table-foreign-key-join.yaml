@@ -19,13 +19,13 @@ functions:
   join_order_with_customer:
     type: valueJoiner
     code: |
-      # value1 is the order, value2 is the customer
+      # value1 is the order, value2 is the customer. In a leftJoin, value2 is None when there is no customer
       result = dict(value1)
       result["customer"] = {
         "name": value2.get("name"),
         "email": value2.get("email"),
         "region": value2.get("region")
-      }
+      } if value2 is not None else None
     expression: result
     resultType: json
 
@@ -44,7 +44,7 @@ pipelines:
             # A deleted order, or a deleted customer, sends the order key with a null value
             if value is not None:
               log.info("ORDER WITH CUSTOMER - key={}, customer_id={}, name={}",
-                       key, value.get("customer_id"), value.get("customer", {}).get("name"))
+                       key, value.get("customer_id"), (value.get("customer") or {}).get("name"))
     to:
       topic: orders_with_customer_details
       keyType: string  # Still keyed by order_id

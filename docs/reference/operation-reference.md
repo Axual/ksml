@@ -670,7 +670,7 @@ Performs an inner join with a stream, table or global table.
 | `valueJoiner`    | Object   | Yes      | Function that defines how to combine values from both sides          |
 | `timeDifference` | Duration | No       | The time difference for the join window (for stream-stream joins)    |
 | `grace`          | Duration | No       | Grace period for late-arriving data (for stream-stream joins)        |
-| `foreignKeyExtractor` | Object | No  | Gets the key of `table` from a value of the input. Only when the input is a table |
+| `foreignKeyExtractor` | Object | No  | Gets the key of `table` from a record (value, optionally key) of the input. Only when the input is a table |
 | `partitioner`    | String   | No       | Only with `foreignKeyExtractor`, ignored in other joins: partitions by the key of the input table. Gets no value |
 | `otherPartitioner` | String | No       | Only with `foreignKeyExtractor`, ignored in other joins: partitions by the key of the join table. Gets no value |
 
@@ -701,7 +701,7 @@ Performs a left join with a stream, table or global table.
 | `valueJoiner`    | Object   | Yes      | Function that defines how to combine values from both sides          |
 | `timeDifference` | Duration | No       | The time difference for the join window (for stream-stream joins)    |
 | `grace`          | Duration | No       | Grace period for late-arriving data (for stream-stream joins)        |
-| `foreignKeyExtractor` | Object | No  | Gets the key of `table` from a value of the input. Only when the input is a table |
+| `foreignKeyExtractor` | Object | No  | Gets the key of `table` from a record (value, optionally key) of the input. Only when the input is a table |
 | `partitioner`    | String   | No       | Only with `foreignKeyExtractor`, ignored in other joins: partitions by the key of the input table. Gets no value |
 | `otherPartitioner` | String | No       | Only with `foreignKeyExtractor`, ignored in other joins: partitions by the key of the join table. Gets no value, and can get `None` as key, for example when a record of the input table is deleted |
 

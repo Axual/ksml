@@ -114,7 +114,7 @@ public class JoinOperationParser extends BaseJoinOperationParser {
                 "Operation to join with a table",
                 operationNameField(),
                 targetField(Operations.Join.WITH_TABLE, KSMLDSL.TABLES, "A reference to a defined table or to a table saved with \"as\" in an earlier pipeline, or an inline definition of the table to join with", new TableDefinitionParser(resources(), true)),
-                FieldParsers.optional(functionField(Operations.Join.FOREIGN_KEY_EXTRACTOR, "A function that gets the key of the join table from a value of the input table. Only when the input is a table", new ForeignKeyExtractorDefinitionParser(false))),
+                FieldParsers.optional(functionField(Operations.Join.FOREIGN_KEY_EXTRACTOR, "A function that gets the key of the join table from a record (value, optionally key) of the input table. Only when the input is a table", new ForeignKeyExtractorDefinitionParser(false))),
                 valueJoinerField,
                 FieldParsers.optional(FieldParsers.durationField(Operations.Join.GRACE, "The window grace period (the time to admit out-of-order events after the end of the window)")),
                 FieldParsers.optional(functionField(Operations.Join.PARTITIONER, "Only with foreignKeyExtractor, ignored in other joins: partitions by the key of the input table", new StreamPartitionerDefinitionParser(false))),

@@ -308,7 +308,7 @@ Below is a table with all 21 function types in KSML.
 | [reducer](#reducer)                                                     | Combine two values into one                      | reduce                                      |
 |                                                                         |                                                  |                                             |
 | **Special Purpose Functions**                                           |                                                  |                                             |
-| [foreignKeyExtractor](#foreignkeyextractor)                             | Get the key of the other table from a table value | join, leftJoin                              |
+| [foreignKeyExtractor](#foreignkeyextractor)                             | Get the key of the other table from a table record | join, leftJoin                              |
 | [generator](#generator)                                                 | Function used in producers to generate a message | producer                                    |
 | [generic](#generic)                                                     | Generic custom function                          |                                             |
 | [keyValueMapper](#keyvaluemapper)                                       | Convert key and value into a single output value | groupBy, join, leftJoin                     |
@@ -983,7 +983,7 @@ Determines which partition a record should be sent to when writing to a Kafka to
 | Parameter     | Type    | Description                                                            |
 |---------------|---------|------------------------------------------------------------------------|
 | topic         | String  | The name of the topic the record is being sent to                     |
-| key           | Any     | The key of the record being partitioned                               |
+| key           | Any     | The key of the record being partitioned. Can be `None` as `otherPartitioner` of a foreign-key `leftJoin` |
 | value         | Any     | The value of the record being partitioned. `None` in a foreign-key join |
 | headers       | List    | The record headers, as a list of `{"key": ..., "value": ...}` like in `metadataTransformer` |
 | numPartitions | Integer | The total number of partitions available in the target topic          |
@@ -1280,7 +1280,7 @@ relationship helps you leverage Kafka Streams documentation and concepts:
 #### Special Purpose Functions
 | KSML Function Type  | Kafka Streams Interface                        | Purpose                            |
 |---------------------|------------------------------------------------|------------------------------------|
-| foreignKeyExtractor | `Function<V,FK>`                               | Extract foreign key for joins      |
+| foreignKeyExtractor | `BiFunction<K,V,FK>`                           | Extract foreign key for joins      |
 | keyValueMapper      | `KeyValueMapper<K,V,VR>`                       | Convert key-value to single output |
 | valueJoiner         | `ValueJoiner`, `ValueJoinerWithKey` or `ValueJoinerWithStreamAndMappedKey`, by join type | Join values from two streams       |
 

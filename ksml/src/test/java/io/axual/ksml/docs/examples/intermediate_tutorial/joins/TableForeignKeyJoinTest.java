@@ -42,6 +42,8 @@ import static org.assertj.core.api.Assertions.assertThat;
  * 2. testCustomerUpdateUpdatesAllOrders: a customer update sends a new result for every order of that customer
  * 3. testOrderArrivesBeforeCustomer: an order without a customer is joined when the customer arrives
  * 4. testOrderMovesToOtherCustomer: an order that changes its customer_id is joined with the new customer
+ * 5. testOrderDeleteSendsTombstone: a deleted order sends the order key with a null value
+ * 6. testCustomerDeleteSendsTombstone: a deleted customer sends the order key with a null value
  */
 @ExtendWith(KSMLTestExtension.class)
 @SuppressWarnings("java:S2187")
@@ -107,6 +109,32 @@ public class TableForeignKeyJoinTest {
         ordersInput.pipeInput("ORD0001", order("ORD0001", "CUST002"));
 
         assertThat(enrichedOutput.readValuesToList()).map(this::customerName).containsExactly("Alice Johnson", "Bob Smith");
+    }
+
+    @KSMLTest(topology = TOPOLOGY)
+    void testOrderDeleteSendsTombstone() {
+        customersInput.pipeInput("CUST001", customer("Alice Johnson"));
+        ordersInput.pipeInput("ORD0001", order("ORD0001", "CUST001"));
+        enrichedOutput.readRecordsToList();
+
+        ordersInput.pipeInput("ORD0001", (String) null);
+
+        final var outputRecord = enrichedOutput.readRecord();
+        assertThat(outputRecord.getKey()).isEqualTo("ORD0001");
+        assertThat(outputRecord.getValue()).isNull();
+    }
+
+    @KSMLTest(topology = TOPOLOGY)
+    void testCustomerDeleteSendsTombstone() {
+        customersInput.pipeInput("CUST001", customer("Alice Johnson"));
+        ordersInput.pipeInput("ORD0001", order("ORD0001", "CUST001"));
+        enrichedOutput.readRecordsToList();
+
+        customersInput.pipeInput("CUST001", (String) null);
+
+        final var outputRecord = enrichedOutput.readRecord();
+        assertThat(outputRecord.getKey()).isEqualTo("ORD0001");
+        assertThat(outputRecord.getValue()).isNull();
     }
 
     private String customer(String name) {
