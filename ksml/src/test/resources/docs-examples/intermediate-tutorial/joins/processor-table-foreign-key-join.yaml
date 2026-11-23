@@ -1,0 +1,51 @@
+tables:
+  orders:
+    topic: new_orders
+    keyType: string  # Order ID
+    valueType: json  # Order details including customer_id
+
+  customers:
+    topic: customer_data
+    keyType: string  # Customer ID
+    valueType: json  # Customer details
+
+functions:
+  extract_customer_id:
+    type: foreignKeyExtractor
+    # Gets an order and returns the key of the customer to join with
+    expression: value.get("customer_id") if value else None
+    resultType: string
+
+  join_order_with_customer:
+    type: valueJoiner
+    code: |
+      # value1 is the order, value2 is the customer
+      result = dict(value1)
+      result["customer"] = {
+        "name": value2.get("name"),
+        "email": value2.get("email"),
+        "region": value2.get("region")
+      }
+    expression: result
+    resultType: json
+
+pipelines:
+  orders_with_customer_details:
+    from: orders
+    via:
+      - type: join
+        table: customers
+        foreignKeyExtractor: extract_customer_id
+        valueJoiner: join_order_with_customer
+      - type: toStream
+      - type: peek
+        forEach:
+          code: |
+            # A deleted order, or a deleted customer, sends the order key with a null value
+            if value is not None:
+              log.info("ORDER WITH CUSTOMER - key={}, customer_id={}, name={}",
+                       key, value.get("customer_id"), value.get("customer", {}).get("name"))
+    to:
+      topic: orders_with_customer_details
+      keyType: string  # Still keyed by order_id
+      valueType: json

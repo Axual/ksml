@@ -4,7 +4,7 @@ This tutorial explores how to implement join operations in KSML, allowing you to
 
 ## Introduction
 
-Joins are fundamental operations in stream processing that combine data from multiple sources based on common keys. KSML provides three main types of joins, each serving different use cases in real-time data processing.
+Joins are fundamental operations in stream processing that combine data from multiple sources based on common keys. KSML provides four main types of joins, each serving different use cases in real-time data processing.
 
 KSML joins are built on top of Kafka Streams join operations, providing a YAML-based interface to powerful stream processing capabilities without requiring Java code.
 
@@ -32,6 +32,7 @@ Before starting this tutorial:
     kafka-topics.sh --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic orders_with_customer_loyalty && \
     kafka-topics.sh --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic product_catalog && \
     kafka-topics.sh --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic orders_with_product_details && \
+    kafka-topics.sh --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic orders_with_customer_details && \
     kafka-topics.sh --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic user_activity_events && \
     kafka-topics.sh --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic user_location_data && \
     kafka-topics.sh --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic activity_with_location && \
@@ -73,11 +74,13 @@ Stream-stream and stream-table joins require co-partitioning:
 - **Same partitioning strategy** (how keys map to partitions)
 - **Same key type** and serialization format
 
-GlobalTable joins don't require co-partitioning since data is replicated to all instances.
+GlobalTable joins don't require co-partitioning since data is replicated to all instances. A
+[table-table foreign-key join](#table-table-foreign-key-join) doesn't require it either: Kafka Streams sends each lookup
+to the right partition of the other table.
 
 ## Types of Joins in KSML
 
-KSML supports three main categories of joins, each with specific characteristics and use cases:
+KSML supports four main categories of joins, each with specific characteristics and use cases:
 
 ### 1. Stream-Stream Joins
 Join two event streams within a time window to correlate related events.
@@ -130,6 +133,25 @@ Enrich events using replicated reference data available on all instances.
 
 - GlobalTable is replicated to all application instances
 - Supports foreign key extraction via mapper functions
+- No co-partitioning required
+- Supports inner and left join semantics
+
+### 4. Table-Table Foreign-Key Joins
+Join two tables where one table refers to the other by a foreign key, and keep the result up to date when either side
+changes.
+
+**Kafka Streams equivalent:** `KTable.join()`, `KTable.leftJoin()` with a `foreignKeyExtractor`
+
+**When to use:**
+
+- Both sides are state, for example orders and customers, and a change on either side must update the result
+- The join key is in the value, or in a part of the key, of the input table
+
+**Key characteristics:**
+
+- A `foreignKeyExtractor` returns the key of the other table for each record of the input table
+- The result keeps the key of the input table
+- An update of a record in the other table updates every joined record that refers to it
 - No co-partitioning required
 - Supports inner and left join semantics
 
@@ -480,6 +502,80 @@ The `mapper` function extracts the foreign key from stream records:
 
 In the `valueJoiner`, `key` is the key of the stream record (the order id). The key that the `mapper` returned (the product id) is in `mappedKey`.
 
+## Table-Table Foreign-Key Join
+
+A join between two tables with a `foreignKeyExtractor` keeps both sides as state. The stream-GlobalTable join above
+enriches each order once, with the product as it was at that moment. A table-table foreign-key join also updates the
+result when the other side changes: when a customer moves to another region, every order of that customer gets a new
+result.
+
+### Use Case: Orders with Current Customer Details
+
+Keep a table of orders enriched with the current details of their customer.
+
+**What it does:**
+
+- **Reads both topics as tables**: `new_orders` (key: order_id) and `customer_data` (key: customer_id) are both under `tables`
+- **Extracts the foreign key**: The `foreignKeyExtractor` gets each order and returns its `customer_id`, the key of the customers table
+- **Joins without rekeying**: The result keeps the order key; there is no `transformKey` before or after the join
+- **Follows customer updates**: An update of a customer sends a new result for every order of that customer
+- **Outputs orders with customer details**: `toStream` turns the joined table into a stream, which is written to `orders_with_customer_details`
+
+```mermaid
+--8<-- "snippets/mermaid-init.txt"
+graph LR
+    %% Input
+    Orders[(new_orders table<br/>key: order_id)]
+    Customers[(customer_data table<br/>key: customer_id)]
+
+    %% Pipeline Operations
+    Join["<code>join</code> with table<br/>foreignKeyExtractor: extract_customer_id<br/>join_order_with_customer"]
+    ToStream["<code>toStream</code>"]
+
+    %% Output
+    Output[(orders_with_customer_details<br/>key: order_id)]
+
+    %% Data Flow
+    Orders --> Join
+    Join -.->|"look up customer_id<br/>from order value"| Customers
+    Customers -.->|"customer details,<br/>again on every update"| Join
+    Join --> ToStream
+    ToStream -->|"order + customer"| Output
+
+    %% Styling
+    --8<-- "snippets/mermaid-classes.txt"
+
+    class Orders,Customers,Output topic
+    class Join,ToStream operation
+```
+
+??? info "Producer: Orders (click to expand)"
+
+    ```yaml
+    {% include "../../../ksml/src/test/resources/docs-examples/intermediate-tutorial/joins/producer-orders.yaml" %}
+    ```
+
+??? info "Producer: Customers (click to expand)"
+
+    ```yaml
+    {% include "../../../ksml/src/test/resources/docs-examples/intermediate-tutorial/joins/producer-customers.yaml" %}
+    ```
+
+??? info "Processor: Table-Table Foreign-Key Join (click to expand)"
+
+    ```yaml
+    {% include "../../../ksml/src/test/resources/docs-examples/intermediate-tutorial/joins/processor-table-foreign-key-join.yaml" %}
+    ```
+
+### Rules for a Foreign-Key Join
+
+- **Both sides are tables**: With a stream as input, KSML stops with an error. Add `toTable` before the join to turn a stream into a table.
+- **The extractor gets the record**: The `foreignKeyExtractor` gets `value`, and also `key` when the join key is in the record key. See the [function reference](../../reference/function-reference.md#foreignkeyextractor).
+- **Return `None` to skip a record**: With `join` the record is left out, with `leftJoin` it is joined with `None`.
+- **No key in the `valueJoiner`**: In a join between two tables, `key` is `None` in the `valueJoiner`. Take what you need from `value1` and `value2`.
+- **Deletes**: A deleted order, or a deleted customer, sends the order key with a `None` value. Handle `None` in the operations after the join, as the `peek` in the example does.
+- **Partitioners**: Only needed when a topic does not use the default partitioning. `partitioner` must match the partitioning of the input table and `otherPartitioner` that of the other table. See [Partitioners](../../reference/function-reference.md#partitioners).
+
 ## Stream-Table Left Join
 
 Left joins preserve all records from the stream (left side) while adding data from the table (right side) when available. This is useful for enriching events with optional reference data.
@@ -800,6 +896,7 @@ KSML's join operations enable powerful data enrichment patterns:
 - **Stream-stream joins** correlate events within time windows
 - **Stream-table joins** enrich events with current state
 - **Stream-GlobalTable joins** provide foreign key lookups without co-partitioning
+- **Table-table foreign-key joins** keep a joined result up to date when either side changes
 
 Choose the appropriate join type based on your data characteristics and business requirements.
 

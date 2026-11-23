@@ -36,6 +36,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 class ForeignKeyExtractorTest {
 
     private static final String TOPOLOGY = "docs-examples/reference/functions/foreignkeyextractor-processor.yaml";
+    private static final String KEY_TOPOLOGY = "docs-examples/reference/functions/foreignkeyextractor-key-processor.yaml";
     private static final String ALICE = "{\"customer_id\": \"c001\", \"name\": \"Alice\", \"email\": \"alice@example.com\", \"tier\": \"gold\"}";
     private static final String ORDER = "{\"order_id\": \"o001\", \"customer_id\": \"c001\", \"product\": \"book\", \"amount\": 10, \"timestamp\": 1}";
 
@@ -49,6 +50,12 @@ class ForeignKeyExtractorTest {
 
     @KSMLTopic(topic = "enriched_orders")
     TestOutputTopic<String, String> enrichedOrders;
+
+    @KSMLTopic(topic = "keyed_orders")
+    TestInputTopic<String, String> keyedOrders;
+
+    @KSMLTopic(topic = "enriched_keyed_orders")
+    TestOutputTopic<String, String> enrichedKeyedOrders;
 
     @KSMLTest(topology = TOPOLOGY)
     @DisplayName("an order is enriched with the customer that the foreignKeyExtractor finds, and keeps its order key")
@@ -89,5 +96,28 @@ class ForeignKeyExtractorTest {
         final var result = enrichedOrders.readKeyValue();
         assertThat(result.key).isEqualTo("o001");
         assertThat(result.value).isNull();
+    }
+
+    @KSMLTest(topology = KEY_TOPOLOGY)
+    @DisplayName("a foreignKeyExtractor that reads the key finds the customer from the order key")
+    void testForeignKeyFromKey() {
+        customers.pipeInput("c001", ALICE);
+        keyedOrders.pipeInput("c001/ord_001", "{\"product\": \"laptop\", \"amount\": 500}");
+
+        final var result = enrichedKeyedOrders.readKeyValue();
+        assertThat(result.key).isEqualTo("c001/ord_001");
+        final var enriched = objectMapper.readTree(result.value);
+        assertThat(enriched.get("customer").asString()).isEqualTo("Alice");
+        assertThat(enriched.get("tier").asString()).isEqualTo("gold");
+        assertThat(enriched.get("product").asString()).isEqualTo("laptop");
+    }
+
+    @KSMLTest(topology = KEY_TOPOLOGY)
+    @DisplayName("an order whose key names an unknown customer is not joined")
+    void testUnknownCustomerInKey() {
+        customers.pipeInput("c001", ALICE);
+        keyedOrders.pipeInput("c002/ord_002", "{\"product\": \"phone\", \"amount\": 200}");
+
+        assertThat(enrichedKeyedOrders.isEmpty()).isTrue();
     }
 }

@@ -229,7 +229,7 @@ When calling this function from Python:
 configurable_logger(key, value, prefix="DEBUG")
 ```
 
-Custom parameters come right after the built-in ones. Only the optional built-in parameter `mappedKey` (in a `valueJoiner`) comes last, after the custom parameters.
+Custom parameters come right after the built-in ones. Only the optional built-in parameters `mappedKey` (in a `valueJoiner`) and `key` (in a `foreignKeyExtractor`) come last, after the custom parameters.
 
 ### Parameter Definition Structure
 
@@ -684,15 +684,20 @@ Combined value
 
 ### foreignKeyExtractor
 
-Gets a value of the input table and returns the key of the other table to join with. Used in a `join` or `leftJoin`
-between two tables, when the join key is in the value instead of the record key. Both sides must be tables: with a
-stream as input, KSML stops with an error. Add `toTable` before the join to turn a stream into a table.
+Gets a record of the input table and returns the key of the other table to join with. Used in a `join` or `leftJoin`
+between two tables, when the join key is not the record key: it is in the value, or is only a part of the key. Both
+sides must be tables: with a stream as input, KSML stops with an error. Add `toTable` before the join to turn a stream
+into a table.
 
 #### Parameters
 
-| Parameter | Type | Description                               |
-|-----------|------|-------------------------------------------|
-| value     | Any  | The value of the record to get a key from |
+| Parameter | Type | Description                                                                                      |
+|-----------|------|--------------------------------------------------------------------------------------------------|
+| value     | Any  | The value of the record to get a key from                                                        |
+| key       | Any  | Optional. The key of the record. Use it when the join key is in the record key instead of the value |
+
+`key` is the same as the key parameter of `KTable.join(other, BiFunction<K, V, KO> foreignKeyExtractor, ...)` in
+Kafka Streams. A function that does not use `key` works as before.
 
 #### Return Value
 
@@ -753,6 +758,43 @@ This pattern is commonly used for:
 - Transaction enrichment with account information
 - Event enrichment with user profiles
 - Any scenario where records contain foreign key references
+
+#### Example: Foreign Key in the Record Key
+
+Here the order key is `"<customer_id>/<order_id>"`, and the order value has no `customer_id`. The
+`foreignKeyExtractor` uses `key` to get the customer:
+
+```yaml
+--8<-- "docs-examples/reference/functions/foreignkeyextractor-key-processor.yaml:13:17"
+```
+
+??? info "Producer - `foreignKeyExtractor` with key example (click to expand)"
+
+    ```yaml
+    {% include "../../ksml/src/test/resources/docs-examples/reference/functions/foreignkeyextractor-key-producer.yaml" %}
+    ```
+
+??? info "Processor - `foreignKeyExtractor` with key example (click to expand)"
+
+    ```yaml
+    {% include "../../ksml/src/test/resources/docs-examples/reference/functions/foreignkeyextractor-key-processor.yaml" %}
+    ```
+
+The result keeps the order key, for example `c001/ord_001`, and the log shows lines like
+`"Order c001/ord_001 for customer Alice"`. In the `valueJoiner` of a join between two tables, `key` is `None`, so the
+example takes everything it needs from `value1` and `value2`.
+
+#### Partitioners
+
+A `join` or `leftJoin` with a `foreignKeyExtractor` can have a `partitioner` and an `otherPartitioner`. Kafka Streams
+sends the lookup to the partition of the other table, and the result back to the partition of the input table:
+
+- `otherPartitioner` gets keys of the other table, and must match how that table's topic is partitioned
+- `partitioner` gets keys of the input table, and must match how that table's topic is partitioned
+
+Leave them out when both topics use the default partitioning. In a `leftJoin`, Kafka Streams can call the
+`otherPartitioner` with `key` set to `None`, for example when a record of the input table is deleted. Any partition is
+fine for those calls, but the function must not fail on them.
 
 ### generator
 
