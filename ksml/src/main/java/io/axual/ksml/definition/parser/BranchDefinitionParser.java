@@ -49,39 +49,35 @@ public class BranchDefinitionParser extends DefinitionParser<BranchDefinition> i
 
     @Override
     public StructsParser<BranchDefinition> parser() {
-        final var predParser = FieldParsers.optional(resourceFields.functionField(KSMLDSL.Operations.Branch.PREDICATE, "Defines the condition under which messages get sent down this branch", new PredicateDefinitionParser(false)));
-        if (includePipelineSchema) return withPipelineParser(predParser);
-        return nestedBranchParser(predParser);
+        final var predicateParser = FieldParsers.optional(resourceFields.functionField(KSMLDSL.Operations.Branch.PREDICATE, "Defines the condition under which messages get sent down this branch", new PredicateDefinitionParser(false)));
+        if (includePipelineSchema) return withPipelineParser(predicateParser);
+        return nestedBranchParser(predicateParser);
     }
 
-    private StructsParser<BranchDefinition> withPipelineParser(StructsParser<FunctionDefinition> predParser) {
+    private StructsParser<BranchDefinition> withPipelineParser(StructsParser<FunctionDefinition> predicateParser) {
         return FieldParsers.structsParser(
                 BranchDefinition.class,
                 "WithPipeline",
                 "Defines a branch with sub-pipeline in a BranchOperation",
-                predParser,
+                predicateParser,
                 pipelineParser,
                 (predicate, pipeline, tags) -> new BranchDefinition(predicate, pipeline)
         );
     }
 
     /**
-     * The parser for a branch inside a branch. It parses the branch with its sub-pipeline, like the outer
-     * level does. Only its schema is shorter: it lists the condition and allows any other field. A full
-     * schema would contain the pipeline, with a branch, with a pipeline, and so on forever.
-     * <p>
-     * The full parser is only made when a nested branch is parsed. Making it needs the schema of the
-     * sub-pipeline, which contains the next nested level, so making it eagerly would never end.
+     * Parser for a branch inside a branch. It parses the full branch, but its schema only lists "if" and
+     * allows other fields, because a full schema would never end. For the same reason, the full parser
+     * is made lazily.
      */
     private StructsParser<BranchDefinition> nestedBranchParser(StructsParser<FunctionDefinition> predicateParser) {
-        final var schemas = FieldParsers.structsParser(
-                        BranchDefinition.class,
-                        "",
+        final var schemas = predicateParser.schemas().stream()
+                .map(schema -> new StructSchema(
+                        schema.namespace(),
+                        BranchDefinition.class.getSimpleName() + "Nested",
                         "Defines a branch inside a branch. Its sub-pipeline has the same fields as a pipeline, without \"from\"",
-                        predicateParser,
-                        (predicate, _) -> new BranchDefinition(predicate, null))
-                .schemas().stream()
-                .map(schema -> new StructSchema(schema.namespace(), schema.name(), schema.doc(), schema.fields(), true))
+                        schema.fields(),
+                        true))
                 .toList();
         final var fullParser = StructsParser.lazy(() -> withPipelineParser(predicateParser));
         return new StructsParser<>() {

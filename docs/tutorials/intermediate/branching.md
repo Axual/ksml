@@ -250,24 +250,7 @@ graph TB
 You can create nested branching by having branches that contain their own branching logic:
 
 ```yaml
-pipelines:
-  nested_example:
-    from: input_stream
-    branch:
-      - if: 
-          expression: value.get("category") == "electronics"
-        via:
-          - type: transformValue
-            mapper: enrich_electronics
-        branch:
-          - if:
-              expression: value.get("price") > 500
-            to: expensive_electronics
-          - to: affordable_electronics
-      
-      - if:
-          expression: value.get("category") == "clothing" 
-        to: clothing_items
+--8<-- "docs-examples/intermediate-tutorial/branching/processor-nested-branching.yaml:pipelines"
 ```
 
 The electronics branch has its own `branch` section that splits electronics by price. The outer branching has no default branch, so messages from any other category are dropped:

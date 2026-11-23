@@ -202,6 +202,23 @@
       "title" : "AggregatorDefinitionWithImplicitStoreType",
       "type" : "object"
     },
+    "BranchDefinitionNested" : {
+      "additionalProperties" : true,
+      "description" : "Defines a branch inside a branch. Its sub-pipeline has the same fields as a pipeline, without \"from\"",
+      "properties" : {
+        "if" : {
+          "anyOf" : [ {
+            "type" : "string"
+          }, {
+            "$ref" : "#/$defs/PredicateDefinitionWithImplicitStoreType",
+            "type" : "object"
+          } ],
+          "description" : "*(optional)* Defines the condition under which messages get sent down this branch"
+        }
+      },
+      "title" : "BranchDefinitionNested",
+      "type" : "object"
+    },
     "BranchDefinitionWithPipeline" : {
       "additionalProperties" : false,
       "description" : "Defines a branch with sub-pipeline in a BranchOperation",
@@ -213,7 +230,7 @@
         "branch" : {
           "description" : "*(optional)* Defines a single branch, consisting of a condition and a pipeline to execute for messages that fulfil the predicate",
           "items" : {
-            "$ref" : "#/$defs/StringOrInlinePredicateDefinitionWithImplicitStoreType",
+            "$ref" : "#/$defs/BranchDefinitionNested",
             "type" : "object"
           },
           "type" : "array"
@@ -4047,23 +4064,6 @@
         }
       },
       "title" : "StreamPartitionerDefinitionWithImplicitStoreType",
-      "type" : "object"
-    },
-    "StringOrInlinePredicateDefinitionWithImplicitStoreType" : {
-      "additionalProperties" : true,
-      "description" : "Defines the condition under which messages get sent down this branch",
-      "properties" : {
-        "if" : {
-          "anyOf" : [ {
-            "type" : "string"
-          }, {
-            "$ref" : "#/$defs/PredicateDefinitionWithImplicitStoreType",
-            "type" : "object"
-          } ],
-          "description" : "*(optional)* Defines the condition under which messages get sent down this branch"
-        }
-      },
-      "title" : "StringOrInlinePredicateDefinitionWithImplicitStoreType",
       "type" : "object"
     },
     "SuppressOperationUntilTimeLimit" : {

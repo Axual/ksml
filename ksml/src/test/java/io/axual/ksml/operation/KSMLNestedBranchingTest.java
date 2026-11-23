@@ -30,20 +30,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * A branch entry can contain its own {@code branch}, to split records again inside a branch.
+ * The example from the branching tutorial is tested in {@code NestedBranchingTest}.
  */
 class KSMLNestedBranchingTest {
 
     @KSMLTopic(topic = "input")
     TestInputTopic<String, String> input;
-
-    @KSMLTopic(topic = "expensive_electronics")
-    TestOutputTopic<String, String> expensiveElectronics;
-
-    @KSMLTopic(topic = "affordable_electronics")
-    TestOutputTopic<String, String> affordableElectronics;
-
-    @KSMLTopic(topic = "clothing_items")
-    TestOutputTopic<String, String> clothingItems;
 
     @KSMLTopic(topic = "level1_out")
     TestOutputTopic<String, String> level1Out;
@@ -56,22 +48,6 @@ class KSMLNestedBranchingTest {
 
     @KSMLTopic(topic = "level3_no")
     TestOutputTopic<String, String> level3No;
-
-    @KSMLTopologyTest(topologies = "pipelines/test-branching-nested.yaml")
-    @DisplayName("The nested branching example from the branching tutorial routes records by category and price")
-    void nestedBranchRoutesRecords() {
-        input.pipeInput("tv", "{\"category\": \"electronics\", \"price\": 900}");
-        input.pipeInput("radio", "{\"category\": \"electronics\", \"price\": 50}");
-        input.pipeInput("shirt", "{\"category\": \"clothing\", \"price\": 20}");
-        input.pipeInput("apple", "{\"category\": \"food\", \"price\": 1}");
-
-        // the inner branch gets the records after the "via" of the outer branch entry
-        assertThat(expensiveElectronics.readKeyValuesToMap()).containsOnlyKeys("tv")
-                .hasEntrySatisfying("tv", value -> assertThat(value).contains("\"enriched\":true"));
-        assertThat(affordableElectronics.readKeyValuesToMap()).containsOnlyKeys("radio")
-                .hasEntrySatisfying("radio", value -> assertThat(value).contains("\"enriched\":true"));
-        assertThat(clothingItems.readKeyValuesToMap()).containsOnlyKeys("shirt");
-    }
 
     @KSMLTopologyTest(topologies = "pipelines/test-branching-nested-three-levels.yaml")
     @DisplayName("Branches can be nested three levels deep")
