@@ -1993,6 +1993,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#declared-stores-use-the-kafka-streams-defaults" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Declared stores use the Kafka Streams defaults
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#tombstones-are-handled-like-in-kafka-streams" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2380,6 +2391,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#declared-stores-use-the-kafka-streams-defaults" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Declared stores use the Kafka Streams defaults
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#tombstones-are-handled-like-in-kafka-streams" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2543,6 +2565,10 @@
 <li>Add <code>toTable</code> before any <code>join</code> or <code>leftJoin</code> with <code>foreignKeyExtractor</code> that has a stream as input.</li>
 <li>Do not keep a store iterator in a global variable for a later function call.</li>
 <li>If Python code reads <code>get(key)["value"]</code> or <code>["timestamp"]</code> on a store with <code>timestamped: true</code>, or on the store of a <code>count</code>, <code>aggregate</code>, <code>reduce</code> or non-versioned table, use <code>getWithTimestamp(key)</code> instead. The same applies to the results of <code>delete</code> and <code>putIfAbsent</code>, and to <code>fetch(key, time)</code> on the store of a windowed aggregation (use <code>fetchWithTimestamp</code>).</li>
+<li>Check every store you declare under <code>stores</code> or in an operation: it is now persistent, timestamped and has a changelog topic unless it sets <code>persistent</code>, <code>timestamped</code> or <code>logging</code> to <code>false</code>. Make sure the application can create the changelog topics (or create them yourself) and that <code>ksml.storageDirectory</code> is on a volume that has room for RocksDB. On the first start, KSML stops if a persistent store with local state leaves out <code>logging</code>, or if the persistent <code>thisStore</code> of a <code>leftJoin</code> or <code>outerJoin</code> between two streams doesn't set <code>logging: true</code>, until you set it. See <a href="#declared-stores-use-the-kafka-streams-defaults">Declared stores use the Kafka Streams defaults</a>.</li>
+<li>Stop all KSML 1.x instances of an application before you start 2.0.0, and don't do a rolling upgrade. A 1.x instance does not create the new changelog topics, so a 2.0.0 instance in the same group can't start its tasks. Before you start 2.0.0, wait until the consumer group of the application has no members (<code>kafka-consumer-groups.sh --describe --group &lt;application.id&gt; --members</code>). This takes up to <code>session.timeout.ms</code> (45 seconds by default), because Kafka Streams doesn't leave the group when it stops. If the application sets <code>group.instance.id</code> (static membership, which the KSML Helm chart does), an instance that comes back sooner gets its 1.x assignment again and is stuck. With the KSML Helm chart, scale the StatefulSet to 0 replicas, wait until the group is empty, and then run <code>helm upgrade</code>.</li>
+<li>If a store sets <code>versioned: true</code> without <code>persistent: true</code>, check the Python code that uses it, or set <code>persistent: false</code>.</li>
+<li>If you rely on every update of an <code>aggregate</code>, <code>count</code>, <code>reduce</code> or table being emitted, set <code>caching: false</code> on its store.</li>
 <li>If Python code calls <code>put</code> or <code>remove</code> on a session store, check that each session key is a dict with <code>key</code>, <code>start</code> and <code>end</code>, with <code>int</code> times. A session key that is not valid now raises an error instead of being ignored.</li>
 <li>Check <code>reduce</code> and <code>aggregate</code> functions that handle <code>None</code>, and functions that return <code>None</code>: tombstones are now handled like in Kafka Streams.</li>
 <li>Check consumers of topics that get empty <code>json</code> or union keys or values, and <code>valueJoiner</code>s that read such a table: an empty key or value is no longer a <code>null</code> key or a tombstone.</li>
@@ -2552,6 +2578,8 @@
 <li>If you use <code>KeyValueIteratorProxy</code> or <code>WindowStoreIteratorProxy</code>, use <code>StoreIteratorProxy</code> instead, and create store proxies with <code>ProxyUtil.wrapStateStore</code>.</li>
 <li>If you extend <code>OperationProcessor</code> or <code>FixedKeyOperationProcessor</code>, implement <code>processRecord</code> instead of <code>process</code>.</li>
 <li>If you create a <code>TimestampedKeyValueStoreProxy</code> or <code>TimestampedWindowStoreProxy</code> yourself, pass a <code>LongSupplier</code> that gives the timestamp of the record that is being processed.</li>
+<li>If you create a <code>TopologyBuildContext</code> yourself, or call <code>StoreUtil.getStoreBuilder</code>, <code>StoreUtil.materialize</code> or <code>StoreUtil.validatedWindowStore</code>, pass <code>headersStoreFormat</code>: <code>true</code> when <code>dsl.store.format</code> is <code>HEADERS</code>, and the same value for the whole topology. If you call <code>BaseOperation.streamJoinedOf</code> in a subclass, pass the <code>TopologyBuildContext</code> first, and last whether the join has a shared store: <code>true</code> for a <code>leftJoin</code> or <code>outerJoin</code>, <code>false</code> for a <code>join</code>.</li>
+<li>If you call <code>StateStoreDefinition.caching()</code>, handle <code>null</code>: it means the definition does not set <code>caching</code>.</li>
 <li>If you call <code>TimestampedWindowStoreProxy.put(key, ValueAndTimestamp, windowStart)</code>, call <code>put(key, value, windowStart, timestamp)</code> instead. A <code>ValueAndTimestamp</code> still compiles as the value, but is then stored inside another <code>ValueAndTimestamp</code>.</li>
 </ul>
 <h2 id="apicurio-registry-3">Apicurio Registry 3</h2>
@@ -2707,6 +2735,76 @@
 <p>In KSML 2.0.0, any <code>int</code> time from 0 works and <code>start</code> may equal <code>end</code>. A session key that is not valid raises <code>TypeError</code> or <code>ValueError</code>, which <code>except Exception</code> catches. See <a href="../reference/state-store-reference/#session-store-methods">Session Store Methods</a>.</p>
 <p>What you need to do: if a Python function writes or removes sessions, check that each session key is a dict with <code>key</code>, <code>start</code> and <code>end</code>, with <code>int</code> times, <code>start</code> not negative and not after <code>end</code>. Code that passed other keys wrote nothing before, so fixing it can change what your application stores.</p>
 <p>Keys and values of stores are now also converted to the store's <code>keyType</code> and <code>valueType</code>. Code that worked before keeps working; see <a href="../reference/state-store-reference/#keys-and-values">Keys and Values</a>.</p>
+<h2 id="declared-stores-use-the-kafka-streams-defaults">Declared stores use the Kafka Streams defaults</h2>
+<p>In KSML 1.x, a store you declared was kept in memory, had no changelog topic, was not timestamped and was not cached, unless you switched these options on. Its state was lost when the application restarted. In KSML 2.0.0, declared stores get the same defaults as in Kafka Streams:</p>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>KSML 1.x default</th>
+<th>KSML 2.0.0 default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>persistent</code></td>
+<td><code>false</code></td>
+<td><code>true</code></td>
+</tr>
+<tr>
+<td><code>logging</code></td>
+<td><code>false</code></td>
+<td><code>true</code></td>
+</tr>
+<tr>
+<td><code>timestamped</code></td>
+<td><code>false</code></td>
+<td><code>true</code></td>
+</tr>
+<tr>
+<td><code>caching</code></td>
+<td><code>false</code></td>
+<td><code>true</code> when an operation such as <code>aggregate</code>, <code>count</code>, <code>reduce</code> or a table materializes the store, <code>false</code> when Python functions use it</td>
+</tr>
+</tbody>
+</table>
+<p>This applies to stores under <code>stores</code> and to stores declared inside an operation or on a table. Tables and globalTables without a <code>store</code>, and operations without a <code>store</code>, do not change. An option you set explicitly keeps its value.</p>
+<p>What changes for a running application:</p>
+<ul>
+<li>Each declared store gets a changelog topic named <code>&lt;application.id&gt;-&lt;store name&gt;-changelog</code>. If topics are created by hand or need ACLs in your cluster, create them or let the application create topics before the upgrade. A table with a <code>store</code> uses its input topic as changelog when <code>topology.optimization</code> is <code>all</code>, the runner's default.</li>
+<li>Persistent stores keep their state in RocksDB under <code>storageDirectory</code> in the <code>ksml</code> section of the runner config (see <a href="../reference/configuration-reference/#directory-configuration">Directory Configuration</a>). KSML uses it as the Kafka Streams <code>state.dir</code> and ignores a <code>state.dir</code> in the <code>kafka</code> section, with a warning. Put it on a volume with enough room that is kept between restarts, or the stores are restored from their changelog at every start.</li>
+<li>With the KSML Helm chart, set <code>store.spec</code> to put <code>storageDirectory</code> on a persistent volume. Without it, the stores are in an <code>emptyDir</code>, which is empty after every pod restart and limited to <code>store.emptyDir.sizeLimit</code> (<code>1Gi</code>, before <code>10Mi</code>). Kubernetes evicts the pod when the stores use more.</li>
+<li>With caching, an <code>aggregate</code>, <code>count</code>, <code>reduce</code> or table emits the latest result for a key when Kafka Streams commits (<code>commit.interval.ms</code>) or when the cache is full (<code>statestore.cache.max.bytes</code>), instead of every update. Set <code>caching: false</code> on the store if you need every update.</li>
+<li>RocksDB and changelog topics cost time and broker traffic: each write goes to local disk, and each write that isn't cached also to the changelog. Pipelines with many stores or many distinct keys can become noticeably slower, so test the throughput before you upgrade production. A store that doesn't need to survive a restart can set <code>persistent: false</code> and <code>logging: false</code>, as in 1.x. See <a href="../reference/state-store-reference/#performance-considerations">Performance Considerations</a>.</li>
+<li>A store with <code>versioned: true</code> but without <code>persistent: true</code> was an in-memory key-value store in 1.x, and is now a versioned store: in Python, <code>get</code> returns a dict with <code>value</code> and <code>timestamp</code>, and <code>put</code> and <code>delete</code> take a timestamp (see <a href="../reference/state-store-reference/#versioned-key-value-stores">Versioned Key-Value Stores</a>). A table with this store is a versioned table, which changes stream-table join lookups. Set <code>persistent: false</code> and <code>timestamped: false</code> to keep the plain in-memory store of 1.x (KSML logs a warning).</li>
+<li>A window store under <code>stores</code> is timestamped unless it sets <code>timestamped: false</code>, so Python functions get the <code>*WithTimestamp</code> methods. See <a href="../reference/state-store-reference/#timestamped-window-stores">Timestamped Window Stores</a>.</li>
+<li>A RocksDB store of a <code>count</code>, <code>aggregate</code>, <code>reduce</code> or table keeps timestamps, so <code>getWithTimestamp</code> and <code>fetchWithTimestamp</code> return the record timestamp instead of <code>-1</code>.</li>
+<li><code>timestamped: true</code> on a session store logs a warning, because session stores are not timestamped.</li>
+<li>The shared store of a <code>leftJoin</code> or <code>outerJoin</code> between two streams has a changelog topic unless both <code>thisStore</code> and <code>otherStore</code> set <code>logging: false</code>. In 1.x it had one only when <code>thisStore</code> set <code>logging: true</code>. The two window stores of the join always have a changelog topic, so <code>logging: false</code> on them logs a warning when it has no effect. See <a href="../reference/state-store-reference/#for-stream-stream-joins">Changelog topics of stream-stream joins</a>.</li>
+</ul>
+<p>On the first start, KSML checks the local state that 1.x left, before Kafka Streams starts:</p>
+<ul>
+<li>A persistent store that leaves out <code>logging</code> had no changelog in 1.x, and a new, empty changelog can't restore its state. So KSML stops when such a store has local state, and changes nothing. Set <code>logging: false</code> to keep the 1.x behavior, or <code>logging: true</code> to start a changelog with only the new updates. With <code>exactly_once_v2</code>, <code>logging: true</code> makes Kafka Streams delete the old state of all stores in the same task, until the store has written to its new changelog there: run with <code>processing.guarantee: at_least_once</code> until then. The error names these tasks and stores. To keep the old state in the changelog, set <code>logging: true</code> while still on 1.x, and upgrade once the changelog has the state you need. For the shared store of a stream-stream <code>leftJoin</code> or <code>outerJoin</code>, set <code>logging: false</code> on both join stores, or <code>logging: true</code> on <code>thisStore</code>.</li>
+<li>KSML 2.0.0 can't read the 1.x state of a persistent window store for Python with <code>timestamped: true</code>. With <code>logging: true</code>, KSML deletes this state once, and Kafka Streams restores it from the changelog. Without it, KSML stops: delete the files that the error names, or rename the store. With <code>exactly_once_v2</code>, KSML also stops when this delete would take a store with <code>logging: false</code> along: start once with <code>processing.guarantee: at_least_once</code>.</li>
+<li>The check runs once. It reads <code>logging</code> and <code>timestamped</code> in your YAML as the 1.x options, so do the first start with the 1.x options. Then KSML writes <code>.ksml-store-format</code> in <code>&lt;storageDirectory&gt;/&lt;application.id&gt;</code>. If you go back to 1.x and upgrade again, delete this file first.</li>
+</ul>
+<p>KSML now also follows the Kafka Streams setting <code>dsl.store.format</code>. With <code>dsl.store.format: HEADERS</code> in the <code>kafka</code>
+section of the runner config, declared key-value and window stores that are persistent and timestamped, and persistent
+session stores, can keep headers with each value; writes from Python store none. The default (<code>DEFAULT</code>) changes nothing, so you only need to act if you set it: switch the format only on a new
+application or after a reset, because existing state keeps its old format. See
+<a href="../reference/state-store-reference/#store-format">Store Format</a>.</p>
+<p>To keep the KSML 1.x behavior for a store, set the options explicitly:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="nt">stores</span><span class="p">:</span>
+<a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a><span class="w">  </span><span class="nt">my_store</span><span class="p">:</span>
+<a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a><span class="w">    </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">keyValue</span>
+<a id="__codelineno-13-4" name="__codelineno-13-4" href="#__codelineno-13-4"></a><span class="w">    </span><span class="nt">keyType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">string</span>
+<a id="__codelineno-13-5" name="__codelineno-13-5" href="#__codelineno-13-5"></a><span class="w">    </span><span class="nt">valueType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">json</span>
+<a id="__codelineno-13-6" name="__codelineno-13-6" href="#__codelineno-13-6"></a><span class="w">    </span><span class="nt">persistent</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span>
+<a id="__codelineno-13-7" name="__codelineno-13-7" href="#__codelineno-13-7"></a><span class="w">    </span><span class="nt">logging</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span>
+<a id="__codelineno-13-8" name="__codelineno-13-8" href="#__codelineno-13-8"></a><span class="w">    </span><span class="nt">timestamped</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span>
+<a id="__codelineno-13-9" name="__codelineno-13-9" href="#__codelineno-13-9"></a><span class="w">    </span><span class="nt">caching</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span>
+</code></pre></div>
+<p>A store that was in memory without a changelog in 1.x started empty after every restart. After the upgrade, it starts empty once more, because there is no earlier state to restore, and from then on it keeps its state.</p>
 <h2 id="tombstones-are-handled-like-in-kafka-streams">Tombstones are handled like in Kafka Streams</h2>
 <p>A tombstone is a record with a key but no value. It means "delete this key". On the 1.x line, KSML did not give a tombstone to Kafka Streams as a <code>null</code>, for example on a <code>json</code> or <code>avro</code> topic, nor a <code>None</code> returned by a function. So Kafka Streams did not see a delete:</p>
 <ul>
@@ -2748,11 +2846,11 @@ the logical type when it reads and writes a record. One of these changes what yo
 <h3 id="a-decimal-is-now-a-string">A decimal is now a string</h3>
 <p>An Avro <code>decimal</code> used to arrive in Python as raw bytes, because KSML treated it as its base <code>bytes</code>
 type. It is now a string holding the exact number.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="c1"># Before (KSML 1.x): amount was bytes, and you had to decode it yourself</span>
-<a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a><span class="n">amount</span> <span class="o">=</span> <span class="n">value</span><span class="p">[</span><span class="s2">"amount"</span><span class="p">]</span>          <span class="c1"># b'\x30\x39'</span>
-<a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a>
-<a id="__codelineno-13-4" name="__codelineno-13-4" href="#__codelineno-13-4"></a><span class="c1"># After (KSML 2.0.0): amount is the number as text</span>
-<a id="__codelineno-13-5" name="__codelineno-13-5" href="#__codelineno-13-5"></a><span class="n">amount</span> <span class="o">=</span> <span class="n">value</span><span class="p">[</span><span class="s2">"amount"</span><span class="p">]</span>          <span class="c1"># "123.45"</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a><span class="c1"># Before (KSML 1.x): amount was bytes, and you had to decode it yourself</span>
+<a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a><span class="n">amount</span> <span class="o">=</span> <span class="n">value</span><span class="p">[</span><span class="s2">"amount"</span><span class="p">]</span>          <span class="c1"># b'\x30\x39'</span>
+<a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a>
+<a id="__codelineno-14-4" name="__codelineno-14-4" href="#__codelineno-14-4"></a><span class="c1"># After (KSML 2.0.0): amount is the number as text</span>
+<a id="__codelineno-14-5" name="__codelineno-14-5" href="#__codelineno-14-5"></a><span class="n">amount</span> <span class="o">=</span> <span class="n">value</span><span class="p">[</span><span class="s2">"amount"</span><span class="p">]</span>          <span class="c1"># "123.45"</span>
 </code></pre></div>
 <p>What you need to do: if a Python function reads a <code>decimal</code> field, treat it as a string. Use
 <code>float(value["amount"])</code> or Python's <code>decimal.Decimal</code> when you need to calculate with it. When you

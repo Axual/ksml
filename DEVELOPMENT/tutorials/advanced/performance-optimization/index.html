@@ -3567,7 +3567,7 @@ graph TB
 <a id="__codelineno-9-8" name="__codelineno-9-8" href="#__codelineno-9-8"></a><span class="w">    </span><span class="nt">num.stream.threads</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">8</span><span class="w">                    </span><span class="c1"># Parallel processing threads (default: 1)</span>
 <a id="__codelineno-9-9" name="__codelineno-9-9" href="#__codelineno-9-9"></a>
 <a id="__codelineno-9-10" name="__codelineno-9-10" href="#__codelineno-9-10"></a><span class="w">    </span><span class="c1"># State Store Caching</span>
-<a id="__codelineno-9-11" name="__codelineno-9-11" href="#__codelineno-9-11"></a><span class="w">    </span><span class="nt">cache.max.bytes.buffering</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">104857600</span><span class="w">     </span><span class="c1"># 100MB total cache (default: 10MB)</span>
+<a id="__codelineno-9-11" name="__codelineno-9-11" href="#__codelineno-9-11"></a><span class="w">    </span><span class="nt">statestore.cache.max.bytes</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">104857600</span><span class="w">    </span><span class="c1"># 100MB total cache (default: 10MB)</span>
 <a id="__codelineno-9-12" name="__codelineno-9-12" href="#__codelineno-9-12"></a><span class="w">    </span><span class="nt">commit.interval.ms</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">30000</span><span class="w">                </span><span class="c1"># Commit frequency in ms (default: 30000)</span>
 <a id="__codelineno-9-13" name="__codelineno-9-13" href="#__codelineno-9-13"></a>
 <a id="__codelineno-9-14" name="__codelineno-9-14" href="#__codelineno-9-14"></a><span class="w">    </span><span class="c1"># Topology Optimization</span>
@@ -3595,7 +3595,7 @@ graph TB
 <p><strong>Key Configuration Details:</strong></p>
 <ul>
 <li><strong>num.stream.threads</strong>: Controls parallelism. Set based on CPU cores and partition count</li>
-<li><strong>cache.max.bytes.buffering</strong>: KSML automatically enables caching when <code>caching: true</code> is set on stores</li>
+<li><strong>statestore.cache.max.bytes</strong>: The total size of the store caches. Stores that operations materialize are cached by default; set <code>caching: false</code> on a store to turn it off</li>
 <li><strong>topology.optimization</strong>: KSML defaults to <code>StreamsConfig.OPTIMIZE</code> for performance</li>
 <li><strong>commit.interval.ms</strong>: Balance between throughput and latency. Higher values = better throughput</li>
 <li><strong>processing.guarantee</strong>: <code>exactly_once_v2</code> provides stronger guarantees but lower performance</li>
@@ -3682,28 +3682,28 @@ graph TB
 <p><strong>Configuration Parameter Details:</strong></p>
 <ul>
 <li>
-<p><strong>persistent</strong>: </p>
+<p><strong>persistent</strong> (default <code>true</code>): </p>
 <ul>
 <li><code>true</code>: Uses RocksDB for disk persistence, survives restarts</li>
 <li><code>false</code>: In-memory only, faster but data lost on restart</li>
 </ul>
 </li>
 <li>
-<p><strong>caching</strong>: </p>
+<p><strong>caching</strong> (default <code>true</code> when an operation materializes the store, <code>false</code> when Python functions use it): </p>
 <ul>
-<li><code>true</code>: KSML enables write caching to reduce downstream traffic</li>
+<li><code>true</code>: KSML enables write caching to reduce downstream traffic. Results are emitted on commit (<code>commit.interval.ms</code>) or when the cache is full</li>
 <li><code>false</code>: Direct writes, lower latency but higher network usage</li>
 </ul>
 </li>
 <li>
-<p><strong>logging</strong>: </p>
+<p><strong>logging</strong> (default <code>true</code>): </p>
 <ul>
 <li><code>true</code>: Creates changelog topic for fault tolerance and exactly-once processing</li>
 <li><code>false</code>: No changelog, faster but no fault tolerance</li>
 </ul>
 </li>
 <li>
-<p><strong>timestamped</strong>: </p>
+<p><strong>timestamped</strong> (default <code>true</code>): </p>
 <ul>
 <li><code>true</code>: Stores values with timestamps for time-aware processing</li>
 <li><code>false</code>: Plain values, more efficient when timestamps not needed</li>

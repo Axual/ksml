@@ -2303,6 +2303,7 @@ graph LR
     class Store store
     style App fill:none,stroke:#616161,stroke-dasharray:5 5</code></pre>
 <p>Without caching, the operation reads and writes the store directly. Without logging, there is no changelog topic: a persistent store still survives a restart on the same machine, but its state is lost if the application moves to another machine or the local files are deleted.</p>
+<p>As in Kafka Streams, a store you declare is persistent, timestamped and has a changelog topic unless you set these options to <code>false</code>. Caching is on when an operation such as <code>count</code> or <code>aggregate</code> uses the store, and off when Python functions use it. See the <a href="../../../reference/state-store-reference/#configuration-parameters">State Store Reference</a> for all defaults.</p>
 <h2 id="state-store-types">State Store Types</h2>
 <p>KSML supports three types of state stores. For detailed information about each type and their parameters, see the <a href="../../../reference/state-store-reference/#state-store-types">State Store Reference</a>.</p>
 <h2 id="configuration-methods">Configuration Methods</h2>

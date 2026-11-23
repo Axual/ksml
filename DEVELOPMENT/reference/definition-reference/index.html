@@ -2928,7 +2928,8 @@
 <a id="__codelineno-12-6" name="__codelineno-12-6" href="#__codelineno-12-6"></a><span class="w">    </span><span class="nt">persistent</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
 <a id="__codelineno-12-7" name="__codelineno-12-7" href="#__codelineno-12-7"></a><span class="w">    </span><span class="nt">caching</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
 </code></pre></div>
-<p>For details, see <a href="../state-store-reference/">State Store Reference</a>.</p>
+<p>As in Kafka Streams, a store is persistent, timestamped and has a changelog topic unless it sets these options to
+<code>false</code>. For details and the caching default, see <a href="../state-store-reference/#configuration-parameters">State Store Reference</a>.</p>
 <h2 id="producers">Producers</h2>
 <p>Define data generators for testing and simulation:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="nt">producers</span><span class="p">:</span>

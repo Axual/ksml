@@ -2772,6 +2772,9 @@ parse stops startup as well, rather than being skipped. See
 <a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="w">  </span><span class="nt">storageDirectory</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/tmp/kafka-streams</span>
 <a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="w">  </span><span class="nt">createStorageDirectory</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
 </code></pre></div>
+<p><code>storageDirectory</code> is the Kafka Streams <code>state.dir</code>. Persistent state stores keep their RocksDB state there, so in a
+container put it on a volume that is kept between restarts. Otherwise the stores are restored from their changelog
+topics after every restart.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p><code>schemaDirectory</code> is mainly intended for scenarios where your pipeline uses schemas but no schema
@@ -3191,7 +3194,8 @@ The default was changed due to issue <a href="https://github.com/Axual/ksml/issu
 </code></pre></div>
 <h2 id="kafka-configuration-section">Kafka Configuration Section</h2>
 <p>The <code>kafka</code> section contains standard Kafka client configuration properties. All Kafka Streams and Kafka client
-properties are supported.</p>
+properties are supported, except <code>state.dir</code>: KSML sets it from <code>storageDirectory</code> in the <code>ksml</code> section (see
+<a href="#directory-configuration">Directory Configuration</a>), and logs a warning when the <code>kafka</code> section sets another value.</p>
 <h3 id="essential-properties">Essential Properties</h3>
 <table>
 <thead>
@@ -3255,6 +3259,12 @@ properties are supported.</p>
 <td>String</td>
 <td>1</td>
 <td>Producer acknowledgment mode</td>
+</tr>
+<tr>
+<td><code>dsl.store.format</code></td>
+<td>String</td>
+<td>DEFAULT</td>
+<td><code>HEADERS</code> builds the declared stores that support it as headers-aware stores (persistent; for key-value and window stores also timestamped and not versioned). See <a href="../state-store-reference/#store-format">Store Format</a></td>
 </tr>
 </tbody>
 </table>
