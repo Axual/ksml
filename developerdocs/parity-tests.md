@@ -156,7 +156,8 @@ Fixed so far, and now guarded by their cases:
 
 - `cogroup` with two streams (C17).
 - The table-table foreign-key join: swapped types (F02) and other key types (F03) (C36b,
-  C36d), and a `foreignKeyExtractor` that reads the key (F21) (C38).
+  C36d), a `foreignKeyExtractor` that reads the key (F21) (C38), and `partitioner` and
+  `otherPartitioner` on input topics with several partitions (C36f, Docker mode).
 - `foreignKeyExtractor` on a stream join is rejected at startup (F04). The unit tests
   `JoinWithTableOperationTest` and `LeftJoinWithTableOperationTest` guard this. C36c
   checks the documented way, `toTable` before the join.
@@ -206,6 +207,8 @@ Useful options on `ParityCase`:
   `dsl.store.format` or `group.protocol`.
 - `compareHeaders()`, `compareShape()` (topology shape) and `compareChangelogs()`.
 - `partitions(topic, n)` and `restartAfter(step)` for Docker mode.
+- `pipeToPartition(topic, partition, ...)` writes an input record to a given partition in
+  Docker mode, for input topics with their own partitioning.
 - `dockerOnly()` and `skipInDocker(reason)`.
 - `global(topic)` for a global table topic.
 - `compareFinalValues()` for topics with several partitions.
