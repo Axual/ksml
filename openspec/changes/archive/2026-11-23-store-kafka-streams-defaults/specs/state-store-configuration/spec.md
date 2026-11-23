@@ -137,7 +137,7 @@ Window store state that KSML 1.x wrote from Python with a changelog SHALL read c
 - **THEN** it keeps the local state of its window stores
 
 ### Requirement: KSML stops on KSML 1.x local state that would be lost
-On the first start on an application state directory, before Kafka Streams starts, KSML SHALL stop with an error that names each store at risk, and SHALL change nothing, when a checked declared store (see "The upgrade check leaves out stores that had a changelog in KSML 1.x") has local state that would be lost: it is persistent and leaves out `logging`, it is a persistent window store for Python with `timestamped: true` and without `logging: true`, or exactly-once processing would delete its task. After a passed check, KSML SHALL not check that state directory again.
+On the first start on an application state directory, before Kafka Streams starts, KSML SHALL stop with an error that names each store at risk, and SHALL change nothing, when a checked declared store (see "The upgrade check leaves out stores that had a changelog in KSML 1.x") has local state that would be lost: it is persistent and leaves out `logging`, or it is a persistent window store for Python with `timestamped: true` and without `logging: true`.
 
 #### Scenario: Persistent store without logging
 - **WHEN** a KSML 1.x application left local state for a persistent store that leaves out `logging`, and this version starts on that state directory
@@ -155,17 +155,23 @@ On the first start on an application state directory, before Kafka Streams start
 - **WHEN** a KSML 1.x application left local state for a persistent window store for Python with `timestamped: true` and without `logging: true`, and this version starts on that state directory
 - **THEN** KSML stops with an error that names the files to delete, and does not delete them
 
-#### Scenario: Exactly-once would delete a store that keeps its state
-- **WHEN** with `processing.guarantee: exactly_once_v2` and without transactional state stores, KSML would delete the 1.x local state of a window store with `timestamped: true` and `logging: true`, and a store with `logging: false` has local state in the same task
-- **THEN** KSML stops with an error that names the task and both stores and asks to start once with `processing.guarantee: at_least_once`, and the local state is unchanged
-
 #### Scenario: Stores without data
 - **WHEN** a KSML 1.x application left RocksDB files without data (no `.sst` or `.blob` file) for a persistent store that leaves out `logging`, and this version starts on that state directory
 - **THEN** KSML starts, as there is nothing to lose
 
+### Requirement: The upgrade check runs once per state directory
+After a passed check of local state on the first start, KSML SHALL not check that application state directory again.
+
 #### Scenario: New application
 - **WHEN** this version starts on a state directory without local state for its stores
 - **THEN** KSML starts, and later starts do not check the state again
+
+### Requirement: KSML stops when exactly-once would delete KSML 1.x local state
+With exactly-once processing without transactional state stores, KSML SHALL stop on the first start on an application state directory, before Kafka Streams starts, and SHALL change nothing, when KSML would delete the 1.x local state of a store in a task where a checked store with `logging: false` has local state, because Kafka Streams would then delete the whole task.
+
+#### Scenario: Exactly-once would delete a store that keeps its state
+- **WHEN** with `processing.guarantee: exactly_once_v2` and without transactional state stores, KSML would delete the 1.x local state of a window store with `timestamped: true` and `logging: true`, and a store with `logging: false` has local state in the same task
+- **THEN** KSML stops with an error that names the task and both stores and asks to start once with `processing.guarantee: at_least_once`, and the local state is unchanged
 
 ### Requirement: KSML stops on KSML 1.x local state of a shared join store
 On the first start on an application state directory, before Kafka Streams starts, KSML SHALL stop with an error that names the store, and SHALL change nothing, when the shared store of a stream-stream left or outer join has local state, `thisStore` is persistent and does not set `logging: true`, and the join stores do not both set `logging: false`. In KSML 1.x this store had no changelog then, and now it gets one.
