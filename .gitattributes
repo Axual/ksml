@@ -1,4 +1,4 @@
-# All text files use LF line endings, on every platform (see CLAUDE.md)
+# All text files use LF line endings, on every platform
 * text=auto eol=lf
 
 # Binary files are never converted

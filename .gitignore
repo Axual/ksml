@@ -10,7 +10,6 @@ target/
 **/.settings
 **/.factorypath
 
-CLAUDE.md
 .claude
 
 .vscode/

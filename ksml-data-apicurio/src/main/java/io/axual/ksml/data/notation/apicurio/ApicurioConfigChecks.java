@@ -59,6 +59,7 @@ public final class ApicurioConfigChecks {
                 "the payload id format now follows " + SerdeConfig.ID_HANDLER + " and " + SerdeConfig.USE_ID);
         rejectRemovedValue(configs, SerdeConfig.ID_HANDLER,
                 LEGACY_4_BYTE_ID_HANDLER, Default4ByteIdHandler.class.getCanonicalName());
+        rejectRemovedPrefix(configs, "apicurio.registry.request.ssl.", "use apicurio.registry.tls.* instead");
     }
 
     // A renamed key would be ignored, so dropped credentials would only surface later as a 401.
@@ -80,5 +81,12 @@ public final class ApicurioConfigChecks {
         if (value != null && removedValue.equals(String.valueOf(value)))
             throw new DataException("Configuration key '" + key + "' is set to '" + removedValue
                     + "', which no longer exists; use '" + replacementValue + "' instead");
+    }
+
+    // A removed prefix would be ignored, so the TLS settings would be lost without a word
+    private static void rejectRemovedPrefix(Map<String, ?> configs, String prefix, String advice) {
+        for (final var key : configs.keySet())
+            if (key.startsWith(prefix))
+                throw new DataException("Configuration key '" + key + "' no longer exists; " + advice);
     }
 }

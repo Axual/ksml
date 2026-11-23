@@ -89,9 +89,7 @@ public final class ApicurioRegistryClientFactory {
         return configs.containsKey(TLS_KEYSTORE_LOCATION) || configs.containsKey(TLS_KEYSTORE_CERTIFICATE) || configs.containsKey(TLS_KEYSTORE_KEY);
     }
 
-    // Apicurio keeps the options for the URL, authentication, trust store, proxy and retries private. Calling it
-    // keeps those settings exactly as Apicurio applies them, so only the key store is added here.
-    // ApicurioRegistryClientFactoryTest checks that the method still exists.
+    // Reuses Apicurio's private option builder, so only the key store is added (the test checks it exists)
     private static RegistryClientOptions buildClientOptions(SchemaResolverConfig config) {
         try {
             final var method = RegistryClientFacadeFactory.class.getDeclaredMethod(BUILD_CLIENT_OPTIONS, SchemaResolverConfig.class, Vertx.class);

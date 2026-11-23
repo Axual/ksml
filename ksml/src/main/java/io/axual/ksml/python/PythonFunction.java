@@ -131,9 +131,7 @@ public class PythonFunction extends UserFunction {
             if (definition.resultType() != null) {
                 DataObject result = dataObjectMapper.toDataObject(definition.resultType().dataType(), pyResult);
                 logCall(parameters, result);
-                // toDataObject already converts to the result type where it can. Only a value that still does
-                // not fit gets the notations' converters; converting a fitting value would copy every list,
-                // map and struct again.
+                // Only convert a value that does not fit yet; converting again copies every list, map and struct
                 if (converter != null && definition.resultType().dataType().isAssignableFrom(result).isNotAssignable())
                     result = converter.convert(DEFAULT_NOTATION, result, definition.resultType());
                 checkType(definition.resultType().dataType(), result);

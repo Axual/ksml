@@ -21,17 +21,25 @@ package io.axual.ksml.python;
  */
 
 import io.axual.ksml.data.object.DataInteger;
+import io.axual.ksml.data.object.DataLong;
 import io.axual.ksml.data.object.DataNull;
 import io.axual.ksml.data.object.DataString;
 import io.axual.ksml.definition.FunctionDefinition;
+import io.axual.ksml.definition.InjectedParameter;
 import io.axual.ksml.definition.ParameterDefinition;
 import io.axual.ksml.definition.PythonSource;
 import io.axual.ksml.dsl.KSMLDSL;
 import io.axual.ksml.type.UserType;
+import io.axual.ksml.user.UserFunction;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
+
+import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.List;
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -170,5 +178,36 @@ class PythonFunctionTest {
         final var definition = FunctionDefinition.as(KSMLDSL.Functions.TYPE_GENERIC, "test", "half", new ParameterDefinition[0], PythonSource.of(null, null, "1.5"), doubleType, null, null);
         final var function = PythonFunction.forFunction(context, definition);
         assertThat(function.call()).isEqualTo(new io.axual.ksml.data.object.DataDouble(1.5));
+    }
+
+    @Test
+    void injectedValuesStayWithTheirThread() {
+        final var definition = FunctionDefinition.as(
+                KSMLDSL.Functions.TYPE_GENERIC,
+                "test",
+                "probe",
+                new ParameterDefinition[0],
+                PythonSource.of(null, null, "stores[\"id\"]"),
+                new UserType(UserType.DEFAULT_NOTATION, DataLong.DATATYPE),
+                List.of(new InjectedParameter(UserFunction.INJECT_STORES)),
+                null);
+        final var function = PythonFunction.forFunction(context, definition);
+        final var wrong = new AtomicLong();
+        try (var pool = Executors.newFixedThreadPool(4)) {
+            for (long id = 0; id < 4; id++) {
+                final var injections = Map.<String, Object>of(UserFunction.INJECT_STORES, Map.of("id", id));
+                final var expected = new DataLong(id);
+                pool.submit(() -> {
+                    for (int i = 0; i < 50_000; i++) {
+                        try {
+                            if (!expected.equals(function.call(injections))) wrong.incrementAndGet();
+                        } catch (RuntimeException e) {
+                            wrong.incrementAndGet();
+                        }
+                    }
+                });
+            }
+        }
+        assertThat(wrong.get()).isZero();
     }
 }

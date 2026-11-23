@@ -81,7 +81,7 @@ public class PunctuateProcessor extends OperationProcessor {
             try {
                 action.apply(stores, proxy, timestamp);
             } catch (RuntimeException e) {
-                throw new ExecutionException("Error in punctuate operation '" + name() + "' during the punctuation at timestamp " + timestamp + ", not while processing a record: " + e.getMessage(), e);
+                throw new ExecutionException("Error in punctuate operation '" + name() + "' during the punctuation at timestamp " + timestamp + ", not while processing a record", e);
             } finally {
                 proxy.invalidate();
             }
