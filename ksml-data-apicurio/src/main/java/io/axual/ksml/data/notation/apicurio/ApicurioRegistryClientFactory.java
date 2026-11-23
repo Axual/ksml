@@ -103,7 +103,8 @@ public final class ApicurioRegistryClientFactory {
     }
 
     private static void applyKeystore(RegistryClientOptions options, Map<String, Object> configs) {
-        final var type = getString(configs, TLS_KEYSTORE_TYPE, TLS_KEYSTORE_TYPE_DEFAULT);
+        final var defaultType = configs.containsKey(TLS_KEYSTORE_CERTIFICATE) || configs.containsKey(TLS_KEYSTORE_KEY) ? "PEM" : TLS_KEYSTORE_TYPE_DEFAULT;
+        final var type = getString(configs, TLS_KEYSTORE_TYPE, defaultType);
         final var password = getString(configs, TLS_KEYSTORE_PASSWORD, null);
         switch (type.toUpperCase()) {
             case "JKS" -> options.keystoreJks(require(configs, TLS_KEYSTORE_LOCATION, type), password);
