@@ -1105,9 +1105,9 @@ Records from the input still pass every operation once.
 
 - Because the punctuator can forward any key, Kafka Streams treats the output of `punctuate` as possibly re-keyed,
   as after `map`. A later `groupByKey` or `join` therefore repartitions.
-- The extra nodes change the generated names of unnamed operations after `punctuate`. For a stateful operation,
-  such as `aggregate` or `count`, that also changes the names of its store and internal topics. Give stateful
-  operations a `name`, so adding or changing a `punctuate` operation does not change them.
+- The extra nodes can change the generated names of stores and internal topics after `punctuate`, also for
+  operations that have a `name`. Adding a `name` to a later operation adds nodes too. Give each store after
+  `punctuate` its own name (`store: name: ...`), so its name and its changelog topic do not change.
 - The punctuator runs on the stream thread. No records are processed while it runs, and a long run can exceed
   `max.poll.interval.ms`. Keep punctuators short, and iterate over stores with the store iterators instead of
   loading everything at once.
