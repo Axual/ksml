@@ -147,7 +147,6 @@ mode does not fail a test. When that difference is gone, the report shows
 | F12 | `optimization: all` does not merge repartition topics after a KSML `selectKey` | C41 |
 | F14 | A required store with a wrong retention changes the result | C27 |
 | F16 | KSML always materializes a source table (by design) | C18 |
-| F21 | No foreign-key extractor that reads the key | C38 |
 | F27 | The runner does not close Kafka Streams on SIGTERM, so a static member cannot join again | C53 (Docker only) |
 
 Some problems have no case of their own. The runner keeps running after Kafka Streams
@@ -157,7 +156,7 @@ Fixed so far, and now guarded by their cases:
 
 - `cogroup` with two streams (C17).
 - The table-table foreign-key join: swapped types (F02) and other key types (F03) (C36b,
-  C36d).
+  C36d), and a `foreignKeyExtractor` that reads the key (F21) (C38).
 - `foreignKeyExtractor` on a stream join is rejected at startup (F04). The unit tests
   `JoinWithTableOperationTest` and `LeftJoinWithTableOperationTest` guard this. C36c
   checks the documented way, `toTable` before the join.

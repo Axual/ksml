@@ -42,7 +42,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
 import java.lang.reflect.Field;
-import java.util.function.Function;
+import java.util.function.BiFunction;
 
 import static io.axual.ksml.operation.OperationTestSupport.foreignKeyExtractor;
 import static io.axual.ksml.operation.OperationTestSupport.genericFunction;
@@ -101,7 +101,7 @@ class JoinWithTableOperationTest extends OperationTestBase {
 
         assertThat(operation.apply(input, mockContext())).isInstanceOf(KTableWrapper.class);
         // Foreign-key join without a store, so no Materialized, no partitioners.
-        verify(table).join(any(KTable.class), any(Function.class), any(ValueJoiner.class), any(TableJoined.class));
+        verify(table).join(any(KTable.class), any(BiFunction.class), any(ValueJoiner.class), any(TableJoined.class));
     }
 
     @Test
@@ -116,7 +116,7 @@ class JoinWithTableOperationTest extends OperationTestBase {
 
         assertThat(operation.apply(input, mockContext())).isInstanceOf(KTableWrapper.class);
         // Foreign-key join with a materialized store and both partitioners.
-        verify(table).join(any(KTable.class), any(Function.class), any(ValueJoiner.class), any(TableJoined.class), any(Materialized.class));
+        verify(table).join(any(KTable.class), any(BiFunction.class), any(ValueJoiner.class), any(TableJoined.class), any(Materialized.class));
     }
 
     @Test
@@ -132,7 +132,7 @@ class JoinWithTableOperationTest extends OperationTestBase {
         assertThat(operation.apply(input, mockContext())).isInstanceOf(KTableWrapper.class);
 
         final var tableJoinedCaptor = ArgumentCaptor.forClass(TableJoined.class);
-        verify(table).join(any(KTable.class), any(Function.class), any(ValueJoiner.class), tableJoinedCaptor.capture());
+        verify(table).join(any(KTable.class), any(BiFunction.class), any(ValueJoiner.class), tableJoinedCaptor.capture());
 
         // Regression check: userOtherPart used to be derived from the wrong null-check (part != null
         // instead of otherPart != null), silently dropping a present otherPartitioner whenever the
@@ -155,7 +155,7 @@ class JoinWithTableOperationTest extends OperationTestBase {
         assertThat(operation.apply(input, mockContext())).isInstanceOf(KTableWrapper.class);
 
         final var tableJoinedCaptor = ArgumentCaptor.forClass(TableJoined.class);
-        verify(table).join(any(KTable.class), any(Function.class), any(ValueJoiner.class), tableJoinedCaptor.capture());
+        verify(table).join(any(KTable.class), any(BiFunction.class), any(ValueJoiner.class), tableJoinedCaptor.capture());
 
         // Regression check: the old bug derived userOtherPart from `part != null` instead of
         // `otherPart != null`. When only the primary partitioner was set, it wrapped a null

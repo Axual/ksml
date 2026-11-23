@@ -95,7 +95,7 @@ public class LeftJoinWithTableOperation extends StoreOperation {
         final var ko = otherTable.keyType();
         final var vo = otherTable.valueType();
         final var vr = streamDataTypeOf(firstSpecificType(valueJoiner, vo, v), false);
-        // The foreignKeyExtractor gets a value of this table and returns a key of the other table
+        // The foreignKeyExtractor gets a value (and optionally the key) of this table and returns a key of the other table
         final var fkExtract = userFunctionOf(context, FOREIGN_KEY_EXTRACTOR_NAME, foreignKeyExtractor, ko, superOf(v));
         if (fkExtract != null) {
             return applyForeignKeyJoin(input, context, otherTable, fkExtract, k, v, vo, vr);
@@ -108,7 +108,7 @@ public class LeftJoinWithTableOperation extends StoreOperation {
     /*    Kafka Streams method signature:
      *    <VO, VR> KTable<K, VR> leftJoin(
      *          final KTable<K, VO> other,
-     *          final Function<V, KO> foreignKeyExtractor,
+     *          final BiFunction<K, V, KO> foreignKeyExtractor,
      *          final ValueJoiner<V, VO, VR> joiner,
      *          final TableJoined<K, KO> tableJoined,
      *          final Materialized<K, VR, KeyValueStore<Bytes, byte[]>> materialized)

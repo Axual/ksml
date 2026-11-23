@@ -339,7 +339,6 @@ class KTableParityTest {
                 .ksml("parity/c38-fk-extractor-with-key.yaml")
                 .pipe("t_customers", "c1", "{\"name\":\"Ann\"}", 1000)
                 .pipe("t_orders", "c1-o1", "{\"amount\":10}", 2000)
-                .knownDifference("F21", "no foreign-key extractor that reads the key", 6)
                 .check();
     }
 }

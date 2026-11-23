@@ -28,22 +28,26 @@ import io.axual.ksml.dsl.KSMLDSL;
 import io.axual.ksml.metric.MetricTags;
 import io.axual.ksml.python.Invoker;
 
-import java.util.function.UnaryOperator;
+import java.util.function.BiFunction;
 
 import static io.axual.ksml.data.object.DataObject.nullIfNone;
+import static io.axual.ksml.definition.DefinitionConstants.PARAM_KEY;
 
-public class UserForeignKeyExtractor extends Invoker implements UnaryOperator<Object> {
+public class UserForeignKeyExtractor extends Invoker implements BiFunction<Object, Object, Object> {
     private static final DataType EXPECTED_RESULT_TYPE = DataType.UNKNOWN;
     private static final NativeDataObjectMapper NATIVE_MAPPER = new DataObjectFlattener();
+    // Number of arguments: 1, or more when the function declares key
+    private final int argumentCount;
 
     public UserForeignKeyExtractor(UserFunction function, MetricTags tags) {
         super(function, tags, KSMLDSL.Functions.TYPE_FOREIGN_KEY_EXTRACTOR);
-        verifyParameterCount(1);
+        argumentCount = verifyParameterCount(1, PARAM_KEY);
         verifyResultType(EXPECTED_RESULT_TYPE);
     }
 
     @Override
-    public DataObject apply(Object value) {
-        return timeExecutionOf(() -> nullIfNone(function.call(NATIVE_MAPPER.toDataObject(value))));
+    public DataObject apply(Object key, Object value) {
+        return timeExecutionOf(() -> nullIfNone(function.call(withOptionalArgument(argumentCount, () -> NATIVE_MAPPER.toDataObject(key),
+                NATIVE_MAPPER.toDataObject(value)))));
     }
 }
