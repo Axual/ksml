@@ -21,12 +21,12 @@ package io.axual.ksml.data.notation.avro.apicurio;
  */
 
 import io.apicurio.registry.resolver.client.RegistryClientFacade;
+import io.apicurio.registry.resolver.client.RegistryClientFacadeFactory;
 import io.apicurio.registry.resolver.config.SchemaResolverConfig;
 import io.axual.ksml.client.resolving.ResolvingClientConfig;
 import io.axual.ksml.data.notation.Notation;
 import io.axual.ksml.data.notation.NotationContext;
 import io.axual.ksml.data.notation.apicurio.ApicurioConfigChecks;
-import io.axual.ksml.data.notation.apicurio.ApicurioRegistryClientFactory;
 import io.axual.ksml.data.notation.avro.AvroDataObjectMapper;
 import io.axual.ksml.data.notation.avro.AvroNotation;
 import io.axual.ksml.data.notation.vendor.VendorNotationContext;
@@ -65,7 +65,9 @@ public class ApicurioAvroNotationProvider extends VendorNotationProvider {
     }
 
     RegistryClientFacade createSrClient(Map<String, Object> serdeConfigs) {
-        return ApicurioRegistryClientFactory.create(serdeConfigs);
+        if (!serdeConfigs.containsKey(SchemaResolverConfig.REGISTRY_URL))
+            return null;
+        return RegistryClientFacadeFactory.create(new SchemaResolverConfig(serdeConfigs));
     }
 
     // The group the serde writes to: the user's explicit group if set, otherwise Apicurio's fallback.

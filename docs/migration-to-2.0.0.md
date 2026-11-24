@@ -119,16 +119,18 @@ apicurio.registry.tls.truststore.password: my-secret
 apicurio.registry.tls.truststore.type: JKS   # JKS, PKCS12 or PEM
 ```
 
-Apicurio v3 serdes have no setting for a client certificate. For a registry that requires mutual TLS, KSML adds these keys:
+For a registry that requires mutual TLS, set the client certificate with the Apicurio v3 key store keys:
 
 ```yaml
-apicurio.registry.tls.keystore.type: JKS     # JKS, PKCS12 or PEM; default PEM when certificate or key is set, else JKS
 apicurio.registry.tls.keystore.location: /path/to/keystore.jks
 apicurio.registry.tls.keystore.password: my-secret   # also unlocks the private key
-# For PEM, instead of the location and password:
-# apicurio.registry.tls.keystore.certificate: /path/to/client.crt   # file path or PEM content
-# apicurio.registry.tls.keystore.key: /path/to/client.key           # file path or PEM content
+apicurio.registry.tls.keystore.type: JKS             # JKS (default), PKCS12 or PEM
+# For a PEM certificate and key, instead of the key store:
+# apicurio.registry.tls.client-certificate: /path/to/client.crt   # file path or PEM content
+# apicurio.registry.tls.client-key: /path/to/client.key           # file path or PEM content
 ```
+
+KSML creates the registry client when it starts, so incomplete TLS settings stop KSML at startup.
 
 ## Stricter runner config validation
 
