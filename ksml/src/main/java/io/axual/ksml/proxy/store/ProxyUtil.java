@@ -79,7 +79,7 @@ public class ProxyUtil {
         if (object instanceof ValueAndTimestamp<?> vat) return resultFrom(vat);
         if (object instanceof VersionedRecord<?> vr) return resultFrom(vr);
         if (object instanceof KeyValue<?, ?> kv) return resultFrom(kv);
-        if (object instanceof KeyValueIterator<?, ?> kvi) return new StoreIteratorProxy(kvi);
+        if (object instanceof KeyValueIterator<?, ?> kvi) return StoreIteratorProxy.toPython(new StoreIteratorProxy(kvi));
 
         // Normal processing, ensuring flattened data structures
         if (object instanceof Windowed<?> windowed)
@@ -122,7 +122,7 @@ public class ProxyUtil {
      * {@code {key, value}} like on a plain key-value store; with timestamps, they are {@code {key, value, timestamp}}.
      */
     public static <V> Object toPythonTimestamped(KeyValueIterator<?, ValueAndTimestamp<V>> iterator, boolean withTimestamp) {
-        return new StoreIteratorProxy(iterator, entry -> timestampedEntry(entry, withTimestamp));
+        return StoreIteratorProxy.toPython(new StoreIteratorProxy(iterator, entry -> timestampedEntry(entry, withTimestamp)));
     }
 
     private static Object timestampedEntry(KeyValue<?, ?> kv, boolean withTimestamp) {

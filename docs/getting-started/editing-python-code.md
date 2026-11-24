@@ -60,40 +60,24 @@ For advanced scenarios, import Python modules using `globalCode`:
       pythonModulePath: /ksml  # Directory where Python modules are located (mounted volume)
 ```
 
-## Passing KSML Runtime Objects to Modules
+## Using KSML Runtime Objects in Modules
 
-When using Python modules, you cannot directly access KSML runtime variables (`log`, `metrics`, `stores`) inside the module because they are injected into the function's local scope, not the module's global scope.
-
-To use these objects in your module functions, **pass them as arguments** from the YAML function definition.
-
-### Passing the Logger
-
-In your YAML, pass the `log` object to your module function:
-
-```yaml
-functions:
-  module_imports:
-    globalCode: from my_module import calculate_score
-
-  calculate_fraud_score:
-    type: valueTransformer
-    # Pass the KSML-provided 'log' object as an argument
-    expression: calculate_score(value, log)
-    resultType: json
-```
-
-In your Python module, accept the logger as a parameter:
+`log` and `metrics` are available everywhere: in functions, in helper functions in `globalCode`, and in your own modules, without passing them as arguments. In a module, import them from the `ksml` module so your IDE knows them too, or use them without import:
 
 ```python
-from ksml import PythonLogger
+from ksml import log, metrics
 
-def calculate_score(value, log: PythonLogger):
-    """Calculate score using the KSML logger."""
+def calculate_score(value):
+    """Calculate score, logging under the name of the KSML function that called it."""
     risk_score = value.get("risk_score", 0)
     log.info("Calculated risk score: {}", risk_score)
+    metrics.counter("scores_calculated").increment()
     return {"score": risk_score}
 ```
 
+`log` always logs under the logger name of the KSML function that is running, also when it is called from a helper function. Outside a KSML function, for example in module code that runs at import, it logs under the name `ksml`.
+
+State stores are different: a function only gets the stores it declares, so pass them to module functions as arguments.
 ### Passing State Stores
 
 For functions that use state stores, pass the store as an argument:
@@ -124,38 +108,28 @@ def check_unusual_location(value, store: KeyValueStore):
     return result
 ```
 
-### Passing Metrics
-
-Similarly, pass the `metrics` object when you need custom metrics:
-
-```yaml
-functions:
-  process_with_metrics:
-    type: valueTransformer
-    expression: process_value(value, metrics)
-    resultType: json
-```
-
-```python
-from ksml import MetricsBridge
-
-def process_value(value, metrics: MetricsBridge):
-    """Process value and record metrics."""
-    counter = metrics.counter("processed_records")
-    counter.increment()
-    return value
-```
-
 ## Editor Support with the `ksml` Module
 
-KSML provides a `ksml.py` module that enables code completion and type checking in your IDE while also providing the actual Java types at runtime.
+KSML ships a `ksml` Python module that enables code completion and type checking in your IDE, and provides the actual types at runtime.
 
 ### Setting Up Code Completion
 
-Place the `ksml.py` module in your Python module directory (the same directory configured as `pythonModulePath`). The module works in two modes:
+KSML loads the `ksml` module into every Python context, so `from ksml import ...` works in inline code, `globalCode` and your own modules, without any setup. For code completion, let KSML write the module for its version next to your modules, or anywhere your IDE finds it:
+
+```bash
+# With the Docker image
+docker run --rm axual/ksml:latest --python-module > modules/ksml.py
+
+# With the runner jar
+java -jar ksml-runner.jar --python-module modules/ksml.py
+```
+
+Without a file name, `--python-module` prints the module to the standard output. The first line of the file names the KSML version it belongs to, so run the command again after upgrading KSML. The module works in two modes:
 
 - **At edit time:** Provides Protocol classes for IDE code completion and type checking
 - **At runtime:** Imports the actual Java types via GraalVM
+
+At runtime, KSML always uses the `ksml` module it ships with. A `ksml.py` in your `pythonModulePath` is not loaded, so an outdated copy only affects your IDE.
 
 Simply import the types you need in your module:
 
@@ -180,6 +154,10 @@ The `ksml.py` module provides type definitions for:
 - `metrics.meter(name)` - Create/get a meter metric
 - `metrics.timer(name)` - Create/get a timer metric
 
+#### Processor Context (`ProcessorContext`)
+- `context.forward(key, value, timestamp=None, headers=None, to=None)` - Emit a record from a punctuator
+- `context.currentSystemTimeMs()`, `context.currentStreamTimeMs()`, `context.applicationId()`, `context.taskId()`, `context.commit()`
+
 #### State Stores
 The main store types are:
 
@@ -190,12 +168,12 @@ The main store types are:
 Timestamped stores have the same methods, plus `*WithTimestamp` methods. See [State Store Reference](../reference/state-store-reference.md#python-store-methods).
 
 Store methods that return many entries, like `all()`, return a **`StoreIterator`**. Use it in a `for`
-loop, or with `next()` and `list()`. See [Reading Many Entries with Iterators](../reference/state-store-reference.md#reading-many-entries-with-iterators).
+loop, a `with` block, or with `next()` and `list()`. See [Reading Many Entries with Iterators](../reference/state-store-reference.md#reading-many-entries-with-iterators).
 
 ??? info "Complete ksml.py module (click to expand)"
 
     ```python
-    {% include "../../ksml/src/test/resources/ksml.py" %}
+    {% include "../../ksml/src/main/resources/io/axual/ksml/python/ksml.py" %}
     ```
 
 ## Complete Example: Fraud Detection
@@ -203,13 +181,12 @@ loop, or with `next()` and `list()`. See [Reading Many Entries with Iterators](.
 For a comprehensive example showing all these patterns together, see the [Fraud Detection use case](../use-cases/fraud-detection.md):
 
 - `fraud-detection-python-module.yaml` - YAML pipeline definition
-- `fraud_detection_module.py` - Python module with type-hinted functions
-- `ksml.py` - Type module for IDE support and runtime Java type imports
+- `fraud_detection_module.py` - Python module with type-hinted functions that imports from `ksml`
 
 This example demonstrates:
 
 - Importing functions from a Python module
-- Passing the `log` object to module functions
+- Logging from a module function with `log` imported from `ksml`
 - Passing `KeyValueStore` state stores to module functions
 - Using type hints for full IDE support
 
@@ -218,7 +195,7 @@ This example demonstrates:
 1. **Start inline**, move to modules as complexity grows
 2. **Use `globalCode`** for shared utilities and helper functions
 3. **Import modules** when you need a library of reusable functions
-4. **Pass runtime objects as arguments** to module functions (`log`, `metrics`, stores)
+4. **Pass state stores as arguments** to module functions; `log` and `metrics` are available everywhere
 5. **Use the `ksml.py` module** for better IDE support and fewer runtime errors
 6. **Keep functions pure** - avoid side effects outside of logging and metrics
 7. **Handle None values** explicitly to prevent runtime errors
@@ -231,7 +208,7 @@ my-project/
 │   ├── my-pipeline.yaml           # Main pipeline definition
 │   └── modules/
 │       ├── data_validation.py     # Importable Python modules
-│       └── ksml.py                # Type module for IDE support and runtime
+│       └── ksml.py                # Copy of the ksml module, for IDE support only
 └── config/
     └── ksml-runner.yaml           # Runner config with pythonModulePath
 ```
@@ -246,8 +223,8 @@ This guide covered approaches to organizing Python code in KSML:
 
 Key points for module imports:
 
-- Pass `log`, `metrics`, and state stores as function arguments
-- Use the `ksml.py` module for IDE support and runtime type imports
+- Use `log` and `metrics` directly, or import them from `ksml`; pass state stores as function arguments
+- Import types from the `ksml` module; copy `ksml.py` next to your modules for IDE support
 - Configure `pythonModulePath` in runner configuration
 
 See the [Fraud Detection use case](../use-cases/fraud-detection.md) for a complete working example with all patterns demonstrated.

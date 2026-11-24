@@ -20,13 +20,17 @@ package io.axual.ksml.runner;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.python.PythonContext;
 import io.axual.ksml.runner.exception.ConfigException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import tools.jackson.core.JacksonException;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.PrintStream;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.concurrent.CountDownLatch;
@@ -70,6 +74,35 @@ class KSMLRunnerTest {
         assertThat(out).as("KSML definition schema file should have been written").exists();
         // The generated schema is a JSON document describing the KSML definition structure.
         assertThat(Files.readString(out)).contains("$schema");
+    }
+
+    @Test
+    @DisplayName("The ksml Python module is written to file with a version header when --python-module is supplied")
+    void pythonModuleIsWritten(@TempDir Path tempDir) throws Exception {
+        final var out = tempDir.resolve("ksml.py");
+
+        // main() writes the Python module and returns when --python-module is set
+        KSMLRunner.main(new String[]{"--python-module", out.toString()});
+
+        assertThat(out).as("ksml Python module should have been written").exists();
+        final var lines = Files.readAllLines(out);
+        assertThat(lines.getFirst()).startsWith("# The ksml module of KSML " + KsmlInfo.APP_VERSION + ",");
+        // The rest of the file is the module that KSML loads at runtime
+        assertThat(Files.readString(out)).endsWith(PythonContext.ksmlModuleCode());
+    }
+
+    @Test
+    @DisplayName("Only the ksml Python module goes to the standard out when --python-module has no file")
+    void pythonModuleIsPrinted() {
+        final var originalOut = System.out;
+        final var captured = new ByteArrayOutputStream();
+        try {
+            System.setOut(new PrintStream(captured, true, StandardCharsets.UTF_8));
+            KSMLRunner.main(new String[]{"--python-module"});
+        } finally {
+            System.setOut(originalOut);
+        }
+        assertThat(captured.toString(StandardCharsets.UTF_8)).isEqualTo(KSMLRunner.pythonModuleWithVersionHeader());
     }
 
     @Test

@@ -122,7 +122,7 @@ apicurio.registry.tls.truststore.type: JKS   # JKS, PKCS12 or PEM
 Apicurio v3 serdes have no setting for a client certificate. For a registry that requires mutual TLS, KSML adds these keys:
 
 ```yaml
-apicurio.registry.tls.keystore.type: JKS     # JKS (default), PKCS12 or PEM
+apicurio.registry.tls.keystore.type: JKS     # JKS, PKCS12 or PEM; default PEM when certificate or key is set, else JKS
 apicurio.registry.tls.keystore.location: /path/to/keystore.jks
 apicurio.registry.tls.keystore.password: my-secret   # also unlocks the private key
 # For PEM, instead of the location and password:

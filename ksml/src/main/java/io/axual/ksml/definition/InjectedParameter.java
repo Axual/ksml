@@ -20,13 +20,10 @@ package io.axual.ksml.definition;
  * =========================LICENSE_END==================================
  */
 
-// A Python variable that KSML injects into a function, such as context. Not part of the KSML language spec.
-public record InjectedParameter(String name, String proxyClassName, String proxyClassCode) {
+// A Python variable that KSML injects into a function, such as context. Not part of the KSML language spec. When
+// proxyClassName is set, the injected object is wrapped in that class of the ksml Python module.
+public record InjectedParameter(String name, String proxyClassName) {
     public InjectedParameter(String name) {
         this(name, null);
-    }
-
-    public InjectedParameter(String name, String proxyClassName) {
-        this(name, proxyClassName, null);
     }
 }

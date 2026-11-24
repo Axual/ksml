@@ -495,8 +495,17 @@ for entry in store.all():
 Do not keep an iterator in a global variable for a later call: it is closed by then, and using it raises an error.
 A helper function that the KSML function calls, for example a `def` in `globalCode` or in a module, does not close
 its iterators when it returns. They stay open until the KSML function returns. So in a helper that runs a loop, or
-to close an iterator before the KSML function returns, use `contextlib.closing()`. A plain
-`with store.all() as entries:` does not work.
+to close an iterator before the KSML function returns, use a `with` block. It closes the iterator at the end of the
+block, also after `break`, `return` or an exception:
+
+```python
+def find_key(store, value):
+  with store.all() as entries:
+    for entry in entries:
+      if entry["value"] == value:
+        return entry["key"]
+  return None
+```
 
 Iterators also have the methods `hasNext()`, `next()` (returns `None` after the last entry), `peekNextKey()`
 (returns the next key without moving forward, or `None`) and `close()`.

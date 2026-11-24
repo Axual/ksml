@@ -1117,19 +1117,27 @@ Records from the input still pass every operation once.
 #### Example
 
 ```yaml
-pipelines:
-  flush_totals:
-    from: orders
-    via:
-      - type: transformValue
-        mapper: add_to_total     # writes to the totals store
-      - type: punctuate
-        name: flush
-        interval: 1m
-        punctuationType: wallClockTime
-        punctuator: emit_totals  # see the punctuator function reference
-    to: order_totals
+--8<-- "docs-examples/reference/operations/punctuate-processor.yaml:39:57"
 ```
+
+??? info "Producer - `punctuate` example (click to expand)"
+
+    ```yaml
+    {% include "../../ksml/src/test/resources/docs-examples/reference/operations/punctuate-producer.yaml" %}
+    ```
+
+??? info "Processor - `punctuate` example (click to expand)"
+
+    ```yaml
+    {% include "../../ksml/src/test/resources/docs-examples/reference/operations/punctuate-processor.yaml" %}
+    ```
+
+**What this example does:**
+
+- The producer generates orders with an amount, keyed by customer
+- The processor adds each amount to the total of the customer in the `totals` store, and does not pass the orders on
+- Every minute, the [punctuator](function-reference.md#punctuator) `emit_totals` sends each total to `order_totals`
+  and clears the store, also when no new orders arrive
 
 ## Combining Operations
 

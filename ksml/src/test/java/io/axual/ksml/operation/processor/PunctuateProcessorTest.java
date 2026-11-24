@@ -132,8 +132,8 @@ class PunctuateProcessorTest {
         final var punctuator = init(processor);
         assertThatThrownBy(() -> punctuator.punctuate(1000L))
                 .isInstanceOf(ExecutionException.class)
-                .hasMessageContaining("Error in punctuate operation 'flush' during the punctuation at timestamp 1000, not while processing a record: boom")
-                .hasCauseInstanceOf(IllegalStateException.class);
+                .hasMessageContaining("Error in punctuate operation 'flush' during the punctuation at timestamp 1000, not while processing a record")
+                .cause().isInstanceOf(IllegalStateException.class).hasMessage("boom");
         assertThatThrownBy(proxies.get(0)::taskId).hasMessageContaining("no longer valid");
         verify(context, org.mockito.Mockito.never()).forward(any(Record.class), any(String.class));
     }

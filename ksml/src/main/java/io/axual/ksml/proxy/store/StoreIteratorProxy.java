@@ -21,9 +21,11 @@ package io.axual.ksml.proxy.store;
  */
 
 import io.axual.ksml.proxy.base.AbstractProxy;
+import io.axual.ksml.python.PythonContext;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.streams.KeyValue;
 import org.apache.kafka.streams.state.KeyValueIterator;
+import org.graalvm.polyglot.Context;
 import org.graalvm.polyglot.Value;
 import org.graalvm.polyglot.proxy.ProxyArray;
 import org.graalvm.polyglot.proxy.ProxyExecutable;
@@ -52,6 +54,10 @@ public class StoreIteratorProxy implements AbstractProxy, ProxyIterator, ProxyOb
         private int depth = 0;
     }
 
+    // The class of the ksml Python module that wraps a StoreIteratorProxy
+    private static final String PROXY_CLASS_NAME = "KSMLStoreIterator";
+    private static final String PROXY_CLASS_LOOKUP = "__import__(\"%s\").%s".formatted(PythonContext.KSML_MODULE_NAME, PROXY_CLASS_NAME);
+
     private final KeyValueIterator<?, ?> iterator;
     private final Function<KeyValue<?, ?>, Object> entryToPython;
     private final Map<String, ProxyExecutable> members = Map.of(
@@ -77,6 +83,27 @@ public class StoreIteratorProxy implements AbstractProxy, ProxyIterator, ProxyOb
         if (scope != null) scope.created.add(this);
     }
 
+    /**
+     * Wraps the iterator in a Python object, so {@code with store.all() as entries:} works. Without a running Python
+     * call, such as when Java code calls a store proxy, returns the iterator itself.
+     */
+    public static Object toPython(StoreIteratorProxy iterator) {
+        final Context context;
+        try {
+            context = Context.getCurrent();
+        } catch (IllegalStateException _) {
+            return iterator;
+        }
+        // Looked up once per context, and kept in the context so it goes away with it
+        final var bindings = context.getPolyglotBindings();
+        var proxyClass = bindings.getMember(PROXY_CLASS_NAME);
+        if (proxyClass == null) {
+            proxyClass = context.eval("python", PROXY_CLASS_LOOKUP);
+            bindings.putMember(PROXY_CLASS_NAME, proxyClass);
+        }
+        return proxyClass.newInstance(iterator);
+    }
+
     /** Starts a Python function call. Returns the mark to pass to {@link #endCall(int)}. */
     public static int beginCall() {
         var scope = SCOPE.get();
@@ -94,7 +121,7 @@ public class StoreIteratorProxy implements AbstractProxy, ProxyIterator, ProxyOb
         int closedNow = 0;
         try {
             while (scope.created.size() > mark) {
-                final var proxy = scope.created.remove(scope.created.size() - 1);
+                final var proxy = scope.created.removeLast();
                 proxy.closedByCallEnd = true;
                 if (proxy.closed) continue;
                 closedNow++;

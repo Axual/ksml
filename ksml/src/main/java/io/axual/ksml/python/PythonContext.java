@@ -37,6 +37,8 @@ import org.graalvm.polyglot.Value;
 import org.graalvm.polyglot.io.FileSystem;
 import org.graalvm.polyglot.io.IOAccess;
 
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.List;
 
@@ -46,6 +48,9 @@ public class PythonContext implements AutoCloseable {
     private static final LoggerBridge LOGGER_BRIDGE = new LoggerBridge();
     private static final MetricsBridge METRICS_BRIDGE = new MetricsBridge(Metrics.registry());
     static final String PYTHON = "python";
+    /** The name of the Python module that ships with KSML. */
+    public static final String KSML_MODULE_NAME = "ksml";
+    private static final String KSML_MODULE_RESOURCE = "ksml.py";
 
     // With HostAccess.EXPLICIT, only classes with @HostAccess.Export annotations are accessible
     // Java collections (ArrayList, HashMap, TreeMap) are no longer needed since PythonTypeConverter
@@ -114,7 +119,7 @@ public class PythonContext implements AutoCloseable {
                 addModulePathToSysPath(Path.of(canonicalModulePath));
             }
 
-            registerGlobalCode();
+            registerKsmlModule();
         } catch (Exception e) {
             log.error("Error setting up a new Python context", e);
             throw new ExecutionException("Could not setup a new Python context", e);
@@ -139,30 +144,40 @@ public class PythonContext implements AutoCloseable {
     }
 
     /**
-     * Register global code that is used to initialize the loggerBridge and metricsBridge variables.
+     * Returns the source code of the ksml module that ships with KSML.
      */
-    public void registerGlobalCode() {
-        // The following code registers a global variables "loggerBridge" and "metricsBridge" inside the Python
-        // context and initializes it with our static LOGGER_BRIDGE member variable. This bridge is later used
-        // by other Python code to initialize a "log" variable with the proper Python namespace and function name.
-        final var pyCode = """
-                loggerBridge = None
-                metrics = None
-                import polyglot
-                
-                @polyglot.export_value
-                def register_ksml_bridges(lb, mb):
-                  global loggerBridge
-                  loggerBridge = lb
-                  global metrics
-                  metrics = mb
-                """;
-        final var register = registerFunction(pyCode, "register_ksml_bridges");
-        if (register == null) {
-            throw new ExecutionException("Could not register global code for loggerBridge:\n" + pyCode);
+    public static String ksmlModuleCode() {
+        try (var stream = PythonContext.class.getResourceAsStream(KSML_MODULE_RESOURCE)) {
+            if (stream == null) throw new ExecutionException("Could not find the Python module " + KSML_MODULE_RESOURCE);
+            return new String(stream.readAllBytes(), StandardCharsets.UTF_8);
+        } catch (IOException e) {
+            throw new ExecutionException("Could not read the Python module " + KSML_MODULE_RESOURCE, e);
         }
-        // Pass the global LOGGER_BRIDGE and METRICS_BRIDGE variables into global variables of the Python context
-        register.execute(LOGGER_BRIDGE, METRICS_BRIDGE);
+    }
+
+    /**
+     * Load the ksml module that ships with KSML, so Python code can import it and KSML can wrap its proxies in the
+     * classes it defines. The module also makes log and metrics available to all Python code. It is registered before any user code runs, so a ksml.py in the module path does not hide it.
+     */
+    private void registerKsmlModule() {
+        final var moduleCode = ksmlModuleCode();
+        final var pyCode = """
+                import polyglot
+
+                @polyglot.export_value
+                def register_ksml_module(source, logger_bridge, metrics_bridge):
+                  import sys, types
+                  module = types.ModuleType("%1$s")
+                  exec(compile(source, "%1$s.py", "exec"), module.__dict__)
+                  sys.modules["%1$s"] = module
+                  module._ksml_init(logger_bridge, metrics_bridge)
+                """.formatted(KSML_MODULE_NAME);
+        final var register = registerFunction(pyCode, "register_ksml_module");
+        if (register == null) {
+            throw new ExecutionException("Could not register the Python module " + KSML_MODULE_NAME);
+        }
+        // Passes the bridges for the log and metrics variables, which the module makes available everywhere
+        register.execute(moduleCode, LOGGER_BRIDGE, METRICS_BRIDGE);
     }
 
     /**

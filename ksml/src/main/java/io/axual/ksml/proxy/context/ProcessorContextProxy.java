@@ -49,7 +49,7 @@ import static io.axual.ksml.type.UserType.DEFAULT_NOTATION;
  * Python view of a Kafka Streams {@link ProcessorContext}, injected into a function as {@code context}. Only the
  * methods annotated with {@link HostAccess.Export} are visible from Python, so for example {@code schedule},
  * {@code getStateStore} and {@code appConfigs} raise an AttributeError. Python code sees the proxy through the class
- * {@code KSMLProcessorContext}, which adds keyword arguments to {@code forward}.
+ * {@code KSMLProcessorContext} of the {@code ksml} module, which adds keyword arguments to {@code forward}.
  * <p>
  * The proxy is only usable until {@link #invalidate()} is called, when the function call that received it returns.
  */
@@ -59,40 +59,10 @@ public class ProcessorContextProxy implements AbstractProxy {
     private static final DataObjectConverter CONVERTER = new DataObjectConverter();
     private static final HeaderDataObjectMapper HEADER_MAPPER = new HeaderDataObjectMapper();
 
-    // The Python class that wraps a ProcessorContextProxy
+    // The class of the ksml Python module that wraps a ProcessorContextProxy
     private static final String PROXY_NAME = "context";
     private static final String PROXY_CLASS_NAME = "KSMLProcessorContext";
-    private static final String PROXY_CLASS_CODE = """
-            # GraalPy passes no keyword arguments to Java methods, so this class takes them and calls the
-            # ProcessorContextProxy by position. It only offers the methods below.
-            class %1$s:
-              __slots__ = ("_proxy",)
-            
-              def __init__(self, proxy):
-                object.__setattr__(self, "_proxy", proxy)
-            
-              def __setattr__(self, name, value):
-                raise AttributeError("The context is read-only")
-            
-              def forward(self, key, value, timestamp=None, headers=None, to=None):
-                self._proxy.forward(key, value, timestamp, headers, to)
-            
-              def commit(self):
-                self._proxy.commit()
-            
-              def currentSystemTimeMs(self):
-                return self._proxy.currentSystemTimeMs()
-            
-              def currentStreamTimeMs(self):
-                return self._proxy.currentStreamTimeMs()
-            
-              def applicationId(self):
-                return self._proxy.applicationId()
-            
-              def taskId(self):
-                return self._proxy.taskId()
-            """.formatted(PROXY_CLASS_NAME);
-    public static final InjectedParameter INJECT_CONTEXT = new InjectedParameter(PROXY_NAME, PROXY_CLASS_NAME, PROXY_CLASS_CODE);
+    public static final InjectedParameter INJECT_CONTEXT = new InjectedParameter(PROXY_NAME, PROXY_CLASS_NAME);
     private final ProcessorContext<Object, Object> context;
     private final long defaultTimestamp;
     private final Target next;

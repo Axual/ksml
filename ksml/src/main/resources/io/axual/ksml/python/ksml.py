@@ -1,5 +1,6 @@
 
 from __future__ import annotations
+import contextvars
 from typing import Dict, Any, Optional, Union, List, Mapping, Protocol, Iterator, Iterable, Tuple, TYPE_CHECKING, overload
 
 if TYPE_CHECKING:
@@ -70,17 +71,6 @@ if TYPE_CHECKING:
         def timer(self, name: str) -> TimerBridge: ...
         @overload
         def timer(self, name: str, tags: Mapping[str, str]) -> TimerBridge: ...
-
-    class StoreIterator(Iterator[Dict[str, Any]], Protocol):
-        """Iterator of {"key", "value"} dicts ({"key", "value", "timestamp"} for *WithTimestamp).
-
-        Closed when all entries are read or the KSML function returns.
-        """
-
-        def hasNext(self) -> bool: ...
-        def next(self) -> Optional[Dict[str, Any]]: ...
-        def peekNextKey(self) -> Optional[Any]: ...
-        def close(self) -> None: ...
 
     class StateStore(Protocol):
         """Base interface for state stores.
@@ -273,7 +263,8 @@ if TYPE_CHECKING:
     # KSML runtime injected variables
     log: PythonLogger
     metrics: MetricsBridge
-    stores: Dict[str, Union[StateStore, KeyValueStore, SessionStore, WindowStore, VersionedKeyValueStore, TimestampedKeyValueStore, TimestampedWindowStore, Any]]
+    context: ProcessorContext
+    stores: Dict[str, Union[StateStore, KeyValueStore, SessionStore, WindowStore, TimestampedKeyValueStore, TimestampedWindowStore, VersionedKeyValueStore, Any]]
 else:
     # at runtime, make sure that the type hints do not cause any issues
     import java
@@ -285,5 +276,152 @@ else:
     TimestampedKeyValueStore = java.type('io.axual.ksml.proxy.store.TimestampedKeyValueStoreProxy')
     TimestampedWindowStore = java.type('io.axual.ksml.proxy.store.TimestampedWindowStoreProxy')
     VersionedKeyValueStore = java.type('io.axual.ksml.proxy.store.VersionedKeyValueStoreProxy')
-    # Store iterators reach Python as polyglot iterators, not as instances of a Java class
-    StoreIterator = Any
+
+
+# The classes below are used at runtime too: KSML wraps the Java proxies of store iterators and of the processor
+# context in them. They hold no state besides the proxy, so one definition serves every thread of the application.
+
+class KSMLStoreIterator:
+    """Iterator of {"key", "value"} dicts ({"key", "value", "timestamp"} for *WithTimestamp).
+
+    Closed when all entries are read, at the end of a with block, or when the KSML function returns. Python looks up
+    __enter__ and __exit__ on the type, which a Java object can not offer, so this class passes the calls on to the
+    Java proxy.
+    """
+    __slots__ = ("_proxy",)
+
+    def __init__(self, proxy: Any) -> None:
+        self._proxy = proxy
+
+    def __iter__(self) -> KSMLStoreIterator:
+        return self
+
+    def __next__(self) -> Dict[str, Any]:
+        return next(self._proxy)
+
+    def __enter__(self) -> KSMLStoreIterator:
+        return self
+
+    def __exit__(self, *exc_info: Any) -> bool:
+        self._proxy.close()
+        return False
+
+    def hasNext(self) -> bool:
+        return self._proxy.hasNext()
+
+    def next(self) -> Optional[Dict[str, Any]]:
+        return self._proxy.next()
+
+    def peekNextKey(self) -> Optional[Any]:
+        return self._proxy.peekNextKey()
+
+    def close(self) -> None:
+        self._proxy.close()
+
+
+class KSMLProcessorContext:
+    """The processor context, injected into a punctuator as context.
+
+    GraalPy passes no keyword arguments to Java methods, so this class takes them and calls the Java proxy by
+    position. It only offers the methods below.
+    """
+    __slots__ = ("_proxy",)
+
+    def __init__(self, proxy: Any) -> None:
+        object.__setattr__(self, "_proxy", proxy)
+
+    def __setattr__(self, name: str, value: Any) -> None:
+        raise AttributeError("The context is read-only")
+
+    def forward(self, key: Any, value: Any, timestamp: Optional[int] = None, headers: Optional[Any] = None, to: Optional[str] = None) -> None:
+        self._proxy.forward(key, value, timestamp, headers, to)
+
+    def commit(self) -> None:
+        self._proxy.commit()
+
+    def currentSystemTimeMs(self) -> int:
+        return self._proxy.currentSystemTimeMs()
+
+    def currentStreamTimeMs(self) -> int:
+        return self._proxy.currentStreamTimeMs()
+
+    def applicationId(self) -> str:
+        return self._proxy.applicationId()
+
+    def taskId(self) -> str:
+        return self._proxy.taskId()
+
+
+class KSMLLogger:
+    """The log variable. It logs to the logger of the KSML function that is running, also when called from a helper
+    function in globalCode or in your own module. Outside a KSML function, it logs to the logger named "ksml".
+    """
+    __slots__ = ()
+
+    def getName(self) -> str:
+        return _current_logger().getName()
+
+    def isTraceEnabled(self) -> bool:
+        return _current_logger().isTraceEnabled()
+
+    def isDebugEnabled(self) -> bool:
+        return _current_logger().isDebugEnabled()
+
+    def isInfoEnabled(self) -> bool:
+        return _current_logger().isInfoEnabled()
+
+    def isWarnEnabled(self) -> bool:
+        return _current_logger().isWarnEnabled()
+
+    def isErrorEnabled(self) -> bool:
+        return _current_logger().isErrorEnabled()
+
+    def trace(self, s: str, *args: Any) -> None:
+        _current_logger().trace(s, *args)
+
+    def debug(self, s: str, *args: Any) -> None:
+        _current_logger().debug(s, *args)
+
+    def info(self, s: str, *args: Any) -> None:
+        _current_logger().info(s, *args)
+
+    def warn(self, s: str, *args: Any) -> None:
+        _current_logger().warn(s, *args)
+
+    def error(self, s: str, *args: Any) -> None:
+        _current_logger().error(s, *args)
+
+
+StoreIterator = KSMLStoreIterator
+ProcessorContext = KSMLProcessorContext
+
+# The logger name of the KSML function that is running. Every call sets it, and a context variable keeps it separate
+# for each thread, because one Python context serves all stream threads.
+_current_function: contextvars.ContextVar[str] = contextvars.ContextVar("ksml_current_function", default="ksml")
+_logger_bridge: Any = None
+_loggers: Dict[str, Any] = {}
+
+
+def _current_logger() -> PythonLogger:
+    name = _current_function.get()
+    logger = _loggers.get(name)
+    if logger is None:
+        logger = _logger_bridge.getLogger(name)
+        _loggers[name] = logger
+    return logger
+
+
+def _ksml_init(logger_bridge: Any, metrics_bridge: Any) -> None:
+    """Called by KSML when it loads this module. Makes log and metrics available everywhere, also without import."""
+    global _logger_bridge, metrics
+    import builtins
+    _logger_bridge = logger_bridge
+    metrics = metrics_bridge
+    builtins.log = log
+    builtins.metrics = metrics_bridge
+
+
+if not TYPE_CHECKING:
+    log = KSMLLogger()
+    # Set by KSML when it loads this module
+    metrics = None

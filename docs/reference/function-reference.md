@@ -992,20 +992,11 @@ below.
 #### Example
 
 ```yaml
-functions:
-  emit_totals:
-    type: punctuator
-    stores:
-      - totals
-    code: |
-      keys = []
-      with totals.all() as entries:
-        for e in entries:
-          context.forward(e["key"], e["value"], headers=[{"key": "task", "value": context.taskId()}])
-          keys.append(e["key"])
-      for k in keys:
-        totals.delete(k)
+--8<-- "docs-examples/reference/operations/punctuate-processor.yaml:27:37"
 ```
+
+The full example, with the pipeline that uses this punctuator, is in the [`punctuate`](operation-reference.md#punctuate)
+operation reference.
 
 A punctuator runs on the stream thread, so no records are processed while it runs. Keep it short.
 

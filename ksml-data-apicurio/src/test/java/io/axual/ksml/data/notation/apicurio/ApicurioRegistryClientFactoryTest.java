@@ -129,11 +129,25 @@ class ApicurioRegistryClientFactoryTest {
     }
 
     @Test
+    @DisplayName("Without a type, a certificate and key make a PEM key store")
+    void infersPemKeystore() {
+        final var options = options(configs(
+                TLS_KEYSTORE_CERTIFICATE, "/certs/client.crt",
+                TLS_KEYSTORE_KEY, "/certs/client.key"));
+        assertThat(options.getPemClientCertPath()).isEqualTo("/certs/client.crt");
+        assertThat(options.getPemClientKeyPath()).isEqualTo("/certs/client.key");
+    }
+
+    @Test
     @DisplayName("Incomplete or unknown key store settings are rejected")
     void rejectsInvalidKeystoreSettings() {
-        assertThatThrownBy(() -> ApicurioRegistryClientFactory.create(configs(TLS_KEYSTORE_PASSWORD, "secret", TLS_KEYSTORE_KEY, "/certs/client.key")))
+        assertThatThrownBy(() -> ApicurioRegistryClientFactory.create(configs(TLS_KEYSTORE_TYPE, "PKCS12", TLS_KEYSTORE_PASSWORD, "secret", TLS_KEYSTORE_KEY, "/certs/client.key")))
                 .isInstanceOf(DataException.class)
                 .hasMessageContaining(TLS_KEYSTORE_LOCATION);
+        // Without a type, a key or certificate means a PEM key store
+        assertThatThrownBy(() -> ApicurioRegistryClientFactory.create(configs(TLS_KEYSTORE_PASSWORD, "secret", TLS_KEYSTORE_KEY, "/certs/client.key")))
+                .isInstanceOf(DataException.class)
+                .hasMessageContaining(TLS_KEYSTORE_CERTIFICATE);
         assertThatThrownBy(() -> ApicurioRegistryClientFactory.create(configs(TLS_KEYSTORE_TYPE, "PEM", TLS_KEYSTORE_CERTIFICATE, "/certs/client.crt")))
                 .isInstanceOf(DataException.class)
                 .hasMessageContaining(TLS_KEYSTORE_KEY);

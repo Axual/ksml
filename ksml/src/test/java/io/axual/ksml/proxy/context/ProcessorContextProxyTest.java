@@ -71,7 +71,7 @@ class ProcessorContextProxyTest {
     @BeforeAll
     static void setUpPython() {
         pythonContext = new PythonContext(PythonContextConfig.builder().build());
-        pythonContext.context().eval("python", ProcessorContextProxy.INJECT_CONTEXT.proxyClassCode());
+        pythonContext.context().eval("python", "from ksml import " + ProcessorContextProxy.INJECT_CONTEXT.proxyClassName());
     }
 
     @AfterAll

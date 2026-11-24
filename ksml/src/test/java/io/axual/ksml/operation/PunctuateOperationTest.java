@@ -314,6 +314,38 @@ class PunctuateOperationTest {
     }
 
     @Test
+    @DisplayName("a globalCode helper can read a store in a with block, which closes the iterator")
+    void globalCodeHelperUsesWithBlock() {
+        start("""
+                stores:
+                  totals:
+                    type: keyValue
+                    keyType: string
+                    valueType: long
+                    persistent: false
+                """ + pipeline("""
+                - type: punctuate
+                  interval: 1m
+                  punctuationType: wallClockTime
+                  punctuator:
+                    stores: [totals]
+                    globalCode: |
+                      def find_key(store, value):
+                        with store.all() as entries:
+                          for entry in entries:
+                            if entry["value"] == value:
+                              return entry["key"]
+                        return None
+                    code: |
+                      totals.put("a", 5)
+                      totals.put("b", 7)
+                      context.forward(find_key(totals, 7), 7)
+                """));
+        tick();
+        assertThat(output.readKeyValuesToList()).containsExactly(KeyValue.pair("b", 7L));
+    }
+
+    @Test
     @DisplayName("a globalCode helper can not read stores: it is no longer a global")
     void globalCodeHelperHasNoStoresGlobal() {
         start(totalsPunctuator("old_style_total('a')"));
@@ -363,6 +395,29 @@ class PunctuateOperationTest {
         assertThat(driver.<String, Object>getKeyValueStore("totals").approximateNumEntries()).isZero();
         tick();
         assertThat(output.isEmpty()).isTrue();
+    }
+
+    @Test
+    @DisplayName("a store named like the injected context is rejected when the topology is built")
+    void storeNamedContext() {
+        assertThatThrownBy(() -> start("""
+                stores:
+                  context:
+                    type: keyValue
+                    keyType: string
+                    valueType: long
+                    persistent: false
+                """ + pipeline("""
+                - type: punctuate
+                  interval: 1m
+                  punctuationType: wallClockTime
+                  punctuator:
+                    stores: [context]
+                    code: |
+                      pass
+                """)))
+                .hasStackTraceContaining("The store \"context\"")
+                .hasStackTraceContaining("clashes with the injected variable of the same name, rename the store");
     }
 
     @Test

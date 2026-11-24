@@ -38,8 +38,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.graalvm.polyglot.Context;
 import org.graalvm.polyglot.Value;
 
-import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -70,6 +71,7 @@ public class PythonFunction extends UserFunction {
 
     private PythonFunction(PythonContext context, FunctionDefinition def) {
         super(def);
+        validateNoNameClashes(definition);
         converter = context.converter();
         this.context = context.context();
         dataObjectMapper = new PythonDataObjectMapper(true, this.context);
@@ -89,6 +91,24 @@ public class PythonFunction extends UserFunction {
                     """, definition.namespace(), definition.name(), builder);
             throw new ExecutionException("Error in function: %s.%s".formatted(definition.namespace(), definition.name()));
         }
+    }
+
+    // Parameters, injected parameters and stores all become local variables of the generated Python function. A name
+    // used twice makes one variable silently replace the other.
+    private static void validateNoNameClashes(FunctionDefinition definition) {
+        final var namesInUse = new HashMap<String, String>();
+        for (final var param : definition.parameters())
+            checkNameNotInUse(definition, namesInUse, param.name(), "parameter");
+        for (final var injected : definition.injectedParameters())
+            checkNameNotInUse(definition, namesInUse, injected.name(), "injected variable");
+        for (final var storeName : new LinkedHashSet<>(definition.storeNames()))
+            checkNameNotInUse(definition, namesInUse, storeName, "store");
+    }
+
+    private static void checkNameNotInUse(FunctionDefinition definition, Map<String, String> namesInUse, String nameToAdd, String kind) {
+        final var existing = namesInUse.putIfAbsent(nameToAdd, kind);
+        if (existing != null)
+            throw new TopologyException("The %s \"%s\" of function %s.%s clashes with the %s of the same name, rename the %s".formatted(kind, nameToAdd, definition.namespace(), definition.name(), existing, kind));
     }
 
     @Override
@@ -173,13 +193,14 @@ public class PythonFunction extends UserFunction {
 
         // prepare globalCode from the function definition
         String[] globalCodeLines = getFunctionCode(definition.globalCode(), "");
-        final var globalCode = String.join("\n", injectFunctionLocalVariables(definition.namespace(), definition.type(), globalCodeLines)) + "\n";
+        final var globalCode = String.join("\n", globalCodeLines) + "\n";
 
-        // The Python classes that wrap injected objects, defined with the function that uses them
+        // The classes of the ksml module that wrap injected objects
         final var proxyCode = definition.injectedParameters().stream()
-                .map(InjectedParameter::proxyClassCode)
+                .map(InjectedParameter::proxyClassName)
                 .filter(Objects::nonNull)
                 .distinct()
+                .map(className -> "from " + PythonContext.KSML_MODULE_NAME + " import " + className)
                 .collect(Collectors.joining("\n"));
 
         // Prepare the return statement
@@ -194,8 +215,6 @@ public class PythonFunction extends UserFunction {
         final var functionAndExpression = "def " + definition.name() + "(" + functionParams+ "):\n" +
                 // Code to read the injected parameters, including the stores, as local variables of the function
                 initializeInjectedParams(definition.injectedParameters()) +
-                // Code to initialize local variables in the function
-                initFunctionLocalVariables(2, loggerName(definition.namespace(), definition.type(), definition.name())) +
                 // Code to assign store names as variables
                 initializeStoreNames(definition.storeNames()) +
                 // Code to initialize optional parameters with default values
@@ -203,28 +222,29 @@ public class PythonFunction extends UserFunction {
                 String.join("\n", functionCode) + "\n" +
                 "  " + returnStatement + "\n";
 
-
-
-
-
-
         // Prepare the actual caller for the code
         // Parameters are now pre-converted to Python types by PythonTypeConverter in Java
         // Return value is passed as-is; PythonDataObjectMapper handles GraalVM Value conversion
-        // Saves and restores the injected values, because calls can nest (a punctuator's context.forward runs a filter).
-        // Its own names start with _ksml_, so they do not hide a function or parameter.
+        // Sets the function that the log variable logs for, also in helper functions, and restores it afterwards because
+        // calls can nest (a punctuator's context.forward runs a filter). Its own names start with _ksml_, so they do not
+        // hide a function or parameter.
         final var callerParams = String.join(",", callParams) + (callParams.length > 0 ? ", " : "") + "_ksml_injected=_ksml_injected";
         final var pyCallerCode = "def " + definition.name() + "_caller(_ksml_injected," + String.join(",", defParams) + "):\n" +
-                "  return " + definition.name() + "(" + callerParams+ ")\n";
+                "  _ksml_token = _ksml_current_function.set(\"" + loggerName(definition.namespace(), definition.type(), definition.name()) + "\")\n" +
+                "  try:\n" +
+                "    return " + definition.name() + "(" + callerParams + ")\n" +
+                "  finally:\n" +
+                "    _ksml_current_function.reset(_ksml_token)\n";
 
         // Python code template - no longer needs convert_to_python/convert_from_python
         // as Java-side PythonTypeConverter handles all collection conversion
         final var pythonCodeTemplate =
                 """
                         import polyglot
+                        from ksml import _current_function as _ksml_current_function
                         _ksml_injected_parameters = {}
 
-                        # Python classes for injected parameters go here (fourth argument)
+                        # imports of the Python classes for injected parameters go here (fourth argument)
                         %4$s
                         
                         # global Python code goes here (first argument)
@@ -273,40 +293,5 @@ public class PythonFunction extends UserFunction {
     }
     private static String loggerName(String namespace, String type, String name) {
         return namespace + "." + type + "." + name;
-    }
-
-    private static String[] injectFunctionLocalVariables(String namespace, String type, String[] code) {
-        // Look for "def func():" statements and inject log variable code after all occurrences
-        final var result = new ArrayList<String>();
-        var injectCode = false;
-        var defIndent = 0;
-        var functionName = "";
-        for (final var line : code) {
-            if (line.trim().isEmpty()) continue;
-            final var lineIndent = line.length() - line.stripIndent().length();
-            if (injectCode && lineIndent > defIndent) {
-                result.add(initFunctionLocalVariables(lineIndent, loggerName(namespace, type, functionName)));
-            }
-            result.add(line);
-            injectCode = false;
-            if (line.trim().startsWith("def ") && line.trim().endsWith(":")) {
-                final var functionDef = line.trim().substring(4, line.length() - 1).trim();
-                if (functionDef.contains("(") && functionDef.endsWith(")")) {
-                    injectCode = true;
-                    defIndent = lineIndent;
-                    functionName = functionDef.substring(0, functionDef.indexOf("("));
-                }
-            }
-        }
-        return result.toArray(String[]::new);
-    }
-
-    private static String initFunctionLocalVariables(int indentCount, String loggerName) {
-        final var indent = " ".repeat(indentCount);
-        return indent + "global loggerBridge\n" +
-                indent + "log = None\n" +
-                indent + "if loggerBridge is not None:\n" +
-                indent + "  log = loggerBridge.getLogger(\"" + loggerName + "\")\n" +
-                indent + "global metrics\n";
     }
 }
