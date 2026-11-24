@@ -148,10 +148,6 @@ mode does not fail a test. When that difference is gone, the report shows
 | F14 | A required store with a wrong retention changes the result | C27 |
 | F16 | KSML always materializes a source table (by design) | C18 |
 | F21 | No foreign-key extractor that reads the key | C38 |
-| F27 | The runner does not close Kafka Streams on SIGTERM, so a static member cannot join again | C53 (Docker only) |
-
-Some problems have no case of their own. The runner keeps running after Kafka Streams
-fails (see the notes of C14, C21, C43 and others in Docker mode).
 
 Fixed so far, and now guarded by their cases:
 
@@ -167,6 +163,10 @@ Fixed so far, and now guarded by their cases:
 - Unknown fields in a definition stop KSML at startup (usability probes u03, u11 and u12).
 - A store with default options is persistent and has a changelog, so it keeps its state
   after a restart (F06, C44a in Docker mode).
+- The runner closes Kafka Streams on SIGTERM, so a static member (`group.instance.id`)
+  can join again after a restart (F27, C53 in Docker mode).
+- The runner stops with exit code 1 when Kafka Streams fails (F25). In Docker mode the
+  report shows this for C21, C38, C43 and other cases that fail.
 
 ## Add a case
 

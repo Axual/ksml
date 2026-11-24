@@ -79,7 +79,12 @@ jobs:
             exit 1
           fi
           # A new difference, a case that did not run, or a marker that is no longer needed
-          problems() { awk -F'\t' '$3 == "DIFF" || $3 == "HARNESS-ERROR" || $3 ~ /^MARKER-GONE/' "$summary"; }
+          problems() {
+            awk -F'\t' -v OFS='\t' '$3 == "DIFF" || $3 == "HARNESS-ERROR" || $3 ~ /^MARKER-GONE/ {
+              if ($3 ~ /^MARKER-GONE/) $5 = "KSML now writes the same as Kafka Streams. Remove the marker from the case."
+              print
+            }' "$summary"
+          }
           {
             echo "## Parity tests in Docker mode"
             echo
