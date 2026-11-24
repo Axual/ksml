@@ -1111,8 +1111,9 @@ Records from the input still pass every operation once.
 - The punctuator runs on the stream thread. No records are processed while it runs, and a long run can exceed
   `max.poll.interval.ms`. Keep punctuators short, and iterate over stores with the store iterators instead of
   loading everything at once.
-- An error in the punctuator is handled like an error in any other function, and is logged with the operation name
-  and the punctuation timestamp. Records forwarded before the error stay forwarded.
+- An error in the punctuator stops KSML, like an error in any other function, also with `errorHandling.process`
+  set to `continueOnFail`. It is logged with the operation name and the punctuation timestamp. Records forwarded
+  before the error stay forwarded.
 
 #### Example
 
