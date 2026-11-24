@@ -493,18 +493,55 @@ public abstract class BaseOperation implements StreamOperation {
         return result;
     }
 
-    protected StreamJoined<Object, Object, Object> streamJoinedOf(WindowStateStoreDefinition thisStore, WindowStateStoreDefinition otherStore, StreamDataType k, StreamDataType v, StreamDataType vo, JoinWindows joinWindows) {
-        var result = StreamJoined.with(k.serde(), v.serde(), vo.serde()).withLoggingDisabled();
+    /**
+     * @param hasSharedStore whether the join has a shared store for records without a match: {@code true} for a left
+     *                       or outer join, {@code false} for an inner join
+     */
+    protected StreamJoined<Object, Object, Object> streamJoinedOf(TopologyBuildContext context, WindowStateStoreDefinition thisStore, WindowStateStoreDefinition otherStore, KStreamWrapper thisStream, KStreamWrapper otherStream, JoinWindows joinWindows, boolean hasSharedStore) {
+        var result = StreamJoined.with(thisStream.keyType().serde(), thisStream.valueType().serde(), otherStream.valueType().serde());
         if (name != null) result = result.withName(name);
+        result = streamJoinedLogging(thisStore, otherStore, hasSharedStore) ? result.withLoggingEnabled(new HashMap<>()) : result.withLoggingDisabled();
         if (thisStore != null) {
             if (thisStore.name() != null) result = result.withStoreName(thisStore.name());
-            if (thisStore.logging()) result = result.withLoggingEnabled(new HashMap<>());
-            result = result.withThisStoreSupplier(StoreUtil.validatedWindowStore(thisStore, joinWindows));
+            result = result.withThisStoreSupplier(StoreUtil.validatedWindowStore(thisStore, joinWindows, context.headersStoreFormat()));
         }
         if (otherStore != null) {
-            result = result.withOtherStoreSupplier(StoreUtil.validatedWindowStore(otherStore, joinWindows));
+            result = result.withOtherStoreSupplier(StoreUtil.validatedWindowStore(otherStore, joinWindows, context.headersStoreFormat()));
         }
         return result;
+    }
+
+    /**
+     * Kafka Streams always logs join stores built from given suppliers, and applies the {@link StreamJoined} logging
+     * only to the shared store of a left or outer join. That store is logged unless both join stores turn logging off.
+     */
+    private static boolean streamJoinedLogging(WindowStateStoreDefinition thisStore, WindowStateStoreDefinition otherStore, boolean hasSharedStore) {
+        final var thisOff = loggingDisabled(thisStore);
+        final var otherOff = loggingDisabled(otherStore);
+        if (hasSharedStore && thisOff && otherOff) {
+            // What the state store reference says to do, so not a warning
+            log.info("Join stores '{}' and '{}' set 'logging: false': the shared store of the join has no changelog topic, and Kafka Streams keeps the changelog topics of the join stores",
+                    thisStore.name(), otherStore.name());
+        } else {
+            if (thisOff) warnJoinStoreLoggingWithoutEffect(thisStore, otherStore, hasSharedStore);
+            if (otherOff) warnJoinStoreLoggingWithoutEffect(otherStore, thisStore, hasSharedStore);
+        }
+        return !(thisOff && otherOff);
+    }
+
+    private static boolean loggingDisabled(WindowStateStoreDefinition store) {
+        return store != null && !store.logging();
+    }
+
+    private static void warnJoinStoreLoggingWithoutEffect(WindowStateStoreDefinition store, WindowStateStoreDefinition otherStore, boolean hasSharedStore) {
+        if (hasSharedStore) {
+            final var other = otherStore != null ? "'" + otherStore.name() + "'" : "the other join store";
+            log.warn("Join store '{}' sets 'logging: false', which has no effect unless {} sets it too: Kafka Streams always gives join stores a changelog topic, and only then turns off the one of the shared store (see 'For Stream-Stream Joins' in the state store reference)",
+                    store.name(), other);
+        } else {
+            log.warn("Join store '{}' sets 'logging: false', which has no effect: Kafka Streams always gives join stores a changelog topic (see 'For Stream-Stream Joins' in the state store reference)",
+                    store.name());
+        }
     }
 
     private record WrapPartitioner(
@@ -560,14 +597,14 @@ public abstract class BaseOperation implements StreamOperation {
             return new KeyValueStateStoreDefinition(
                     keyValueStore.name(),
                     keyValueStore.persistent(),
-                    keyValueStore.timestamped(),
+                    keyValueStore.declaredTimestamped(),
                     keyValueStore.versioned(),
                     keyValueStore.historyRetention(),
                     keyValueStore.segmentInterval(),
                     storeKeyType,
                     storeValueType,
                     keyValueStore.caching(),
-                    keyValueStore.logging());
+                    keyValueStore.declaredLogging());
         }
         throw new ExecutionException(this + " requires a  state store of type 'keyValue'");
     }
@@ -585,12 +622,12 @@ public abstract class BaseOperation implements StreamOperation {
             return new SessionStateStoreDefinition(
                     sessionStore.name(),
                     sessionStore.persistent(),
-                    sessionStore.timestamped(),
+                    sessionStore.declaredTimestamped(),
                     sessionStore.retention(),
                     storeKeyType,
                     storeValueType,
                     sessionStore.caching(),
-                    sessionStore.logging());
+                    sessionStore.declaredLogging());
         }
         throw new ExecutionException(this + " requires a  state store of type 'session'");
     }
@@ -608,14 +645,14 @@ public abstract class BaseOperation implements StreamOperation {
             return new WindowStateStoreDefinition(
                     windowStore.name(),
                     windowStore.persistent(),
-                    windowStore.timestamped(),
+                    windowStore.declaredTimestamped(),
                     windowStore.retention(),
                     windowStore.windowSize(),
                     windowStore.retainDuplicates(),
                     storeKeyType,
                     storeValueType,
                     windowStore.caching(),
-                    windowStore.logging());
+                    windowStore.declaredLogging());
         }
         throw new ExecutionException(this + " requires a  state store of type 'window'");
     }

@@ -65,10 +65,45 @@ Define directly within operations for custom configurations:
 | `type` | String | Yes | - | Store type: `keyValue`, `window`, or `session` |
 | `keyType` | String | Yes | - | Data type for keys (see [Data Types Reference](data-and-formats-reference.md)) |
 | `valueType` | String | Yes | - | Data type for values |
-| `persistent` | Boolean | No | `false` | If `true`, uses RocksDB (disk); if `false`, uses in-memory storage |
-| `caching` | Boolean | No | `false` | If `true`, improves read performance but delays updates |
-| `logging` | Boolean | No | `false` | If `true`, creates changelog topic for fault tolerance (in addition to local storage) |
-| `timestamped` | Boolean | No | `false` | If `true`, stores timestamp with each entry |
+| `persistent` | Boolean | No | `true` | If `true`, uses RocksDB (disk); if `false`, uses in-memory storage |
+| `caching` | Boolean | No | See below | If `true`, improves read performance but delays updates |
+| `logging` | Boolean | No | `true` | If `true`, creates changelog topic for fault tolerance (in addition to local storage) |
+| `timestamped` | Boolean | No | `true` | If `true`, stores timestamp with each entry. Has no effect on session stores: `true` there logs a warning |
+
+These defaults are the same as in Kafka Streams. Set an option to `false` to turn it off. Without `caching`, the
+default depends on how the store is used, again as in Kafka Streams:
+
+- When an operation such as `aggregate`, `count`, `reduce` or a table materializes the store, it is cached.
+- When Python functions use the store (it is listed in their `stores`), it is not cached.
+
+Tables and globalTables without a `store` are not affected: their stores stay in memory without a changelog topic.
+
+### Store Format
+
+With `dsl.store.format: HEADERS` in the `kafka` section of the runner config, KSML builds declared stores in the
+headers-aware format of Kafka Streams, which can keep headers with each value:
+
+```yaml
+kafka:
+  dsl.store.format: HEADERS
+```
+
+This applies to key-value and window stores that are persistent and timestamped (both are the default), whether an
+operation materializes them or Python functions use them, and to the window stores of stream-stream joins. It does not
+apply to in-memory stores (`persistent: false`), key-value and window stores with `timestamped: false`, and versioned
+stores: Kafka Streams has no headers-aware format for them. Session stores are not timestamped, so they are
+headers-aware when they are persistent. With the default value
+`DEFAULT`, no store is headers-aware. Python functions use headers-aware stores with the same methods as before; see
+[Headers-Aware Stores](#headers-aware-stores). The [KSML test runner](../getting-started/testing-your-pipeline.md)
+always uses `DEFAULT`.
+
+Operations without a `store` are not declared stores: Kafka Streams creates their stores and picks the format itself,
+also from `dsl.store.format`. Tables and globalTables without a `store` keep an in-memory store, which is not
+headers-aware.
+
+**Changing the format of a running application:** a store keeps its data on disk and in its changelog topic in the
+format it was created with. Before you switch `dsl.store.format` on an application that already has state, reset the
+application or give it a new `application.id`. Switching back from `HEADERS` to `DEFAULT` is not supported.
 
 ### Window Store Specific Parameters
 
@@ -86,7 +121,12 @@ Define directly within operations for custom configurations:
 | `historyRetention` | Duration | No (Yes if versioned) | - | How long to keep old versions |
 | `segmentInterval` | Duration | No | - | Segment size for versioned stores |
 
-**Important:** Versioned stores (`versioned: true`) cannot have caching enabled (`caching: false` is required).
+**Important:** Versioned stores (`versioned: true`) do not support caching. When an operation materializes a
+versioned store, Kafka Streams ignores caching. For a versioned store that Python functions use, do not set
+`caching: true`. Like other stores, a versioned store is persistent unless it sets `persistent: false`, in which case
+it becomes an in-memory store without versions.
+
+**Note:** Key-value stores have no `retention`: an entry stays until it is deleted or overwritten. For a versioned store, `historyRetention` sets how long old versions are kept.
 
 ### Session Store Specific Parameters
 
@@ -109,7 +149,6 @@ pipelines:
       - type: aggregate
         store:
           type: keyValue
-          retention: 1h
           caching: false
 ```
 
@@ -130,7 +169,6 @@ stores:
     valueType: json
     persistent: true
     logging: true
-    retention: 1h
 ```
 
 
@@ -242,7 +280,28 @@ pipelines:
           windowSize: 30m         # Must be 2 × timeDifference
           retention: 35m          # 2 × timeDifference + grace
           retainDuplicates: true
+        otherStore:
+          type: window
+          windowSize: 30m
+          retention: 35m
+          retainDuplicates: true
 ```
+
+**Changelog topics of stream-stream joins:** A stream-stream join has two window stores, `thisStore` and
+`otherStore`. A `leftJoin` or `outerJoin` also has a shared store for records that have not found a match yet.
+Kafka Streams always gives the two window stores a changelog topic, also with `logging: false`. The `logging` setting
+of the two window stores decides whether the shared store gets a changelog topic:
+
+- Both `logging: false`: the shared store has no changelog topic.
+- Otherwise (the default): the shared store has a changelog topic.
+
+KSML logs a warning for a window store with `logging: false` when the setting has no effect: on a `join`, which has
+no shared store, or when the other window store of a `leftJoin` or `outerJoin` doesn't set it too.
+
+Kafka Streams names the shared store `<thisStore>-outer-shared-join-store` or `<thisStore>-left-shared-join-store`,
+and keeps it in RocksDB when `thisStore` is persistent. KSML 1.x gave it a changelog topic only when `thisStore` set
+`logging: true`, so the first start after the upgrade checks its local state, see
+[Upgrading to 2.0.0](../migration-to-2.0.0.md#declared-stores-use-the-kafka-streams-defaults).
 
 ### Retention Guidelines
 
@@ -374,10 +433,10 @@ time is the window start for window stores and the session end for session store
 
 ### Timestamped Key-Value Stores
 
-A key-value store with `timestamped: true` keeps a timestamp with each value. The store of a `count`, `aggregate`,
-`reduce` or table (not a versioned table) is also a timestamped store in Python, with or without `timestamped: true`. In Python it has the
-same methods as a plain key-value store, and they return the same results, so the same code works on both kinds of
-store:
+A key-value store keeps a timestamp with each value, unless it sets `timestamped: false` or is versioned. The store of a
+`count`, `aggregate`, `reduce` or table (not a versioned table) is timestamped in Python even with `timestamped: false`.
+In Python it has the same methods as a plain key-value store, and they return the same results, so the same code works
+on both kinds of store:
 
 - `store.get(key)`, `store.delete(key)` and `store.putIfAbsent(key, value)` return only the value
 - `store.all()`, `store.range(...)`, `store.reverseRange(...)`, `store.reverseAll()` and `store.prefixScan(prefix)`
@@ -394,10 +453,10 @@ To work with the timestamps, use these methods. They only exist on timestamped s
   `store.reverseRangeWithTimestamp(keyFrom, keyTo)`, `store.reverseAllWithTimestamp()` and
   `store.prefixScanWithTimestamp(prefix)` - Entries with `key`, `value` and `timestamp`
 
-The store of a `count`, `aggregate`, `reduce` or table keeps timestamps only with `timestamped: true` or
-`persistent: false`. Otherwise, the `*WithTimestamp` methods can return `-1` as the timestamp: always without caching,
-and with `caching: true` once the entry has left the cache (for example after a restart). Do not pass this timestamp
-to `put`.
+The store of a `count`, `aggregate`, `reduce` or table keeps timestamps unless it is persistent and sets
+`timestamped: false`. In that case, the `*WithTimestamp` methods can return `-1` as the timestamp: always without
+caching, and with `caching: true` once the entry has left the cache (for example after a restart). Do not pass this
+timestamp to `put`.
 
 In `putAll`, a dict entry can have a `timestamp` field. That entry is stored with this timestamp, so
 `store.putAll(other_store.allWithTimestamp())` copies a store with its timestamps. A `(key, value, timestamp)` tuple
@@ -416,9 +475,9 @@ store.put(key, value)  # stored with the timestamp of the current record
 
 ### Timestamped Window Stores
 
-A windowed aggregation, such as `count` or `aggregate`, keeps its results in a timestamped window store. When a
-Python function lists this store in its `stores`, it gets the same methods as a
-[plain window store](#window-store-methods), with the same results:
+A windowed aggregation, such as `count` or `aggregate`, keeps its results in a timestamped window store, and so does a
+window store under `stores`, unless it sets `timestamped: false`. When a Python function lists such a store in its
+`stores`, it gets the same methods as a [plain window store](#window-store-methods), with the same results:
 
 - `store.fetch(key, time)` returns only the value
 - `store.fetch(...)`, `store.backwardFetch(...)`, `store.fetchAll(...)`, `store.backwardFetchAll(...)`, `store.all()`
@@ -433,13 +492,26 @@ To work with the timestamps, use these methods:
   `allWithTimestamp` and `backwardAllWithTimestamp` - The same arguments as the methods without `WithTimestamp`, and
   entries with `key`, `value` and `timestamp`
 
-The store of a windowed aggregation keeps timestamps only with `timestamped: true` or `persistent: false`.
-Otherwise, the `*WithTimestamp` methods can return `-1` as the timestamp: always without caching, and with
-`caching: true` once the entry has left the cache (for example after a restart). Do not pass this timestamp to `put`.
+The store of a windowed aggregation keeps timestamps unless it is persistent and sets `timestamped: false`. In that
+case, the `*WithTimestamp` methods can return `-1` as the timestamp: always without caching, and with `caching: true`
+once the entry has left the cache (for example after a restart). Do not pass this timestamp to `put`.
 A negative timestamp in `put` raises a `ValueError`, as on a timestamped key-value store.
 
-A window store under `stores:` that only Python functions use is a plain window store, also with `timestamped: true`.
-It has no `*WithTimestamp` methods.
+### Headers-Aware Stores
+
+With [`dsl.store.format: HEADERS`](#store-format), the stores that [Store Format](#store-format) lists can keep
+headers with each value. Python
+uses them with the same methods, and gets the same results, as without headers:
+
+- A key-value store has the methods of a [timestamped key-value store](#timestamped-key-value-stores).
+- A window store has the methods of a [timestamped window store](#timestamped-window-stores), including the
+  `*WithTimestamp` methods.
+- A session store has the methods of a [session store](#session-store-methods).
+
+Reads never return headers. A write from Python stores the value with no headers, as Kafka Streams' own aggregations
+do, so the headers of the record that is being processed don't go to the store and its changelog topic. A delete is
+the exception: Kafka Streams sends the headers of the record that is being processed with the tombstone in the
+changelog topic, also for its own stores.
 
 ### Versioned Key-Value Stores
 
@@ -528,7 +600,7 @@ It's important to understand that `persistent` and `logging` control different a
 | Configuration | Description | Use Case |
 |--------------|-------------|----------|
 | `persistent: true, logging: false` | RocksDB only (local durability, no fault tolerance) | Development, non-critical state |
-| `persistent: true, logging: true` | RocksDB + changelog (local durability + fault tolerance) | **Production (Recommended)** ✅ |
+| `persistent: true, logging: true` | RocksDB + changelog (local durability + fault tolerance). The default | **Production (Recommended)** ✅ |
 | `persistent: false, logging: true` | In-memory + changelog (fast access, fault tolerant) | High-performance with recovery |
 | `persistent: false, logging: false` | In-memory only (fastest, data lost on restart) | Temporary caches, testing |
 
@@ -550,6 +622,10 @@ When `logging: true` is configured:
 |---------|----------|----------|
 | `caching: true` | Batches updates, reduces downstream load | High-throughput with acceptable latency |
 | `caching: false` | Immediate emission of all updates | Real-time requirements, debugging |
+
+With caching, an operation emits the latest result for a key when Kafka Streams commits (`commit.interval.ms`) or when
+the cache is full (`statestore.cache.max.bytes`), instead of emitting every update. Stores that operations materialize
+are cached by default; see [Common Parameters](#common-parameters-all-store-types).
 
 ### Persistence Trade-offs
 

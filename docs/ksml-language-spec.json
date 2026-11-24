@@ -1900,7 +1900,7 @@
       "description" : "Definition of a keyValue state store",
       "properties" : {
         "caching" : {
-          "description" : "*(optional)* \"true\" if changed to the keyValue store need to be buffered and periodically released, \"false\" to emit all changes directly",
+          "description" : "*(optional)* \"true\" if changes to the keyValue store need to be buffered and periodically released, \"false\" to emit all changes directly. Defaults to \"true\" when an operation materializes the store, and to \"false\" when functions use it",
           "type" : "boolean"
         },
         "historyRetention" : {
@@ -1916,7 +1916,7 @@
           "type" : "string"
         },
         "logging" : {
-          "description" : "*(optional)* \"true\" if a changelog topic should be set up on Kafka for this keyValue store, \"false\" otherwise",
+          "description" : "*(optional)* \"true\" if a changelog topic should be set up on Kafka for this keyValue store, \"false\" otherwise. Defaults to \"true\"",
           "type" : "boolean"
         },
         "name" : {
@@ -1924,7 +1924,7 @@
           "type" : "string"
         },
         "persistent" : {
-          "description" : "*(optional)* \"true\" if this keyValue store needs to be stored on disk, \"false\" otherwise",
+          "description" : "*(optional)* \"true\" if this keyValue store needs to be stored on disk, \"false\" otherwise. Defaults to \"true\"",
           "type" : "boolean"
         },
         "segmentInterval" : {
@@ -1936,7 +1936,7 @@
           "description" : "*(optional)* Size of segments for storing old record versions (must be positive). Old record versions for the same key in a single segment are stored (updated and accessed) together. The only impact of this parameter is performance. If segments are large and a workload results in many record versions for the same key being collected in a single segment, performance may degrade as a result. On the other hand, historical reads (which access older segments) and out-of-order writes may slow down if there are too many segments."
         },
         "timestamped" : {
-          "description" : "*(optional)* \"true\" if elements in the store are timestamped, \"false\" otherwise",
+          "description" : "*(optional)* \"true\" if elements in the store are timestamped, \"false\" otherwise. Defaults to \"true\"",
           "type" : "boolean"
         },
         "type" : {
@@ -1961,7 +1961,7 @@
       "description" : "Definition of a keyValue state store",
       "properties" : {
         "caching" : {
-          "description" : "*(optional)* \"true\" if changed to the keyValue store need to be buffered and periodically released, \"false\" to emit all changes directly",
+          "description" : "*(optional)* \"true\" if changes to the keyValue store need to be buffered and periodically released, \"false\" to emit all changes directly. Defaults to \"true\" when an operation materializes the store, and to \"false\" when functions use it",
           "type" : "boolean"
         },
         "historyRetention" : {
@@ -1973,7 +1973,7 @@
           "description" : "*(optional)* (Versioned only) The duration for which old record versions are available for query (cannot be negative)"
         },
         "logging" : {
-          "description" : "*(optional)* \"true\" if a changelog topic should be set up on Kafka for this keyValue store, \"false\" otherwise",
+          "description" : "*(optional)* \"true\" if a changelog topic should be set up on Kafka for this keyValue store, \"false\" otherwise. Defaults to \"true\"",
           "type" : "boolean"
         },
         "name" : {
@@ -1981,7 +1981,7 @@
           "type" : "string"
         },
         "persistent" : {
-          "description" : "*(optional)* \"true\" if this keyValue store needs to be stored on disk, \"false\" otherwise",
+          "description" : "*(optional)* \"true\" if this keyValue store needs to be stored on disk, \"false\" otherwise. Defaults to \"true\"",
           "type" : "boolean"
         },
         "segmentInterval" : {
@@ -1993,7 +1993,7 @@
           "description" : "*(optional)* Size of segments for storing old record versions (must be positive). Old record versions for the same key in a single segment are stored (updated and accessed) together. The only impact of this parameter is performance. If segments are large and a workload results in many record versions for the same key being collected in a single segment, performance may degrade as a result. On the other hand, historical reads (which access older segments) and out-of-order writes may slow down if there are too many segments."
         },
         "timestamped" : {
-          "description" : "*(optional)* \"true\" if elements in the store are timestamped, \"false\" otherwise",
+          "description" : "*(optional)* \"true\" if elements in the store are timestamped, \"false\" otherwise. Defaults to \"true\"",
           "type" : "boolean"
         },
         "type" : {
@@ -2014,7 +2014,7 @@
       "description" : "Definition of a keyValue state store",
       "properties" : {
         "caching" : {
-          "description" : "*(optional)* \"true\" if changed to the keyValue store need to be buffered and periodically released, \"false\" to emit all changes directly",
+          "description" : "*(optional)* \"true\" if changes to the keyValue store need to be buffered and periodically released, \"false\" to emit all changes directly. Defaults to \"true\" when an operation materializes the store, and to \"false\" when functions use it",
           "type" : "boolean"
         },
         "historyRetention" : {
@@ -2026,7 +2026,7 @@
           "description" : "*(optional)* (Versioned only) The duration for which old record versions are available for query (cannot be negative)"
         },
         "logging" : {
-          "description" : "*(optional)* \"true\" if a changelog topic should be set up on Kafka for this keyValue store, \"false\" otherwise",
+          "description" : "*(optional)* \"true\" if a changelog topic should be set up on Kafka for this keyValue store, \"false\" otherwise. Defaults to \"true\"",
           "type" : "boolean"
         },
         "name" : {
@@ -2034,7 +2034,7 @@
           "type" : "string"
         },
         "persistent" : {
-          "description" : "*(optional)* \"true\" if this keyValue store needs to be stored on disk, \"false\" otherwise",
+          "description" : "*(optional)* \"true\" if this keyValue store needs to be stored on disk, \"false\" otherwise. Defaults to \"true\"",
           "type" : "boolean"
         },
         "segmentInterval" : {
@@ -2046,7 +2046,7 @@
           "description" : "*(optional)* Size of segments for storing old record versions (must be positive). Old record versions for the same key in a single segment are stored (updated and accessed) together. The only impact of this parameter is performance. If segments are large and a workload results in many record versions for the same key being collected in a single segment, performance may degrade as a result. On the other hand, historical reads (which access older segments) and out-of-order writes may slow down if there are too many segments."
         },
         "timestamped" : {
-          "description" : "*(optional)* \"true\" if elements in the store are timestamped, \"false\" otherwise",
+          "description" : "*(optional)* \"true\" if elements in the store are timestamped, \"false\" otherwise. Defaults to \"true\"",
           "type" : "boolean"
         },
         "type" : {
@@ -3958,7 +3958,7 @@
       "description" : "Definition of a session state store",
       "properties" : {
         "caching" : {
-          "description" : "*(optional)* \"true\" if changed to the session store need to be buffered and periodically released, \"false\" to emit all changes directly",
+          "description" : "*(optional)* \"true\" if changes to the session store need to be buffered and periodically released, \"false\" to emit all changes directly. Defaults to \"true\" when an operation materializes the store, and to \"false\" when functions use it",
           "type" : "boolean"
         },
         "keyType" : {
@@ -3966,7 +3966,7 @@
           "type" : "string"
         },
         "logging" : {
-          "description" : "*(optional)* \"true\" if a changelog topic should be set up on Kafka for this session store, \"false\" otherwise",
+          "description" : "*(optional)* \"true\" if a changelog topic should be set up on Kafka for this session store, \"false\" otherwise. Defaults to \"true\"",
           "type" : "boolean"
         },
         "name" : {
@@ -3974,7 +3974,7 @@
           "type" : "string"
         },
         "persistent" : {
-          "description" : "*(optional)* \"true\" if this session store needs to be stored on disk, \"false\" otherwise",
+          "description" : "*(optional)* \"true\" if this session store needs to be stored on disk, \"false\" otherwise. Defaults to \"true\"",
           "type" : "boolean"
         },
         "retention" : {
@@ -3986,7 +3986,7 @@
           "description" : "*(optional)* The duration for which elements in the session store are retained"
         },
         "timestamped" : {
-          "description" : "*(optional)* \"true\" if elements in the store are timestamped, \"false\" otherwise",
+          "description" : "*(optional)* Has no effect: session stores are not timestamped. \"true\" logs a warning",
           "type" : "boolean"
         },
         "type" : {
@@ -4007,11 +4007,11 @@
       "description" : "Definition of a session state store",
       "properties" : {
         "caching" : {
-          "description" : "*(optional)* \"true\" if changed to the session store need to be buffered and periodically released, \"false\" to emit all changes directly",
+          "description" : "*(optional)* \"true\" if changes to the session store need to be buffered and periodically released, \"false\" to emit all changes directly. Defaults to \"true\" when an operation materializes the store, and to \"false\" when functions use it",
           "type" : "boolean"
         },
         "logging" : {
-          "description" : "*(optional)* \"true\" if a changelog topic should be set up on Kafka for this session store, \"false\" otherwise",
+          "description" : "*(optional)* \"true\" if a changelog topic should be set up on Kafka for this session store, \"false\" otherwise. Defaults to \"true\"",
           "type" : "boolean"
         },
         "name" : {
@@ -4019,7 +4019,7 @@
           "type" : "string"
         },
         "persistent" : {
-          "description" : "*(optional)* \"true\" if this session store needs to be stored on disk, \"false\" otherwise",
+          "description" : "*(optional)* \"true\" if this session store needs to be stored on disk, \"false\" otherwise. Defaults to \"true\"",
           "type" : "boolean"
         },
         "retention" : {
@@ -4031,7 +4031,7 @@
           "description" : "*(optional)* The duration for which elements in the session store are retained"
         },
         "timestamped" : {
-          "description" : "*(optional)* \"true\" if elements in the store are timestamped, \"false\" otherwise",
+          "description" : "*(optional)* Has no effect: session stores are not timestamped. \"true\" logs a warning",
           "type" : "boolean"
         },
         "type" : {
@@ -5423,7 +5423,7 @@
       "description" : "Definition of a window state store",
       "properties" : {
         "caching" : {
-          "description" : "*(optional)* \"true\" if changed to the window store need to be buffered and periodically released, \"false\" to emit all changes directly",
+          "description" : "*(optional)* \"true\" if changes to the window store need to be buffered and periodically released, \"false\" to emit all changes directly. Defaults to \"true\" when an operation materializes the store, and to \"false\" when functions use it",
           "type" : "boolean"
         },
         "keyType" : {
@@ -5431,7 +5431,7 @@
           "type" : "string"
         },
         "logging" : {
-          "description" : "*(optional)* \"true\" if a changelog topic should be set up on Kafka for this window store, \"false\" otherwise",
+          "description" : "*(optional)* \"true\" if a changelog topic should be set up on Kafka for this window store, \"false\" otherwise. Defaults to \"true\"",
           "type" : "boolean"
         },
         "name" : {
@@ -5439,7 +5439,7 @@
           "type" : "string"
         },
         "persistent" : {
-          "description" : "*(optional)* \"true\" if this window store needs to be stored on disk, \"false\" otherwise",
+          "description" : "*(optional)* \"true\" if this window store needs to be stored on disk, \"false\" otherwise. Defaults to \"true\"",
           "type" : "boolean"
         },
         "retainDuplicates" : {
@@ -5455,7 +5455,7 @@
           "description" : "*(optional)* The duration for which elements in the window store are retained"
         },
         "timestamped" : {
-          "description" : "*(optional)* \"true\" if elements in the store are timestamped, \"false\" otherwise",
+          "description" : "*(optional)* \"true\" if elements in the store are timestamped, \"false\" otherwise. Defaults to \"true\"",
           "type" : "boolean"
         },
         "type" : {
@@ -5484,11 +5484,11 @@
       "description" : "Definition of a window state store",
       "properties" : {
         "caching" : {
-          "description" : "*(optional)* \"true\" if changed to the window store need to be buffered and periodically released, \"false\" to emit all changes directly",
+          "description" : "*(optional)* \"true\" if changes to the window store need to be buffered and periodically released, \"false\" to emit all changes directly. Defaults to \"true\" when an operation materializes the store, and to \"false\" when functions use it",
           "type" : "boolean"
         },
         "logging" : {
-          "description" : "*(optional)* \"true\" if a changelog topic should be set up on Kafka for this window store, \"false\" otherwise",
+          "description" : "*(optional)* \"true\" if a changelog topic should be set up on Kafka for this window store, \"false\" otherwise. Defaults to \"true\"",
           "type" : "boolean"
         },
         "name" : {
@@ -5496,7 +5496,7 @@
           "type" : "string"
         },
         "persistent" : {
-          "description" : "*(optional)* \"true\" if this window store needs to be stored on disk, \"false\" otherwise",
+          "description" : "*(optional)* \"true\" if this window store needs to be stored on disk, \"false\" otherwise. Defaults to \"true\"",
           "type" : "boolean"
         },
         "retainDuplicates" : {
@@ -5512,7 +5512,7 @@
           "description" : "*(optional)* The duration for which elements in the window store are retained"
         },
         "timestamped" : {
-          "description" : "*(optional)* \"true\" if elements in the store are timestamped, \"false\" otherwise",
+          "description" : "*(optional)* \"true\" if elements in the store are timestamped, \"false\" otherwise. Defaults to \"true\"",
           "type" : "boolean"
         },
         "type" : {
@@ -5537,11 +5537,11 @@
       "description" : "Definition of a window state store",
       "properties" : {
         "caching" : {
-          "description" : "*(optional)* \"true\" if changed to the window store need to be buffered and periodically released, \"false\" to emit all changes directly",
+          "description" : "*(optional)* \"true\" if changes to the window store need to be buffered and periodically released, \"false\" to emit all changes directly. Defaults to \"true\" when an operation materializes the store, and to \"false\" when functions use it",
           "type" : "boolean"
         },
         "logging" : {
-          "description" : "*(optional)* \"true\" if a changelog topic should be set up on Kafka for this window store, \"false\" otherwise",
+          "description" : "*(optional)* \"true\" if a changelog topic should be set up on Kafka for this window store, \"false\" otherwise. Defaults to \"true\"",
           "type" : "boolean"
         },
         "name" : {
@@ -5549,7 +5549,7 @@
           "type" : "string"
         },
         "persistent" : {
-          "description" : "*(optional)* \"true\" if this window store needs to be stored on disk, \"false\" otherwise",
+          "description" : "*(optional)* \"true\" if this window store needs to be stored on disk, \"false\" otherwise. Defaults to \"true\"",
           "type" : "boolean"
         },
         "retainDuplicates" : {
@@ -5565,7 +5565,7 @@
           "description" : "*(optional)* The duration for which elements in the window store are retained"
         },
         "timestamped" : {
-          "description" : "*(optional)* \"true\" if elements in the store are timestamped, \"false\" otherwise",
+          "description" : "*(optional)* \"true\" if elements in the store are timestamped, \"false\" otherwise. Defaults to \"true\"",
           "type" : "boolean"
         },
         "type" : {
@@ -5589,6 +5589,10 @@
   "additionalProperties" : false,
   "description" : "KSML definition",
   "properties" : {
+    "description" : {
+      "description" : "*(optional)* The description of the topology",
+      "type" : "string"
+    },
     "functions" : {
       "additionalProperties" : {
         "anyOf" : [ {
@@ -5670,6 +5674,10 @@
       "description" : "*(optional)* GlobalTables that can be referenced in producers and pipelines",
       "type" : "object"
     },
+    "name" : {
+      "description" : "*(optional)* The name of the topology",
+      "type" : "string"
+    },
     "pipelines" : {
       "additionalProperties" : {
         "$ref" : "#/$defs/PipelineDefinition",
@@ -5717,6 +5725,10 @@
       },
       "description" : "*(optional)* Tables that can be referenced in producers and pipelines",
       "type" : "object"
+    },
+    "version" : {
+      "description" : "*(optional)* The version of the topology",
+      "type" : "string"
     }
   },
   "title" : "TopologyDefinition",

@@ -31,6 +31,7 @@ import io.axual.ksml.definition.ParameterDefinition;
 import io.axual.ksml.definition.PythonSource;
 import io.axual.ksml.dsl.KSMLDSL;
 import io.axual.ksml.type.UserType;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -45,15 +46,21 @@ class PythonNativeConversionTest {
     @BeforeAll
     static void warmupGraalVM() {
         try {
-            new PythonContext(PythonContextConfig.builder().build());
+            new PythonContext(PythonContextConfig.builder().build()).close();
         } catch (Exception _) {
             // warmup only
         }
     }
 
     final PythonContext context = new PythonContext(PythonContextConfig.builder().build());
+
     final ParameterDefinition valueParam = new ParameterDefinition("value", DataType.UNKNOWN);
     final UserType stringResultType = new UserType(UserType.DEFAULT_NOTATION, DataString.DATATYPE);
+
+    @AfterEach
+    void closeContext() {
+        context.close();
+    }
 
     private DataStruct nestedPayload() {
         var nested = new DataStruct();

@@ -30,9 +30,13 @@ import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
+import java.lang.management.ManagementFactory;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -191,34 +195,185 @@ class PythonContextTest {
                         .noneMatch(t -> t.getName().startsWith("Polyglot-python-")));
     }
 
-    // Confirms whether native library access using ctypes is permitted
+    // Confirms whether native library access using ctypes is permitted. Only one GraalPy context per
+    // process can load C extensions such as _ctypes, and a denied attempt also counts, so each case
+    // runs in its own JVM.
     @ParameterizedTest
     @ValueSource(booleans = {true, false})
-    void testNativeAccess(boolean allowNativeAccess) {
+    void testNativeAccess(boolean allowNativeAccess) throws Exception {
+        final var output = runInNewJvm(NativeAccessCheck.class, String.valueOf(allowNativeAccess));
+        if (allowNativeAccess) {
+            // ✅ Expect native function call to succeed
+            assertThat(output).containsPattern("pid=[1-9][0-9]*");
+        } else {
+            // ❌ Expect native access to fail
+            assertThat(output)
+                    .contains("native access is not allowed")
+                    .doesNotContain("pid=");
+        }
+    }
+
+    static class NativeAccessCheck {
+        public static void main(String[] args) {
+            final var config = PythonContextConfig.builder()
+                    .allowNativeAccess(Boolean.parseBoolean(args[0]))
+                    .build();
+            try (var pythonContext = new PythonContext(config)) {
+                // Undo KSML's ImportError patch, so only GraalVM's own native access check can block the import
+                final var pyCode = """
+                        import polyglot
+                        @polyglot.export_value
+                        def test_native():
+                            import _imp, importlib.machinery as m
+                            m.ExtensionFileLoader.create_module = lambda self, spec: _imp.create_dynamic(spec)
+                            import ctypes
+                            lib = ctypes.CDLL(None)
+                            return lib.getpid()
+                        """;
+                final var fn = pythonContext.registerFunction(pyCode, "test_native");
+                try {
+                    System.out.println("pid=" + fn.execute().asInt());
+                } catch (PolyglotException e) {
+                    System.out.println("error: " + e.getMessage());
+                }
+            }
+        }
+    }
+
+    // The limit of GraalPy 25.1+ that the docs describe: only one context per process can load C
+    // extension modules. Normal modules still work in the other contexts.
+    @Test
+    void onlyOneContextCanLoadNativeModules() throws Exception {
+        final var output = runInNewJvm(NativeLimitCheck.class);
+        assertThat(output)
+                .containsPattern("first=pid=[1-9][0-9]*")
+                .contains("second=not loaded")
+                .contains("IsolateNativeModules")
+                .contains("Only one Python context per KSML process can load C extension modules")
+                .contains("normal modules=ok");
+    }
+
+    static class NativeLimitCheck {
+        public static void main(String[] args) {
+            final var config = PythonContextConfig.builder().allowNativeAccess(true).build();
+            final var pyCode = """
+                    import polyglot
+                    import ctypes
+                    @polyglot.export_value
+                    def native_pid():
+                        return ctypes.CDLL(None).getpid()
+                    """;
+            try (var first = new PythonContext(config); var second = new PythonContext(config)) {
+                System.out.println("first=pid=" + first.registerFunction(pyCode, "native_pid").execute().asInt());
+                final var fn = second.registerFunction(pyCode, "native_pid");
+                System.out.println("second=" + (fn == null ? "not loaded" : "loaded"));
+                second.context().eval("python", "import json, decimal, uuid, hashlib, zlib");
+                System.out.println("normal modules=ok");
+            }
+        }
+    }
+
+    // Default config: every context must get ImportError for C extensions, not only the first.
+    // GraalPy 25.5 takes its one C extension place before it checks native access.
+    @Test
+    void defaultConfigTwoContextsGetImportError() throws Exception {
+        assertThat(runInNewJvm(DefaultConfigCheck.class))
+                .contains("first ctypes=fallback")
+                .contains("second ctypes=fallback")
+                .contains("first getpass=ok")
+                .contains("second getpass=ok");
+    }
+
+    static class DefaultConfigCheck {
+        public static void main(String[] args) {
+            final var pyCode = """
+                    import polyglot
+                    @polyglot.export_value
+                    def try_imports():
+                        try:
+                            import ctypes
+                            result = 'ctypes=loaded'
+                        except ImportError:
+                            result = 'ctypes=fallback'
+                        import getpass
+                        return result + ' getpass=ok'
+                    """;
+            for (var name : List.of("first", "second")) {
+                try (var pythonContext = new PythonContext(PythonContextConfig.builder().build())) {
+                    final var result = pythonContext.registerFunction(pyCode, "try_imports").execute().asString();
+                    System.out.println(name + " " + result.replace(" ", " " + name + " "));
+                } catch (Exception e) {
+                    System.out.println(name + " error: " + e.getMessage());
+                }
+            }
+        }
+    }
+
+    @Test
+    void testNativeModuleHint() {
+        final var limit = new RuntimeException("SystemError: Option python.IsolateNativeModules is set to 'false' and a second GraalPy context ...");
+        final var later = new RuntimeException("SystemError: The C API initialization has previously failed.");
+        try (var nativeOn = new PythonContext(PythonContextConfig.builder().allowNativeAccess(true).build());
+             var nativeOff = new PythonContext(PythonContextConfig.builder().build())) {
+            assertThat(nativeOn.nativeModuleHint(limit)).startsWith("Only one Python context per KSML process");
+            assertThat(nativeOn.nativeModuleHint(later)).startsWith("Only one Python context per KSML process");
+            assertThat(nativeOff.nativeModuleHint(limit)).isNull();
+            assertThat(nativeOn.nativeModuleHint(new RuntimeException("NameError: name 'x' is not defined"))).isNull();
+        }
+    }
+
+    // GraalPy 25.1+ asks for the current folder; the sandbox answers "/" and still denies relative paths.
+    @ParameterizedTest
+    @ValueSource(booleans = {true, false})
+    void currentFolderIsRootAndRelativePathsAreDenied(boolean withModulePath, @TempDir Path moduleDir) {
         final var config = PythonContextConfig.builder()
-                .allowNativeAccess(allowNativeAccess)
+                .modulePath(withModulePath ? moduleDir.toString() : null)
                 .build();
         try (var pythonContext = new PythonContext(config)) {
             final var pyCode = """
                     import polyglot
                     @polyglot.export_value
-                    def test_native():
-                        import ctypes
-                        lib = ctypes.CDLL(None)
-                        return lib.getpid()
+                    def check_current_folder():
+                        import os
+                        results = [os.getcwd()]
+                        for mode in ('r', 'w'):
+                            try:
+                                open('x', mode)
+                                results.append('allowed')
+                            except PermissionError:
+                                results.append('denied')
+                        return ' '.join(results)
                     """;
-            final var fn = pythonContext.registerFunction(pyCode, "test_native");
+            assertThat(pythonContext.registerFunction(pyCode, "check_current_folder").execute().asString())
+                    .isEqualTo("/ denied denied");
+        }
+    }
 
-            if (allowNativeAccess) {
-                // ✅ Expect native function call to succeed
-                int pid = fn.execute().asInt();
-                assertThat(pid).isGreaterThan(0);
-            } else {
-                // ❌ Expect native access to fail
-                assertThatThrownBy(fn::execute)
-                        .isInstanceOf(PolyglotException.class)
-                        .hasMessageContaining("cannot import");
+    private static String runInNewJvm(Class<?> mainClass, String... args) throws Exception {
+        final var command = new ArrayList<String>();
+        command.add(Path.of(System.getProperty("java.home"), "bin", "java").toString());
+        // Same JVM flags as this test JVM (native access, JaCoCo), without the debugger
+        ManagementFactory.getRuntimeMXBean().getInputArguments().stream()
+                .filter(arg -> !arg.startsWith("-agentlib:jdwp"))
+                .forEach(command::add);
+        command.addAll(List.of("-cp", System.getProperty("java.class.path"), mainClass.getName()));
+        command.addAll(List.of(args));
+        final var outputFile = Files.createTempFile("native-access-check", ".log");
+        try {
+            final var process = new ProcessBuilder(command)
+                    .redirectErrorStream(true)
+                    .redirectOutput(outputFile.toFile())
+                    .start();
+            final boolean finished = process.waitFor(5, TimeUnit.MINUTES);
+            if (!finished) {
+                process.destroyForcibly();
             }
+            final var output = Files.readString(outputFile);
+            assertThat(finished).as("JVM did not stop in time: %s", output).isTrue();
+            assertThat(process.exitValue()).as(output).isZero();
+            return output;
+        } finally {
+            Files.deleteIfExists(outputFile);
         }
     }
 
@@ -288,28 +443,17 @@ class PythonContextTest {
     }
 
     /**
-     * Companion to {@link #pythonCannotEscapeModulePathViaDotDot}: the read-only FileSystem
-     * built in {@link PythonContext} permits any path whose elements start with either
-     * {@code modulePath} or {@code sys.prefix}. The {@code sys.prefix} branch is the
-     * interesting one because GraalPy's python-home lives at a canonical, predictable
-     * location. A literal target like
-     * <pre>{@code <sys.prefix>/../../../../../}</pre>
-     * passes the element-wise {@code Path.startsWith} check (its leading elements <em>are</em>
-     * the elements of {@code sys.prefix}), so the only thing standing between the guest and
-     * the host filesystem is whether GraalVM normalizes the path before the selector predicate
-     * fires.
-     * <p>
-     * The {@code ..} chain is appended directly to {@code sys.prefix} - no intermediate
-     * directories - so the test has no dependency on the installed GraalPy version layout.
-     * The test fails (with the leaked directory listing) if the guest successfully read
-     * outside the sandbox.
+     * Companion to {@link #pythonCannotEscapeModulePathViaDotDot}: {@code sys.prefix} is in GraalVM's
+     * resource cache, which {@code FileSystem.allowInternalResources} makes readable. A {@code ../..}
+     * chain after it must not reach other host files.
      */
-    @Test
+    @ParameterizedTest
+    @ValueSource(booleans = {true, false})
     @DisplayName("Python cannot escape via sys.prefix prefix + ../.. when host file access is disabled")
-    void pythonCannotEscapeViaSysPrefixDotDot(@TempDir Path moduleDir) {
+    void pythonCannotEscapeViaSysPrefixDotDot(boolean withModulePath, @TempDir Path moduleDir) {
         final var config = PythonContextConfig.builder()
                 .allowHostFileAccess(false)
-                .modulePath(moduleDir.toString())
+                .modulePath(withModulePath ? moduleDir.toString() : null)
                 .build();
         try (var pythonContext = new PythonContext(config)) {
             // The Python guest itself constructs the target from sys.prefix. It returns a

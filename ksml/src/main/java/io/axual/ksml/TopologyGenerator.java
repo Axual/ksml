@@ -29,33 +29,56 @@ import io.axual.ksml.generator.TopologyAnalyzer;
 import io.axual.ksml.generator.TopologyBuildContext;
 import io.axual.ksml.generator.TopologyDefinition;
 import io.axual.ksml.operation.DualStoreOperation;
+import io.axual.ksml.operation.LeftJoinWithStreamOperation;
+import io.axual.ksml.operation.OuterJoinWithStreamOperation;
 import io.axual.ksml.operation.StoreOperation;
 import io.axual.ksml.operation.OperationChain;
 import io.axual.ksml.python.PythonContextConfig;
+import io.axual.ksml.store.StoreUpgrade.SharedJoinStore;
 import io.axual.ksml.stream.StreamWrapper;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.StreamsConfig;
 import org.apache.kafka.streams.Topology;
 
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 import java.util.TreeMap;
 
+/**
+ * Generates a Kafka Streams topology from KSML definitions. Each definition gets its own Python context, which the
+ * topology uses while it runs. Close the generator when the topology is not used anymore, to free these contexts.
+ */
 @Slf4j
-public class TopologyGenerator {
+public class TopologyGenerator implements AutoCloseable {
     private static final String UNDEFINED = "undefined";
     private final String applicationId;
     private final Properties optimization;
     private final PythonContextConfig pythonContextConfig;
+    private final boolean headersStoreFormat;
+    private final List<StateStoreDefinition> userStateStores = new ArrayList<>();
+    private final List<StateStoreDefinition> upgradeCheckedStores = new ArrayList<>();
+    private final List<SharedJoinStore> sharedJoinStores = new ArrayList<>();
+    // The contexts of all topologies that this generator created, closed by close()
+    private final List<TopologyBuildContext> buildContexts = new ArrayList<>();
 
     public TopologyGenerator(String applicationId) {
         this(applicationId, null, PythonContextConfig.builder().build());
     }
 
     public TopologyGenerator(String applicationId, String optimization, PythonContextConfig pythonContextConfig) {
+        this(applicationId, optimization, pythonContextConfig, false);
+    }
+
+    /**
+     * @param headersStoreFormat whether declared stores are built in the headers-aware format, as the Kafka Streams
+     *                           {@code dsl.store.format: HEADERS} config asks for
+     */
+    public TopologyGenerator(String applicationId, String optimization, PythonContextConfig pythonContextConfig, boolean headersStoreFormat) {
         // Parse configuration
         this.applicationId = applicationId;
         this.optimization = new Properties();
@@ -65,9 +88,42 @@ public class TopologyGenerator {
         this.pythonContextConfig = pythonContextConfig != null
                 ? pythonContextConfig
                 : PythonContextConfig.builder().build();
+        this.headersStoreFormat = headersStoreFormat;
+    }
+
+    /** The stores that the last {@link #create} built for Python functions, rather than for DSL operations. */
+    public List<StateStoreDefinition> userStateStores() {
+        return List.copyOf(userStateStores);
+    }
+
+    /**
+     * The declared stores that the last {@link #create} built, without the stores whose KSML 1.x local state has a
+     * changelog whatever {@code logging} says: Kafka Streams always logged the window stores of stream-stream joins,
+     * and a table restores from its input topic with topology optimization, as a global table always does.
+     */
+    public List<StateStoreDefinition> upgradeCheckedStores() {
+        return List.copyOf(upgradeCheckedStores);
+    }
+
+    /**
+     * The shared stores of the stream-stream left and outer joins that the last {@link #create} built. Kafka Streams
+     * creates them itself, so they are not declared stores, but their logging depends on the join stores.
+     */
+    public List<SharedJoinStore> sharedJoinStores() {
+        return List.copyOf(sharedJoinStores);
+    }
+
+    /** Closes the Python contexts of the topologies that this generator created. */
+    @Override
+    public void close() {
+        buildContexts.forEach(TopologyBuildContext::close);
+        buildContexts.clear();
     }
 
     public Topology create(StreamsBuilder streamsBuilder, Map<String, TopologyDefinition> definitions) {
+        userStateStores.clear();
+        upgradeCheckedStores.clear();
+        sharedJoinStores.clear();
         if (definitions.isEmpty()) return null;
 
         final var stores = new TreeMap<String, StateStoreDefinition>();
@@ -79,9 +135,18 @@ public class TopologyGenerator {
                     definition.version() != null ? definition.version() : UNDEFINED,
                     definition.namespace() != null ? definition.namespace() : UNDEFINED);
 
-            final var context = new TopologyBuildContext(streamsBuilder, definition, pythonContextConfig);
+            final var context = new TopologyBuildContext(streamsBuilder, definition, pythonContextConfig, headersStoreFormat);
+            buildContexts.add(context);
             generate(definition, context);
             stores.putAll(definition.stateStores());
+            // Stores whose KSML 1.x state has a changelog whatever logging says, so the upgrade check leaves them out
+            final var restorableStores = new HashSet<String>();
+            collectStreamJoinStores(definition, restorableStores);
+            collectSourceTopicStores(definition, restorableStores);
+            definition.stateStores().forEach((name, store) -> {
+                if (!restorableStores.contains(name)) upgradeCheckedStores.add(store);
+            });
+            collectSharedJoinStores(definition, sharedJoinStores);
         });
 
         final var topology = build(streamsBuilder);
@@ -169,6 +234,7 @@ public class TopologyGenerator {
         definition.stateStores().forEach((name, store) -> {
             if (!kafkaStreamsCreatedStores.contains(name)) {
                 context.createUserStateStore(store);
+                userStateStores.add(store);
             }
         });
 
@@ -237,12 +303,55 @@ public class TopologyGenerator {
         definition.pipelines().forEach((_, pipeline) -> pipeline.chain().forEach(operation -> {
             if (operation instanceof StoreOperation storeOperation && storeOperation.store() != null)
                 kafkaStreamsCreatedStores.add(storeOperation.store().name());
-            if (operation instanceof DualStoreOperation dualStoreOperation) {
-                if (dualStoreOperation.thisStore() != null)
-                    kafkaStreamsCreatedStores.add(dualStoreOperation.thisStore().name());
-                if (dualStoreOperation.otherStore() != null)
-                    kafkaStreamsCreatedStores.add(dualStoreOperation.otherStore().name());
-            }
+            if (operation instanceof DualStoreOperation dualStoreOperation)
+                addDualStoreNames(dualStoreOperation, kafkaStreamsCreatedStores);
         }));
+    }
+
+    // The window stores of stream-stream joins: Kafka Streams always logged them, so their KSML 1.x state has a
+    // changelog. The shared store of a left or outer join is checked apart, see collectSharedJoinStores
+    private static void collectStreamJoinStores(TopologyDefinition definition, Set<String> streamJoinStores) {
+        definition.pipelines().forEach((_, pipeline) -> pipeline.chain().forEach(operation -> {
+            if (operation instanceof DualStoreOperation dualStoreOperation)
+                addDualStoreNames(dualStoreOperation, streamJoinStores);
+        }));
+    }
+
+    // The shared stores of left and outer stream-stream joins, with the names that Kafka Streams gives them
+    // (OuterStreamJoinStoreFactory: the name of the thisStore supplier, a suffix for the join type, and "-store")
+    private static void collectSharedJoinStores(TopologyDefinition definition, List<SharedJoinStore> sharedJoinStores) {
+        definition.pipelines().forEach((_, pipeline) -> pipeline.chain().forEach(operation -> {
+            final var suffix = switch (operation) {
+                case OuterJoinWithStreamOperation _ -> "-outer-shared-join-store";
+                case LeftJoinWithStreamOperation _ -> "-left-shared-join-store";
+                default -> null;
+            };
+            if (suffix != null && operation instanceof DualStoreOperation join && join.thisStore() != null && join.otherStore() != null)
+                sharedJoinStores.add(new SharedJoinStore(join.thisStore().name() + suffix, join.thisStore(), join.otherStore()));
+        }));
+    }
+
+    // The stores of tables that restore from their input topic. With reuse.ktable.source.topics, which is part of
+    // topology.optimization: all (the KSML default, also in 1.x), Kafka Streams uses the input topic of a table as the
+    // changelog of its store, whatever logging says. A global table always restores from its input topic.
+    private void collectSourceTopicStores(TopologyDefinition definition, Set<String> sourceTopicStores) {
+        final var reuseTableSourceTopics = reusesTableSourceTopics();
+        definition.topics().forEach((_, topic) -> {
+            if (topic instanceof TableDefinition table && table.store() != null && reuseTableSourceTopics)
+                sourceTopicStores.add(table.store().name());
+            if (topic instanceof GlobalTableDefinition globalTable && globalTable.store() != null)
+                sourceTopicStores.add(globalTable.store().name());
+        });
+    }
+
+    // Parsed as Kafka Streams does when it builds the topology
+    private boolean reusesTableSourceTopics() {
+        final var config = optimization.getProperty(StreamsConfig.TOPOLOGY_OPTIMIZATION_CONFIG);
+        return config != null && StreamsConfig.verifyTopologyOptimizationConfigs(config).contains(StreamsConfig.REUSE_KTABLE_SOURCE_TOPICS);
+    }
+
+    private static void addDualStoreNames(DualStoreOperation operation, Set<String> names) {
+        if (operation.thisStore() != null) names.add(operation.thisStore().name());
+        if (operation.otherStore() != null) names.add(operation.otherStore().name());
     }
 }

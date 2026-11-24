@@ -8,7 +8,7 @@ permissions:
   contents: write
 concurrency:
   group: pages-deployment
-  cancel-in-progress: true
+  cancel-in-progress: false
 jobs:
   deploy:
     if: github.actor != 'dependabot[bot]'
@@ -19,13 +19,9 @@ jobs:
           fetch-depth: 0
       - uses: actions/setup-python@v7
         with:
-          python-version: 3.9
+          python-version-file: .python-version
       - name: Install Dependencies
-        run: |
-          pip install mkdocs-material
-          pip install mike
-          pip install mkdocs-include-markdown-plugin
-          pip install mkdocs-autorefs
+        run: pip install -r requirements.txt
       - name: Setup Docs Deploy
         run: |
           git config --global user.name "deploy SNAPSHOT docs"

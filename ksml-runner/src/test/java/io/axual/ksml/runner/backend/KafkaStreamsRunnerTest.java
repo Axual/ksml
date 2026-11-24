@@ -20,11 +20,19 @@ package io.axual.ksml.runner.backend;
  * =========================LICENSE_END==================================
  */
 
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.Logger;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.read.ListAppender;
 import io.axual.ksml.client.resolving.ResolvingClientConfig;
+import io.axual.ksml.definition.WindowStateStoreDefinition;
 import io.axual.ksml.execution.ExecutionErrorHandler;
 import io.axual.ksml.metric.KsmlTagEnricher;
 import io.axual.ksml.runner.config.ApplicationServerConfig;
+import io.axual.ksml.TopologyGenerator;
 import io.axual.ksml.runner.exception.RunnerException;
+import io.axual.ksml.store.StoreUpgrade;
+import io.axual.ksml.type.UserType;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.streams.CloseOptions;
@@ -36,14 +44,17 @@ import org.awaitility.Awaitility;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.mockito.Mockito;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.stubbing.Answer;
+import org.slf4j.LoggerFactory;
 
+import java.nio.file.Path;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -63,9 +74,11 @@ import java.util.stream.Stream;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Named.named;
 import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -87,6 +100,9 @@ import static org.mockito.Mockito.when;
 @Slf4j
 @ExtendWith(MockitoExtension.class)
 class KafkaStreamsRunnerTest {
+
+    @TempDir
+    Path stateDirectory;
 
     static {
         final var minimalConfig = Map.of(
@@ -351,6 +367,50 @@ class KafkaStreamsRunnerTest {
         }
     }
 
+    @ParameterizedTest
+    @DisplayName("A state.dir in the Kafka config is replaced by ksml.storageDirectory, with a warning when it differs")
+    @MethodSource("stateDirConfigs")
+    void stateDirInKafkaConfigIsReplacedWithWarning(String kafkaStateDir, boolean warns) {
+        final var config = KafkaStreamsRunner.Config.builder()
+                .definitions(Map.of())
+                .kafkaConfig(INPUT_CONFIG_WITHOUT_PATTERNS)
+                .storageDirectory("tmp")
+                .build();
+        final var runner = new KafkaStreamsRunner(config, (_, _) -> mock(KafkaStreams.class), mock(KsmlTagEnricher.class));
+        final var initialConfigs = new HashMap<>(INPUT_CONFIG_WITHOUT_PATTERNS);
+        if (kafkaStateDir != null) initialConfigs.put(StreamsConfig.STATE_DIR_CONFIG, kafkaStateDir);
+
+        final var logger = (Logger) LoggerFactory.getLogger(KafkaStreamsRunner.class);
+        final var appender = new ListAppender<ILoggingEvent>();
+        appender.start();
+        logger.addAppender(appender);
+        final Map<String, Object> result;
+        try {
+            result = runner.getStreamsConfig(initialConfigs, "/ksml/state", null);
+        } finally {
+            logger.detachAppender(appender);
+        }
+
+        assertThat(result).containsEntry(StreamsConfig.STATE_DIR_CONFIG, "/ksml/state");
+        final var warnings = appender.list.stream()
+                .filter(event -> event.getLevel() == Level.WARN)
+                .map(ILoggingEvent::getFormattedMessage)
+                .toList();
+        if (warns) {
+            assertThat(warnings).singleElement().asString()
+                    .contains(StreamsConfig.STATE_DIR_CONFIG, kafkaStateDir, "ksml.storageDirectory", "/ksml/state");
+        } else {
+            assertThat(warnings).isEmpty();
+        }
+    }
+
+    static Stream<Arguments> stateDirConfigs() {
+        return Stream.of(
+                Arguments.of(named("another state.dir", "/data/state"), true),
+                Arguments.of(named("the same state.dir", "/ksml/state"), false),
+                Arguments.of(named("no state.dir", null), false));
+    }
+
     /**
      * Provides test data for testing the addCleanupInterceptor method.
      * 
@@ -594,6 +654,55 @@ class KafkaStreamsRunnerTest {
         }
     }
 
+    @ParameterizedTest(name = "Kafka Streams closed in time: {0}")
+    @ValueSource(booleans = {true, false})
+    @DisplayName("closes the Python contexts of the topology only after Kafka Streams closed in time")
+    void closesTopologyGeneratorAfterKafkaStreams(boolean closedInTime) throws Exception {
+        final var mockStreams = mock(KafkaStreams.class);
+        when(mockStreams.state()).thenReturn(KafkaStreams.State.ERROR);
+        when(mockStreams.close(any(CloseOptions.class))).thenReturn(closedInTime);
+        final var generator = mock(TopologyGenerator.class);
+
+        assertThat(runToFailure(mockStreams, generator)).isInstanceOf(RunnerException.class);
+        // Stream threads that did not stop in time may still use the Python contexts
+        verify(generator, closedInTime ? times(1) : never()).close();
+    }
+
+    @Test
+    @DisplayName("a failure to close the Python contexts doesn't hide the result of the run")
+    void topologyGeneratorCloseFailureKeepsResult() throws Exception {
+        final var mockStreams = mock(KafkaStreams.class);
+        when(mockStreams.state()).thenReturn(KafkaStreams.State.ERROR);
+        when(mockStreams.close(any(CloseOptions.class))).thenReturn(true);
+        final var generator = mock(TopologyGenerator.class);
+        doThrow(new IllegalStateException("context in use")).when(generator).close();
+
+        assertThat(runToFailure(mockStreams, generator))
+                .isInstanceOf(RunnerException.class)
+                .hasMessage("Kafka Streams is in a failed state");
+    }
+
+    // Runs a runner with the given Kafka Streams and generator until it fails, and returns the failure
+    private static Throwable runToFailure(KafkaStreams mockStreams, TopologyGenerator generator) throws Exception {
+        final var config = KafkaStreamsRunner.Config.builder()
+                .definitions(Map.of())
+                .kafkaConfig(INPUT_CONFIG_WITHOUT_PATTERNS)
+                .storageDirectory("tmp")
+                .build();
+        final var runner = new KafkaStreamsRunner(config, (_, _) -> mockStreams, mock(KsmlTagEnricher.class), generator);
+        runner.setSleepDurations(10, 10);
+
+        final var executor = Executors.newSingleThreadExecutor();
+        try {
+            final var future = CompletableFuture.runAsync(runner, executor);
+            assertThat(future).failsWithin(Duration.ofSeconds(5));
+            return future.handle((_, error) -> error.getCause()).get();
+        } finally {
+            executor.shutdownNow();
+            executor.awaitTermination(5, TimeUnit.SECONDS);
+        }
+    }
+
     /**
      * Tests state transitions in the KafkaStreamsRunner.
      * 
@@ -727,7 +836,7 @@ class KafkaStreamsRunnerTest {
 
             Awaitility.await("Wait for start() to be called")
                     .atMost(Duration.ofSeconds(30))
-                    .untilAsserted(() -> verify(mockStreams, Mockito.times(1)).start());
+                    .untilAsserted(() -> verify(mockStreams, times(1)).start());
             assertThat(future)
                     .as("Future should not have finished yet")
                     .isNotDone();
@@ -779,4 +888,52 @@ class KafkaStreamsRunnerTest {
         }
     }
 
+    @Test
+    @DisplayName("checks the KSML 1.x store state in the state directory of the application")
+    void checksKsml1StoreStateOfApplication() {
+        final var props = new HashMap<String, Object>(INPUT_CONFIG_WITHOUT_PATTERNS);
+        props.put(StreamsConfig.STATE_DIR_CONFIG, stateDirectory.toString());
+        final var windowStore = new WindowStateStoreDefinition("window_store", true, true, Duration.ofHours(1), Duration.ofMinutes(1), false, UserType.UNKNOWN, UserType.UNKNOWN, false, true);
+
+        KafkaStreamsRunner.checkKsml1StoreState(new StreamsConfig(props), "test-id", List.of(windowStore), List.of(windowStore), List.of());
+
+        assertThat(stateDirectory.resolve("test-id").resolve(StoreUpgrade.MARKER_FILE)).exists();
+    }
+
+    static Stream<Arguments> wipesTasksData() {
+        return Stream.of(
+                Arguments.of(named("at least once", Map.of()), false),
+                Arguments.of(named("exactly once", Map.of(StreamsConfig.PROCESSING_GUARANTEE_CONFIG, StreamsConfig.EXACTLY_ONCE_V2)), true),
+                Arguments.of(named("exactly once with transactional state stores", Map.of(
+                        StreamsConfig.PROCESSING_GUARANTEE_CONFIG, StreamsConfig.EXACTLY_ONCE_V2,
+                        StreamsConfig.TRANSACTIONAL_STATE_STORES_CONFIG, "true")), false));
+    }
+
+    @ParameterizedTest
+    @MethodSource("wipesTasksData")
+    @DisplayName("knows when Kafka Streams deletes a task whose logged store has no changelog offset")
+    void wipesTasks(Map<String, Object> config, boolean expected) {
+        final var props = new HashMap<String, Object>(INPUT_CONFIG_WITHOUT_PATTERNS);
+        props.putAll(config);
+
+        assertThat(KafkaStreamsRunner.wipesTasks(new StreamsConfig(props))).isEqualTo(expected);
+    }
+
+    static Stream<Arguments> storeFormatData() {
+        return Stream.of(
+                Arguments.of(named("HEADERS", "HEADERS"), true),
+                Arguments.of(named("headers in lower case", "headers"), true),
+                Arguments.of(named("DEFAULT", "DEFAULT"), false),
+                Arguments.of(named("not set", null), false));
+    }
+
+    @ParameterizedTest
+    @DisplayName("dsl.store.format decides whether declared stores use the headers-aware format")
+    @MethodSource("storeFormatData")
+    void headersStoreFormat(String storeFormat, boolean expected) {
+        final var props = new HashMap<String, Object>(INPUT_CONFIG_WITHOUT_PATTERNS);
+        if (storeFormat != null) props.put(StreamsConfig.DSL_STORE_FORMAT_CONFIG, storeFormat);
+
+        assertThat(KafkaStreamsRunner.headersStoreFormat(new StreamsConfig(props))).isEqualTo(expected);
+    }
 }

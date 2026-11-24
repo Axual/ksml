@@ -25,18 +25,27 @@ jobs:
         with:
           fetch-depth: 0  # Fetch full history for SonarCloud analysis, because SonarCloud needs full git history to properly analyze changes.
 
+      # Fails in seconds when .graalvm-jdk-version and <graalvm.version> in pom.xml differ.
+      - name: Check GraalVM versions and tarballs
+        run: scripts/graalvm-tarballs.sh check
+
       # Build and test on the same JVM the Docker image ships, read from the same
       # single source, so the two cannot drift apart. Note "graalvm" would be Oracle
       # GraalVM, a different product under a different licence.
       - name: Read GraalVM version
         id: graalvm
-        run: echo "version=$(cat .graalvm-jdk-version)" >> "$GITHUB_OUTPUT"
+        run: |
+          version=$(cat .graalvm-jdk-version)
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "java=${version%%.*}" >> "$GITHUB_OUTPUT"
 
       - name: Set up GraalVM
-        uses: actions/setup-java@v6
+        # actions/setup-java cannot find GraalVM Community 25.1+ (files named graalvm-community-jdk-25iN-...).
+        uses: graalvm/setup-graalvm@d6eca2595046623d69d636041513c80abf745406  # v1.6.9
         with:
           distribution: 'graalvm-community'
-          java-version: ${{ steps.graalvm.outputs.version }}
+          version: ${{ steps.graalvm.outputs.version }}
+          java-version: ${{ steps.graalvm.outputs.java }}
           cache: 'maven'
 
       - name: Log in to Docker Hub
@@ -44,7 +53,7 @@ jobs:
         # credentials are empty and login would fail. Skip it for Dependabot; the
         # integration tests then pull container images anonymously.
         if: github.actor != 'dependabot[bot]'
-        uses: docker/login-action@81c6f93d4bc991e510b342a00b419b3bb4efc5c6  # v4.7.0
+        uses: docker/login-action@8aa5831fb8d48d8f76594c7ddde61ae58019f550  # v4.8.0
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}

@@ -141,7 +141,6 @@ mode does not fail a test. When that difference is gone, the report shows
 | Finding | What is different | Cases |
 |---|---|---|
 | F05 | The KTable `aggregate` subtractor has the wrong parameter type | C21, C21b |
-| F06 | A store with default options is in memory and has no changelog, so it loses its state on restart | C44a (Docker only) |
 | F08 | The stream-stream `outerJoin` passes no key to the joiner | C32, C42 |
 | F09 | `toStream` with a `mapper` fails on a windowed table | C24b |
 | F10 | `shutdownWhenFull` is ignored for `suppress` with `until: timeLimit` | C22b |
@@ -152,8 +151,7 @@ mode does not fail a test. When that difference is gone, the report shows
 | F27 | The runner does not close Kafka Streams on SIGTERM, so a static member cannot join again | C53 (Docker only) |
 
 Some problems have no case of their own. The runner keeps running after Kafka Streams
-fails (see the notes of C14, C21, C43 and others in Docker mode), and unknown fields in a
-definition are ignored (usability probes u03, u11 and u12).
+fails (see the notes of C14, C21, C43 and others in Docker mode).
 
 Fixed so far, and now guarded by their cases:
 
@@ -166,6 +164,9 @@ Fixed so far, and now guarded by their cases:
 - Tombstones are a real `null` inside Kafka Streams (F01) (C12, C14, C15, C15b, C21c,
   C33, C35, C36e), and a global table join no longer throws when the key mapper returns
   `None` (F07) (C34).
+- Unknown fields in a definition stop KSML at startup (usability probes u03, u11 and u12).
+- A store with default options is persistent and has a changelog, so it keeps its state
+  after a restart (F06, C44a in Docker mode).
 
 ## Add a case
 

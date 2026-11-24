@@ -69,6 +69,9 @@ spec:
               value: "$(KSML_K8S_POD_NAME)"
             - name: LOGBACK_CONFIGURATION_FILE
               value: {{ .Values.logging.configFile | quote }}
+          {{- with (include "ksml.env" .) }}
+            {{- . | nindent 12 }}
+          {{- end }}
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
           volumeMounts:
@@ -90,8 +93,12 @@ spec:
             name: {{ include "ksml.fullname" . }}-logging
         {{- if not .Values.store.spec }}
         - name: ksml-store
+          {{- with dig "emptyDir" "sizeLimit" "" .Values.store }}
           emptyDir:
-            sizeLimit: 10Mi
+            sizeLimit: {{ . }}
+          {{- else }}
+          emptyDir: {}
+          {{- end }}
         {{- end }}
       {{- with .Values.volumes }}
         {{- toYaml . | nindent 8 }}

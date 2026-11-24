@@ -139,7 +139,7 @@ graph TB
     style R fill:none,stroke:#616161,stroke-dasharray:5 5
 ```
 
-The category and region pipelines update their result with every transaction. The category pipeline declares its own store, and KSML stores have caching off by default, so every update is written. The region pipeline uses the default Kafka Streams store, which caches updates until the next commit (30 seconds by default), so you may only see the final counts. The counts are written as strings (`"2"`), because the pipeline converts them with `convertValue`.
+The category and region pipelines update their result with every transaction. The category pipeline declares its own store with `caching: false`, so every update is written. Without it, the store would be cached, because a store that an operation such as `aggregate` materializes is cached by default. The region pipeline uses the default Kafka Streams store, which caches updates until the next commit (30 seconds by default), so you may only see the final counts. The counts are written as strings (`"2"`), because the pipeline converts them with `convertValue`.
 
 The average order value pipeline works differently: `suppress` holds back the result of a window until the window has closed, so `avg_order_value` receives one final result per 10-second window.
 

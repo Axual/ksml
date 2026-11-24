@@ -260,8 +260,9 @@ via:
     if: is_valid_order
   - type: mapValues     # Transform record values
     mapper: enrich_order
-  - type: join          # Combine with other streams
-    with: customers
+  - type: join          # Combine with a table
+    table: customers
+    valueJoiner: add_customer
 ```
 
 For complete operation documentation, see [Operation Reference](operation-reference.md).
@@ -280,7 +281,8 @@ stores:
     caching: true
 ```
 
-For details, see [State Store Reference](state-store-reference.md).
+As in Kafka Streams, a store is persistent, timestamped and has a changelog topic unless it sets these options to
+`false`. For details and the caching default, see [State Store Reference](state-store-reference.md#configuration-parameters).
 
 ## Producers
 
@@ -289,7 +291,7 @@ Define data generators for testing and simulation:
 ```yaml
 producers:
   test_producer:
-    target: test_topic
+    to: test_topic
     generator: generate_test_data
     interval: 1000
 ```

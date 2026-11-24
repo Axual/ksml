@@ -43,6 +43,7 @@ import org.apache.kafka.streams.Topology;
 import org.apache.kafka.streams.TopologyDescription;
 import org.apache.kafka.streams.TopologyTestDriver;
 import org.graalvm.home.Version;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -54,6 +55,8 @@ import org.junit.jupiter.params.provider.ValueSource;
 import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Properties;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -63,6 +66,13 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 @Slf4j
 class TopologyGeneratorBasicTest {
     private final StreamsBuilder streamsBuilder = new StreamsBuilder();
+    // Closed after each test, to free the Python contexts of the topologies
+    private final List<TopologyGenerator> generators = new ArrayList<>();
+
+    @AfterEach
+    void closeGenerators() {
+        generators.forEach(TopologyGenerator::close);
+    }
 
     @BeforeAll
     static void beforeAll() {
@@ -258,7 +268,9 @@ class TopologyGeneratorBasicTest {
             final var definition = YAMLObjectMapper.INSTANCE.readValue(Files.readString(Paths.get(uri)), JsonNode.class);
             definitions.put(resource, new TopologyDefinitionParser("test").parse(ParseNode.fromRoot(definition, "test")));
         }
-        return new TopologyGenerator("some.app.id", optimization, null).create(streamsBuilder, definitions.build());
+        final var generator = new TopologyGenerator("some.app.id", optimization, null);
+        generators.add(generator);
+        return generator.create(streamsBuilder, definitions.build());
     }
 
     /**

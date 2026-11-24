@@ -53,6 +53,7 @@ public class PythonFunction extends UserFunction {
     private static final PythonNativeMapper NATIVE_MAPPER = new PythonNativeMapper();
     private static final String QUOTE = "\"";
     private final DataObjectConverter converter;
+    private final PythonContext pythonContext;
     private final Context context;
     private final PythonDataObjectMapper dataObjectMapper;
     private final Value function;
@@ -73,6 +74,7 @@ public class PythonFunction extends UserFunction {
         super(def);
         validateNoNameClashes(definition);
         converter = context.converter();
+        this.pythonContext = context;
         this.context = context.context();
         dataObjectMapper = new PythonDataObjectMapper(true, this.context);
         final var pyCode = generatePythonCode(definition);
@@ -162,7 +164,8 @@ public class PythonFunction extends UserFunction {
             }
         } catch (Exception e) {
             logCall(parameters, null);
-            throw FatalError.report(new TopologyException("Error while executing function %s.%s : %s".formatted(definition.namespace(), definition.name(), e.getMessage()), e));
+            final var hint = pythonContext.nativeModuleHint(e);
+            throw FatalError.report(new TopologyException("Error while executing function %s.%s : %s%s".formatted(definition.namespace(), definition.name(), e.getMessage(), hint != null ? " " + hint : ""), e));
         } finally {
             // Closes store iterators that the function left open, for example after break or return in a loop
             final int closed = StoreIteratorProxy.endCall(iteratorMark);

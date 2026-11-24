@@ -10,6 +10,7 @@ stores:
     keyType: string
     valueType: avro:SensorData
     persistent: false
+    timestamped: false
     caching: false
     logging: false
 

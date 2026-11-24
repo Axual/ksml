@@ -20,15 +20,21 @@ package io.axual.ksml.operation;
  * =========================LICENSE_END==================================
  */
 
+import io.axual.ksml.testutil.KSMLDriver;
 import io.axual.ksml.testutil.KSMLTest;
 import io.axual.ksml.testutil.KSMLTestExtension;
 import io.axual.ksml.testutil.KSMLTopic;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.streams.TestInputTopic;
 import org.apache.kafka.streams.TestOutputTopic;
+import org.apache.kafka.streams.TopologyTestDriver;
+import org.apache.kafka.streams.processor.StateStore;
+import org.apache.kafka.streams.state.HeadersBytesStore;
+import org.apache.kafka.streams.state.internals.WrappedStateStore;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.extension.ExtendWith;
 
+import java.util.List;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -47,9 +53,20 @@ public class KSMLOuterJoinTest {
     @KSMLTopic(topic = "joined")
     TestOutputTopic<String,String> mergedTopic;
 
+    @KSMLDriver
+    TopologyTestDriver driver;
+
     @KSMLTest(topology = "pipelines/test-outerjoin-reference.yaml")
     @DisplayName("Two topics can be outer joined with function reference")
     void testJoinByReference() {
+        joinAndCheckResults();
+
+        for (final var store : List.of("left_store", "right_store")) {
+            assertThat(storesHeaders(store)).as(store).isFalse();
+        }
+    }
+
+    private void joinAndCheckResults() {
         // given that both topics contain some timestamped records
         inputTopic1.pipeInput("1", "one", 100);
         inputTopic1.pipeInput("2", "two", 100);
@@ -70,6 +87,40 @@ public class KSMLOuterJoinTest {
                 .containsEntry("2", "two,zwei")
                 .containsEntry("3", "three,?")
                 .containsEntry("4", "?,vier");
+    }
+
+    @KSMLTest(topology = "pipelines/test-outerjoin-reference-in-memory.yaml")
+    @DisplayName("Two topics can be outer joined with in-memory join stores")
+    void testJoinWithInMemoryStores() {
+        joinAndCheckResults();
+
+        // Kafka Streams makes the shared store in memory only when it recognizes thisStore's supplier as in memory
+        for (final var store : List.of("left_store", "right_store", "left_store-outer-shared-join-store")) {
+            assertThat(driver.getAllStateStores()).containsKey(store);
+            assertThat(driver.getAllStateStores().get(store).persistent()).as(store).isFalse();
+        }
+    }
+
+    @KSMLTest(topology = "pipelines/test-outerjoin-reference.yaml", headersStoreFormat = true)
+    @DisplayName("Two topics can be outer joined with the headers store format")
+    void testJoinWithHeadersStoreFormat() {
+        joinAndCheckResults();
+
+        for (final var store : List.of("left_store", "right_store")) {
+            assertThat(storesHeaders(store)).as(store).isTrue();
+        }
+    }
+
+    // Kafka Streams wraps the window stores of a join in headers layers in both formats, so look for the store that
+    // keeps the headers. For a RocksDB store this comes from the supplier of KSML. Kafka Streams always makes an
+    // in-memory join store keep headers, so only call this for RocksDB stores.
+    private boolean storesHeaders(String storeName) {
+        StateStore store = driver.getAllStateStores().get(storeName);
+        while (true) {
+            if (store instanceof HeadersBytesStore) return true;
+            if (!(store instanceof WrappedStateStore<?, ?, ?> wrapped)) return false;
+            store = wrapped.wrapped();
+        }
     }
 
     @KSMLTest(topology = "pipelines/test-outerjoin-inline.yaml")

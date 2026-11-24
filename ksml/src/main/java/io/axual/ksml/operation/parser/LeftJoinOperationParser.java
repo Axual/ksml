@@ -47,6 +47,8 @@ import io.axual.ksml.store.StoreType;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 
 import static io.axual.ksml.dsl.KSMLDSL.Operations;
 
@@ -82,6 +84,12 @@ public class LeftJoinOperationParser extends BaseJoinOperationParser {
             public List<StructSchema> schemas() {
                 return schemas;
             }
+
+            // Only the fields of the chosen join kind. Without a target key, all join fields
+            @Override
+            public Optional<Set<String>> knownFields(ParseNode node) {
+                return knownFieldsByKey(node, joinStreamParser, joinTableParser, joinGlobalTableParser, () -> StructsParser.super.knownFields(node));
+            }
         };
     }
 
@@ -97,9 +105,7 @@ public class LeftJoinOperationParser extends BaseJoinOperationParser {
                 FieldParsers.optional(FieldParsers.durationField(Operations.Join.GRACE, "The window grace period (the time to admit out-of-order events after the end of the window)")),
                 storeField(Operations.SOURCE_STORE_ATTRIBUTE, true, "Materialized view of the source stream", StoreType.WINDOW_STORE),
                 storeField(Operations.OTHER_STORE_ATTRIBUTE, true, "Materialized view of the leftJoined stream", StoreType.WINDOW_STORE),
-                (name, stream, valueJoiner, timeDifference, grace, thisStore, otherStore, tags) -> {
-                    return new LeftJoinWithStreamOperation(dualStoreOperationConfig(name, tags, thisStore, otherStore), targetOf(stream, StreamDefinition.class, "LeftJoin stream not correct, should be a stream"), valueJoiner, timeDifference, grace);
-                });
+                (name, stream, valueJoiner, timeDifference, grace, thisStore, otherStore, tags) -> new LeftJoinWithStreamOperation(dualStoreOperationConfig(name, tags, thisStore, otherStore), targetOf(stream, StreamDefinition.class, "LeftJoin stream not correct, should be a stream"), valueJoiner, timeDifference, grace));
     }
 
     private StructsParser<LeftJoinWithTableOperation> createLeftJoinTableParser(StructsParser<FunctionDefinition> valueJoinerField) {
@@ -115,9 +121,7 @@ public class LeftJoinOperationParser extends BaseJoinOperationParser {
                 FieldParsers.optional(functionField(Operations.Join.PARTITIONER, "Only with foreignKeyExtractor, ignored in other joins: partitions by the key of the input table", new StreamPartitionerDefinitionParser(false))),
                 FieldParsers.optional(functionField(Operations.Join.OTHER_PARTITIONER, "Only with foreignKeyExtractor, ignored in other joins: partitions by the key of the join table", new StreamPartitionerDefinitionParser(false))),
                 storeField(false, "Materialized view of the leftJoined table (only used for Table-Table joins)", StoreType.KEYVALUE_STORE),
-                (name, table, foreignKeyExtractor, valueJoiner, grace, partitioner, otherPartitioner, store, tags) -> {
-                    return new LeftJoinWithTableOperation(storeOperationConfig(name, tags, store), targetOf(table, TableDefinition.class, "LeftJoin table not correct, should be a table"), foreignKeyExtractor, valueJoiner, grace, partitioner, otherPartitioner);
-                });
+                (name, table, foreignKeyExtractor, valueJoiner, grace, partitioner, otherPartitioner, store, tags) -> new LeftJoinWithTableOperation(storeOperationConfig(name, tags, store), targetOf(table, TableDefinition.class, "LeftJoin table not correct, should be a table"), foreignKeyExtractor, valueJoiner, grace, partitioner, otherPartitioner));
     }
 
     private StructsParser<LeftJoinWithGlobalTableOperation> createLeftJoinGlobalTableParser(StructsParser<FunctionDefinition> valueJoinerField) {

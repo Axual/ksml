@@ -1,6 +1,5 @@
-# Copy of test-state-store.yaml with timestamped: true. Both must give the same results; keep them in sync.
-# "default" in the name: timestamped: true is planned to become the default, and then a store without options
-# becomes this store.
+# Copy of test-state-store.yaml without timestamped, so the store is timestamped by default. Both must give the same
+# results; keep them in sync.
 
 streams:
   sensor_source_avro:
@@ -15,7 +14,6 @@ streams:
 stores:
   last_sensor_data_store:
     type: keyValue
-    timestamped: true
     keyType: string
     valueType: json
     persistent: false

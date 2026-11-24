@@ -312,7 +312,20 @@
             }
         },
         "store": {
-            "type": "object"
+            "type": "object",
+            "properties": {
+                "emptyDir": {
+                    "type": "object",
+                    "properties": {
+                        "sizeLimit": {
+                            "type": ["string", "null"]
+                        }
+                    }
+                },
+                "spec": {
+                    "type": "object"
+                }
+            }
         },
         "serviceMonitor": {
             "type": "object",
@@ -339,6 +352,26 @@
         },
         "topologySpreadConstraints": {
             "type": "array"
+        },
+        "env": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "required": ["name"],
+                "additionalProperties": false,
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "minLength": 1
+                    },
+                    "value": {
+                        "type": "string"
+                    },
+                    "valueFrom": {
+                        "type": "object"
+                    }
+                }
+            }
         },
         "volumeMounts": {
             "type": "array"

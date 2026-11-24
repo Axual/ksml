@@ -49,7 +49,9 @@ import java.util.concurrent.ConcurrentHashMap;
 public class PythonNativeMapper {
     // The type names of floating point numbers: a Python float, or a Java Double or Float
     private static final Set<String> FLOATING_POINT_TYPES = Set.of("float", "Double", "Float");
-    private final Map<Context, PythonTypes> typesByContext = new ConcurrentHashMap<>();
+    // Shared by all mappers, so that PythonContext.close() can remove a closed context. The types refer to their
+    // context, so a kept entry would keep the whole Python context in memory.
+    private static final Map<Context, PythonTypes> TYPES_BY_CONTEXT = new ConcurrentHashMap<>();
 
     private static boolean isFloatingPoint(Value number) {
         final var type = number.getMetaObject();
@@ -85,6 +87,11 @@ public class PythonNativeMapper {
         } catch (IllegalStateException e) {
             throw new DataException("Converting a value to Python needs an entered Python context", e);
         }
+    }
+
+    /** Forgets the Python types of a context that is closed. */
+    static void forget(Context context) {
+        TYPES_BY_CONTEXT.remove(context);
     }
 
     public Object fromPython(Object object) {
@@ -240,14 +247,11 @@ public class PythonNativeMapper {
      * Builds a genuine Python dict/list/None, by filling in Python's own types. Never exposes a Java object to Python.
      */
     public Value toRealPythonValue(Context context, Object object) {
-        if (object instanceof AbstractProxy proxy)
-            return Value.asValue(proxy);
+        if (object instanceof AbstractProxy proxy) return Value.asValue(proxy);
         final var scalar = scalarToPythonValue(object);
-        if (scalar != null)
-            return scalar;
-        final var types = typesByContext.computeIfAbsent(context, PythonTypes::of);
-        if (object == null)
-            return types.none();
+        if (scalar != null) return scalar;
+        final var types = TYPES_BY_CONTEXT.computeIfAbsent(context, PythonTypes::of);
+        if (object == null) return types.none();
         return switch (object) {
             case byte[] value -> {
                 final var pyList = types.list().execute();
@@ -272,10 +276,7 @@ public class PythonNativeMapper {
         };
     }
 
-    private record PythonTypes(
-            Value dict,
-            Value list,
-            Value none) {
+    private record PythonTypes(Value dict, Value list, Value none) {
         static PythonTypes of(Context context) {
             return new PythonTypes(
                     context.eval(PythonContext.PYTHON, "dict"),

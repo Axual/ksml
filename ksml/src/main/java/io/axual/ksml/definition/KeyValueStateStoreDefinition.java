@@ -46,10 +46,10 @@ public class KeyValueStateStoreDefinition extends StateStoreDefinition {
     }
 
     public KeyValueStateStoreDefinition with(String name) {
-        return new KeyValueStateStoreDefinition(name, persistent(), timestamped(), versioned(), historyRetention(), segmentInterval(), keyType(), valueType(), caching(), logging());
+        return new KeyValueStateStoreDefinition(name, persistent(), declaredTimestamped(), versioned(), historyRetention(), segmentInterval(), keyType(), valueType(), caching(), declaredLogging());
     }
 
     public KeyValueStateStoreDefinition with(UserType keyType, UserType valueType) {
-        return new KeyValueStateStoreDefinition(name(), persistent(), timestamped(), versioned(), historyRetention(), segmentInterval(), keyType, valueType, caching(), logging());
+        return new KeyValueStateStoreDefinition(name(), persistent(), declaredTimestamped(), versioned(), historyRetention(), segmentInterval(), keyType, valueType, caching(), declaredLogging());
     }
 }

@@ -4,6 +4,7 @@
 
 ## Properties
 
+- **`description`** *(string)*: *(optional)* The description of the topology.
 - **`functions`** *(object)*: *(optional)* Functions that can be referenced in producers and pipelines. Can contain additional properties.
   - **Additional properties**
     - **Any of**
@@ -30,6 +31,7 @@
       - *object*: Refer to *[#/$defs/ValueTransformerDefinition](#%24defs/ValueTransformerDefinition)*.
 - **`globalTables`** *(object)*: *(optional)* GlobalTables that can be referenced in producers and pipelines. Can contain additional properties.
   - **Additional properties** *(object)*: Refer to *[#/$defs/GlobalTableDefinition](#%24defs/GlobalTableDefinition)*.
+- **`name`** *(string)*: *(optional)* The name of the topology.
 - **`pipelines`** *(object)*: *(optional)* Collection of named pipelines. Can contain additional properties.
   - **Additional properties** *(object)*: Refer to *[#/$defs/PipelineDefinition](#%24defs/PipelineDefinition)*.
 - **`producers`** *(object)*: *(optional)* Collection of named producers. Can contain additional properties.
@@ -44,6 +46,7 @@
   - **Additional properties** *(object)*: Refer to *[#/$defs/StreamDefinition](#%24defs/StreamDefinition)*.
 - **`tables`** *(object)*: *(optional)* Tables that can be referenced in producers and pipelines. Can contain additional properties.
   - **Additional properties** *(object)*: Refer to *[#/$defs/TableDefinition](#%24defs/TableDefinition)*.
+- **`version`** *(string)*: *(optional)* The version of the topology.
 ## Definitions
 
 - <a id="%24defs/AggregateOperation"></a>**`AggregateOperation`** *(object)*: An aggregate operation. Cannot contain additional properties.

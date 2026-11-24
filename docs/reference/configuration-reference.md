@@ -112,6 +112,10 @@ ksml:
   createStorageDirectory: true
 ```
 
+`storageDirectory` is the Kafka Streams `state.dir`. Persistent state stores keep their RocksDB state there, so in a
+container put it on a volume that is kept between restarts. Otherwise the stores are restored from their changelog
+topics after every restart.
+
 !!! note
     `schemaDirectory` is mainly intended for scenarios where your pipeline uses schemas but no schema
     server is present. In production using a schema server is preferred.
@@ -221,7 +225,7 @@ Control Python execution security and permissions:
 |-------------------------------|---------|---------|---------------------------------------------------|
 | `allowHostFileAccess`         | Boolean | false   | Allow Python code to access host file system      |
 | `allowHostSocketAccess`       | Boolean | false   | Allow Python code to open network sockets         |
-| `allowNativeAccess`           | Boolean | false   | Allow Graal native access / JNI                   |
+| `allowNativeAccess`           | Boolean | false   | Allow Graal native access / JNI. Only one Python context can load C extension modules, see below. |
 | `allowCreateProcess`          | Boolean | false   | Allow Python code to execute external processes   |
 | `allowCreateThread`           | Boolean | false   | Allow Python code to create new Java threads      |
 | `inheritEnvironmentVariables` | Boolean | false   | Inherit JVM process environment in Python context |
@@ -238,6 +242,8 @@ ksml:
     inheritEnvironmentVariables: false
     modulePath: /ksml
 ```
+
+KSML runs Python 3.13 (GraalPy 25.5). With `allowNativeAccess: true`, Python code can load C extension modules, such as `ctypes`, `sqlite3` and `termios` (which `getpass`, `tty` and `pty` load). Only one Python context per KSML process can do this. KSML creates one context for the pipelines of a definition file and one for its producers, and both load all functions of the file. A second context that imports such a module gets a `SystemError`. In `globalCode`, this stops KSML at startup. Which context is first does not follow the order in the runner config.
 
 ### Schema Registry Configuration
 
@@ -374,7 +380,8 @@ ksml:
 ## Kafka Configuration Section
 
 The `kafka` section contains standard Kafka client configuration properties. All Kafka Streams and Kafka client
-properties are supported.
+properties are supported, except `state.dir`: KSML sets it from `storageDirectory` in the `ksml` section (see
+[Directory Configuration](#directory-configuration)), and logs a warning when the `kafka` section sets another value.
 
 ### Essential Properties
 
@@ -394,6 +401,7 @@ properties are supported.
 | `security.protocol` | String | PLAINTEXT | Security protocol (PLAINTEXT, SSL, SASL_*)   |
 | `auto.offset.reset` | String | latest    | Offset reset policy (earliest, latest, none) |
 | `acks`              | String | 1         | Producer acknowledgment mode                 |
+| `dsl.store.format`  | String | DEFAULT   | `HEADERS` builds the declared stores that support it as headers-aware stores (persistent; for key-value and window stores also timestamped and not versioned). See [Store Format](state-store-reference.md#store-format) |
 
 ```yaml
 kafka:
