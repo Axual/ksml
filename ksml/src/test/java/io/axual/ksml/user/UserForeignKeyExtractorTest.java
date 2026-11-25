@@ -98,6 +98,20 @@ class UserForeignKeyExtractorTest {
     }
 
     @Test
+    @DisplayName("a custom parameter called key is replaced by the built-in one and gets the record key")
+    void customKeyParameterGetsRecordKey() {
+        final var customKey = new ParameterDefinition("key", DataString.DATATYPE, true, "x");
+        final var params = foreignKeyExtractorParameters(customKey);
+        final var function = new RecordingFunction(UNKNOWN, params, new DataString("c1"));
+
+        new UserForeignKeyExtractor(function, tags()).apply("c1-o1", "orderValue");
+
+        assertThat(params).extracting(ParameterDefinition::name).containsExactly("value", "key");
+        assertThat(params[1].defaultValue()).isNull();
+        assertThat(function.lastArguments).containsExactly(new DataString("orderValue"), new DataString("c1-o1"));
+    }
+
+    @Test
     @DisplayName("a function with too many required parameters is rejected with a clear message")
     void rejectsTooManyRequiredParameters() {
         final var function = functionReturning(UNKNOWN, 2, new DataString("c1"));

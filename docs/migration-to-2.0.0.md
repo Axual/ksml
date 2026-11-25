@@ -17,7 +17,8 @@ Before you upgrade, check each item below:
 * Fix any typo'd keys in your runner config, because unknown keys now fail at startup again.
 * Fix any unknown or misspelled fields in your KSML definitions, because they now fail at startup too.
 * If you read an Avro `decimal` field in Python, change the code to expect a string instead of bytes.
-* If a `streamPartitioner` or `valueJoiner` function uses a global variable called `headers` or `mappedKey`, rename it.
+* If a `streamPartitioner`, `valueJoiner` or `foreignKeyExtractor` function uses a global variable called `headers`, `mappedKey` or `key`, rename it.
+* If a `foreignKeyExtractor` declares its own parameter called `key`, rename it. KSML now fills it with the record key.
 * If Python code calls a `streamPartitioner` function by position, pass `headers` before `numPartitions`, or call it by name.
 * Rename any `as` name that is also a name under `streams`, `tables` or `globalTables`.
 * Add `toTable` before any `join` or `leftJoin` with `foreignKeyExtractor` that has a stream as input.
@@ -434,14 +435,16 @@ KSML did move off the Kafka Streams handler methods that 4.x deprecated. If you 
 
 KSML 2.0.0 upgrades Kafka Streams and the Kafka clients from 4.3 (used by KSML 1.3.x) to 4.4.0. For pipeline authors, there is nothing to change.
 
-Two function types get a new parameter:
+Three function types get a new parameter:
 
 * A `streamPartitioner` gets the record headers in `headers`. Its parameters are now `topic`, `key`, `value`, `headers` and `numPartitions`, in the order that Kafka Streams uses.
 * A `valueJoiner` in a join with a globalTable gets the key that the `mapper` returned in `mappedKey`. This parameter is optional and comes last, so `key`, `value1` and `value2` keep their position.
+* A `foreignKeyExtractor` gets the key of the input table record in `key`. This parameter is optional and comes last, so `value` keeps its position.
 
-Existing functions work without changes, with two exceptions:
+Existing functions work without changes, with three exceptions:
 
-* If such a function uses a global variable called `headers` or `mappedKey`, for example from `globalCode`, rename that variable. The new parameter hides it, and `global headers` in the function code fails at startup.
+* If such a function uses a global variable called `headers`, `mappedKey` or `key`, for example from `globalCode`, rename that variable. The new parameter hides it, and `global headers` in the function code fails at startup.
+* If a `foreignKeyExtractor` declares its own parameter called `key`, rename it. KSML now fills it with the record key instead of its default.
 * If Python code calls a `streamPartitioner` function by position, for example `my_partitioner(topic, key, value, 4)`, pass `headers` before `numPartitions`, or call the function by name. A `generic` function with only `topic`, `key`, `value` and `numPartitions` still works as a partitioner.
 
 ## Python 3.13 and C extension modules

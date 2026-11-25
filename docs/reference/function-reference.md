@@ -696,8 +696,7 @@ into a table.
 | value     | Any  | The value of the record to get a key from                                                        |
 | key       | Any  | Optional. The key of the record. Use it when the join key is in the record key instead of the value |
 
-`key` is the same as the key parameter of `KTable.join(other, BiFunction<K, V, KO> foreignKeyExtractor, ...)` in
-Kafka Streams. A function that does not use `key` works as before.
+`key` is optional, so a function that only uses `value` still works. Do not use a global variable called `key` in it.
 
 #### Return Value
 
