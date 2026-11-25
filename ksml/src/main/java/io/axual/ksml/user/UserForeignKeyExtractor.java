@@ -28,12 +28,12 @@ import io.axual.ksml.dsl.KSMLDSL;
 import io.axual.ksml.metric.MetricTags;
 import io.axual.ksml.python.Invoker;
 
-import java.util.function.BiFunction;
+import java.util.function.BinaryOperator;
 
 import static io.axual.ksml.data.object.DataObject.nullIfNone;
 import static io.axual.ksml.definition.DefinitionConstants.PARAM_KEY;
 
-public class UserForeignKeyExtractor extends Invoker implements BiFunction<Object, Object, Object> {
+public class UserForeignKeyExtractor extends Invoker implements BinaryOperator<Object> {
     private static final DataType EXPECTED_RESULT_TYPE = DataType.UNKNOWN;
     private static final NativeDataObjectMapper NATIVE_MAPPER = new DataObjectFlattener();
     // Number of arguments: 1, or more when the function declares key
