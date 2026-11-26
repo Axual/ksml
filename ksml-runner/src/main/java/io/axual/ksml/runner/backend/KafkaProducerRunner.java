@@ -114,16 +114,17 @@ public class KafkaProducerRunner implements Runner, AutoCloseable {
                         ofNullable(definition.version()).orElse(UNDEFINED),
                         ofNullable(definition.namespace()).orElse(UNDEFINED));
                 // Set up the Python context for this definition
-                try (final var context = new PythonContext(config.pythonContextConfig())) {
-                    // Pre-register all functions in the Python context
-                    definition.functions().forEach((name, function) -> PythonFunction.forFunction(context, function.withName(name)));
-                    // Schedule all defined producers
-                    definition.producers().forEach((name, producer) -> {
-                        var ep = ExecutableProducer.forProducer(context, name, producer, config.kafkaConfig);
-                        scheduler.schedule(ep);
-                        log.info("Scheduled producer: {} {}", name, ofNullable(producer.interval()).map(ms -> ms.toMillis() + "ms").orElse("once"));
-                    });
-                }
+                final var context = new PythonContext(config.pythonContextConfig());
+                // Register the context so we can clean up afterwards
+                this.contexts.add(context);
+                // Pre-register all functions in the Python context
+                definition.functions().forEach((name, function) -> PythonFunction.forFunction(context, function.withName(name)));
+                // Schedule all defined producers
+                definition.producers().forEach((name, producer) -> {
+                    var ep = ExecutableProducer.forProducer(context, name, producer, config.kafkaConfig);
+                    scheduler.schedule(ep);
+                    log.info("Scheduled producer: {} {}", name, ofNullable(producer.interval()).map(ms -> ms.toMillis() + "ms").orElse("once"));
+                });
             });
         } catch (Exception e) {
             setState(State.FAILED);
