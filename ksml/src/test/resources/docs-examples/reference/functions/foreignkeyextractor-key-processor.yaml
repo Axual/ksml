@@ -18,8 +18,9 @@ functions:
 
   join_order_customer:
     type: valueJoiner
-    # value1 is the order, value2 is the customer
-    expression: '{"product": value1.get("product"), "amount": value1.get("amount"), "customer": value2.get("name"), "tier": value2.get("tier")}'
+    # value1 is the order, value2 is the customer. An empty json order reaches the function as None, because the
+    # foreignKeyExtractor reads only the key and still finds the customer
+    expression: '{"product": value1.get("product"), "amount": value1.get("amount"), "customer": value2.get("name"), "tier": value2.get("tier")} if value1 is not None else None'
     resultType: json
 
 pipelines:

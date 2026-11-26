@@ -120,4 +120,30 @@ class ForeignKeyExtractorTest {
 
         assertThat(enrichedKeyedOrders.isEmpty()).isTrue();
     }
+
+    @KSMLTest(topology = KEY_TOPOLOGY)
+    @DisplayName("an empty order value for a known customer does not stop the stream")
+    void testEmptyOrderForKnownCustomer() {
+        customers.pipeInput("c001", ALICE);
+        keyedOrders.pipeInput("c001/ord_001", "");
+
+        // The valueJoiner gets None for the order and returns None, so the order is deleted from the result
+        final var result = enrichedKeyedOrders.readKeyValue();
+        assertThat(result.key).isEqualTo("c001/ord_001");
+        assertThat(result.value).isNull();
+        assertThat(enrichedKeyedOrders.isEmpty()).isTrue();
+    }
+
+    @KSMLTest(topology = KEY_TOPOLOGY)
+    @DisplayName("an empty order value, then its customer, does not stop the stream")
+    void testEmptyOrderBeforeCustomer() {
+        keyedOrders.pipeInput("c001/ord_001", "");
+        customers.pipeInput("c001", ALICE);
+
+        // The valueJoiner gets None for the order and returns None, so the order is deleted from the result
+        final var result = enrichedKeyedOrders.readKeyValue();
+        assertThat(result.key).isEqualTo("c001/ord_001");
+        assertThat(result.value).isNull();
+        assertThat(enrichedKeyedOrders.isEmpty()).isTrue();
+    }
 }
