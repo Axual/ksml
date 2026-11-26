@@ -59,6 +59,7 @@ Major dependency upgrades. This release moves KSML to Jackson 3, Apicurio Regist
 * Breaking change: an `as` name can no longer be the same as a name under `streams`, `tables` or `globalTables`. KSML now stops with a parse error. Before, a `from` with that name silently got the saved result instead of the defined stream or table. A pipeline without a sink, whose result is saved under the pipeline name, only logs a warning for such a name. See [Upgrading to 2.0.0](migration-to-2.0.0.md).
 * Fixed `toTable` without a `store` after a step like `filter`. A later join with that table failed at startup with "Failed to initialize value serdes".
 * Fixed a foreign-key `join` and `leftJoin` between tables: a correct `foreignKeyExtractor` was rejected, and tables with different key types failed.
+* A `foreignKeyExtractor` can now read the record key, in a new optional `key` parameter after `value`. Use it when the foreign key is in the record key. See [foreignKeyExtractor](reference/function-reference.md#foreignkeyextractor) and [Upgrading to 2.0.0](migration-to-2.0.0.md).
 * Breaking change: a `join` or `leftJoin` with `foreignKeyExtractor` now needs a table as input. Before, the extractor was silently ignored. See [Upgrading to 2.0.0](migration-to-2.0.0.md).
 * Errors reported by KSML now keep their cause, so stack traces in the logs show "Caused by" sections. A parse error is logged once, not once for each parser level.
 * Fixed `aggregate` after `cogroup` and `windowBySession`, which always failed at startup with "Merger is expected to take at least 3 parameters".
@@ -94,6 +95,7 @@ Major dependency upgrades. This release moves KSML to Jackson 3, Apicurio Regist
 * Breaking change: an unknown or misspelled field in a KSML definition now stops KSML at startup with an error that names the field. Before, it was silently ignored, so a typo like `loging: true` on a store quietly turned off the changelog topic. See [Upgrading to 2.0.0](migration-to-2.0.0.md#stricter-validation-of-runner-config-and-definitions).
 * The language schema now lists the optional top-level fields `name`, `version` and `description` of a definition.
 * The Helm chart has a new `env` value to add environment variables to the KSML container, in both the StatefulSet and the Job.
+* Fixed: a `branch` inside a branch, as shown in the [branching tutorial](tutorials/intermediate/branching.md#nested-branching), now works at any depth. Before, KSML failed at startup with a `NullPointerException`.
 
 ## 1.3.0 (2026-06-23)
 

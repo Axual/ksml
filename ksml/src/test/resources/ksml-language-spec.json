@@ -1430,7 +1430,7 @@
             "$ref" : "#/$defs/ForeignKeyExtractorDefinitionWithImplicitStoreType",
             "type" : "object"
           } ],
-          "description" : "*(optional)* A function that can translate the join table value to a primary key"
+          "description" : "*(optional)* A function that gets the key of the join table from a record (value, optionally key) of the input table. Only when the input is a table"
         },
         "grace" : {
           "anyOf" : [ {
@@ -2594,7 +2594,7 @@
             "$ref" : "#/$defs/ForeignKeyExtractorDefinitionWithImplicitStoreType",
             "type" : "object"
           } ],
-          "description" : "*(optional)* A function that can translate the join table value to a primary key"
+          "description" : "*(optional)* A function that gets the key of the join table from a record (value, optionally key) of the input table. Only when the input is a table"
         },
         "grace" : {
           "anyOf" : [ {

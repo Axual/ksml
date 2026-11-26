@@ -30,6 +30,7 @@ import org.apache.kafka.streams.kstream.Joined;
 import org.apache.kafka.streams.kstream.Materialized;
 import org.apache.kafka.streams.kstream.Produced;
 import org.apache.kafka.streams.kstream.Repartitioned;
+import org.apache.kafka.streams.kstream.TableJoined;
 import org.apache.kafka.streams.processor.StreamPartitioner;
 import org.apache.kafka.streams.state.KeyValueStore;
 import org.junit.jupiter.api.Test;
@@ -174,6 +175,55 @@ class DockerOnlyParityTest {
                 .pipe("in", "k4", "{\"user\":\"carol\"}", 4000)
                 .pipe("in", "k5", "{\"user\":\"bob\"}", 5000)
                 .pipe("in", "k6", "{\"user\":\"alice\"}", 6000)
+                .check();
+    }
+
+    // "o<n>" goes to partition n, "c<n>" to partition n + 1: each input topic of C36f has its own partitioning
+    private static final StreamPartitioner<String, Void> ORDER_PARTITION =
+            (topic, key, value, partitions) -> Optional.of(Set.of(Integer.parseInt(key.substring(1)) % partitions));
+    // A leftJoin calls the otherPartitioner without a key when an order is deleted; any partition works for that
+    private static final StreamPartitioner<String, Void> CUSTOMER_PARTITION =
+            (topic, key, value, partitions) -> Optional.of(Set.of(key == null ? 0 : (Integer.parseInt(key.substring(1)) + 1) % partitions));
+
+    private static String enrich(String order, String customer) {
+        final var result = Json.obj();
+        result.put("amount", Json.num(order, "amount"));
+        if (customer == null) result.putNull("name");
+        else result.put("name", Json.text(customer, "name"));
+        return Json.str(result);
+    }
+
+    @Test
+    void c36fForeignKeyJoinWithPartitionersOnSeveralPartitions() {
+        ParityCase.of("C36f", "foreign-key join and leftJoin with a partitioner and otherPartitioner, orders on 3 and customers on 2 partitions")
+                .input("t_orders").input("t_customers").output("out_fk").output("out_fk_left")
+                .partitions("t_orders", 3).partitions("t_customers", 2)
+                // The order and customer tasks run in any order, so only the last value per order is the same
+                .compareFinalValues()
+                .dockerOnly()
+                .reference(builder -> {
+                    final var orders = builder.table("t_orders", CONSUMED);
+                    final var customers = builder.table("t_customers", CONSUMED);
+                    final var tableJoined = TableJoined.with(ORDER_PARTITION, CUSTOMER_PARTITION);
+                    orders.join(customers, (String v) -> Json.text(v, "customer"), DockerOnlyParityTest::enrich, tableJoined)
+                            .toStream().to("out_fk", PRODUCED);
+                    orders.leftJoin(customers, (String v) -> Json.text(v, "customer"), DockerOnlyParityTest::enrich, tableJoined)
+                            .toStream().to("out_fk_left", PRODUCED);
+                })
+                .ksml("parity/c36f-fk-join-partitioners-several-partitions.yaml")
+                .pipeToPartition("t_customers", 0, "c1", "{\"name\":\"Ann\"}", 1000)
+                .pipeToPartition("t_customers", 1, "c2", "{\"name\":\"Bob\"}", 1100)
+                .pipeToPartition("t_orders", 1, "o1", "{\"customer\":\"c1\",\"amount\":10}", 2000)
+                .pipeToPartition("t_orders", 2, "o2", "{\"customer\":\"c2\",\"amount\":5}", 2100)
+                .pipeToPartition("t_orders", 0, "o3", "{\"customer\":\"c1\",\"amount\":7}", 2200)
+                // c3 does not exist yet: only the leftJoin writes o4 now
+                .pipeToPartition("t_orders", 1, "o4", "{\"customer\":\"c3\",\"amount\":1}", 2300)
+                .pipeToPartition("t_customers", 0, "c3", "{\"name\":\"Cy\"}", 3000)
+                // A customer update goes back to the orders of c1 on partitions 0 and 1
+                .pipeToPartition("t_customers", 0, "c1", "{\"name\":\"Anna\"}", 4000)
+                // o2 moves from c2 to c1
+                .pipeToPartition("t_orders", 2, "o2", "{\"customer\":\"c1\",\"amount\":6}", 5000)
+                .pipeToPartition("t_orders", 0, "o3", null, 6000)
                 .check();
     }
 }

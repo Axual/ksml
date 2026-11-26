@@ -273,9 +273,9 @@ A few hand-written parsers keep reading and schema apart, so they need care:
   the missing target.
 - **`ReduceOperationParser`** combines the `reducer` and the `adder`/`subtractor` variants, so
   all their fields are known. `parse()` itself rejects a mix of the two.
-- **`BranchDefinitionParser`**, for a branch inside a branch (not supported yet): its
-  `knownFields` allows any field, so that `parse()` can report "A branch inside a branch is not
-  supported yet" instead of unknown fields.
+- **`BranchDefinitionParser`**, for a branch inside a branch: the schema only lists `if` and allows
+  other fields, because a full schema would never end. `parse()` and `knownFields` use the full branch
+  parser, made lazily, so a misspelled field is still rejected.
 
 A field that a parser reads but leaves out of its schema is rejected as unknown.
 `AllDefinitionsParseTest` (in `ksml`) catches that: it parses every definition in

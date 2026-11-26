@@ -294,7 +294,7 @@ final class DockerParity {
                         final var headers = new RecordHeaders();
                         pipe.headers().forEach((k, v) -> headers.add(k, v.getBytes(UTF_8)));
                         // Wait for each write, so the order is kept and a failed write is not missed
-                        producer.send(new ProducerRecord<>(pipe.topic(), null, pipe.timestamp(),
+                        producer.send(new ProducerRecord<>(pipe.topic(), pipe.partition(), pipe.timestamp(),
                                 format.key().encode(pipe.key()), format.value().encode(pipe.value()), headers)).get();
                     }
                 }

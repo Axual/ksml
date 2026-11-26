@@ -156,7 +156,7 @@ class DefinitionParsersTest {
         final var table = new TableDefinitionParser(resources, false).parser()
                 .parse(nodeOf("topic: my_table\nkeyType: string\nvalueType: string"));
         assertThat(table).isInstanceOf(TableDefinition.class);
-        assertThat(((TableDefinition) table).topic()).isEqualTo("my_table");
+        assertThat(table.topic()).isEqualTo("my_table");
     }
 
     @Test
@@ -165,7 +165,7 @@ class DefinitionParsersTest {
         final var globalTable = new GlobalTableDefinitionParser(resources, false).parser()
                 .parse(nodeOf("topic: my_global_table\nkeyType: string\nvalueType: string"));
         assertThat(globalTable).isInstanceOf(GlobalTableDefinition.class);
-        assertThat(((GlobalTableDefinition) globalTable).topic()).isEqualTo("my_global_table");
+        assertThat(globalTable.topic()).isEqualTo("my_global_table");
     }
 
     // --- Names saved with "as" -------------------------------------------------------------------
@@ -357,9 +357,73 @@ class DefinitionParsersTest {
     void describesWhereANameIsSaved() {
         assertThat(TopologyResources.pipelineOf(new MetricTags().append("pipeline", "orders")))
                 .isEqualTo("pipeline \"orders\"");
-        assertThat(TopologyResources.pipelineOf(new MetricTags().append("pipeline", "splitter").append("branch", "branch2").append("branch", "branch1")))
+        assertThat(TopologyResources.pipelineOf(new MetricTags().append("pipeline", "splitter").append("branch", "branch2").append("branch_2", "branch1")))
                 .isEqualTo("pipeline \"splitter\" (branch2, branch1)");
         assertThat(TopologyResources.pipelineOf(new MetricTags()))
                 .isEqualTo("an earlier pipeline");
+    }
+
+    @Test
+    @DisplayName("an \"as\" name that a nested branch of an earlier pipeline already saves is rejected, naming all branch levels")
+    void asNameSavedByEarlierNestedBranchIsRejected() {
+        final var yaml = """
+                splitter:
+                  from: orders
+                  branch:
+                    - if:
+                        expression: value is None
+                      to: customers
+                    - branch:
+                        - if:
+                            expression: value is None
+                          to: customers
+                        - if:
+                            expression: value is not None
+                          as: dup
+                later:
+                  from: customers
+                  as: dup
+                """;
+        assertThatThrownBy(() -> parsePipelines(yaml))
+                .isInstanceOf(ParseException.class)
+                .hasMessageContaining("Error in pipeline definition \"later\"")
+                .hasStackTraceContaining("\"as: dup\" is already used by pipeline \"splitter\" (branch2, branch2). Use another name");
+    }
+
+    @Test
+    @DisplayName("a branch entry with a nested branch and also \"to\" is rejected")
+    void nestedBranchWithAnotherSinkIsRejected() {
+        final var yaml = """
+                splitter:
+                  from: orders
+                  branch:
+                    - if:
+                        expression: value is not None
+                      branch:
+                        - to: customers
+                      to: customers
+                    - to: customers
+                """;
+        assertThatThrownBy(() -> parsePipelines(yaml))
+                .isInstanceOf(ParseException.class)
+                .hasMessageContaining("Error in pipeline definition \"splitter\"")
+                .hasStackTraceContaining("pipeline \"splitter\" (branch1) has more than one sink. Use only one of \"as\", \"branch\", \"forEach\", \"print\", \"to\" and \"toTopicNameExtractor\"");
+    }
+
+    @Test
+    @DisplayName("a pipeline with both \"print\" and \"to\" is rejected")
+    void pipelineWithTwoSinksIsRejected() {
+        final var yaml = """
+                printer:
+                  from: orders
+                  print:
+                    mapper:
+                      expression: str(value)
+                  to: customers
+                """;
+        assertThatThrownBy(() -> parsePipelines(yaml))
+                .isInstanceOf(ParseException.class)
+                .hasMessageContaining("Error in pipeline definition \"printer\"")
+                .hasStackTraceContaining("pipeline \"printer\" has more than one sink");
     }
 }

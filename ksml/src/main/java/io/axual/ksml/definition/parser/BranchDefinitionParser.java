@@ -21,9 +21,9 @@ package io.axual.ksml.definition.parser;
  */
 
 import io.axual.ksml.data.schema.StructSchema;
-import io.axual.ksml.exception.ParseException;
 import io.axual.ksml.parser.FieldParsers;
 import io.axual.ksml.definition.BranchDefinition;
+import io.axual.ksml.definition.FunctionDefinition;
 import io.axual.ksml.dsl.KSMLDSL;
 import io.axual.ksml.generator.TopologyResources;
 import io.axual.ksml.parser.DefinitionParser;
@@ -49,46 +49,52 @@ public class BranchDefinitionParser extends DefinitionParser<BranchDefinition> i
 
     @Override
     public StructsParser<BranchDefinition> parser() {
-        // This parser uses the PipelineDefinitionParser recursively, hence requires a special implementation to not
-        // make the associated DataSchema recurse infinitely.
-        final var predParser = FieldParsers.optional(resourceFields.functionField(KSMLDSL.Operations.Branch.PREDICATE, "Defines the condition under which messages get sent down this branch", new PredicateDefinitionParser(false)));
-        if (includePipelineSchema) return FieldParsers.structsParser(
+        final var predicateParser = FieldParsers.optional(resourceFields.functionField(KSMLDSL.Operations.Branch.PREDICATE, "Defines the condition under which messages get sent down this branch", new PredicateDefinitionParser(false)));
+        if (includePipelineSchema) return withPipelineParser(predicateParser);
+        return nestedBranchParser(predicateParser);
+    }
+
+    private StructsParser<BranchDefinition> withPipelineParser(StructsParser<FunctionDefinition> predicateParser) {
+        return FieldParsers.structsParser(
                 BranchDefinition.class,
                 "WithPipeline",
                 "Defines a branch with sub-pipeline in a BranchOperation",
-                predParser,
+                predicateParser,
                 pipelineParser,
                 (predicate, pipeline, tags) -> new BranchDefinition(predicate, pipeline)
         );
-        return nestedBranchNotSupported(FieldParsers.structsParser(
-                BranchDefinition.class,
-                "",
-                "Defines a branch without sub-pipeline in a BranchOperation",
-                predParser,
-                (predicate, tags) -> new BranchDefinition(predicate, null)
-        ));
     }
 
     /**
-     * The parser without sub-pipeline is only used for a branch inside a branch, which is not supported
-     * yet. Report that clearly, instead of reporting its fields as unknown.
+     * Parser for a branch inside a branch. It parses the full branch, but its schema only lists "if" and
+     * allows other fields, because a full schema would never end. For the same reason, the full parser
+     * is made lazily.
      */
-    private static StructsParser<BranchDefinition> nestedBranchNotSupported(StructsParser<BranchDefinition> parser) {
+    private StructsParser<BranchDefinition> nestedBranchParser(StructsParser<FunctionDefinition> predicateParser) {
+        final var schemas = predicateParser.schemas().stream()
+                .map(schema -> new StructSchema(
+                        schema.namespace(),
+                        BranchDefinition.class.getSimpleName() + "Nested",
+                        "Defines a branch inside a branch. Its sub-pipeline has the same fields as a pipeline, without \"from\"",
+                        schema.fields(),
+                        true))
+                .toList();
+        final var fullParser = StructsParser.lazy(() -> withPipelineParser(predicateParser));
         return new StructsParser<>() {
             @Override
             public BranchDefinition parse(ParseNode node) {
-                throw new ParseException(node, "A branch inside a branch is not supported yet. End the outer branch with \"as\" instead, and branch again in a second pipeline");
+                return fullParser.parse(node);
             }
 
             @Override
             public List<StructSchema> schemas() {
-                return parser.schemas();
+                return schemas;
             }
 
-            // Skip the unknown-field check, so the error above is reported
+            // The schema allows any field, but the parser checks the fields of a full branch
             @Override
             public Optional<Set<String>> knownFields(ParseNode node) {
-                return Optional.empty();
+                return fullParser.knownFields(node);
             }
         };
     }

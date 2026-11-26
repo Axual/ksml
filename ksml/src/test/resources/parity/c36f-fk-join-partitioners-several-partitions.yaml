@@ -1,0 +1,67 @@
+# Foreign-key join and leftJoin with a partitioner and otherPartitioner, on input topics with several partitions.
+# t_orders (3 partitions) and t_customers (2 partitions) are each partitioned by the number in the key, with a
+# different scheme per topic. The join only finds its rows when each partitioner matches the topic it is for.
+tables:
+  orders:
+    topic: t_orders
+    keyType: string
+    valueType: json
+  customers:
+    topic: t_customers
+    keyType: string
+    valueType: json
+
+streams:
+  out_fk:
+    topic: out_fk
+    keyType: string
+    valueType: json
+  out_fk_left:
+    topic: out_fk_left
+    keyType: string
+    valueType: json
+
+functions:
+  customer_of:
+    type: foreignKeyExtractor
+    resultType: string
+    expression: value.get("customer")
+  enrich:
+    type: valueJoiner
+    resultType: json
+    expression: '{"amount": value1["amount"], "name": value2["name"] if value2 is not None else None}'
+  # Partitioning of t_orders: "o<n>" goes to partition n
+  order_partition:
+    type: streamPartitioner
+    expression: '[int(key[1:]) % numPartitions]'
+    resultType: "[integer]"
+  # Partitioning of t_customers: "c<n>" goes to partition n + 1. A leftJoin calls the otherPartitioner without
+  # a key when an order is deleted; any partition works for that.
+  customer_partition:
+    type: streamPartitioner
+    expression: '[0] if key is None else [(int(key[1:]) + 1) % numPartitions]'
+    resultType: "[integer]"
+
+pipelines:
+  inner:
+    from: orders
+    via:
+      - type: join
+        table: customers
+        foreignKeyExtractor: customer_of
+        valueJoiner: enrich
+        partitioner: order_partition
+        otherPartitioner: customer_partition
+      - type: toStream
+    to: out_fk
+  left:
+    from: orders
+    via:
+      - type: leftJoin
+        table: customers
+        foreignKeyExtractor: customer_of
+        valueJoiner: enrich
+        partitioner: order_partition
+        otherPartitioner: customer_partition
+      - type: toStream
+    to: out_fk_left

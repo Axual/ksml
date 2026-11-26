@@ -50,7 +50,8 @@ public final class ParityCase {
     sealed interface Step permits Pipe, WallClock {
     }
 
-    record Pipe(String topic, String key, String value, long timestamp, Map<String, String> headers) implements Step {
+    // partition is null for the producer's default partitioner
+    record Pipe(String topic, String key, String value, long timestamp, Map<String, String> headers, Integer partition) implements Step {
     }
 
     record WallClock(long millis) implements Step {
@@ -131,12 +132,20 @@ public final class ParityCase {
     }
 
     public ParityCase pipe(String topic, String key, String value, long timestamp) {
-        steps.add(new Pipe(topic, key, value, timestamp, Map.of()));
+        steps.add(new Pipe(topic, key, value, timestamp, Map.of(), null));
         return this;
     }
 
     public ParityCase pipe(String topic, String key, String value, long timestamp, Map<String, String> headers) {
-        steps.add(new Pipe(topic, key, value, timestamp, headers));
+        steps.add(new Pipe(topic, key, value, timestamp, headers, null));
+        return this;
+    }
+
+    /**
+     * Writes the record to this partition in Docker mode. The test driver always uses one partition.
+     */
+    public ParityCase pipeToPartition(String topic, int partition, String key, String value, long timestamp) {
+        steps.add(new Pipe(topic, key, value, timestamp, Map.of(), partition));
         return this;
     }
 

@@ -56,8 +56,10 @@ public class DefinitionConstants {
     }
 
     protected static final ParameterDefinition[] NO_PARAMETERS = new ParameterDefinition[]{};
+    // key is optional, so extractors that only take the value keep working
     protected static final ParameterDefinition[] FOREIGN_KEY_EXTRACTOR_PARAMETERS = new ParameterDefinition[]{
-            new ParameterDefinition(PARAM_VALUE, DataType.UNKNOWN)};
+            new ParameterDefinition(PARAM_VALUE, DataType.UNKNOWN),
+            new ParameterDefinition(PARAM_KEY, DataType.UNKNOWN, true, null)};
     protected static final ParameterDefinition[] MERGER_PARAMETERS = {
             new ParameterDefinition(PARAM_KEY, DataType.UNKNOWN),
             new ParameterDefinition(PARAM_VALUE1, DataType.UNKNOWN),

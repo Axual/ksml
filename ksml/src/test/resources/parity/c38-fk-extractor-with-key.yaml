@@ -15,6 +15,20 @@ streams:
     topic: out_fk
     keyType: string
     valueType: json
+  out_fk_left:
+    topic: out_fk_left
+    keyType: string
+    valueType: json
+
+functions:
+  customer_of:
+    type: foreignKeyExtractor
+    resultType: string
+    expression: key.split("-")[0]
+  enrich:
+    type: valueJoiner
+    resultType: json
+    expression: '{"amount": value1["amount"], "name": value2["name"] if value2 is not None else None}'
 
 pipelines:
   inner:
@@ -22,11 +36,16 @@ pipelines:
     via:
       - type: join
         table: customers
-        foreignKeyExtractor:
-          resultType: string
-          expression: key.split("-")[0]
-        valueJoiner:
-          resultType: json
-          expression: '{"amount": value1["amount"], "name": value2["name"]}'
+        foreignKeyExtractor: customer_of
+        valueJoiner: enrich
       - type: toStream
     to: out_fk
+  left:
+    from: orders
+    via:
+      - type: leftJoin
+        table: customers
+        foreignKeyExtractor: customer_of
+        valueJoiner: enrich
+      - type: toStream
+    to: out_fk_left
