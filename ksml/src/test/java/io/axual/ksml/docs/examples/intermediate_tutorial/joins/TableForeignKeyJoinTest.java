@@ -44,6 +44,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * 4. testOrderMovesToOtherCustomer: an order that changes its customer_id is joined with the new customer
  * 5. testOrderDeleteSendsTombstone: a deleted order sends the order key with a null value
  * 6. testCustomerDeleteSendsTombstone: a deleted customer sends the order key with a null value
+ * 7. testEmptyOrderValueIsSkipped: an empty order value reaches the foreignKeyExtractor as None and joins nothing
  */
 @ExtendWith(KSMLTestExtension.class)
 @SuppressWarnings("java:S2187")
@@ -135,6 +136,18 @@ public class TableForeignKeyJoinTest {
         final var outputRecord = enrichedOutput.readRecord();
         assertThat(outputRecord.getKey()).isEqualTo("ORD0001");
         assertThat(outputRecord.getValue()).isNull();
+    }
+
+    @KSMLTest(topology = TOPOLOGY)
+    void testEmptyOrderValueIsSkipped() {
+        customersInput.pipeInput("CUST001", customer("Alice Johnson"));
+
+        // An empty json value is not a tombstone: the foreignKeyExtractor gets None and must not fail
+        ordersInput.pipeInput("ORD0001", "");
+        assertThat(enrichedOutput.isEmpty()).isTrue();
+
+        ordersInput.pipeInput("ORD0001", order("ORD0001", "CUST001"));
+        assertThat(customerName(enrichedOutput.readValue())).isEqualTo("Alice Johnson");
     }
 
     private String customer(String name) {

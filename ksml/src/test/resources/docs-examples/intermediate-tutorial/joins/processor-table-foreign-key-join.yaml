@@ -12,7 +12,7 @@ tables:
 functions:
   extract_customer_id:
     type: foreignKeyExtractor
-    # Gets an order and returns the key of the customer to join with
+    # Gets an order and returns the key of the customer to join with. An empty json value reaches the function as None
     expression: value.get("customer_id") if value else None
     resultType: string
 
