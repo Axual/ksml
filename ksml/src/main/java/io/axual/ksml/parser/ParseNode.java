@@ -88,7 +88,8 @@ public class ParseNode {
         return new ParseNode(this, node, appendName, tags);
     }
 
-    public List<ParseNode> children(String childTagKey, String elementPrefix) {
+    public List<ParseNode> children(String tagKey, String elementPrefix) {
+        final var childTagKey = uniqueTagKey(tagKey);
         List<ParseNode> result = new ArrayList<>();
         Set<JsonNode> seen = new HashSet<>();
         for (Map.Entry<String, JsonNode> field : node.properties()) {
@@ -105,6 +106,19 @@ public class ParseNode {
             }
         }
         return result;
+    }
+
+    // A structure inside the same structure, such as a branch inside a branch, would add the same tag key
+    // again. Metric names can not have a tag key twice, so the inner levels get "_2", "_3" and so on.
+    private String uniqueTagKey(String tagKey) {
+        if (tagKey == null || !hasTagKey(tagKey)) return tagKey;
+        var level = 2;
+        while (hasTagKey(tagKey + "_" + level)) level++;
+        return tagKey + "_" + level;
+    }
+
+    private boolean hasTagKey(String key) {
+        return tags.stream().anyMatch(tag -> tag.key().equals(key));
     }
 
     /**

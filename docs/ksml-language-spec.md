@@ -125,10 +125,15 @@
   - **`parameters`** *(array)*: *(optional)* A list of parameters to be passed into the aggregator.
     - **Items** *(object)*: Refer to *[#/$defs/ParameterDefinition](#%24defs/ParameterDefinition)*.
   - **`resultType`** *(string)*: *(optional)* The data type returned by the aggregator. Only required for function types, which are not pre-defined.
+- <a id="%24defs/BranchDefinitionNested"></a>**`BranchDefinitionNested`** *(object)*: Defines a branch inside a branch. Its sub-pipeline has the same fields as a pipeline, without "from". Can contain additional properties.
+  - **`if`**: *(optional)* Defines the condition under which messages get sent down this branch.
+    - **Any of**
+      - *string*
+      - *object*: Refer to *[#/$defs/PredicateDefinitionWithImplicitStoreType](#%24defs/PredicateDefinitionWithImplicitStoreType)*.
 - <a id="%24defs/BranchDefinitionWithPipeline"></a>**`BranchDefinitionWithPipeline`** *(object)*: Defines a branch with sub-pipeline in a BranchOperation. Cannot contain additional properties.
   - **`as`** *(string)*: *(optional)* The name to register the pipeline result under, which can be used as source by follow-up pipelines.
   - **`branch`** *(array)*: *(optional)* Defines a single branch, consisting of a condition and a pipeline to execute for messages that fulfil the predicate.
-    - **Items** *(object)*: Refer to *[#/$defs/StringOrInlinePredicateDefinitionWithImplicitStoreType](#%24defs/StringOrInlinePredicateDefinitionWithImplicitStoreType)*.
+    - **Items** *(object)*: Refer to *[#/$defs/BranchDefinitionNested](#%24defs/BranchDefinitionNested)*.
   - **`forEach`**: *(optional)* A function that gets called for every message in the stream.
     - **Any of**
       - *string*
@@ -1467,11 +1472,6 @@
   - **`parameters`** *(array)*: *(optional)* A list of parameters to be passed into the stream partitioner.
     - **Items** *(object)*: Refer to *[#/$defs/ParameterDefinition](#%24defs/ParameterDefinition)*.
   - **`resultType`** *(string)*: *(optional)* The data type returned by the stream partitioner. Only required for function types, which are not pre-defined.
-- <a id="%24defs/StringOrInlinePredicateDefinitionWithImplicitStoreType"></a>**`StringOrInlinePredicateDefinitionWithImplicitStoreType`** *(object)*: Defines the condition under which messages get sent down this branch. Cannot contain additional properties.
-  - **`if`**: *(optional)* Defines the condition under which messages get sent down this branch.
-    - **Any of**
-      - *string*
-      - *object*: Refer to *[#/$defs/PredicateDefinitionWithImplicitStoreType](#%24defs/PredicateDefinitionWithImplicitStoreType)*.
 - <a id="%24defs/SuppressOperationUntilTimeLimit"></a>**`SuppressOperationUntilTimeLimit`** *(object)*: Operation to suppress messages in the source stream until a time limit is reached. Cannot contain additional properties.
   - **`bufferFullStrategy`**: *(optional)* What to do when the buffer is full. Must be one of: `["emitEarlyWhenFull", "shutdownWhenFull"]`.
   - **`duration`**: The duration for which messages are suppressed.
