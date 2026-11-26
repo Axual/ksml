@@ -649,7 +649,7 @@ A tombstone is a record with a `null` value: a delete. Joins handle tombstones a
 | Two tables (`leftJoin`)    | Tombstone on the left                      | The joined row is deleted                                                                |
 | Two tables (`leftJoin`)    | Tombstone on the right                     | `value2` is `None`                                                                       |
 | Two tables (`outerJoin`)   | Tombstone on one side                      | The deleted side is `None`. The row is deleted when both sides are gone                  |
-| Foreign-key join           | Tombstone on the input table               | The joined row is deleted. The `foreignKeyExtractor` is not called                       |
+| Foreign-key join           | Tombstone on the input table               | The joined row is deleted. The `foreignKeyExtractor` gets the old value                  |
 | Foreign-key join           | Tombstone on the joined table              | `join` deletes the joined rows, `leftJoin` gets `None` for `value2`                      |
 | Foreign-key join           | The `foreignKeyExtractor` returns `None`   | `join` leaves the row out, `leftJoin` joins it with `None`                               |
 

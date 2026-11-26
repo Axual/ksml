@@ -265,12 +265,12 @@ as an empty key. A function that returns it, like a `groupBy` mapper, gives a `n
 |-----------------------|---------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------|
 | `reducer`             | `reduce` after `groupBy` or `groupByKey`                | The record is skipped                                                                                                            |
 | `aggregator`          | `aggregate` after `groupBy` or `groupByKey`             | The record is skipped                                                                                                            |
-| `foreignKeyExtractor` | foreign-key `join` and `leftJoin`                       | The joined row is deleted                                                                                                        |
 | `valueJoiner`         | a join of a stream with a stream, table or global table | The stream record is skipped                                                                                                     |
 | `valueJoiner`         | `join` of two tables                                    | The joined row is deleted. For `leftJoin` and `outerJoin`, see [Tombstones in joins](operation-reference.md#tombstones-in-joins) |
 
 `count` also skips tombstones. On a table, `filter` and `filterNot` do not call the `predicate` for a tombstone: the
-delete is passed on. Other functions, like a `predicate` or a `valueTransformer` on a stream, still get `None` for a
+delete is passed on. A `foreignKeyExtractor` is called for a tombstone on the input table, but with the old value of
+the deleted row, so that the joined row can be deleted. Other functions, like a `predicate` or a `valueTransformer` on a stream, still get `None` for a
 tombstone.
 
 ### Returning `None`
@@ -697,6 +697,10 @@ into a table.
 | key       | Any  | Optional. The key of the record. Use it when the join key is in the record key instead of the value |
 
 `key` is optional, so a function that only uses `value` still works. Do not use a global variable called `key` in it.
+
+Kafka Streams calls the function with the new value of an insert or update, and with the old value of an update or
+delete. It never gets a tombstone, but an empty value on a `json` or union table reaches it as `None` (see
+[Tombstones and `None`](#tombstones-and-none)). Check for `None` when the input table can have empty values.
 
 #### Return Value
 
