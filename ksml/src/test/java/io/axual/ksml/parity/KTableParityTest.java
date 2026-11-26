@@ -329,16 +329,25 @@ class KTableParityTest {
 
     @Test
     void c38ForeignKeyExtractorWithKey() {
-        ParityCase.of("C38", "foreign-key extractor that reads the key (BiFunction, Kafka Streams 4.x)")
-                .input("t_orders").input("t_customers").output("out_fk")
+        // Kafka Streams calls the extractor with the old and the new value of an update, and with the old value of a
+        // delete, so the updates and deletes check that the key reaches the extractor on these paths too.
+        ParityCase.of("C38", "foreign-key extractor that reads the key (BiFunction, Kafka Streams 4.x): join and leftJoin, late customer, updates, deletes")
+                .input("t_orders").input("t_customers").output("out_fk").output("out_fk_left")
                 .reference(builder -> {
                     final var orders = builder.table("t_orders", CONSUMED);
                     final var customers = builder.table("t_customers", CONSUMED);
                     orders.join(customers, (String k, String v) -> k.split("-")[0], ENRICH).toStream().to("out_fk", PRODUCED);
+                    orders.leftJoin(customers, (String k, String v) -> k.split("-")[0], ENRICH).toStream().to("out_fk_left", PRODUCED);
                 })
                 .ksml("parity/c38-fk-extractor-with-key.yaml")
                 .pipe("t_customers", "c1", "{\"name\":\"Ann\"}", 1000)
                 .pipe("t_orders", "c1-o1", "{\"amount\":10}", 2000)
+                .pipe("t_orders", "c2-o2", "{\"amount\":20}", 3000)
+                .pipe("t_customers", "c2", "{\"name\":\"Bob\"}", 4000)
+                .pipe("t_customers", "c1", "{\"name\":\"Anna\"}", 5000)
+                .pipe("t_orders", "c2-o2", "{\"amount\":21}", 5500)
+                .pipe("t_orders", "c1-o1", null, 6000)
+                .pipe("t_customers", "c2", null, 7000)
                 .check();
     }
 }
