@@ -1,0 +1,44 @@
+tables:
+  keyed_orders:
+    topic: keyed_orders
+    keyType: string  # "<customer_id>/<order_id>"
+    valueType: json
+
+  customers_table:
+    topic: customers
+    keyType: string
+    valueType: json
+
+functions:
+  # Take the customer_id from the order key, not from the value
+  customer_id_from_key:
+    type: foreignKeyExtractor
+    expression: key.split("/")[0]
+    resultType: string
+
+  join_order_customer:
+    type: valueJoiner
+    # value1 is the order, value2 is the customer. An empty json order reaches the function as None, because the
+    # foreignKeyExtractor reads only the key and still finds the customer
+    expression: '{"product": value1.get("product"), "amount": value1.get("amount"), "customer": value2.get("name"), "tier": value2.get("tier")} if value1 is not None else None'
+    resultType: json
+
+pipelines:
+  enrich_keyed_orders:
+    from: keyed_orders
+    via:
+      - type: join
+        table: customers_table
+        foreignKeyExtractor: customer_id_from_key
+        valueJoiner: join_order_customer
+      - type: toStream
+      - type: peek
+        forEach:
+          code: |
+            # A deleted order or customer sends a null value
+            if value is not None:
+              log.info("Order {} for customer {}", key, value.get("customer"))
+    to:
+      topic: enriched_keyed_orders
+      keyType: string  # Still keyed by "<customer_id>/<order_id>"
+      valueType: json

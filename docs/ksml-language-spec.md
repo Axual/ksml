@@ -543,7 +543,7 @@
       - *string*
       - *object*: Refer to *[#/$defs/ValueJoinerDefinitionWithImplicitStoreType](#%24defs/ValueJoinerDefinitionWithImplicitStoreType)*.
 - <a id="%24defs/JoinWithTableOperation"></a>**`JoinWithTableOperation`** *(object)*: Operation to join with a table. Cannot contain additional properties.
-  - **`foreignKeyExtractor`**: *(optional)* A function that can translate the join table value to a primary key.
+  - **`foreignKeyExtractor`**: *(optional)* A function that gets the key of the join table from a record (value, optionally key) of the input table. Only when the input is a table.
     - **Any of**
       - *string*
       - *object*: Refer to *[#/$defs/ForeignKeyExtractorDefinitionWithImplicitStoreType](#%24defs/ForeignKeyExtractorDefinitionWithImplicitStoreType)*.
@@ -964,7 +964,7 @@
       - *string*
       - *object*: Refer to *[#/$defs/ValueJoinerDefinitionWithImplicitStoreType](#%24defs/ValueJoinerDefinitionWithImplicitStoreType)*.
 - <a id="%24defs/LeftJoinWithTableOperation"></a>**`LeftJoinWithTableOperation`** *(object)*: Operation to leftJoin with a table. Cannot contain additional properties.
-  - **`foreignKeyExtractor`**: *(optional)* A function that can translate the join table value to a primary key.
+  - **`foreignKeyExtractor`**: *(optional)* A function that gets the key of the join table from a record (value, optionally key) of the input table. Only when the input is a table.
     - **Any of**
       - *string*
       - *object*: Refer to *[#/$defs/ForeignKeyExtractorDefinitionWithImplicitStoreType](#%24defs/ForeignKeyExtractorDefinitionWithImplicitStoreType)*.

@@ -229,7 +229,7 @@ When calling this function from Python:
 configurable_logger(key, value, prefix="DEBUG")
 ```
 
-Custom parameters come right after the built-in ones. Only the optional built-in parameter `mappedKey` (in a `valueJoiner`) comes last, after the custom parameters.
+Custom parameters come right after the built-in ones. Only the optional built-in parameters `mappedKey` (in a `valueJoiner`) and `key` (in a `foreignKeyExtractor`) come last, after the custom parameters.
 
 ### Parameter Definition Structure
 
@@ -265,12 +265,12 @@ as an empty key. A function that returns it, like a `groupBy` mapper, gives a `n
 |-----------------------|---------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------|
 | `reducer`             | `reduce` after `groupBy` or `groupByKey`                | The record is skipped                                                                                                            |
 | `aggregator`          | `aggregate` after `groupBy` or `groupByKey`             | The record is skipped                                                                                                            |
-| `foreignKeyExtractor` | foreign-key `join` and `leftJoin`                       | The joined row is deleted                                                                                                        |
 | `valueJoiner`         | a join of a stream with a stream, table or global table | The stream record is skipped                                                                                                     |
 | `valueJoiner`         | `join` of two tables                                    | The joined row is deleted. For `leftJoin` and `outerJoin`, see [Tombstones in joins](operation-reference.md#tombstones-in-joins) |
 
 `count` also skips tombstones. On a table, `filter` and `filterNot` do not call the `predicate` for a tombstone: the
-delete is passed on. Other functions, like a `predicate` or a `valueTransformer` on a stream, still get `None` for a
+delete is passed on. A `foreignKeyExtractor` is called for a tombstone on the input table, but with the old value of
+the deleted row, so that the joined row can be deleted. Other functions, like a `predicate` or a `valueTransformer` on a stream, still get `None` for a
 tombstone.
 
 ### Returning `None`
@@ -308,7 +308,7 @@ Below is a table with all 21 function types in KSML.
 | [reducer](#reducer)                                                     | Combine two values into one                      | reduce                                      |
 |                                                                         |                                                  |                                             |
 | **Special Purpose Functions**                                           |                                                  |                                             |
-| [foreignKeyExtractor](#foreignkeyextractor)                             | Get the key of the other table from a table value | join, leftJoin                              |
+| [foreignKeyExtractor](#foreignkeyextractor)                             | Get the key of the other table from a table record | join, leftJoin                              |
 | [generator](#generator)                                                 | Function used in producers to generate a message | producer                                    |
 | [generic](#generic)                                                     | Generic custom function                          |                                             |
 | [keyValueMapper](#keyvaluemapper)                                       | Convert key and value into a single output value | groupBy, join, leftJoin                     |
@@ -684,15 +684,23 @@ Combined value
 
 ### foreignKeyExtractor
 
-Gets a value of the input table and returns the key of the other table to join with. Used in a `join` or `leftJoin`
-between two tables, when the join key is in the value instead of the record key. Both sides must be tables: with a
-stream as input, KSML stops with an error. Add `toTable` before the join to turn a stream into a table.
+Gets a record of the input table and returns the key of the other table to join with. Used in a `join` or `leftJoin`
+between two tables, when the join key is not the record key: it is in the value, or is only a part of the key. Both
+sides must be tables: with a stream as input, KSML stops with an error. Add `toTable` before the join to turn a stream
+into a table.
 
 #### Parameters
 
-| Parameter | Type | Description                               |
-|-----------|------|-------------------------------------------|
-| value     | Any  | The value of the record to get a key from |
+| Parameter | Type | Description                                                                                      |
+|-----------|------|--------------------------------------------------------------------------------------------------|
+| value     | Any  | The value of the record to get a key from                                                        |
+| key       | Any  | Optional. The key of the record. Use it when the join key is in the record key instead of the value |
+
+`key` is optional, so a function that only uses `value` still works. Do not use a global variable called `key` in it.
+
+Kafka Streams calls the function with the new value of an insert or update, and with the old value of an update or
+delete. It never gets a tombstone, but an empty value on a `json` or union table reaches it as `None` (see
+[Tombstones and `None`](#tombstones-and-none)). Check for `None` when the input table can have empty values.
 
 #### Return Value
 
@@ -753,6 +761,43 @@ This pattern is commonly used for:
 - Transaction enrichment with account information
 - Event enrichment with user profiles
 - Any scenario where records contain foreign key references
+
+#### Example: Foreign Key in the Record Key
+
+Here the order key is `"<customer_id>/<order_id>"`, and the order value has no `customer_id`. The
+`foreignKeyExtractor` uses `key` to get the customer:
+
+```yaml
+--8<-- "docs-examples/reference/functions/foreignkeyextractor-key-processor.yaml:13:17"
+```
+
+??? info "Producer - `foreignKeyExtractor` with key example (click to expand)"
+
+    ```yaml
+    {% include "../../ksml/src/test/resources/docs-examples/reference/functions/foreignkeyextractor-key-producer.yaml" %}
+    ```
+
+??? info "Processor - `foreignKeyExtractor` with key example (click to expand)"
+
+    ```yaml
+    {% include "../../ksml/src/test/resources/docs-examples/reference/functions/foreignkeyextractor-key-processor.yaml" %}
+    ```
+
+The result keeps the order key, for example `c001/ord_001`, and the log shows lines like
+`"Order c001/ord_001 for customer Alice"`. In the `valueJoiner` of a join between two tables, `key` is `None`, so the
+example takes everything it needs from `value1` and `value2`.
+
+#### Partitioners
+
+A `join` or `leftJoin` with a `foreignKeyExtractor` can have a `partitioner` and an `otherPartitioner`. Kafka Streams
+sends the lookup to the partition of the other table, and the result back to the partition of the input table:
+
+- `otherPartitioner` gets keys of the other table, and must match how that table's topic is partitioned
+- `partitioner` gets keys of the input table, and must match how that table's topic is partitioned
+
+Leave them out when both topics use the default partitioning. In a `leftJoin`, Kafka Streams can call the
+`otherPartitioner` with `key` set to `None`, for example when a record of the input table is deleted. Any partition is
+fine for those calls, but the function must not fail on them.
 
 ### generator
 
@@ -941,7 +986,7 @@ Determines which partition a record should be sent to when writing to a Kafka to
 | Parameter     | Type    | Description                                                            |
 |---------------|---------|------------------------------------------------------------------------|
 | topic         | String  | The name of the topic the record is being sent to                     |
-| key           | Any     | The key of the record being partitioned                               |
+| key           | Any     | The key of the record being partitioned. Can be `None` as `otherPartitioner` of a foreign-key `leftJoin` |
 | value         | Any     | The value of the record being partitioned. `None` in a foreign-key join |
 | headers       | List    | The record headers, as a list of `{"key": ..., "value": ...}` like in `metadataTransformer` |
 | numPartitions | Integer | The total number of partitions available in the target topic          |
@@ -1238,7 +1283,7 @@ relationship helps you leverage Kafka Streams documentation and concepts:
 #### Special Purpose Functions
 | KSML Function Type  | Kafka Streams Interface                        | Purpose                            |
 |---------------------|------------------------------------------------|------------------------------------|
-| foreignKeyExtractor | `Function<V,FK>`                               | Extract foreign key for joins      |
+| foreignKeyExtractor | `BiFunction<K,V,FK>`                           | Extract foreign key for joins      |
 | keyValueMapper      | `KeyValueMapper<K,V,VR>`                       | Convert key-value to single output |
 | valueJoiner         | `ValueJoiner`, `ValueJoinerWithKey` or `ValueJoinerWithStreamAndMappedKey`, by join type | Join values from two streams       |
 

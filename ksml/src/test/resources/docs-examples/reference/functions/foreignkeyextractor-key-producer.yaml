@@ -1,0 +1,49 @@
+functions:
+  generate_keyed_orders:
+    type: generator
+    globalCode: |
+      import random
+      order_counter = 1
+    code: |
+      global order_counter
+      # The order key is "<customer_id>/<order_id>": the customer is in the key, not in the value
+      customer_id = random.choice(["c001", "c002", "c003"])
+      key = f"{customer_id}/ord_{order_counter:03d}"
+      order_counter += 1
+      return key, {
+        "product": random.choice(["laptop", "phone"]),
+        "amount": random.randint(100, 1000)
+      }
+    resultType: (string, json)
+
+  generate_customers:
+    type: generator
+    globalCode: |
+      import random
+      custs = [
+        {"id": "c001", "name": "Alice", "tier": "gold"},
+        {"id": "c002", "name": "Bob", "tier": "silver"},
+        {"id": "c003", "name": "Charlie", "tier": "bronze"}
+      ]
+    code: |
+      global custs
+      c = random.choice(custs)
+      return c["id"], {"customer_id": c["id"], "name": c["name"], "tier": c["tier"]}
+    resultType: (string, json)
+
+producers:
+  keyed_order_producer:
+    generator: generate_keyed_orders
+    interval: 3s
+    to:
+      topic: keyed_orders
+      keyType: string
+      valueType: json
+
+  customer_producer:
+    generator: generate_customers
+    interval: 5s
+    to:
+      topic: customers
+      keyType: string
+      valueType: json
