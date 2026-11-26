@@ -280,7 +280,7 @@ class ExecutableProducerTest {
     /** A "produce once" strategy (no interval/count/until), so no Python predicates are needed. */
     private static ProducerStrategy onceStrategy(MetricTags tags) {
         final var definition = new ProducerDefinition(null, null, null, null, null, null, null);
-        return new ProducerStrategy(null, "ns", "gen", tags, definition);
+        return new ProducerStrategy(null, "gen", tags, definition);
     }
 
     private static Serializer<Object> passthroughSerializer() {

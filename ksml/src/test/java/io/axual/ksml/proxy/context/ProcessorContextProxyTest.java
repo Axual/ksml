@@ -110,11 +110,11 @@ class ProcessorContextProxyTest {
     @DisplayName("forward sends a record with the punctuation timestamp and no headers to the next operation")
     void forwardDefaults() {
         proxy().forward("a", 10, null, null, null);
-        final var record = forwarded("main");
-        assertThat(record.key()).isEqualTo(new DataString("a"));
-        assertThat(record.value()).isEqualTo(new DataLong(10L));
-        assertThat(record.timestamp()).isEqualTo(PUNCTUATION_TIME);
-        assertThat(record.headers().toArray()).isEmpty();
+        final var rec = forwarded("main");
+        assertThat(rec.key()).isEqualTo(new DataString("a"));
+        assertThat(rec.value()).isEqualTo(new DataLong(10L));
+        assertThat(rec.timestamp()).isEqualTo(PUNCTUATION_TIME);
+        assertThat(rec.headers().toArray()).isEmpty();
     }
 
     @Test
@@ -138,10 +138,10 @@ class ProcessorContextProxyTest {
     void forwardKeywordArguments() {
         final var result = python(proxy(), "context.forward('a', 'x', timestamp=1700000000000, headers=[{'key': 'source', 'value': 'flush'}], to='enrich')");
         assertThat(result).isEqualTo("None");
-        final var record = forwarded("punctuate-to-enrich");
-        assertThat(record.value()).isEqualTo(new DataString("x"));
-        assertThat(record.timestamp()).isEqualTo(1700000000000L);
-        assertThat(record.headers()).isEqualTo(new RecordHeaders().add("source", "flush".getBytes(StandardCharsets.UTF_8)));
+        final var rec = forwarded("punctuate-to-enrich");
+        assertThat(rec.value()).isEqualTo(new DataString("x"));
+        assertThat(rec.timestamp()).isEqualTo(1700000000000L);
+        assertThat(rec.headers()).isEqualTo(new RecordHeaders().add("source", "flush".getBytes(StandardCharsets.UTF_8)));
     }
 
     @Test

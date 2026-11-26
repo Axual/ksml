@@ -251,12 +251,12 @@ public class KSMLRunner {
             final var parsedDefinitions = parseDefinitions(definitions);
             final var definitionSplit = splitDefinitions(parsedDefinitions, ksmlConfig.enableProducers(), ksmlConfig.enablePipelines());
 
-            final var producer = createProducerRunner(definitionSplit.producers(), config, ksmlConfig);
-            final var streams = createStreamsRunner(definitionSplit.pipelines(), config, ksmlConfig);
-
-            if (producer != null || streams != null) {
-                runRunners(producer, streams, restServer, ksmlConfig.prometheusConfig());
-            }
+            try (final var producer = createProducerRunner(definitionSplit.producers(), config, ksmlConfig);
+                 final var streams = createStreamsRunner(definitionSplit.pipelines(), config, ksmlConfig)) {
+                    if (producer != null || streams != null) {
+                        runRunners(producer, streams, restServer, ksmlConfig.prometheusConfig());
+                    }
+                }
         } catch (Throwable t) {
             log.error("KSML Stopping because of unhandled exception");
             // report() logs the error; the exit code makes Docker or Kubernetes restart the process

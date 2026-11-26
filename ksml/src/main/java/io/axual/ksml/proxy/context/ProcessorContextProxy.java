@@ -146,15 +146,15 @@ public class ProcessorContextProxy implements AbstractProxy {
         final var name = to != null ? targetName(to) : null;
         final var target = name != null ? namedTargets.get(name) : next;
         final var targetName = name != null ? "operation '" + name + "'" : "the next operation";
-        final var record = new Record<>(
+        final var rec = new Record<>(
                 toType(key, target.keyType(), "key", targetName),
                 toType(value, target.valueType(), "value", targetName),
                 toTimestamp(timestamp),
                 toHeaders(headers));
         if (target.childName() != null)
-            context.forward(record, target.childName());
+            context.forward(rec, target.childName());
         else
-            context.forward(record);
+            context.forward(rec);
     }
 
     /**

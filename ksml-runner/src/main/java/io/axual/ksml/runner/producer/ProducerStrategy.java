@@ -47,7 +47,7 @@ public class ProducerStrategy {
     private long messagesProduced = 0;
     private boolean untilTriggered = false;
 
-    public ProducerStrategy(PythonContext context, String namespace, String name, MetricTags tags, ProducerDefinition definition) {
+    public ProducerStrategy(PythonContext context, String name, MetricTags tags, ProducerDefinition definition) {
         // If interval, messageCount and until are not defined, then only produce one message
         once = (definition.interval() == null && definition.messageCount() == null && definition.until() == null);
         if (once) {

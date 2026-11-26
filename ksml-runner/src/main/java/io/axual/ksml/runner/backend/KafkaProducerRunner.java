@@ -34,6 +34,7 @@ import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.common.serialization.ByteArraySerializer;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Function;
@@ -43,7 +44,7 @@ import static org.apache.kafka.clients.producer.ProducerConfig.KEY_SERIALIZER_CL
 import static org.apache.kafka.clients.producer.ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG;
 
 @Slf4j
-public class KafkaProducerRunner implements Runner {
+public class KafkaProducerRunner implements Runner, AutoCloseable {
     private static final String UNDEFINED = "undefined";
     // Package-private so tests can schedule producers directly when exercising the produce loop.
     final IntervalSchedule scheduler = new IntervalSchedule();
@@ -51,6 +52,7 @@ public class KafkaProducerRunner implements Runner {
     private final Config config;
     private final Function<Map<String, Object>, Producer<byte[], byte[]>> producerFactory;
     private State currentState;
+    private List<PythonContext> contexts;
 
     @Builder
     public record Config(
@@ -112,15 +114,16 @@ public class KafkaProducerRunner implements Runner {
                         ofNullable(definition.version()).orElse(UNDEFINED),
                         ofNullable(definition.namespace()).orElse(UNDEFINED));
                 // Set up the Python context for this definition
-                final var context = new PythonContext(config.pythonContextConfig());
-                // Pre-register all functions in the Python context
-                definition.functions().forEach((name, function) -> PythonFunction.forFunction(context, function.withName(name)));
-                // Schedule all defined producers
-                definition.producers().forEach((name, producer) -> {
-                    var ep = ExecutableProducer.forProducer(context, definition.namespace(), name, producer, config.kafkaConfig);
-                    scheduler.schedule(ep);
-                    log.info("Scheduled producer: {} {}", name, ofNullable(producer.interval()).map(ms -> ms.toMillis() + "ms").orElse("once"));
-                });
+                try (final var context = new PythonContext(config.pythonContextConfig())) {
+                    // Pre-register all functions in the Python context
+                    definition.functions().forEach((name, function) -> PythonFunction.forFunction(context, function.withName(name)));
+                    // Schedule all defined producers
+                    definition.producers().forEach((name, producer) -> {
+                        var ep = ExecutableProducer.forProducer(context, name, producer, config.kafkaConfig);
+                        scheduler.schedule(ep);
+                        log.info("Scheduled producer: {} {}", name, ofNullable(producer.interval()).map(ms -> ms.toMillis() + "ms").orElse("once"));
+                    });
+                }
             });
         } catch (Exception e) {
             setState(State.FAILED);
@@ -168,5 +171,10 @@ public class KafkaProducerRunner implements Runner {
     public void stop() {
         setState(State.STOPPING);
         stopRunning.set(true);
+    }
+
+    @Override
+    public void close() {
+        contexts.forEach(PythonContext::close);
     }
 }

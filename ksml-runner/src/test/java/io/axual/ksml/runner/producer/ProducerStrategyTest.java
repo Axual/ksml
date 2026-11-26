@@ -47,7 +47,7 @@ class ProducerStrategyTest {
         // generator, condition, until and target are unused by ProducerStrategy and left null on purpose.
         final var definition = new ProducerDefinition(null, null, null, null, messageCount, batchSize, interval);
         // context may be null because no condition/until functions are defined.
-        return new ProducerStrategy(null, "ns", "producer", TAGS, definition);
+        return new ProducerStrategy(null, "producer", TAGS, definition);
     }
 
     @Test

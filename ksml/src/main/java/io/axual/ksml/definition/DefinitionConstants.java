@@ -93,7 +93,7 @@ public class DefinitionConstants {
             new ParameterDefinition(PARAM_VALUE1, DataType.UNKNOWN),
             new ParameterDefinition(PARAM_VALUE2, DataType.UNKNOWN)};
     // The punctuation context is not a parameter: it is injected as the variable "context"
-    protected static final ParameterDefinition[] PUNCTUATOR_PARAMETERS = new ParameterDefinition[]{
+    protected static final ParameterDefinition[] PUNCTUATOR_PARAMETERS = {
             new ParameterDefinition(PARAM_TIMESTAMP, DataLong.DATATYPE)};
     protected static final ParameterDefinition[] TIMESTAMP_EXTRACTOR_PARAMETERS = new ParameterDefinition[]{
             new ParameterDefinition(PARAM_RECORD, CONSUMER_RECORD_TYPE),

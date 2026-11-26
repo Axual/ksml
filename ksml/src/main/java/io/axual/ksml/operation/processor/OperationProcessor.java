@@ -64,7 +64,7 @@ public abstract class OperationProcessor implements Processor<Object, Object, Ob
                 throw new ExecutionException("Could not connect processor '" + name + "' to state store '" + storeName + "'");
             }
             // Wrap the store in a proxy for security
-            stores.put(storeName, ProxyUtil.wrapStateStore(store, storeDefinitions.apply(storeName), () -> currentTimestamp != null ? currentTimestamp : ProxyUtil.noRecordTimestamp()));
+            stores.put(storeName, ProxyUtil.wrapStateStore(store, storeDefinitions.apply(storeName), this::storeWriteTimestamp));
         }
     }
 
@@ -82,6 +82,11 @@ public abstract class OperationProcessor implements Processor<Object, Object, Ob
         } finally {
             currentTimestamp = null;
         }
+    }
+
+    /** The timestamp that Python writes to timestamped stores use. */
+    private long storeWriteTimestamp() {
+        return currentTimestamp != null ? currentTimestamp : ProxyUtil.noRecordTimestamp();
     }
 
     protected abstract void processRecord(Record<Object, Object> rec);

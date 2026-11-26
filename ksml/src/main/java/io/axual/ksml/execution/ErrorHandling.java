@@ -121,8 +121,12 @@ public class ErrorHandling {
         if (processHandler.log()) {
             // log record
             // Kafka Streams passes no record for an error in a punctuation
-            String key = rec == null ? DATA_NO_RECORD : processHandler.logPayload() ? objectToString(rec.key()) : DATA_MASK;
-            String value = rec == null ? DATA_NO_RECORD : processHandler.logPayload() ? objectToString(rec.value()) : DATA_MASK;
+            String key = DATA_NO_RECORD;
+            String value = DATA_NO_RECORD;
+            if (rec != null) {
+                key = processHandler.logPayload() ? objectToString(rec.key()) : DATA_MASK;
+                value = processHandler.logPayload() ? objectToString(rec.value()) : DATA_MASK;
+            }
             logError(processExceptionLogger, "Processing", context, key, value, exception);
         }
         return switch (processHandler.handlerType()) {

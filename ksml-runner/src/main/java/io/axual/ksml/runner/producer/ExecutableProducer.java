@@ -115,28 +115,28 @@ public class ExecutableProducer {
      * Return a new instance based on the givan parameters.
      *
      * @param context            the {@link PythonContext}.
-     * @param namespace          the namespace for the function.
      * @param name               the name for the function definition.
      * @param producerDefinition the {@link ProducerDefinition} for this producer.
      * @param kafkaConfig        the Kafka configuration for this producer.
      * @return a new ExecutableProducer instance.
      */
-    public static ExecutableProducer forProducer(PythonContext context, String namespace, String name, ProducerDefinition producerDefinition, Map<String, String> kafkaConfig) {
+    public static ExecutableProducer forProducer(PythonContext context, String name, ProducerDefinition producerDefinition, Map<String, String> kafkaConfig) {
         final var target = producerDefinition.target();
-        final var tags = new MetricTags().append("namespace", namespace);
 
         // Initialize the message generator
         final var gen = producerDefinition.generator();
-        if (gen == null) {
+        if (gen == null)
             throw new TopologyException("Missing generator function for producer \"" + name + "\"");
-        }
+        // Create metrics tags with the generator namespace (other functions are assumed to have the same namespace)
+        final var tags = new MetricTags().append("namespace", gen.namespace());
+        // Create the Python function for the generator
         final var generator = PythonFunction.forGenerator(context, gen.withNameIfNotSet(name));
         final var partitioner = target.partitioner() != null
                 ? PythonFunction.forFunction(context, target.partitioner())
                 : null;
 
         // Initialize the producer strategy
-        final var producerStrategy = new ProducerStrategy(context, namespace, name, tags, producerDefinition);
+        final var producerStrategy = new ProducerStrategy(context, name, tags, producerDefinition);
 
         // Initialize serializers
         final var keySerializer = serializerFor(target.keyType(), true, kafkaConfig);
