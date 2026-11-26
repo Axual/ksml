@@ -52,6 +52,8 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
+import java.util.stream.Stream;
 
 @Slf4j
 public class PipelineDefinitionParser extends DefinitionParser<PipelineDefinition> implements NamedObjectParser {
@@ -107,6 +109,13 @@ public class PipelineDefinitionParser extends DefinitionParser<PipelineDefinitio
         final var shortName = FieldParsers.validateName("Pipeline", name, defaultShortName, true);
         final var longName = FieldParsers.validateName("Pipeline", name, defaultLongName, false);
         via = via != null ? via : new ArrayList<>();
+        // Only one sink is used, so reject a definition with more, instead of ignoring the others
+        final var sinks = Stream.of(as, branch, forEach, print, toTopic, toTne)
+                .filter(Objects::nonNull)
+                .count();
+        if (sinks > 1) {
+            throw new TopologyException(TopologyResources.pipelineOf(tags) + " has more than one sink. Use only one of \"as\", \"branch\", \"forEach\", \"print\", \"to\" and \"toTopicNameExtractor\"");
+        }
         if (as != null) return new PipelineDefinition(longName, from, via, as);
         if (branch != null) return new PipelineDefinition(longName, from, via, branch);
         if (forEach != null) return new PipelineDefinition(longName, from, via, forEach);

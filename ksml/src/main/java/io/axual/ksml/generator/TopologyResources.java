@@ -68,10 +68,12 @@ public class TopologyResources extends TopologyBaseResources {
     // The section that defines the name, or null if it is not defined
     public String sectionOf(String name) {
         final var topic = topic(name);
-        if (topic == null) return null;
-        if (topic instanceof TableDefinition) return KSMLDSL.TABLES;
-        if (topic instanceof GlobalTableDefinition) return KSMLDSL.GLOBAL_TABLES;
-        return KSMLDSL.STREAMS;
+        return switch (topic) {
+            case null -> null;
+            case TableDefinition _ -> KSMLDSL.TABLES;
+            case GlobalTableDefinition _ -> KSMLDSL.GLOBAL_TABLES;
+            default -> KSMLDSL.STREAMS;
+        };
     }
 
     public void registerSavedName(String name, MetricTags tags) {
@@ -87,14 +89,15 @@ public class TopologyResources extends TopologyBaseResources {
         return savedNames.get(name);
     }
 
-    // For example: pipeline "orders", or pipeline "orders" (branch2, branch1) for a nested branch
+    // For example: pipeline "orders", or pipeline "orders" (branch2, branch1) for branch 1 inside branch 2
     public static String pipelineOf(MetricTags tags) {
         String pipeline = null;
         final var branches = new ArrayList<String>();
         for (final var tag : tags) {
             // The pipelines map and branches tag their nodes with these keys
             if (tag.key().equals(KSMLDSL.PIPELINE)) pipeline = tag.value();
-            if (tag.key().equals(KSMLDSL.Operations.BRANCH)) branches.add(tag.value());
+            // A nested branch has the key "branch_2", "branch_3" and so on
+            if (tag.key().equals(KSMLDSL.Operations.BRANCH) || tag.key().startsWith(KSMLDSL.Operations.BRANCH + "_")) branches.add(tag.value());
         }
         if (pipeline == null) return "an earlier pipeline";
         return "pipeline \"" + pipeline + "\"" + (branches.isEmpty() ? "" : " (" + String.join(", ", branches) + ")");
