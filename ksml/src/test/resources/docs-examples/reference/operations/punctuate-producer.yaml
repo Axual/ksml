@@ -1,0 +1,26 @@
+streams:
+  orders:
+    topic: orders
+    keyType: string
+    valueType: json
+
+functions:
+  generate_order:
+    type: generator
+    resultType: (string,json)
+    code: |
+      import random
+      customer = random.choice(["alice", "bob", "carol"])
+      order = {
+        "order_id": f"o{random.randint(1000, 9999)}",
+        "customer": customer,
+        "amount": round(random.uniform(5, 100), 2)
+      }
+      return (customer, order)
+
+producers:
+  # Produce an order every second, keyed by customer
+  order_producer:
+    generator: generate_order
+    interval: 1s
+    to: orders
