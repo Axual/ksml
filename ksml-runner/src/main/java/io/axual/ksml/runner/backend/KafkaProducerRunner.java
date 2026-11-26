@@ -33,6 +33,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.common.serialization.ByteArraySerializer;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -52,7 +53,7 @@ public class KafkaProducerRunner implements Runner, AutoCloseable {
     private final Config config;
     private final Function<Map<String, Object>, Producer<byte[], byte[]>> producerFactory;
     private State currentState;
-    private List<PythonContext> contexts;
+    private final List<PythonContext> contexts = new ArrayList<>();
 
     @Builder
     public record Config(
