@@ -2901,6 +2901,7 @@
 <li>Breaking change: an unknown or misspelled field in a KSML definition now stops KSML at startup with an error that names the field. Before, it was silently ignored, so a typo like <code>loging: true</code> on a store quietly turned off the changelog topic. See <a href="../migration-to-2.0.0/#stricter-validation-of-runner-config-and-definitions">Upgrading to 2.0.0</a>.</li>
 <li>The language schema now lists the optional top-level fields <code>name</code>, <code>version</code> and <code>description</code> of a definition.</li>
 <li>The Helm chart has a new <code>env</code> value to add environment variables to the KSML container, in both the StatefulSet and the Job.</li>
+<li>Fixed: a <code>branch</code> inside a branch, as shown in the <a href="../tutorials/intermediate/branching/#nested-branching">branching tutorial</a>, now works at any depth. Before, KSML failed at startup with a <code>NullPointerException</code>.</li>
 </ul>
 <h2 id="130-2026-06-23">1.3.0 (2026-06-23)</h2>
 <ul>
