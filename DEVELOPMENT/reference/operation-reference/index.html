@@ -6335,7 +6335,7 @@ called for it. A <code>reducer</code> that returns <code>None</code> deletes the
 <tr>
 <td>Foreign-key join</td>
 <td>Tombstone on the input table</td>
-<td>The joined row is deleted. The <code>foreignKeyExtractor</code> is not called</td>
+<td>The joined row is deleted. The <code>foreignKeyExtractor</code> gets the old value</td>
 </tr>
 <tr>
 <td>Foreign-key join</td>
@@ -6409,7 +6409,7 @@ called for it. A <code>reducer</code> that returns <code>None</code> deletes the
 <td><code>foreignKeyExtractor</code></td>
 <td>Object</td>
 <td>No</td>
-<td>Gets the key of <code>table</code> from a value of the input. Only when the input is a table</td>
+<td>Gets the key of <code>table</code> from a record (value, optionally key) of the input. Only when the input is a table</td>
 </tr>
 <tr>
 <td><code>partitioner</code></td>
@@ -6508,7 +6508,7 @@ called for it. A <code>reducer</code> that returns <code>None</code> deletes the
 <td><code>foreignKeyExtractor</code></td>
 <td>Object</td>
 <td>No</td>
-<td>Gets the key of <code>table</code> from a value of the input. Only when the input is a table</td>
+<td>Gets the key of <code>table</code> from a record (value, optionally key) of the input. Only when the input is a table</td>
 </tr>
 <tr>
 <td><code>partitioner</code></td>
@@ -6520,7 +6520,7 @@ called for it. A <code>reducer</code> that returns <code>None</code> deletes the
 <td><code>otherPartitioner</code></td>
 <td>String</td>
 <td>No</td>
-<td>Only with <code>foreignKeyExtractor</code>, ignored in other joins: partitions by the key of the join table. Gets no value</td>
+<td>Only with <code>foreignKeyExtractor</code>, ignored in other joins: partitions by the key of the join table. Gets no value, and can get <code>None</code> as key, for example when a record of the input table is deleted</td>
 </tr>
 </tbody>
 </table>
