@@ -10,7 +10,12 @@ target/
 **/.settings
 **/.factorypath
 
-.claude
+# Local Claude Code files. Only shared skills are tracked.
+.claude/*
+!.claude/skills/
+.claude/skills/*
+!.claude/skills/sonar-issues/
+.sonar-token
 
 .vscode/
 diff-coverage.html
