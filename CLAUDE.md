@@ -33,13 +33,13 @@ mvn test -pl ksml -am -Dtest=TestClassName#testMethodName -Dsurefire.failIfNoSpe
 
 `-Dsurefire.failIfNoSpecifiedTests=false` stops the other modules from failing when they do not have the test class.
 
-Build a Docker image locally:
+Build the local Docker image `axual/ksml:local`:
 
 ```bash
-docker buildx create --name ksml
-docker buildx --builder ksml build --load -t axual/ksml:local --target ksml -f Dockerfile .
-docker buildx rm ksml
+./build-local-docker.sh
 ```
+
+The script builds the jars, downloads GraalVM and runs the Docker build. Do not run `docker buildx build` alone, because the `Dockerfile` needs the `build-output/` folder and the GraalVM tar files that the script creates.
 
 ## Architecture Overview
 
@@ -72,7 +72,9 @@ The syntax is defined in `docs/ksml-language-spec.json` as a JSON Schema. A synt
 
 - Use the test annotations `@KSMLTest` and `@KSMLTopic` with `@ExtendWith(KSMLTestExtension.class)` (package `io.axual.ksml.testutil`).
 - Use Awaitility to wait in tests, not custom wait loops or `Thread.sleep`.
+- `@KSMLTest` tests are skipped, not failed, when the JVM is not GraalVM, and the build stays green. Before you say that tests pass, check that the Skipped count is not high. If it is, set `JAVA_HOME` to a GraalVM JDK.
 - New functionality needs unit tests, and integration tests where it touches Kafka or a schema registry.
+- A user-facing feature also needs a docs update in `docs/`.
 
 ### Parity tests
 
@@ -82,7 +84,7 @@ The parity tests compare KSML with plain Kafka Streams. See `developerdocs/parit
 - If a case says "known difference Fxx is gone", check the report to confirm both sides write records, then remove the marker in the same PR.
 - If a case says "known difference Fxx changed", read the report. If the change is right, update the number in the marker, and the text if the reason changed.
 - A new or changed operation needs a parity case.
-- After changing `ParityCase` or `DockerParity`, run one case with `-Dparity.mode=docker`, because test driver mode cannot show class path problems of the reference app.
+- After changing `ParityCase` or `DockerParity`, run one case in Docker mode, because test driver mode cannot show class path problems of the reference app. Build the image with `./build-local-docker.sh`, delete `ksml/target/parity-report-docker/`, and run the case with `-Dparity.mode=docker`. Docker mode never fails a test, so read `ksml/target/parity-report-docker/summary.tsv` and look for `DIFF`, `HARNESS-ERROR` or `MARKER-GONE`. Stop the brokers afterwards (see `developerdocs/parity-tests.md`).
 
 ## Docs examples
 
@@ -91,19 +93,18 @@ The parity tests compare KSML with plain Kafka Streams. See `developerdocs/parit
 1. Give each processor example a matching producer example, so people can run both. The topic names in both definitions must match.
 2. Explain each processor example in the docs in a few sentences: what it does and why it is useful.
 3. The docs show KSML syntax, so keep the Python code short and simple.
-4. Put the definitions in `ksml-integration-tests/src/test/resources/docs-examples` and add them to the page with the `include` syntax, as `docs/tutorials/beginner/data-formats.md` does.
-5. Use `convertValue` for format conversion (for example Avro to JSON to String).
-6. Use `valueType: json` in examples, so messages are easy to read in the Kowl UI.
-7. Add a blank line before every Markdown list, otherwise it does not render as a list.
-8. Write bullet points without a leading keyword, as short and natural sentences.
+4. Put the definitions in `ksml/src/test/resources/docs-examples`, with a `@KSMLTest` test in `io.axual.ksml.docs.examples`. Use `ksml-integration-tests/src/test/resources/docs-examples` with an `*IT` test only when the example needs real Kafka or a schema registry. Add the definitions to the page with the `include` syntax, as `docs/tutorials/beginner/data-formats.md` does.
+5. Use `valueType: json` when the format does not matter, so messages are easy to read in the Kowl UI. When the example is about a format (Avro, XML, CSV, Protobuf and so on), use that format, and use `convertValue` to convert between formats (for example Avro to JSON to String).
+6. Add a blank line before every Markdown list, otherwise it does not render as a list.
+7. Write bullet points without a leading keyword, as short and natural sentences.
 
 ### How to test them with Docker Compose
 
-Use the setup in `docs/local-docker-compose-setup-with-sr` (Kafka, Apicurio schema registry, KSML and Kowl).
+Use the setup in `docs/local-docker-compose-setup-with-sr` (Kafka, Apicurio schema registry, KSML and Kowl). The docs include files from this folder, so do not leave test changes in it.
 
-1. Check that the `kafka-setup` service in `docker-compose.yml` creates every topic the definitions use. Topic auto-create is off. Add a missing topic for the test and remove it again afterwards.
-2. Add or edit `producer.yaml` and `processor.yaml` in `examples/`.
-3. Check that the `definitions` section of `examples/ksml-runner.yaml` points to both files.
+1. Check that the `kafka-setup` service in `docker-compose.yml` creates every topic the definitions use. Topic auto-create is off, so add missing topics for the test.
+2. Put your definitions in `docs/local-docker-compose-setup-with-sr/examples/producer.yaml` and `processor.yaml`.
+3. Check that the `definitions` section of `docs/local-docker-compose-setup-with-sr/examples/ksml-runner.yaml` points to both files.
 4. Start from a clean state and follow the KSML log:
 
    ```bash
@@ -112,8 +113,9 @@ Use the setup in `docs/local-docker-compose-setup-with-sr` (Kafka, Apicurio sche
    ```
 
 5. The test passes when the log has no errors and the log messages are what you expect. If there are errors, fix the definitions (see the working examples above) and run again.
-6. The `ksml` service uses a released image. To test a code change, build a local image (see Commands) and use it in a compose override file.
+6. The `ksml` service uses a released image. To test a code change, build a local image (see Commands) and put a `docker-compose.override.yml` that sets this image for the `ksml` service in the same folder. Docker Compose reads that file by itself.
 7. If you are sure that KSML itself has a bug, write a bug report with the producer and processor definitions, the steps to reproduce, and why you are sure it is a bug. Do not commit the report.
+8. When you are done, undo your test changes in this folder (the topics, the definitions) and delete `docker-compose.override.yml`. Keep only changes that your task is about.
 
 ## Python Proxies
 - Python runs with `HostAccess.EXPLICIT`. Every Java proxy class that Python code uses must be listed in `ALLOWED_JAVA_CLASSES` in `io.axual.ksml.python.PythonContext`, and every method Python may call must be annotated with `@HostAccess.Export`. Methods without the annotation stay invisible to Python, which is how proxies hide the parts of the wrapped Kafka object that are not safe to expose.
