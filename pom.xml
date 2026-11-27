@@ -159,7 +159,7 @@
         <!-- SonarCloud properties -->
         <sonar.organization>axual-github</sonar.organization>
         <sonar.host.url>https://sonarcloud.io</sonar.host.url>
-        <sonar.version>5.8.0.7211</sonar.version>
+        <sonar.version>5.9.0.7382</sonar.version>
 
         <!-- Sonar for JACOCO-->
         <sonar.coverage.jacoco.xmlReportPaths>${maven.multiModuleProjectDirectory}/ksml-reporting/target/site/jacoco-aggregate/jacoco.xml</sonar.coverage.jacoco.xmlReportPaths>
