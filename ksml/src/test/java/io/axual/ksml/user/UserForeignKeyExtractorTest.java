@@ -126,8 +126,8 @@ class UserForeignKeyExtractorTest {
     }
 
     private static ParameterDefinition[] foreignKeyExtractorParameters(ParameterDefinition... customParameters) {
-        final var function = FunctionDefinition.as("generic", "fn", List.of(customParameters),
-                PythonSource.of((String) null, (String) null, (String) null), UNKNOWN, List.of());
+        final var function = FunctionDefinition.as("generic", "ns", "fn", List.of(customParameters),
+                PythonSource.of((String) null, (String) null, (String) null), UNKNOWN, null, List.of());
         return new ForeignKeyExtractorDefinition(function).parameters();
     }
 }
