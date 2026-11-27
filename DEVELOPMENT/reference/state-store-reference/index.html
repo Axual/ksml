@@ -3605,8 +3605,15 @@ entries are read, and when the KSML function (the function in your definition) r
 <p>Do not keep an iterator in a global variable for a later call: it is closed by then, and using it raises an error.
 A helper function that the KSML function calls, for example a <code>def</code> in <code>globalCode</code> or in a module, does not close
 its iterators when it returns. They stay open until the KSML function returns. So in a helper that runs a loop, or
-to close an iterator before the KSML function returns, use <code>contextlib.closing()</code>. A plain
-<code>with store.all() as entries:</code> does not work.</p>
+to close an iterator before the KSML function returns, use a <code>with</code> block. It closes the iterator at the end of the
+block, also after <code>break</code>, <code>return</code> or an exception:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a><span class="k">def</span><span class="w"> </span><span class="nf">find_key</span><span class="p">(</span><span class="n">store</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+<a id="__codelineno-17-2" name="__codelineno-17-2" href="#__codelineno-17-2"></a>  <span class="k">with</span> <span class="n">store</span><span class="o">.</span><span class="n">all</span><span class="p">()</span> <span class="k">as</span> <span class="n">entries</span><span class="p">:</span>
+<a id="__codelineno-17-3" name="__codelineno-17-3" href="#__codelineno-17-3"></a>    <span class="k">for</span> <span class="n">entry</span> <span class="ow">in</span> <span class="n">entries</span><span class="p">:</span>
+<a id="__codelineno-17-4" name="__codelineno-17-4" href="#__codelineno-17-4"></a>      <span class="k">if</span> <span class="n">entry</span><span class="p">[</span><span class="s2">"value"</span><span class="p">]</span> <span class="o">==</span> <span class="n">value</span><span class="p">:</span>
+<a id="__codelineno-17-5" name="__codelineno-17-5" href="#__codelineno-17-5"></a>        <span class="k">return</span> <span class="n">entry</span><span class="p">[</span><span class="s2">"key"</span><span class="p">]</span>
+<a id="__codelineno-17-6" name="__codelineno-17-6" href="#__codelineno-17-6"></a>  <span class="k">return</span> <span class="kc">None</span>
+</code></pre></div>
 <p>Iterators also have the methods <code>hasNext()</code>, <code>next()</code> (returns <code>None</code> after the last entry), <code>peekNextKey()</code>
 (returns the next key without moving forward, or <code>None</code>) and <code>close()</code>.</p>
 <h2 id="storage-architecture">Storage Architecture</h2>

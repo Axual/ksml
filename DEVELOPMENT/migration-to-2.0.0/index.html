@@ -1882,6 +1882,17 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#tls-and-mutual-tls-settings" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        TLS and mutual TLS settings
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -1964,6 +1975,17 @@
     <span class="md-ellipsis">
       
         Store iterators are closed when the function returns
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-stores-variable-is-gone-outside-the-function" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The stores variable is gone outside the function
       
     </span>
   </a>
@@ -2280,6 +2302,17 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#tls-and-mutual-tls-settings" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        TLS and mutual TLS settings
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -2362,6 +2395,17 @@
     <span class="md-ellipsis">
       
         Store iterators are closed when the function returns
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-stores-variable-is-gone-outside-the-function" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The stores variable is gone outside the function
       
     </span>
   </a>
@@ -2565,6 +2609,7 @@
 <li>Rename any <code>as</code> name that is also a name under <code>streams</code>, <code>tables</code> or <code>globalTables</code>.</li>
 <li>Add <code>toTable</code> before any <code>join</code> or <code>leftJoin</code> with <code>foreignKeyExtractor</code> that has a stream as input.</li>
 <li>Do not keep a store iterator in a global variable for a later function call.</li>
+<li>If Python code uses the <code>stores</code> variable, read each store by its own name, or pass it to helper functions as an argument.</li>
 <li>If Python code reads <code>get(key)["value"]</code> or <code>["timestamp"]</code> on a store with <code>timestamped: true</code>, or on the store of a <code>count</code>, <code>aggregate</code>, <code>reduce</code> or non-versioned table, use <code>getWithTimestamp(key)</code> instead. The same applies to the results of <code>delete</code> and <code>putIfAbsent</code>, and to <code>fetch(key, time)</code> on the store of a windowed aggregation (use <code>fetchWithTimestamp</code>).</li>
 <li>Check every store you declare under <code>stores</code> or in an operation: it is now persistent, timestamped and has a changelog topic unless it sets <code>persistent</code>, <code>timestamped</code> or <code>logging</code> to <code>false</code>. Make sure the application can create the changelog topics (or create them yourself) and that <code>ksml.storageDirectory</code> is on a volume that has room for RocksDB. On the first start, KSML stops if a persistent store with local state leaves out <code>logging</code>, or if the persistent <code>thisStore</code> of a <code>leftJoin</code> or <code>outerJoin</code> between two streams doesn't set <code>logging: true</code>, until you set it. See <a href="#declared-stores-use-the-kafka-streams-defaults">Declared stores use the Kafka Streams defaults</a>.</li>
 <li>Stop all KSML 1.x instances of an application before you start 2.0.0, and don't do a rolling upgrade. A 1.x instance does not create the new changelog topics, so a 2.0.0 instance in the same group can't start its tasks. Before you start 2.0.0, wait until the consumer group of the application has no members (<code>kafka-consumer-groups.sh --describe --group &lt;application.id&gt; --members</code>). This takes up to <code>session.timeout.ms</code> (45 seconds by default), because Kafka Streams doesn't leave the group when it stops. If the application sets <code>group.instance.id</code> (static membership, which the KSML Helm chart does), an instance that comes back sooner gets its 1.x assignment again and is stuck. With the KSML Helm chart, scale the StatefulSet to 0 replicas, wait until the group is empty, and then run <code>helm upgrade</code>.</li>
@@ -2631,6 +2676,21 @@
 <p>If you deliberately want the header-based id format instead, set <code>apicurio.registry.headers.enabled: true</code> in the notation config; KSML only applies the payload-id defaults when headers are off, and your own settings always win.</p>
 <h3 id="resolving-pre-registered-schemas-issue-290">Resolving pre-registered schemas (issue #290)</h3>
 <p>KSML keeps defaulting <code>apicurio.registry.find-latest</code> to <code>true</code>, so that with auto-register disabled and a pre-registered schema, the serializer resolves the artifact by its coordinates instead of by its content. This is the same default that was introduced in KSML 1.3.0, and it keeps working on Apicurio v3. You do not need to change anything for this. If you had set <code>find-latest</code> yourself, KSML still respects your value.</p>
+<h3 id="tls-and-mutual-tls-settings">TLS and mutual TLS settings</h3>
+<p>Apicurio v3 has its own TLS settings. KSML stops at startup when it finds an Apicurio v2 <code>apicurio.registry.request.ssl.*</code> key, so move the trust store to the v3 keys:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="nt">apicurio.registry.tls.truststore.location</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/path/to/truststore.jks</span>
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="nt">apicurio.registry.tls.truststore.password</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">my-secret</span>
+<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="nt">apicurio.registry.tls.truststore.type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">JKS</span><span class="w">   </span><span class="c1"># JKS, PKCS12 or PEM</span>
+</code></pre></div>
+<p>For a registry that requires mutual TLS, set the client certificate with the Apicurio v3 key store keys:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="nt">apicurio.registry.tls.keystore.location</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/path/to/keystore.jks</span>
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="nt">apicurio.registry.tls.keystore.password</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">my-secret</span><span class="w">   </span><span class="c1"># also unlocks the private key</span>
+<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="nt">apicurio.registry.tls.keystore.type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">JKS</span><span class="w">             </span><span class="c1"># JKS (default), PKCS12 or PEM</span>
+<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="c1"># For a PEM certificate and key, instead of the key store:</span>
+<a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="c1"># apicurio.registry.tls.client-certificate: /path/to/client.crt   # file path or PEM content</span>
+<a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a><span class="c1"># apicurio.registry.tls.client-key: /path/to/client.key           # file path or PEM content</span>
+</code></pre></div>
+<p>KSML creates the registry client when it starts, so incomplete TLS settings stop KSML at startup.</p>
 <h2 id="stricter-validation-of-runner-config-and-definitions">Stricter validation of runner config and definitions</h2>
 <h3 id="runner-config">Runner config</h3>
 <p>KSML validates your runner config again like it did on the 1.x line: an unknown or misspelled key now makes KSML stop at startup with an error, instead of being silently ignored.</p>
@@ -2638,16 +2698,16 @@
 <p>What you need to do: make sure your <code>ksml-runner.yaml</code> has no leftover or misspelled keys before you upgrade.</p>
 <h3 id="ksml-definitions">KSML definitions</h3>
 <p>KSML definitions are now checked the same way. On the 1.x line a field that KSML did not know was silently ignored, so a typo quietly changed the behavior: <code>loging: true</code> on a store gave no changelog topic, and <code>grase: 5s</code> on <code>windowByTime</code> gave no grace period. KSML now stops at startup and names the field, where it is, and the fields that are allowed there:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>KSML parse error: Error in input node processor-&gt;stores-&gt;count_store: Unknown field "loging", known fields: caching, historyRetention, keyType, logging, name, persistent, segmentInterval, timestamped, type, valueType, versioned
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>KSML parse error: Error in input node processor-&gt;stores-&gt;count_store: Unknown field "loging", known fields: caching, historyRetention, keyType, logging, name, persistent, segmentInterval, timestamped, type, valueType, versioned
 </code></pre></div>
 <p>For an operation, function or store with a <code>type</code>, only the fields of that type are allowed. For example, <code>duration</code> on a <code>filter</code> step is now an error, because only the window operations have that field. The same goes for a join: only the fields for its <code>stream</code>, <code>table</code> or <code>globalTable</code> are allowed, so <code>timeDifference</code> on a join with a <code>table</code> is now an error.</p>
 <p>An example case is a <code>type</code> line on an inline function, such as a function written directly under <code>if:</code> or <code>valueJoiner:</code>. Only functions under <code>functions:</code> have a <code>type</code> field; for an inline function, the operation already sets it. On the 1.x line the line was ignored. Now KSML stops with an error like <code>Unknown field "type", known fields: code, expression, globalCode, name, parameters, resultType</code>. Remove the line:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">join</span>
-<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="w">        </span><span class="nt">table</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">customer_profiles</span>
-<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="w">        </span><span class="nt">valueJoiner</span><span class="p">:</span>
-<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="w">          </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">valueJoiner</span><span class="w">    </span><span class="c1"># remove this line</span>
-<a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="w">          </span><span class="nt">expression</span><span class="p">:</span><span class="w"> </span><span class="s">'{"order":</span><span class="nv"> </span><span class="s">value1,</span><span class="nv"> </span><span class="s">"customer":</span><span class="nv"> </span><span class="s">value2}'</span>
-<a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a><span class="w">          </span><span class="nt">resultType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">json</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">join</span>
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="w">        </span><span class="nt">table</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">customer_profiles</span>
+<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="w">        </span><span class="nt">valueJoiner</span><span class="p">:</span>
+<a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="w">          </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">valueJoiner</span><span class="w">    </span><span class="c1"># remove this line</span>
+<a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a><span class="w">          </span><span class="nt">expression</span><span class="p">:</span><span class="w"> </span><span class="s">'{"order":</span><span class="nv"> </span><span class="s">value1,</span><span class="nv"> </span><span class="s">"customer":</span><span class="nv"> </span><span class="s">value2}'</span>
+<a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a><span class="w">          </span><span class="nt">resultType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">json</span>
 </code></pre></div>
 <p>The published language schema (<code>ksml --schema</code>) already marked these fields as not allowed, so a definition that validates against the schema is not affected. The schema now also lists the optional top-level fields <code>name</code>, <code>version</code> and <code>description</code>.</p>
 <p>What you need to do: start KSML once with each definition, or validate it against the language schema, and fix or remove the fields it reports.</p>
@@ -2655,16 +2715,16 @@
 <p>KSML now rejects a definition file that uses the same key twice, instead of silently keeping the last value. This catches copy-and-paste mistakes early.</p>
 <p>On the 1.x line a repeated key was accepted and the last one quietly won, which could hide a real mistake in a pipeline or function definition.</p>
 <p>KSML stops at startup and names the file and the position:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>Configuration Key   : 'definitionFile'
-<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>Configuration Value : '/ksml/processor.yaml'
-<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>Could not read the KSML definition: Duplicate field 'topic'
-<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a> at [Source: (File); line: 4, column: 12]
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>Configuration Key   : 'definitionFile'
+<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>Configuration Value : '/ksml/processor.yaml'
+<a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a>Could not read the KSML definition: Duplicate field 'topic'
+<a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a> at [Source: (File); line: 4, column: 12]
 </code></pre></div>
 <p>This also changed for any other unreadable definition file. On the 1.x line a definition KSML could not parse was skipped with one log line, and the runner started without that pipeline. It now stops, because a runner that quietly omits a pipeline looks like an idle topic rather than a broken config.</p>
 <p>What you need to do: make sure each KSML definition file has no duplicate keys before you upgrade.</p>
 <h2 id="an-as-name-can-not-be-a-defined-stream-or-table-name">An <code>as</code> name can not be a defined stream or table name</h2>
 <p>KSML now stops with a parse error when a pipeline saves its result with <code>as</code> under a name that is also defined under <code>streams</code>, <code>tables</code> or <code>globalTables</code>:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>"as: orders" is already defined under "tables". Use another name
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>"as: orders" is already defined under "tables". Use another name
 </code></pre></div>
 <p>On the 1.x line this was accepted. A later <code>from</code> with that name then silently got the saved result, not the defined stream or table, because <code>from</code> looks for a saved result first.</p>
 <p>A pipeline without a sink saves its result under the pipeline name. If that name is also defined under <code>streams</code>, <code>tables</code> or <code>globalTables</code>, KSML only logs a warning, so these definitions still start.</p>
@@ -2672,44 +2732,56 @@
 <p>For a pipeline without a sink, add <code>as</code> with another name, and use that name in the later <code>from</code> or <code>cogroup</code>. Adding <code>as</code> leaves the Kafka Streams topology unchanged, so a running application keeps its topics and state.</p>
 <h2 id="a-foreign-key-join-needs-a-table-as-input">A foreign-key join needs a table as input</h2>
 <p>KSML now stops at startup when a <code>join</code> or <code>leftJoin</code> with <code>foreignKeyExtractor</code> has a stream as input:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>A join with "foreignKeyExtractor" needs a table as input, but found a stream. Add "toTable" before the join, or remove "foreignKeyExtractor"
+<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>A join with "foreignKeyExtractor" needs a table as input, but found a stream. Add "toTable" before the join, or remove "foreignKeyExtractor"
 </code></pre></div>
 <p>Kafka Streams only has foreign-key joins between two tables. On the 1.x line, KSML accepted a <code>foreignKeyExtractor</code> on a stream, but never called it: the stream was joined with the table by the stream's own key. So the join silently found the wrong records, or none.</p>
 <p>What you need to do: add <code>toTable</code> before the join, and <code>toStream</code> after it if the next steps need a stream:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="c1"># Before (KSML 1.x)</span>
-<a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="nt">via</span><span class="p">:</span>
-<a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">join</span>
-<a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a><span class="w">    </span><span class="nt">table</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">customers</span>
-<a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a><span class="w">    </span><span class="nt">foreignKeyExtractor</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">extract_customer_id</span>
-<a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a><span class="w">    </span><span class="nt">valueJoiner</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">join_order_customer</span>
-<a id="__codelineno-9-7" name="__codelineno-9-7" href="#__codelineno-9-7"></a>
-<a id="__codelineno-9-8" name="__codelineno-9-8" href="#__codelineno-9-8"></a><span class="c1"># After (KSML 2.0.0)</span>
-<a id="__codelineno-9-9" name="__codelineno-9-9" href="#__codelineno-9-9"></a><span class="nt">via</span><span class="p">:</span>
-<a id="__codelineno-9-10" name="__codelineno-9-10" href="#__codelineno-9-10"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">toTable</span>
-<a id="__codelineno-9-11" name="__codelineno-9-11" href="#__codelineno-9-11"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">join</span>
-<a id="__codelineno-9-12" name="__codelineno-9-12" href="#__codelineno-9-12"></a><span class="w">    </span><span class="nt">table</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">customers</span>
-<a id="__codelineno-9-13" name="__codelineno-9-13" href="#__codelineno-9-13"></a><span class="w">    </span><span class="nt">foreignKeyExtractor</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">extract_customer_id</span>
-<a id="__codelineno-9-14" name="__codelineno-9-14" href="#__codelineno-9-14"></a><span class="w">    </span><span class="nt">valueJoiner</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">join_order_customer</span>
-<a id="__codelineno-9-15" name="__codelineno-9-15" href="#__codelineno-9-15"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">toStream</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="c1"># Before (KSML 1.x)</span>
+<a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a><span class="nt">via</span><span class="p">:</span>
+<a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">join</span>
+<a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a><span class="w">    </span><span class="nt">table</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">customers</span>
+<a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a><span class="w">    </span><span class="nt">foreignKeyExtractor</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">extract_customer_id</span>
+<a id="__codelineno-11-6" name="__codelineno-11-6" href="#__codelineno-11-6"></a><span class="w">    </span><span class="nt">valueJoiner</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">join_order_customer</span>
+<a id="__codelineno-11-7" name="__codelineno-11-7" href="#__codelineno-11-7"></a>
+<a id="__codelineno-11-8" name="__codelineno-11-8" href="#__codelineno-11-8"></a><span class="c1"># After (KSML 2.0.0)</span>
+<a id="__codelineno-11-9" name="__codelineno-11-9" href="#__codelineno-11-9"></a><span class="nt">via</span><span class="p">:</span>
+<a id="__codelineno-11-10" name="__codelineno-11-10" href="#__codelineno-11-10"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">toTable</span>
+<a id="__codelineno-11-11" name="__codelineno-11-11" href="#__codelineno-11-11"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">join</span>
+<a id="__codelineno-11-12" name="__codelineno-11-12" href="#__codelineno-11-12"></a><span class="w">    </span><span class="nt">table</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">customers</span>
+<a id="__codelineno-11-13" name="__codelineno-11-13" href="#__codelineno-11-13"></a><span class="w">    </span><span class="nt">foreignKeyExtractor</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">extract_customer_id</span>
+<a id="__codelineno-11-14" name="__codelineno-11-14" href="#__codelineno-11-14"></a><span class="w">    </span><span class="nt">valueJoiner</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">join_order_customer</span>
+<a id="__codelineno-11-15" name="__codelineno-11-15" href="#__codelineno-11-15"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">toStream</span>
 </code></pre></div>
 <p>The result of the join is then a table that is updated when an order or its customer changes. If you meant to join the stream by its own key, remove <code>foreignKeyExtractor</code> instead.</p>
 <p>After <code>toStream</code>, a record can have a <code>null</code> value when the customer is deleted or the order gets another customer. Make the next steps accept <code>None</code>, or add a <code>filter</code> that drops these records.</p>
 <p>The new steps add Kafka topics to your application: <code>toTable</code> adds a state store with a changelog topic, and the foreign-key join adds a subscription store with a changelog topic and two internal topics for subscription registrations and responses. If topics are created by hand or need ACLs in your cluster, set them up before the upgrade.</p>
 <h2 id="store-iterators-are-closed-when-the-function-returns">Store iterators are closed when the function returns</h2>
 <p>KSML now closes a store iterator when all entries are read, or when the KSML function (the function in your definition) that created it returns. An iterator that is kept, for example in a global variable, raises an error when a later call uses it:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>Store iterator was closed when the function that created it returned
+<div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>Store iterator was closed when the function that created it returned
 </code></pre></div>
 <p>On the 1.x line, KSML never closed such an iterator, so a later call could still read from it, and the store kept its resources open.</p>
 <p>What you need to do: create a new iterator in each call.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="c1"># Before (KSML 1.x): the iterator is kept in a global and read over several calls</span>
-<a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a><span class="k">if</span> <span class="n">it</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-<a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a>  <span class="n">it</span> <span class="o">=</span> <span class="n">store</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
-<a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a><span class="k">while</span> <span class="n">it</span><span class="o">.</span><span class="n">hasNext</span><span class="p">():</span>
-<a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a>  <span class="o">...</span>
-<a id="__codelineno-11-6" name="__codelineno-11-6" href="#__codelineno-11-6"></a>
-<a id="__codelineno-11-7" name="__codelineno-11-7" href="#__codelineno-11-7"></a><span class="c1"># After (KSML 2.0.0)</span>
-<a id="__codelineno-11-8" name="__codelineno-11-8" href="#__codelineno-11-8"></a><span class="k">for</span> <span class="n">entry</span> <span class="ow">in</span> <span class="n">store</span><span class="o">.</span><span class="n">all</span><span class="p">():</span>
-<a id="__codelineno-11-9" name="__codelineno-11-9" href="#__codelineno-11-9"></a>  <span class="o">...</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="c1"># Before (KSML 1.x): the iterator is kept in a global and read over several calls</span>
+<a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a><span class="k">if</span> <span class="n">it</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+<a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a>  <span class="n">it</span> <span class="o">=</span> <span class="n">store</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
+<a id="__codelineno-13-4" name="__codelineno-13-4" href="#__codelineno-13-4"></a><span class="k">while</span> <span class="n">it</span><span class="o">.</span><span class="n">hasNext</span><span class="p">():</span>
+<a id="__codelineno-13-5" name="__codelineno-13-5" href="#__codelineno-13-5"></a>  <span class="o">...</span>
+<a id="__codelineno-13-6" name="__codelineno-13-6" href="#__codelineno-13-6"></a>
+<a id="__codelineno-13-7" name="__codelineno-13-7" href="#__codelineno-13-7"></a><span class="c1"># After (KSML 2.0.0)</span>
+<a id="__codelineno-13-8" name="__codelineno-13-8" href="#__codelineno-13-8"></a><span class="k">for</span> <span class="n">entry</span> <span class="ow">in</span> <span class="n">store</span><span class="o">.</span><span class="n">all</span><span class="p">():</span>
+<a id="__codelineno-13-9" name="__codelineno-13-9" href="#__codelineno-13-9"></a>  <span class="o">...</span>
+</code></pre></div>
+<h2 id="the-stores-variable-is-gone-outside-the-function">The <code>stores</code> variable is gone outside the function</h2>
+<p>On the 1.x line, every function also had a global variable <code>stores</code>, a dict with its state stores. Helper functions in <code>globalCode</code> could read it too. This was never documented.</p>
+<p>In KSML 2.0.0, a function only has the stores it declares in <code>stores</code>, each as a variable with the store's name. <code>stores</code> is no longer a global, so a helper function in <code>globalCode</code> that reads it raises a <code>NameError</code>.</p>
+<p>What you need to do: pass the store to the helper function as an argument.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a><span class="c1"># Before (KSML 1.x): globalCode</span>
+<a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a><span class="k">def</span><span class="w"> </span><span class="nf">get_total</span><span class="p">(</span><span class="n">key</span><span class="p">):</span>
+<a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a>  <span class="k">return</span> <span class="n">stores</span><span class="p">[</span><span class="s2">"totals"</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+<a id="__codelineno-14-4" name="__codelineno-14-4" href="#__codelineno-14-4"></a>
+<a id="__codelineno-14-5" name="__codelineno-14-5" href="#__codelineno-14-5"></a><span class="c1"># After (KSML 2.0.0): globalCode, called as get_total(totals, key)</span>
+<a id="__codelineno-14-6" name="__codelineno-14-6" href="#__codelineno-14-6"></a><span class="k">def</span><span class="w"> </span><span class="nf">get_total</span><span class="p">(</span><span class="n">store</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
+<a id="__codelineno-14-7" name="__codelineno-14-7" href="#__codelineno-14-7"></a>  <span class="k">return</span> <span class="n">store</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
 </code></pre></div>
 <h2 id="timestamped-stores-return-the-value">Timestamped stores return the value</h2>
 <p>In KSML 1.x, Python code that used a timestamped key-value store got a dict with <code>value</code> and <code>timestamp</code> from <code>get</code>, <code>delete</code> and <code>putIfAbsent</code>. In KSML 2.0.0 these methods return only the value, as on a plain key-value store. A timestamped store now has the same methods as a plain key-value store, so the same Python code works on both.</p>
@@ -2720,13 +2792,13 @@
 </ul>
 <p>Search your Python code for <code>["value"]</code> and <code>["timestamp"]</code> on store results. Old code does not always fail: if the stored value has its own <code>value</code> field, <code>store.get(key)["value"]</code> now reads that field, without an error.</p>
 <p>To read the timestamp, use <code>getWithTimestamp</code>:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="c1"># Before (KSML 1.x)</span>
-<a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a><span class="n">last</span> <span class="o">=</span> <span class="n">store</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
-<a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a><span class="n">color</span> <span class="o">=</span> <span class="n">last</span><span class="p">[</span><span class="s2">"value"</span><span class="p">][</span><span class="s2">"color"</span><span class="p">]</span>
-<a id="__codelineno-12-4" name="__codelineno-12-4" href="#__codelineno-12-4"></a>
-<a id="__codelineno-12-5" name="__codelineno-12-5" href="#__codelineno-12-5"></a><span class="c1"># After (KSML 2.0.0)</span>
-<a id="__codelineno-12-6" name="__codelineno-12-6" href="#__codelineno-12-6"></a><span class="n">last</span> <span class="o">=</span> <span class="n">store</span><span class="o">.</span><span class="n">getWithTimestamp</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
-<a id="__codelineno-12-7" name="__codelineno-12-7" href="#__codelineno-12-7"></a><span class="n">color</span> <span class="o">=</span> <span class="n">last</span><span class="p">[</span><span class="s2">"value"</span><span class="p">][</span><span class="s2">"color"</span><span class="p">]</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a><span class="c1"># Before (KSML 1.x)</span>
+<a id="__codelineno-15-2" name="__codelineno-15-2" href="#__codelineno-15-2"></a><span class="n">last</span> <span class="o">=</span> <span class="n">store</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+<a id="__codelineno-15-3" name="__codelineno-15-3" href="#__codelineno-15-3"></a><span class="n">color</span> <span class="o">=</span> <span class="n">last</span><span class="p">[</span><span class="s2">"value"</span><span class="p">][</span><span class="s2">"color"</span><span class="p">]</span>
+<a id="__codelineno-15-4" name="__codelineno-15-4" href="#__codelineno-15-4"></a>
+<a id="__codelineno-15-5" name="__codelineno-15-5" href="#__codelineno-15-5"></a><span class="c1"># After (KSML 2.0.0)</span>
+<a id="__codelineno-15-6" name="__codelineno-15-6" href="#__codelineno-15-6"></a><span class="n">last</span> <span class="o">=</span> <span class="n">store</span><span class="o">.</span><span class="n">getWithTimestamp</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+<a id="__codelineno-15-7" name="__codelineno-15-7" href="#__codelineno-15-7"></a><span class="n">color</span> <span class="o">=</span> <span class="n">last</span><span class="p">[</span><span class="s2">"value"</span><span class="p">][</span><span class="s2">"color"</span><span class="p">]</span>
 </code></pre></div>
 <p>There is no <code>deleteWithTimestamp</code>. If you need the old timestamp, call <code>getWithTimestamp</code> before <code>delete</code>.</p>
 <p>The same applies to the store of a windowed aggregation that a Python function uses: <code>fetch(key, time)</code> returns only the value, as on a plain window store. Use <code>fetchWithTimestamp(key, time)</code> to read the timestamp. See <a href="../reference/state-store-reference/#timestamped-window-stores">Timestamped Window Stores</a>.</p>
@@ -2795,15 +2867,15 @@ session stores, can keep headers with each value; writes from Python store none.
 application or after a reset, because existing state keeps its old format. See
 <a href="../reference/state-store-reference/#store-format">Store Format</a>.</p>
 <p>To keep the KSML 1.x behavior for a store, set the options explicitly:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="nt">stores</span><span class="p">:</span>
-<a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a><span class="w">  </span><span class="nt">my_store</span><span class="p">:</span>
-<a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a><span class="w">    </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">keyValue</span>
-<a id="__codelineno-13-4" name="__codelineno-13-4" href="#__codelineno-13-4"></a><span class="w">    </span><span class="nt">keyType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">string</span>
-<a id="__codelineno-13-5" name="__codelineno-13-5" href="#__codelineno-13-5"></a><span class="w">    </span><span class="nt">valueType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">json</span>
-<a id="__codelineno-13-6" name="__codelineno-13-6" href="#__codelineno-13-6"></a><span class="w">    </span><span class="nt">persistent</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span>
-<a id="__codelineno-13-7" name="__codelineno-13-7" href="#__codelineno-13-7"></a><span class="w">    </span><span class="nt">logging</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span>
-<a id="__codelineno-13-8" name="__codelineno-13-8" href="#__codelineno-13-8"></a><span class="w">    </span><span class="nt">timestamped</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span>
-<a id="__codelineno-13-9" name="__codelineno-13-9" href="#__codelineno-13-9"></a><span class="w">    </span><span class="nt">caching</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a><span class="nt">stores</span><span class="p">:</span>
+<a id="__codelineno-16-2" name="__codelineno-16-2" href="#__codelineno-16-2"></a><span class="w">  </span><span class="nt">my_store</span><span class="p">:</span>
+<a id="__codelineno-16-3" name="__codelineno-16-3" href="#__codelineno-16-3"></a><span class="w">    </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">keyValue</span>
+<a id="__codelineno-16-4" name="__codelineno-16-4" href="#__codelineno-16-4"></a><span class="w">    </span><span class="nt">keyType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">string</span>
+<a id="__codelineno-16-5" name="__codelineno-16-5" href="#__codelineno-16-5"></a><span class="w">    </span><span class="nt">valueType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">json</span>
+<a id="__codelineno-16-6" name="__codelineno-16-6" href="#__codelineno-16-6"></a><span class="w">    </span><span class="nt">persistent</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span>
+<a id="__codelineno-16-7" name="__codelineno-16-7" href="#__codelineno-16-7"></a><span class="w">    </span><span class="nt">logging</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span>
+<a id="__codelineno-16-8" name="__codelineno-16-8" href="#__codelineno-16-8"></a><span class="w">    </span><span class="nt">timestamped</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span>
+<a id="__codelineno-16-9" name="__codelineno-16-9" href="#__codelineno-16-9"></a><span class="w">    </span><span class="nt">caching</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span>
 </code></pre></div>
 <p>A store that was in memory without a changelog in 1.x started empty after every restart. After the upgrade, it starts empty once more, because there is no earlier state to restore, and from then on it keeps its state.</p>
 <h2 id="tombstones-are-handled-like-in-kafka-streams">Tombstones are handled like in Kafka Streams</h2>
@@ -2847,11 +2919,11 @@ the logical type when it reads and writes a record. One of these changes what yo
 <h3 id="a-decimal-is-now-a-string">A decimal is now a string</h3>
 <p>An Avro <code>decimal</code> used to arrive in Python as raw bytes, because KSML treated it as its base <code>bytes</code>
 type. It is now a string holding the exact number.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a><span class="c1"># Before (KSML 1.x): amount was bytes, and you had to decode it yourself</span>
-<a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a><span class="n">amount</span> <span class="o">=</span> <span class="n">value</span><span class="p">[</span><span class="s2">"amount"</span><span class="p">]</span>          <span class="c1"># b'\x30\x39'</span>
-<a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a>
-<a id="__codelineno-14-4" name="__codelineno-14-4" href="#__codelineno-14-4"></a><span class="c1"># After (KSML 2.0.0): amount is the number as text</span>
-<a id="__codelineno-14-5" name="__codelineno-14-5" href="#__codelineno-14-5"></a><span class="n">amount</span> <span class="o">=</span> <span class="n">value</span><span class="p">[</span><span class="s2">"amount"</span><span class="p">]</span>          <span class="c1"># "123.45"</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a><span class="c1"># Before (KSML 1.x): amount was bytes, and you had to decode it yourself</span>
+<a id="__codelineno-17-2" name="__codelineno-17-2" href="#__codelineno-17-2"></a><span class="n">amount</span> <span class="o">=</span> <span class="n">value</span><span class="p">[</span><span class="s2">"amount"</span><span class="p">]</span>          <span class="c1"># b'\x30\x39'</span>
+<a id="__codelineno-17-3" name="__codelineno-17-3" href="#__codelineno-17-3"></a>
+<a id="__codelineno-17-4" name="__codelineno-17-4" href="#__codelineno-17-4"></a><span class="c1"># After (KSML 2.0.0): amount is the number as text</span>
+<a id="__codelineno-17-5" name="__codelineno-17-5" href="#__codelineno-17-5"></a><span class="n">amount</span> <span class="o">=</span> <span class="n">value</span><span class="p">[</span><span class="s2">"amount"</span><span class="p">]</span>          <span class="c1"># "123.45"</span>
 </code></pre></div>
 <p>What you need to do: if a Python function reads a <code>decimal</code> field, treat it as a string. Use
 <code>float(value["amount"])</code> or Python's <code>decimal.Decimal</code> when you need to calculate with it. When you
