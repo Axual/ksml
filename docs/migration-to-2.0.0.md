@@ -121,7 +121,7 @@ KSML keeps defaulting `apicurio.registry.find-latest` to `true`, so that with au
 
 ### TLS and mutual TLS settings
 
-Apicurio v3 has its own TLS settings. The Apicurio v2 `apicurio.registry.request.ssl.*` keys are ignored, so move the trust store to the v3 keys:
+Apicurio v3 has its own TLS settings. KSML stops at startup when it finds an Apicurio v2 `apicurio.registry.request.ssl.*` key, so move the trust store to the v3 keys:
 
 ```yaml
 apicurio.registry.tls.truststore.location: /path/to/truststore.jks
@@ -142,7 +142,6 @@ apicurio.registry.tls.keystore.type: JKS             # JKS (default), PKCS12 or 
 
 KSML creates the registry client when it starts, so incomplete TLS settings stop KSML at startup.
 
-## Stricter runner config validation
 ## Stricter validation of runner config and definitions
 
 ### Runner config
