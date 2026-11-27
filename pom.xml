@@ -81,7 +81,7 @@
         <apache.commons.text.version>1.15.0</apache.commons.text.version>
         <apache.kafka.version>4.4.0</apache.kafka.version>
         <apache.xmlschema.version>2.3.3</apache.xmlschema.version>
-        <apicurio.version>3.3.0</apicurio.version>
+        <apicurio.version>3.3.5</apicurio.version>
         <axual.utils.version>1.0.0</axual.utils.version>
         <commons.io.version>2.22.0</commons.io.version>
         <confluent.version>8.4.1</confluent.version>
@@ -743,7 +743,6 @@
                         <licenseName>${license.licensename}</licenseName>
                         <outputDirectory>${project.basedir}</outputDirectory>
                         <thirdPartyFilename>NOTICE.txt</thirdPartyFilename>
-                        <verbose>false</verbose>
                         <processStartTag>
                             ========================LICENSE_START=================================
                         </processStartTag>

@@ -284,12 +284,13 @@ ksml:
     apicurio_secure:
       config:
         apicurio.registry.url: "https://apicurio:8080/apis/registry/v3"
-        apicurio.registry.request.ssl.keystore.location: /path/to/keystore.jks
-        apicurio.registry.request.ssl.keystore.type: JKS
-        apicurio.registry.request.ssl.keystore.password: "${KEYSTORE_PASSWORD}"
-        apicurio.registry.request.ssl.truststore.location: /path/to/truststore.jks
-        apicurio.registry.request.ssl.truststore.type: JKS
-        apicurio.registry.request.ssl.truststore.password: "${TRUSTSTORE_PASSWORD}"
+        apicurio.registry.tls.keystore.location: /path/to/keystore.jks
+        apicurio.registry.tls.keystore.type: JKS
+        apicurio.registry.tls.keystore.password: "${KEYSTORE_PASSWORD}"
+        apicurio.registry.tls.key.password: password
+        apicurio.registry.tls.truststore.location: /path/to/truststore.jks
+        apicurio.registry.tls.truststore.type: JKS
+        apicurio.registry.tls.truststore.password: "${TRUSTSTORE_PASSWORD}"
 ```
 
 ### Notation Configuration

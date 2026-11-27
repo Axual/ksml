@@ -10,7 +10,7 @@ Understanding the different types of operations and when to use them is crucial 
 
 ## Operations Overview
 
-KSML supports 30 operations for stream processing. Each operation serves a specific purpose in transforming, filtering, aggregating, or routing data:
+KSML supports 31 operations for stream processing. Each operation serves a specific purpose in transforming, filtering, aggregating, or routing data:
 
 | Operation | Purpose | Common Use Cases |
 |-----------|---------|------------------|
@@ -61,6 +61,7 @@ KSML supports 30 operations for stream processing. Each operation serves a speci
 | **Control Flow Operations** | | |
 | [branch](#branch) | Split stream into multiple branches | Conditional routing |
 | [peek](#peek) | Observe records without modification | Logging, debugging |
+| [punctuate](#punctuate) | Run a function on a schedule | Emit or clean up state periodically |
 
 ## Choosing the Right Operation
 
@@ -1041,6 +1042,104 @@ The `forEach` can be defined using:
 
 - [Tutorial: Branching](../tutorials/intermediate/branching.md#example-2-multi-condition-data-processing-pipeline)
 
+### `punctuate`
+
+Runs a [punctuator](function-reference.md#punctuator) function on a schedule, like a Kafka Streams `Punctuator`.
+Records that reach the operation pass through unchanged, with the same key, value, timestamp and headers. The
+punctuator can send new records down the pipeline with `context.forward`.
+
+#### Parameters
+
+| Parameter         | Type     | Required | Description                                                                                         |
+|-------------------|----------|----------|-----------------------------------------------------------------------------------------------------|
+| `interval`        | Duration | Yes      | The time between two punctuations, at least 1 millisecond, for example `30s` or `1m`               |
+| `punctuationType` | String   | Yes      | `wallClockTime` or `streamTime`, see below                                                          |
+| `punctuator`      | Object   | Yes      | A [punctuator](function-reference.md#punctuator) function, inline or by name                        |
+| `name`            | String   | No       | The name of the operation                                                                           |
+
+`punctuate` needs a stream as input. After a table, use `toStream` first; it can not follow a grouped or windowed
+stream.
+
+#### Punctuation types
+
+- `wallClockTime`: the punctuator runs when `interval` has passed in system time, also when no records arrive.
+  Calls are at least `interval` apart: Kafka Streams checks the schedule between polls, so a call can be late when
+  the application is busy, and calls that were missed are not made up.
+- `streamTime`: the punctuator runs when the stream time of the task, the highest record timestamp it has seen, has
+  advanced by at least `interval` since the previous call. The first call is made with the first record. Without
+  input records, stream time does not advance and the punctuator is not called.
+
+Kafka Streams schedules the punctuator once for each stream task. With an input topic of 3 partitions, it runs in
+each of the 3 tasks, each with that task's stores.
+
+#### Forwarding records
+
+`context.forward(key, value)` sends a record to the next operation, or, when `punctuate` is the last operation, to
+the end of the pipeline, such as `to`. Later operations process it like a record from the input.
+
+`context.forward(key, value, to="name")` sends the record directly to the operation with that `name`, skipping the
+operations in between. An operation can be a target when it:
+
+- comes after the `punctuate` operation in the same `via` list,
+- has a `name`,
+- takes a stream as input, and
+- does not come after an operation that repartitions (see below).
+
+Operations in other pipelines, inside a `branch`, and the pipeline's `to` can not be a target. A name that is not a
+target raises an error that lists the valid names. The key and value must fit the input types of the target.
+
+!!! warning "A forwarded record can not skip a repartition"
+
+    These operations send records through a repartition topic, so that each key goes to the right task:
+    `repartition`, `groupBy`, `groupByKey`, `toTable`, and `join`, `leftJoin` or `outerJoin` with a stream or table.
+    Operations after them can not be a target of `to`, also when the key and value have the right types. A record
+    that skipped the repartition would be processed by the wrong task, and stateful operations would use the wrong
+    store.
+
+    The repartitioning operation itself can be a target. To reach an operation after it, forward to the
+    repartitioning operation, or to an operation before it, and let the record flow on from there.
+
+Records from the input still pass every operation once.
+
+#### Things to keep in mind
+
+- Because the punctuator can forward any key, Kafka Streams treats the output of `punctuate` as possibly re-keyed,
+  as after `map`. A later `groupByKey` or `join` therefore repartitions.
+- The extra nodes can change the generated names of stores and internal topics after `punctuate`, also for
+  operations that have a `name`. Adding a `name` to a later operation adds nodes too. Give each store after
+  `punctuate` its own name (`store: name: ...`), so its name and its changelog topic do not change.
+- The punctuator runs on the stream thread. No records are processed while it runs, and a long run can exceed
+  `max.poll.interval.ms`. Keep punctuators short, and iterate over stores with the store iterators instead of
+  loading everything at once.
+- An error in the punctuator stops KSML, like an error in any other function, also with `errorHandling.process`
+  set to `continueOnFail`. It is logged with the operation name and the punctuation timestamp. Records forwarded
+  before the error stay forwarded.
+
+#### Example
+
+```yaml
+--8<-- "docs-examples/reference/operations/punctuate-processor.yaml:39:57"
+```
+
+??? info "Producer - `punctuate` example (click to expand)"
+
+    ```yaml
+    {% include "../../ksml/src/test/resources/docs-examples/reference/operations/punctuate-producer.yaml" %}
+    ```
+
+??? info "Processor - `punctuate` example (click to expand)"
+
+    ```yaml
+    {% include "../../ksml/src/test/resources/docs-examples/reference/operations/punctuate-processor.yaml" %}
+    ```
+
+**What this example does:**
+
+- The producer generates orders with an amount, keyed by customer
+- The processor adds each amount to the total of the customer in the `totals` store, and does not pass the orders on
+- Every minute, the [punctuator](function-reference.md#punctuator) `emit_totals` sends each total to `order_totals`
+  and clears the store, also when no new orders arrive
+
 ## Combining Operations
 
 Operations can be combined in various ways to create complex processing pipelines.
@@ -1175,6 +1274,7 @@ KSML operations are YAML-based wrappers around Kafka Streams topology operations
 |---|---|---|
 | branch | `KStream.split()` | Split into multiple branches |
 | peek | `KStream.processValues()` | Observe records without changes |
+| punctuate | `KStream.process()` with `ProcessorContext.schedule()` | Run a function on a schedule |
 
 ### Key Implementation Details
 

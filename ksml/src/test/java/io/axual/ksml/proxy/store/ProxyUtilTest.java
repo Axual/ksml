@@ -107,24 +107,26 @@ class ProxyUtilTest {
     }
 
     @Test
-    @DisplayName("a key-value iterator is wrapped in a proxy that delegates to it")
+    @DisplayName("a key-value iterator is wrapped in a proxy and a Python object that delegate to it")
     void keyValueIteratorWrapsInProxyAndDelegates() {
         final KeyValueIterator<Object, Object> iterator = mock();
         when(iterator.hasNext()).thenReturn(true);
-        final var proxy = ProxyUtil.toPython(iterator);
-        assertThat(proxy).isInstanceOf(StoreIteratorProxy.class);
-        assertThat(((StoreIteratorProxy) proxy).hasNext()).isTrue();
+        // Created during a Python call, the proxy is wrapped in a Python object, so a with block works
+        final var wrapped = (Value) ProxyUtil.toPython(iterator);
+        assertThat(wrapped.getMetaObject().getMetaSimpleName()).isEqualTo("KSMLStoreIterator");
+        assertThat(wrapped.invokeMember("hasNext").asBoolean()).isTrue();
         verify(iterator).hasNext();
     }
 
     @Test
-    @DisplayName("a window-store iterator is wrapped in a proxy that delegates to it")
+    @DisplayName("a window-store iterator is wrapped in a proxy and a Python object that delegate to it")
     void windowStoreIteratorWrapsInProxyAndDelegates() {
         final WindowStoreIterator<Object> iterator = mock();
         when(iterator.hasNext()).thenReturn(true);
-        final var proxy = ProxyUtil.toPython(iterator);
-        assertThat(proxy).isInstanceOf(StoreIteratorProxy.class);
-        assertThat(((StoreIteratorProxy) proxy).hasNext()).isTrue();
+        // Created during a Python call, the proxy is wrapped in a Python object, so a with block works
+        final var wrapped = (Value) ProxyUtil.toPython(iterator);
+        assertThat(wrapped.getMetaObject().getMetaSimpleName()).isEqualTo("KSMLStoreIterator");
+        assertThat(wrapped.invokeMember("hasNext").asBoolean()).isTrue();
         verify(iterator).hasNext();
     }
 

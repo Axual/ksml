@@ -21,7 +21,6 @@ package io.axual.ksml.python;
  */
 
 import io.axual.ksml.data.exception.DataException;
-import io.axual.ksml.data.object.DataBoolean;
 import io.axual.ksml.data.object.DataByte;
 import io.axual.ksml.data.object.DataBytes;
 import io.axual.ksml.data.object.DataDouble;
@@ -44,19 +43,49 @@ import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class PythonNativeMapper {
+    // The type names of floating point numbers: a Python float, or a Java Double or Float
+    private static final Set<String> FLOATING_POINT_TYPES = Set.of("float", "Double", "Float");
     // Shared by all mappers, so that PythonContext.close() can remove a closed context. The types refer to their
     // context, so a kept entry would keep the whole Python context in memory.
     private static final Map<Context, PythonTypes> TYPES_BY_CONTEXT = new ConcurrentHashMap<>();
 
-    private record PythonTypes(Value dict, Value list, Value none) {
-        static PythonTypes of(Context context) {
-            return new PythonTypes(
-                    context.eval(PythonContext.PYTHON, "dict"),
-                    context.eval(PythonContext.PYTHON, "list"),
-                    context.eval(PythonContext.PYTHON, "type(None)").execute());
+    private static boolean isFloatingPoint(Value number) {
+        final var type = number.getMetaObject();
+        return type != null && FLOATING_POINT_TYPES.contains(type.getMetaSimpleName());
+    }
+
+    /**
+     * Converts a scalar; returns null otherwise (null included, since None needs the context).
+     */
+    private static Value scalarToPythonValue(Object object) {
+        return switch (object) {
+            case Value value -> value;
+            case null -> null;
+            case Boolean value -> Value.asValue(value);
+            case Byte value -> Value.asValue(value);
+            case Short value -> Value.asValue(value);
+            case Integer value -> Value.asValue(value);
+            case Long value -> Value.asValue(value);
+            case Float value -> Value.asValue(value);
+            case Double value -> Value.asValue(value);
+            case String value -> Value.asValue(value);
+            default -> null;
+        };
+    }
+
+    private static DataException unsupportedType(Object object) {
+        return new DataException("Can not convert native value to Python dataType: " + object.getClass().getSimpleName());
+    }
+
+    private static Context currentContext() {
+        try {
+            return Context.getCurrent();
+        } catch (IllegalStateException e) {
+            throw new DataException("Converting a value to Python needs an entered Python context", e);
         }
     }
 
@@ -80,22 +109,19 @@ public class PythonNativeMapper {
 
     private Object polyglotValueToNative(DataType expected, Value object) {
         if (object.isNull()) return null;
-        if (object.isBoolean() && (expected == null || expected == DataBoolean.DATATYPE))
-            return object.asBoolean();
-
+        if (object.isBoolean()) return object.asBoolean();
         if (object.isNumber()) return polyglotNumberToNative(expected, object);
-
         if (object.isString()) return object.asString();
-
         if (object.hasArrayElements()) {
             final var result = polyglotArrayToNative(expected, object);
-            if (result != null) return result;
+            if (result != null)
+                return result;
         }
-
         // By default, try to decode a dict as a struct
         if (object.hasHashEntries()) {
             final var result = polyglotMapToNative(object);
-            if (result != null) return result;
+            if (result != null)
+                return result;
         }
 
         throw new DataException("Can not convert Python dataType to DataObject: "
@@ -113,9 +139,13 @@ public class PythonNativeMapper {
         try {
             if (expected != null) {
                 final var result = polyglotExpectedNumberToNative(expected, object);
-                if (result != null) return result;
+                if (result != null)
+                    return result;
             }
-            // Return a long by default
+            // Without a numeric expected type, a float becomes a double and an int a long, whatever its value.
+            // asLong() rejects an int too large for a long, instead of losing precision as a double.
+            // Not a ternary: that would turn the long into a double too
+            if (isFloatingPoint(object)) return object.asDouble();
             return object.asLong();
         } catch (ClassCastException | UnsupportedOperationException e) {
             throw new DataException("Python value " + object + " does not fit in expected type "
@@ -133,14 +163,18 @@ public class PythonNativeMapper {
         if (expected == DataShort.DATATYPE) return object.asShort();
         if (expected == DataInteger.DATATYPE) return object.asInt();
         if (expected == DataLong.DATATYPE) return object.asLong();
-        if (expected == DataFloat.DATATYPE) return object.asFloat();
+        // asFloat() rejects any double that a float can not hold exactly, such as 3.14
+        if (expected == DataFloat.DATATYPE)
+            return object.fitsInFloat() ? object.asFloat() : NumericRangeChecker.convertDoubleToFloat(object.asDouble());
         if (expected == DataDouble.DATATYPE) return object.asDouble();
         return null;
     }
 
     private Object polyglotArrayToNative(DataType expected, Value object) {
-        if (expected == DataBytes.DATATYPE) return polyglotArrayToByteArray(object);
-        if (expected instanceof TupleType expectedTuple) return polyglotArrayToTuple(expectedTuple, object);
+        if (expected == DataBytes.DATATYPE)
+            return polyglotArrayToByteArray(object);
+        if (expected instanceof TupleType expectedTuple)
+            return polyglotArrayToTuple(expectedTuple, object);
         if (expected == null || expected == DataType.UNKNOWN || expected instanceof ListType)
             return polyglotArrayToList(expected, object);
         return null;
@@ -197,44 +231,21 @@ public class PythonNativeMapper {
         return ExecutionUtil.tryThis(() -> MapUtil.stringKeys(object.as(Map.class)));
     }
 
-    /** Converts a scalar; returns null otherwise (null included, since None needs the context). */
-    private static Value scalarToPythonValue(Object object) {
-        return switch (object) {
-            case Value value -> value;
-            case null -> null;
-            case Boolean value -> Value.asValue(value);
-            case Byte value -> Value.asValue(value);
-            case Short value -> Value.asValue(value);
-            case Integer value -> Value.asValue(value);
-            case Long value -> Value.asValue(value);
-            case Float value -> Value.asValue(value);
-            case Double value -> Value.asValue(value);
-            case String value -> Value.asValue(value);
-            default -> null;
-        };
-    }
-
-    private static DataException unsupportedType(Object object) {
-        return new DataException("Can not convert native value to Python dataType: " + object.getClass().getSimpleName());
-    }
-
-    /** Like {@link #toRealPythonValue(Context, Object)}, but looks the current context up lazily. */
+    /**
+     * Like {@link #toRealPythonValue(Context, Object)}, but looks the current context up lazily.
+     */
     public Value toRealPythonValue(Object object) {
-        if (object instanceof AbstractProxy proxy) return Value.asValue(proxy);
+        if (object instanceof AbstractProxy proxy)
+            return Value.asValue(proxy);
         final var scalar = scalarToPythonValue(object);
-        if (scalar != null) return scalar;
+        if (scalar != null)
+            return scalar;
         return toRealPythonValue(currentContext(), object);
     }
 
-    private static Context currentContext() {
-        try {
-            return Context.getCurrent();
-        } catch (IllegalStateException e) {
-            throw new DataException("Converting a value to Python needs an entered Python context", e);
-        }
-    }
-
-    /** Builds a genuine Python dict/list/None, by filling in Python's own types. Never exposes a Java object to Python. */
+    /**
+     * Builds a genuine Python dict/list/None, by filling in Python's own types. Never exposes a Java object to Python.
+     */
     public Value toRealPythonValue(Context context, Object object) {
         if (object instanceof AbstractProxy proxy) return Value.asValue(proxy);
         final var scalar = scalarToPythonValue(object);
@@ -244,12 +255,14 @@ public class PythonNativeMapper {
         return switch (object) {
             case byte[] value -> {
                 final var pyList = types.list().execute();
-                for (byte b : value) pyList.invokeMember("append", b >= 0 ? (short) b : (short) (256 + b));
+                for (byte b : value)
+                    pyList.invokeMember("append", b >= 0 ? (short) b : (short) (256 + b));
                 yield pyList;
             }
             case List<?> value -> {
                 final var pyList = types.list().execute();
-                for (var element : value) pyList.invokeMember("append", toRealPythonValue(context, element));
+                for (var element : value)
+                    pyList.invokeMember("append", toRealPythonValue(context, element));
                 yield pyList;
             }
             case Map<?, ?> value -> {
@@ -258,7 +271,17 @@ public class PythonNativeMapper {
                 value.forEach((k, v) -> pyDict.putHashEntry(String.valueOf(k), toRealPythonValue(context, v)));
                 yield pyDict;
             }
-            default -> throw unsupportedType(object);
+            default ->
+                    throw unsupportedType(object);
         };
+    }
+
+    private record PythonTypes(Value dict, Value list, Value none) {
+        static PythonTypes of(Context context) {
+            return new PythonTypes(
+                    context.eval(PythonContext.PYTHON, "dict"),
+                    context.eval(PythonContext.PYTHON, "list"),
+                    context.eval(PythonContext.PYTHON, "type(None)").execute());
+        }
     }
 }

@@ -112,13 +112,29 @@
                   "count" : {
                     "type" : "integer",
                     "description" : "Number of times to invoke the generator function"
+                  },
+                  "advanceWallClockTime" : {
+                    "anyOf" : [ {
+                      "type" : "integer"
+                    }, {
+                      "type" : "string"
+                    } ],
+                    "description" : "Advances the wall-clock time of the test driver by this KSML duration after producing the block's messages, so wall-clock punctuations that become due run",
+                    "examples" : [ "1m", "30s" ]
                   }
                 },
                 "required" : [ "to" ],
-                "oneOf" : [ {
+                "anyOf" : [ {
                   "required" : [ "messages" ]
                 }, {
                   "required" : [ "generator" ]
+                }, {
+                  "required" : [ "advanceWallClockTime" ]
+                } ],
+                "allOf" : [ {
+                  "not" : {
+                    "required" : [ "messages", "generator" ]
+                  }
                 } ]
               },
               "description" : "Produce blocks defining test data for this test"

@@ -73,8 +73,8 @@ functions:
 
   calculate_fraud_score:
     type: valueTransformer
-    # example: passing in the KSML provided logger object as an argument
-    expression: fraud_score(value,log)
+    # fraud_score logs with the log it imports from ksml, so it needs no logger argument
+    expression: fraud_score(value)
     resultType: json
 
 pipelines:

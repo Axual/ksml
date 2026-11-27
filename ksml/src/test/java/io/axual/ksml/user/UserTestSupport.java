@@ -22,10 +22,14 @@ package io.axual.ksml.user;
 
 import io.axual.ksml.data.object.DataObject;
 import io.axual.ksml.data.type.DataType;
+import io.axual.ksml.definition.FunctionDefinition;
 import io.axual.ksml.definition.ParameterDefinition;
+import io.axual.ksml.definition.PythonSource;
 import io.axual.ksml.metric.MetricTags;
-import io.axual.ksml.store.StateStores;
 import io.axual.ksml.type.UserType;
+
+import java.util.List;
+import java.util.Map;
 
 /**
  * Shared helpers for unit-testing the {@code User*} function wrappers without the GraalVM Python
@@ -59,10 +63,15 @@ final class UserTestSupport {
         return functionReturning(resultType, params(paramCount), result);
     }
 
+    /** A function definition ns.fn without code, for functions whose call is overridden. */
+    static FunctionDefinition definition(ParameterDefinition[] params, UserType resultType, List<String> storeNames) {
+        return FunctionDefinition.as("generic", "ns", "fn", params, PythonSource.of(null, null, (String) null), resultType, null, storeNames);
+    }
+
     static UserFunction functionReturning(UserType resultType, ParameterDefinition[] params, DataObject result) {
-        return new UserFunction("ns", "fn", params, resultType, (String[]) null) {
+        return new UserFunction(definition(params, resultType, null)) {
             @Override
-            public DataObject call(StateStores stores, DataObject... parameters) {
+            public DataObject call(Map<String, Object> injections, DataObject... parameters) {
                 return result;
             }
         };
@@ -74,12 +83,12 @@ final class UserTestSupport {
         DataObject[] lastArguments;
 
         RecordingFunction(UserType resultType, ParameterDefinition[] params, DataObject result) {
-            super("ns", "fn", params, resultType, (String[]) null);
+            super(UserTestSupport.definition(params, resultType, null));
             this.result = result;
         }
 
         @Override
-        public DataObject call(StateStores stores, DataObject... parameters) {
+        public DataObject call(Map<String, Object> injections, DataObject... parameters) {
             lastArguments = parameters;
             return result;
         }

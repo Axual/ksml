@@ -21,6 +21,8 @@ package io.axual.ksml.data.notation.protobuf.apicurio;
  */
 
 import io.apicurio.registry.resolver.client.RegistryClientFacade;
+import io.apicurio.registry.resolver.client.RegistryClientFacadeFactory;
+import io.apicurio.registry.resolver.config.SchemaResolverConfig;
 import io.axual.ksml.data.notation.Notation;
 import io.axual.ksml.data.notation.NotationContext;
 import io.axual.ksml.data.notation.apicurio.ApicurioConfigChecks;
@@ -28,7 +30,10 @@ import io.axual.ksml.data.notation.protobuf.ProtobufDataObjectMapper;
 import io.axual.ksml.data.notation.protobuf.ProtobufNotation;
 import io.axual.ksml.data.notation.vendor.VendorNotationContext;
 import io.axual.ksml.data.notation.vendor.VendorNotationProvider;
+import io.axual.ksml.data.util.MapUtil;
 import lombok.Getter;
+
+import java.util.Map;
 
 public class ApicurioProtobufNotationProvider extends VendorNotationProvider {
     // Registry Client is mocked by tests
@@ -48,12 +53,20 @@ public class ApicurioProtobufNotationProvider extends VendorNotationProvider {
     public Notation createNotation(NotationContext context) {
         if (context == null) context = new NotationContext();
         ApicurioConfigChecks.rejectV2Configs(context.serdeConfigs());
+        final var srClient = registryClient != null ? registryClient : createSrClient(MapUtil.stringKeys(context.serdeConfigs()));
         return new ProtobufNotation(
                 new VendorNotationContext(
                         vendorName(),
                         context,
-                        new ApicurioProtobufSerdeSupplier(registryClient),
+                        new ApicurioProtobufSerdeSupplier(srClient),
                         new ProtobufDataObjectMapper(new ApicurioProtobufFileElementDescriptorMapper(), context.nativeDataObjectMapper(), context.typeSchemaMapper())),
                 new ApicurioProtobufSchemaParser(context.nativeDataObjectMapper(), context.typeSchemaMapper()));
+    }
+
+    // Created here rather than by the serde, so it uses the notation's serde configs and wrong settings fail at startup
+    RegistryClientFacade createSrClient(Map<String, Object> serdeConfigs) {
+        if (!serdeConfigs.containsKey(SchemaResolverConfig.REGISTRY_URL))
+            return null;
+        return RegistryClientFacadeFactory.create(new SchemaResolverConfig(serdeConfigs));
     }
 }

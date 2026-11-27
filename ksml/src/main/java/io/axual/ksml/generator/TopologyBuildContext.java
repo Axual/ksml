@@ -323,6 +323,6 @@ public class TopologyBuildContext implements AutoCloseable {
 
     // Create a new function in the Python context, using the definition in the parameter
     public UserFunction createUserFunction(FunctionDefinition definition) {
-        return PythonFunction.forFunction(pythonContext, resources.namespace(), definition.name(), definition);
+        return PythonFunction.forFunction(pythonContext, definition.withNamespaceIfNotSet(resources.namespace()));
     }
 }

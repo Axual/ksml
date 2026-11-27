@@ -74,6 +74,7 @@ public final class KSMLTestDSL {
         public static final String MESSAGES = "messages";
         public static final String GENERATOR = "generator";
         public static final String COUNT = "count";
+        public static final String ADVANCE_WALL_CLOCK_TIME = "advanceWallClockTime";
 
         /**
          * Field names of the function definition embedded under {@code produce.generator:}.

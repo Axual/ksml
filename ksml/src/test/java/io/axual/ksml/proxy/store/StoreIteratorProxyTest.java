@@ -24,6 +24,7 @@ import io.axual.ksml.python.PythonContext;
 import io.axual.ksml.python.PythonContextConfig;
 import org.apache.kafka.streams.KeyValue;
 import org.graalvm.polyglot.Value;
+import org.graalvm.polyglot.proxy.ProxyExecutable;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -37,7 +38,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
  * Checks that the store iterators that {@link ProxyUtil#toPython(Object)} returns work with Python iteration
- * ({@code for}, {@code next()}, {@code list()}, {@code contextlib.closing}) and with the Java style
+ * ({@code for}, {@code next()}, {@code list()}, {@code with}, {@code contextlib.closing}) and with the Java style
  * ({@code hasNext()}, {@code next()}, {@code close()}), and that the Kafka iterator is closed.
  */
 class StoreIteratorProxyTest {
@@ -61,6 +62,16 @@ class StoreIteratorProxyTest {
     private Value run(String code) {
         final var bindings = pythonContext.context().getBindings("python");
         bindings.putMember("it", ProxyUtil.toPython(kafkaIterator));
+        return pythonContext.context().eval("python", code);
+    }
+
+    /**
+     * Runs the Python code with {@code new_iterator()} returning the proxied Kafka iterator. It is created during the
+     * Python call, as a store method does, so it gets the Python wrapper.
+     */
+    private Value runWithWrapper(String code) {
+        final var bindings = pythonContext.context().getBindings("python");
+        bindings.putMember("new_iterator", (ProxyExecutable) args -> ProxyUtil.toPython(kafkaIterator));
         return pythonContext.context().eval("python", code);
     }
 
@@ -173,6 +184,66 @@ class StoreIteratorProxyTest {
                 read()
                 """);
         assertThat(result.asString()).isEqualTo("stop");
+        assertThat(kafkaIterator.closed).isTrue();
+    }
+
+    @Test
+    @DisplayName("a with block reads all entries and closes the Kafka iterator")
+    void withBlockReadsAllAndCloses() {
+        final var result = runWithWrapper("""
+                def read():
+                    with new_iterator() as entries:
+                        return [e["key"] + "=" + e["value"] for e in entries]
+                read()
+                """);
+        assertThat(strings(result)).containsExactly("a=1", "b=2", "c=3");
+        assertThat(kafkaIterator.closed).isTrue();
+    }
+
+    @Test
+    @DisplayName("a with block closes the Kafka iterator when the loop ends early with return")
+    void withBlockClosesOnEarlyReturn() {
+        final var result = runWithWrapper("""
+                def read():
+                    with new_iterator() as entries:
+                        for e in entries:
+                            return e["key"]
+                read()
+                """);
+        assertThat(result.asString()).isEqualTo("a");
+        assertThat(kafkaIterator.closed).isTrue();
+    }
+
+    @Test
+    @DisplayName("a with block closes the Kafka iterator when the loop raises an exception, and passes the exception on")
+    void withBlockClosesOnException() {
+        final var result = runWithWrapper("""
+                def read():
+                    try:
+                        with new_iterator() as entries:
+                            for e in entries:
+                                raise ValueError("stop")
+                    except ValueError as e:
+                        return str(e)
+                read()
+                """);
+        assertThat(result.asString()).isEqualTo("stop");
+        assertThat(kafkaIterator.closed).isTrue();
+    }
+
+    @Test
+    @DisplayName("the wrapped iterator keeps next(), list(), hasNext(), peekNextKey() and close()")
+    void wrappedIteratorKeepsAllMethods() {
+        final var result = runWithWrapper("""
+                def read():
+                    it = new_iterator()
+                    out = [next(it)["key"], str(it.hasNext()), it.peekNextKey(), it.next()["key"]]
+                    out += [e["key"] for e in list(it)]
+                    it.close()
+                    return out
+                read()
+                """);
+        assertThat(strings(result)).containsExactly("a", "True", "b", "b", "c");
         assertThat(kafkaIterator.closed).isTrue();
     }
 

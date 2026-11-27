@@ -1,0 +1,57 @@
+streams:
+  orders:
+    topic: orders
+    keyType: string
+    valueType: json
+  order_totals:
+    topic: order_totals
+    keyType: string
+    valueType: double
+
+stores:
+  totals:
+    type: keyValue
+    keyType: string
+    valueType: double
+    persistent: false
+    caching: false
+
+functions:
+  add_to_total:
+    type: forEach
+    stores:
+      - totals
+    code: |
+      totals.put(key, (totals.get(key) or 0.0) + value)
+
+  emit_totals:
+    type: punctuator
+    stores:
+      - totals
+    code: |
+      keys = []
+      for e in totals.all():
+        context.forward(e["key"], e["value"], headers=[{"key": "task", "value": context.taskId()}])
+        keys.append(e["key"])
+      for k in keys:
+        totals.delete(k)
+
+pipelines:
+  flush_totals:
+    from: orders
+    via:
+      - type: transformValue
+        mapper:
+          expression: value["amount"]
+          resultType: double
+      - type: peek
+        forEach: add_to_total   # adds the amount to the total of the customer
+      - type: filter
+        if:
+          expression: False     # only the totals go to the output topic, not the orders
+      - type: punctuate
+        name: flush
+        interval: 1m
+        punctuationType: wallClockTime
+        punctuator: emit_totals
+    to: order_totals

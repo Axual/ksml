@@ -71,6 +71,31 @@ class ApicurioAvroNotationProviderTest {
     }
 
     @Test
+    @DisplayName("A client certificate without a client key is rejected by Apicurio when the client is created")
+    void createSrClient_withIncompletePemSettings_throws() {
+        final Map<String, Object> config = new HashMap<>();
+        config.put(SchemaResolverConfig.REGISTRY_URL, "http://registry:8081/apis/registry/v3");
+        config.put(SchemaResolverConfig.TLS_CLIENT_CERTIFICATE, "/certs/client.crt");
+
+        assertThatThrownBy(() -> new ApicurioAvroNotationProvider().createSrClient(config))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining(SchemaResolverConfig.TLS_CLIENT_KEY);
+    }
+
+    @Test
+    @DisplayName("Key store settings are read by Apicurio when the client is created")
+    void createSrClient_withUnsupportedKeystoreType_throws() {
+        final Map<String, Object> config = new HashMap<>();
+        config.put(SchemaResolverConfig.REGISTRY_URL, "https://registry:8081/apis/registry/v3");
+        config.put(SchemaResolverConfig.TLS_KEYSTORE_LOCATION, "/certs/client.bks");
+        config.put(SchemaResolverConfig.TLS_KEYSTORE_TYPE, "BKS");
+
+        assertThatThrownBy(() -> new ApicurioAvroNotationProvider().createSrClient(config))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("BKS");
+    }
+
+    @Test
     @DisplayName("Basic-auth credentials are read from the Apicurio v3 apicurio.registry.auth.* keys")
     void authCredentialsUseApicurioV3Keys() {
         final Map<String, Object> config = new HashMap<>();

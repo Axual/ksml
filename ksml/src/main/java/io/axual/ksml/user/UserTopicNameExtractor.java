@@ -52,6 +52,6 @@ public class UserTopicNameExtractor extends Invoker implements TopicNameExtracto
         if (result instanceof DataString dataString) {
             return dataString.value();
         }
-        throw new ExecutionException("Expected string result from function: " + function.name);
+        throw new ExecutionException("Expected string result from function: " + function.definition.name());
     }
 }

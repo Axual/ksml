@@ -36,8 +36,8 @@ public class UserReducer extends Invoker implements Reducer<Object> {
     public UserReducer(UserFunction function, MetricTags tags) {
         super(function, tags, KSMLDSL.Functions.TYPE_REDUCER);
         verifyParameterCount(2);
-        verify(function.parameters[0].type().equals(function.parameters[1].type()), "Reducer should take two parameters of the same dataType");
-        verifyResultType(function.parameters[0].type());
+        verify(function.definition.parameters()[0].type().equals(function.definition.parameters()[1].type()), "Reducer should take two parameters of the same dataType");
+        verifyResultType(function.definition.parameters()[0].type());
     }
 
     @Override

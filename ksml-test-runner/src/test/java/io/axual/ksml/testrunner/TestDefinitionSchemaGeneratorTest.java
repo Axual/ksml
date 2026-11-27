@@ -133,17 +133,29 @@ class TestDefinitionSchemaGeneratorTest {
     }
 
     @Test
-    void produceBlockOneOfBetweenMessagesAndGenerator() {
+    void produceBlockNeedsMessagesGeneratorOrTimeStepButNotMessagesAndGenerator() {
         var produceItem = root.at(TEST_SCHEMA_POINTER + "/properties/produce/items");
         assertEquals("object", produceItem.get("type").asString());
 
-        var oneOf = produceItem.get("oneOf");
-        assertNotNull(oneOf, "Produce block schema must declare oneOf");
+        var anyOf = produceItem.get("anyOf");
+        assertNotNull(anyOf, "Produce block schema must declare anyOf");
         var variantRequired = new java.util.HashSet<String>();
-        for (var variant : oneOf) {
+        for (var variant : anyOf) {
             variant.get("required").forEach(n -> variantRequired.add(n.asString()));
         }
-        assertEquals(java.util.Set.of("messages", "generator"), variantRequired);
+        assertEquals(java.util.Set.of("messages", "generator", "advanceWallClockTime"), variantRequired);
+
+        // messages and generator can not both be present
+        var allOf = produceItem.get("allOf");
+        assertNotNull(allOf, "Produce block schema must declare allOf");
+        assertEquals(1, allOf.size());
+        var notBoth = new java.util.HashSet<String>();
+        allOf.get(0).at("/not/required").forEach(n -> notBoth.add(n.asString()));
+        assertEquals(java.util.Set.of("messages", "generator"), notBoth);
+
+        // advanceWallClockTime is a KSML duration: a number of milliseconds or a string
+        var duration = produceItem.at("/properties/advanceWallClockTime/anyOf");
+        assertEquals(2, duration.size());
 
         // 'to' is itself required regardless of which variant is chosen
         assertEquals("to", produceItem.get("required").get(0).asString());

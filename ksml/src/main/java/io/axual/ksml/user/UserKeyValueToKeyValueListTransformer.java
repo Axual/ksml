@@ -56,11 +56,11 @@ public class UserKeyValueToKeyValueListTransformer extends Invoker implements Ke
 
     public Iterable<KeyValue<Object, Object>> apply(StateStores stores, Object key, Object value) {
         // If the above check worked, then we can safely perform the following cast
-        final var tupleType = (TupleType) ((ListType) function.resultType.dataType()).valueType();
+        final var tupleType = (TupleType) ((ListType) function.definition.resultType().dataType()).valueType();
         final var kr = tupleType.subType(0);
         final var vr = tupleType.subType(1);
 
-        final var result = timeExecutionOf(() -> function.call(stores, NATIVE_MAPPER.toDataObject(key), NATIVE_MAPPER.toDataObject(value)));
+        final var result = timeExecutionOf(() -> function.call(function.withStores(stores), NATIVE_MAPPER.toDataObject(key), NATIVE_MAPPER.toDataObject(value)));
         if (result == null) return Collections.emptyList();
 
         // We need to convert the resulting messages to KeyValue tuples as per the method signature
@@ -73,6 +73,6 @@ public class UserKeyValueToKeyValueListTransformer extends Invoker implements Ke
             return convertedResult;
         }
 
-        throw new ExecutionException("Expected list back from function: " + function.name);
+        throw new ExecutionException("Expected list back from function: " + function.definition.name());
     }
 }

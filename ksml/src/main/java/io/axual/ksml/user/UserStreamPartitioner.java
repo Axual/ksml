@@ -56,7 +56,7 @@ public class UserStreamPartitioner extends Invoker implements StreamPartitioner<
 
     public UserStreamPartitioner(UserFunction function, MetricTags tags) {
         super(function, tags, KSMLDSL.Functions.TYPE_STREAMPARTITIONER);
-        hasHeadersParameter = takesHeaders(function.parameters);
+        hasHeadersParameter = takesHeaders(function.definition.parameters());
         verifyParameterCount(hasHeadersParameter ? 5 : 4);
         verifyResultType(EXPECTED_RESULT_TYPE);
     }

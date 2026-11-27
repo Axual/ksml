@@ -77,7 +77,7 @@ import java.util.function.BiFunction;
  * lifecycle through the Runner interface methods.</p>
  */
 @Slf4j
-public class KafkaStreamsRunner implements Runner {
+public class KafkaStreamsRunner implements Runner, AutoCloseable {
     /**
      * Maximum time to close Kafka Streams, including the final commit. With the 5 s shutdown hook
      * margin the total is 25 s, which fits the default Kubernetes termination grace period of 30 s.
@@ -468,5 +468,10 @@ public class KafkaStreamsRunner implements Runner {
     @Override
     public void stop() {
         stopRunning.set(true);
+    }
+
+    @Override
+    public void close() {
+        // Nothing to do
     }
 }

@@ -96,14 +96,14 @@ ksmlRunnerConfig:
     # Definition of an Apicurio schema registry
     # apicurio:
       # config:
-        # Below is an example SSL configuration for Apicurio Serialization library from Apicurio documentation
-        # apicurio.registry.request.ssl.keystore.location: /path/to/keystore.jks
-        # apicurio.registry.request.ssl.keystore.type: JKS
-        # apicurio.registry.request.ssl.keystore.password: password
-        # apicurio.registry.request.ssl.key.password: password
-        # apicurio.registry.request.ssl.truststore.location: /path/to/truststore.jks
-        # apicurio.registry.request.ssl.truststore.type: JKS
-        # apicurio.registry.request.ssl.truststore.password: password
+        # Below is an example TLS configuration for Apicurio Serialization library from Apicurio documentation
+        # apicurio.registry.tls.keystore.location: /path/to/keystore.jks
+        # apicurio.registry.tls.keystore.type: JKS
+        # apicurio.registry.tls.keystore.password: password
+        # apicurio.registry.tls.key.password: password
+        # apicurio.registry.tls.truststore.location: /path/to/truststore.jks
+        # apicurio.registry.tls.truststore.type: JKS
+        # apicurio.registry.tls.truststore.password: password
 
     # Definition of a Confluent schema registry
     # confluent:

@@ -53,12 +53,12 @@ public class UserKeyValueToValueListTransformer extends Invoker implements Value
     }
 
     public Iterable<Object> apply(StateStores stores, Object key, Object value) {
-        final var result = timeExecutionOf(() -> function.call(stores, NATIVE_MAPPER.toDataObject(key), NATIVE_MAPPER.toDataObject(value)));
+        final var result = timeExecutionOf(() -> function.call(function.withStores(stores), NATIVE_MAPPER.toDataObject(key), NATIVE_MAPPER.toDataObject(value)));
         if (result instanceof DataList list) {
             final var newList = new ArrayList<>();
             list.forEach(element -> newList.add(nullIfNone(element)));
             return newList;
         }
-        throw new ExecutionException("Expected list result from keyValueToKeyValueList transformer: " + function.name);
+        throw new ExecutionException("Expected list result from keyValueToKeyValueList transformer: " + function.definition.name());
     }
 }

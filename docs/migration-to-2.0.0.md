@@ -23,6 +23,7 @@ Before you upgrade, check each item below:
 * Rename any `as` name that is also a name under `streams`, `tables` or `globalTables`.
 * Add `toTable` before any `join` or `leftJoin` with `foreignKeyExtractor` that has a stream as input.
 * Do not keep a store iterator in a global variable for a later function call.
+* If Python code uses the `stores` variable, read each store by its own name, or pass it to helper functions as an argument.
 * If Python code reads `get(key)["value"]` or `["timestamp"]` on a store with `timestamped: true`, or on the store of a `count`, `aggregate`, `reduce` or non-versioned table, use `getWithTimestamp(key)` instead. The same applies to the results of `delete` and `putIfAbsent`, and to `fetch(key, time)` on the store of a windowed aggregation (use `fetchWithTimestamp`).
 * Check every store you declare under `stores` or in an operation: it is now persistent, timestamped and has a changelog topic unless it sets `persistent`, `timestamped` or `logging` to `false`. Make sure the application can create the changelog topics (or create them yourself) and that `ksml.storageDirectory` is on a volume that has room for RocksDB. On the first start, KSML stops if a persistent store with local state leaves out `logging`, or if the persistent `thisStore` of a `leftJoin` or `outerJoin` between two streams doesn't set `logging: true`, until you set it. See [Declared stores use the Kafka Streams defaults](#declared-stores-use-the-kafka-streams-defaults).
 * Stop all KSML 1.x instances of an application before you start 2.0.0, and don't do a rolling upgrade. A 1.x instance does not create the new changelog topics, so a 2.0.0 instance in the same group can't start its tasks. Before you start 2.0.0, wait until the consumer group of the application has no members (`kafka-consumer-groups.sh --describe --group <application.id> --members`). This takes up to `session.timeout.ms` (45 seconds by default), because Kafka Streams doesn't leave the group when it stops. If the application sets `group.instance.id` (static membership, which the KSML Helm chart does), an instance that comes back sooner gets its 1.x assignment again and is stuck. With the KSML Helm chart, scale the StatefulSet to 0 replicas, wait until the group is empty, and then run `helm upgrade`.
@@ -117,6 +118,29 @@ If you deliberately want the header-based id format instead, set `apicurio.regis
 ### Resolving pre-registered schemas (issue #290)
 
 KSML keeps defaulting `apicurio.registry.find-latest` to `true`, so that with auto-register disabled and a pre-registered schema, the serializer resolves the artifact by its coordinates instead of by its content. This is the same default that was introduced in KSML 1.3.0, and it keeps working on Apicurio v3. You do not need to change anything for this. If you had set `find-latest` yourself, KSML still respects your value.
+
+### TLS and mutual TLS settings
+
+Apicurio v3 has its own TLS settings. KSML stops at startup when it finds an Apicurio v2 `apicurio.registry.request.ssl.*` key, so move the trust store to the v3 keys:
+
+```yaml
+apicurio.registry.tls.truststore.location: /path/to/truststore.jks
+apicurio.registry.tls.truststore.password: my-secret
+apicurio.registry.tls.truststore.type: JKS   # JKS, PKCS12 or PEM
+```
+
+For a registry that requires mutual TLS, set the client certificate with the Apicurio v3 key store keys:
+
+```yaml
+apicurio.registry.tls.keystore.location: /path/to/keystore.jks
+apicurio.registry.tls.keystore.password: my-secret   # also unlocks the private key
+apicurio.registry.tls.keystore.type: JKS             # JKS (default), PKCS12 or PEM
+# For a PEM certificate and key, instead of the key store:
+# apicurio.registry.tls.client-certificate: /path/to/client.crt   # file path or PEM content
+# apicurio.registry.tls.client-key: /path/to/client.key           # file path or PEM content
+```
+
+KSML creates the registry client when it starts, so incomplete TLS settings stop KSML at startup.
 
 ## Stricter validation of runner config and definitions
 
@@ -246,6 +270,24 @@ while it.hasNext():
 # After (KSML 2.0.0)
 for entry in store.all():
   ...
+```
+
+## The `stores` variable is gone outside the function
+
+On the 1.x line, every function also had a global variable `stores`, a dict with its state stores. Helper functions in `globalCode` could read it too. This was never documented.
+
+In KSML 2.0.0, a function only has the stores it declares in `stores`, each as a variable with the store's name. `stores` is no longer a global, so a helper function in `globalCode` that reads it raises a `NameError`.
+
+What you need to do: pass the store to the helper function as an argument.
+
+```python
+# Before (KSML 1.x): globalCode
+def get_total(key):
+  return stores["totals"].get(key)
+
+# After (KSML 2.0.0): globalCode, called as get_total(totals, key)
+def get_total(store, key):
+  return store.get(key)
 ```
 
 ## Timestamped stores return the value

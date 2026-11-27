@@ -39,6 +39,17 @@ public final class PythonErrors {
         return raise("TypeError", message, null);
     }
 
+    /** Raises a Python {@code TypeError} for a Java error, and logs the Java cause at debug level. */
+    public static RuntimeException typeError(String message, Throwable cause) {
+        log.debug("Raising TypeError in Python: {}", message, cause);
+        return raise("TypeError", message, cause);
+    }
+
+    /** Raises a Python {@code RuntimeError}: the call is not possible in the current state. */
+    public static RuntimeException runtimeError(String message) {
+        return raise("RuntimeError", message, null);
+    }
+
     /** Raises a Python {@code ValueError}: the argument has the right kind, but wrong content. */
     public static RuntimeException valueError(String message) {
         return raise("ValueError", message, null);

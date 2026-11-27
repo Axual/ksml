@@ -178,8 +178,8 @@ class UserStreamPartitionerTest {
     }
 
     private static ParameterDefinition[] streamPartitionerParameters(ParameterDefinition... customParameters) {
-        final var function = FunctionDefinition.as("generic", "fn", List.of(customParameters),
-                PythonSource.of((String) null, (String) null, (String) null), PARTITIONS, List.of());
+        final var function = FunctionDefinition.as("generic", "ns", "fn", List.of(customParameters),
+                PythonSource.of((String) null, (String) null, (String) null), PARTITIONS, List.of(), List.of());
         return new StreamPartitionerDefinition(function).parameters();
     }
 }

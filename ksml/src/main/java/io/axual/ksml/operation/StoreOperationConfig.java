@@ -27,7 +27,11 @@ public class StoreOperationConfig extends OperationConfig {
     public final StateStoreDefinition store;
 
     public StoreOperationConfig(String name, MetricTags context, StateStoreDefinition store) {
-        super(name, context);
+        this(name, null, context, store);
+    }
+
+    public StoreOperationConfig(String name, String definedName, MetricTags context, StateStoreDefinition store) {
+        super(name, definedName, context);
         this.store = store;
     }
 }

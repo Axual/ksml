@@ -20,6 +20,7 @@ package io.axual.ksml.testrunner;
  * =========================LICENSE_END==================================
  */
 
+import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 
@@ -34,7 +35,8 @@ import java.util.Map;
  */
 @JsonSchema(
         description = "A block that defines test data to be produced into a stream",
-        oneOfRequired = {KSMLTestDSL.Produce.MESSAGES, KSMLTestDSL.Produce.GENERATOR})
+        anyOfRequired = {KSMLTestDSL.Produce.MESSAGES, KSMLTestDSL.Produce.GENERATOR, KSMLTestDSL.Produce.ADVANCE_WALL_CLOCK_TIME},
+        mutuallyExclusive = {KSMLTestDSL.Produce.MESSAGES, KSMLTestDSL.Produce.GENERATOR})
 public record ProduceBlock(
         @JsonSchema(yamlName = KSMLTestDSL.Produce.TO,
                 description = "Key into the suite's streams: map identifying the target stream",
@@ -52,8 +54,18 @@ public record ProduceBlock(
 
         @JsonSchema(yamlName = KSMLTestDSL.Produce.COUNT,
                 description = "Number of times to invoke the generator function")
-        Long count
+        Long count,
+
+        @JsonSchema(yamlName = KSMLTestDSL.Produce.ADVANCE_WALL_CLOCK_TIME,
+                description = "Advances the wall-clock time of the test driver by this KSML duration after producing the block's messages, so wall-clock punctuations that become due run",
+                examples = {"1m", "30s"})
+        Duration advanceWallClockTime
 ) {
+    /** A produce block that does not advance the wall-clock time. */
+    public ProduceBlock(String to, List<TestMessage> messages, Map<String, Object> generator, Long count) {
+        this(to, messages, generator, count, null);
+    }
+
     /**
      * Normalizes {@code messages}/{@code generator} to an empty collection when constructed with
      * {@code null}, so every other method on this record can treat them as never-null.
@@ -64,13 +76,16 @@ public record ProduceBlock(
     }
 
     /**
-     * Validate that the produce block has either messages or a generator, but not both.
+     * Validate that the produce block has messages, a generator or advanceWallClockTime, and not both messages and a
+     * generator.
      */
     public void validate() {
-        if (messages.isEmpty() && generator.isEmpty()) {
+        // A block that only advances the wall-clock time needs no messages
+        if (messages.isEmpty() && generator.isEmpty() && advanceWallClockTime == null) {
             throw new TestDefinitionException(
-                    "Produce block targeting stream '" + to + "' must have either '"
-                            + KSMLTestDSL.Produce.MESSAGES + "' or '" + KSMLTestDSL.Produce.GENERATOR + "'");
+                    "Produce block targeting stream '" + to + "' must have '"
+                            + KSMLTestDSL.Produce.MESSAGES + "', '" + KSMLTestDSL.Produce.GENERATOR + "' or '"
+                            + KSMLTestDSL.Produce.ADVANCE_WALL_CLOCK_TIME + "'");
         }
         if (!messages.isEmpty() && !generator.isEmpty()) {
             throw new TestDefinitionException(

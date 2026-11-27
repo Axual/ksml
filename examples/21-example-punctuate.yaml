@@ -1,0 +1,74 @@
+# $schema: https://axual.github.io/ksml/latest/ksml-language-spec.json
+
+# This example shows how to emit results on a schedule with a punctuate operation. It sums the sensor values per
+# sensor in a state store, and every minute it emits the totals and clears the store, also when no new records
+# arrive.
+
+streams:
+  sensor_source_avro:
+    topic: ksml_sensordata_avro
+    keyType: string
+    valueType: avro:SensorData
+    offsetResetPolicy: latest
+  sensor_totals:
+    topic: ksml_sensordata_totals
+    keyType: string
+    valueType: double
+
+stores:
+  sensor_totals_store:
+    type: keyValue
+    keyType: string
+    valueType: double
+    persistent: false
+    caching: false
+
+functions:
+  add_to_total:
+    type: forEach
+    stores:
+      - sensor_totals_store
+    code: |
+      if key is None or value is None:
+        return
+      total = sensor_totals_store.get(key) or 0.0
+      sensor_totals_store.put(key, total + value)
+
+  emit_totals:
+    type: punctuator
+    stores:
+      - sensor_totals_store
+    code: |
+      keys = []
+      for entry in sensor_totals_store.all():
+        context.forward(entry["key"], entry["value"])
+        keys.append(entry["key"])
+      for key in keys:
+        sensor_totals_store.delete(key)
+      log.info("Emitted {} totals at {}", len(keys), timestamp)
+
+pipelines:
+  sum_sensor_values:
+    from: sensor_source_avro
+    via:
+      # STATE sensors report "on" or "off", which cannot be summed
+      - type: filter
+        if:
+          expression: value is not None and value["type"] != "STATE"
+      # The punctuator forwards doubles, so the stream at the punctuate operation must carry doubles too
+      - type: transformValue
+        mapper:
+          expression: float(value["value"])
+          resultType: double
+      - type: peek
+        forEach: add_to_total
+      # Only the totals are written to the output topic, not the input records
+      - type: filter
+        if:
+          expression: False
+      - type: punctuate
+        punctuationType: wallClockTime
+        interval: 1m
+        punctuator: emit_totals
+        name: emit_totals_every_minute
+    to: sensor_totals

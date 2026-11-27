@@ -52,6 +52,7 @@ public class TypedFunctionDefinitionParser extends ChoiceParser<FunctionDefiniti
         result.put(Functions.TYPE_MERGER, new MergerDefinitionParser(true));
         result.put(Functions.TYPE_METADATATRANSFORMER, new MetadataTransformerDefinitionParser(true));
         result.put(Functions.TYPE_PREDICATE, new PredicateDefinitionParser(true));
+        result.put(Functions.TYPE_PUNCTUATOR, new PunctuatorDefinitionParser(true));
         result.put(Functions.TYPE_REDUCER, new ReducerDefinitionParser(true));
         result.put(Functions.TYPE_STREAMPARTITIONER, new StreamPartitionerDefinitionParser(true));
         result.put(Functions.TYPE_TIMESTAMPEXTRACTOR, new TimestampExtractorDefinitionParser(true));

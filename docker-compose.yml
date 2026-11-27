@@ -102,6 +102,7 @@ services:
                        /opt/kafka/bin/kafka-topics.sh --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic ksml_sensordata_sensor2 && \
                        /opt/kafka/bin/kafka-topics.sh --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic ksml_sensordata_table && \
                        /opt/kafka/bin/kafka-topics.sh --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic ksml_sensordata_jsonschema && \
+                       /opt/kafka/bin/kafka-topics.sh --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic ksml_sensordata_totals && \
                        /opt/kafka/bin/kafka-topics.sh --create --if-not-exists --bootstrap-server broker:9093 --partitions 1 --replication-factor 1 --topic io.ksml.example.processor-ownerCount-changelog'"
 
   example-producer:

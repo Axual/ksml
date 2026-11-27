@@ -25,11 +25,19 @@ import io.axual.ksml.testutil.KSMLDriver;
 import io.axual.ksml.testutil.KSMLTopic;
 import io.axual.ksml.testutil.KSMLTopologyTest;
 import org.apache.avro.generic.GenericRecord;
+import org.apache.kafka.common.serialization.DoubleDeserializer;
+import org.apache.kafka.common.serialization.StringDeserializer;
+import org.apache.kafka.streams.KeyValue;
 import org.apache.kafka.streams.TestInputTopic;
 import org.apache.kafka.streams.TopologyTestDriver;
 import org.junit.jupiter.api.DisplayName;
 
+import java.time.Duration;
+import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Validates that the example KSML topology definitions in the {@code examples/} directory
@@ -67,7 +75,8 @@ class ExampleTopologyTest {
             "examples/16-example-transform-metadata.yaml",
             "examples/17-example-inspect-with-metrics.yaml",
             "examples/18-example-timestamp-extractor.yaml",
-            "examples/19-example-performance-measurement.yaml"
+            "examples/19-example-performance-measurement.yaml",
+            "examples/21-example-punctuate.yaml"
     }, schemaDirectory = "examples")
     @DisplayName("Example topology parses and generates a valid Kafka Streams topology")
     void exampleTopologyIsValid() {
@@ -93,5 +102,39 @@ class ExampleTopologyTest {
     @DisplayName("Byte manipulation example parses and generates a valid topology")
     void byteManipulationTopologyIsValid() {
         assertNotNull(topologyTestDriver, "TopologyTestDriver should have been created by the test extension");
+    }
+
+    @KSMLTopologyTest(topologies = {
+            "examples/21-example-punctuate.yaml"
+    }, schemaDirectory = "examples")
+    @DisplayName("Punctuate example emits the totals per sensor every minute and then starts again")
+    void punctuateExampleEmitsTotals() {
+        final var totals = topologyTestDriver.createOutputTopic("ksml_sensordata_totals", new StringDeserializer(), new DoubleDeserializer());
+        pipeSensorData("sensor0", "10", SensorData.SensorType.TEMPERATURE);
+        pipeSensorData("sensor0", "5", SensorData.SensorType.TEMPERATURE);
+        pipeSensorData("sensor1", "on", SensorData.SensorType.STATE);
+        // Input records are not written to the output topic, only the totals
+        assertTrue(totals.isEmpty());
+
+        topologyTestDriver.advanceWallClockTime(Duration.ofMinutes(1));
+        assertEquals(List.of(KeyValue.pair("sensor0", 15.0)), totals.readKeyValuesToList());
+
+        // The store was cleared, so the next minute emits nothing
+        topologyTestDriver.advanceWallClockTime(Duration.ofMinutes(1));
+        assertTrue(totals.isEmpty());
+    }
+
+    private void pipeSensorData(String name, String value, SensorData.SensorType type) {
+        sensorDataInput.pipeInput(name, SensorData.builder()
+                .name(name)
+                .timestamp(System.currentTimeMillis())
+                .value(value)
+                .type(type)
+                .unit("C")
+                .color("blue")
+                .city("Amsterdam")
+                .owner("Alice")
+                .build()
+                .toRecord());
     }
 }

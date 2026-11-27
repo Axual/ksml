@@ -39,11 +39,12 @@ import io.axual.ksml.data.schema.DataSchema;
 import io.axual.ksml.data.schema.StructSchema;
 import io.axual.ksml.data.type.StructType;
 import io.axual.ksml.definition.DefinitionConstants;
+import io.axual.ksml.definition.FunctionDefinition;
 import io.axual.ksml.definition.ParameterDefinition;
 import io.axual.ksml.definition.ProducerDefinition;
+import io.axual.ksml.definition.PythonSource;
 import io.axual.ksml.execution.ExecutionContext;
 import io.axual.ksml.metric.MetricTags;
-import io.axual.ksml.store.StateStores;
 import io.axual.ksml.type.UserType;
 import io.axual.ksml.user.UserFunction;
 import io.axual.ksml.user.UserGenerator;
@@ -254,13 +255,18 @@ class ExecutableProducerTest {
 
     // ---- instance-level produce tests (stubbed generator, no Python/GraalVM) -------------------
 
+    /** A function definition ns.name without code, for functions whose call is overridden. */
+    private static FunctionDefinition definition(String name, ParameterDefinition[] params, UserType resultType) {
+        return FunctionDefinition.as("generic", "ns", name, params, PythonSource.of(null, null, (String) null), resultType, null, List.of());
+    }
+
     /** A generator UserFunction whose {@code call} returns a fixed value, avoiding the Python runtime. */
     private static UserFunction generatorReturning(DataObject result) {
         // A generator must declare the tuple/list-of-tuples result type expected by UserGenerator.
         final var generatorResultType = new UserType(UserGenerator.EXPECTED_RESULT_TYPE);
-        return new UserFunction("ns", "gen", new ParameterDefinition[0], generatorResultType, List.of()) {
+        return new UserFunction(definition("gen", new ParameterDefinition[0], generatorResultType)) {
             @Override
-            public DataObject call(StateStores stores, DataObject... parameters) {
+            public DataObject call(Map<String, Object> injections, DataObject... parameters) {
                 return result;
             }
         };
@@ -274,7 +280,7 @@ class ExecutableProducerTest {
     /** A "produce once" strategy (no interval/count/until), so no Python predicates are needed. */
     private static ProducerStrategy onceStrategy(MetricTags tags) {
         final var definition = new ProducerDefinition(null, null, null, null, null, null, null);
-        return new ProducerStrategy(null, "ns", "gen", tags, definition);
+        return new ProducerStrategy(null, "gen", tags, definition);
     }
 
     private static Serializer<Object> passthroughSerializer() {
@@ -310,9 +316,9 @@ class ExecutableProducerTest {
                 new ParameterDefinition("value", DataString.DATATYPE),
                 new ParameterDefinition("numPartitions", DataInteger.DATATYPE)
         };
-        return new UserFunction("ns", "partitioner", params, resultType, List.of()) {
+        return new UserFunction(definition("partitioner", params, resultType)) {
             @Override
-            public DataObject call(StateStores stores, DataObject... parameters) {
+            public DataObject call(Map<String, Object> injections, DataObject... parameters) {
                 return result;
             }
         };
@@ -362,9 +368,9 @@ class ExecutableProducerTest {
                 new ParameterDefinition(DefinitionConstants.PARAM_HEADERS, DefinitionConstants.HEADERS_TYPE),
                 new ParameterDefinition("numPartitions", DataInteger.DATATYPE)
         };
-        final var partitioner = new UserFunction("ns", "partitioner", params, new UserType(UserStreamPartitioner.EXPECTED_RESULT_TYPE), List.of()) {
+        final var partitioner = new UserFunction(definition("partitioner", params, new UserType(UserStreamPartitioner.EXPECTED_RESULT_TYPE))) {
             @Override
-            public DataObject call(StateStores stores, DataObject... parameters) {
+            public DataObject call(Map<String, Object> injections, DataObject... parameters) {
                 seenHeaders.set(parameters[3]);
                 return new DataInteger(1);
             }

@@ -45,6 +45,7 @@ import io.axual.ksml.execution.ExecutionContext;
 import io.axual.ksml.execution.FatalError;
 import io.axual.ksml.generator.TopologyDefinition;
 import io.axual.ksml.parser.ParseNode;
+import io.axual.ksml.python.PythonContext;
 import io.axual.ksml.rest.server.ComponentState;
 import io.axual.ksml.rest.server.KsmlQuerier;
 import io.axual.ksml.rest.server.RestServer;
@@ -83,6 +84,8 @@ import tools.jackson.databind.JsonNode;
 
 import java.io.File;
 import java.io.PrintWriter;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.time.Duration;
 import java.util.Collection;
 import java.util.HashMap;
@@ -102,6 +105,7 @@ public class KSMLRunner {
     private static final String DEFAULT_CONFIG_FILE_SHORT = "ksml-runner.yaml";
     private static final String WRITE_KSML_SCHEMA_ARGUMENT = "--schema";
     private static final String WRITE_KSML_RUNNER_SCHEMA_ARGUMENT = "--runner-schema";
+    private static final String WRITE_PYTHON_MODULE_ARGUMENT = "--python-module";
     // The shutdown hook waits slightly longer than the Kafka Streams close itself, so a full close can finish
     private static final Duration SHUTDOWN_HOOK_TIMEOUT = KafkaStreamsRunner.CLOSE_TIMEOUT.plusSeconds(5);
     private static final Duration RUNNER_STARTUP_WAIT = Duration.ofSeconds(2);
@@ -117,6 +121,9 @@ public class KSMLRunner {
 
         @CommandLine.Option(names = {WRITE_KSML_RUNNER_SCHEMA_ARGUMENT}, description = "Print the KSML Runner configuration schema to the standard out, or to the file provided as argument", arity = "0..1", defaultValue = NULL_VALUE)
         String ksmlRunnerSchemaLocation = NULL_VALUE;
+
+        @CommandLine.Option(names = {WRITE_PYTHON_MODULE_ARGUMENT}, description = "Print the ksml Python module for code completion in an IDE to the standard out, or to the file provided as argument", arity = "0..1", defaultValue = NULL_VALUE)
+        String pythonModuleLocation = NULL_VALUE;
 
         private CommandLine.ParseResult parseResult;
 
@@ -140,6 +147,15 @@ public class KSMLRunner {
         public String ksmlRunnerSchemaLocation() {
             // Needed because value can be empty string instead of null
             return StringUtils.isNotBlank(ksmlRunnerSchemaLocation) ? ksmlRunnerSchemaLocation : null;
+        }
+
+        public boolean shouldPrintPythonModule() {
+            return parseResult.hasMatchedOption(WRITE_PYTHON_MODULE_ARGUMENT);
+        }
+
+        public String pythonModuleLocation() {
+            // Needed because value can be empty string instead of null
+            return StringUtils.isNotBlank(pythonModuleLocation) ? pythonModuleLocation : null;
         }
 
         /**
@@ -183,7 +199,7 @@ public class KSMLRunner {
 
         // Printing a schema runs in-process (also from tests), so return without System.exit
         if (shouldExit(cmd)) {
-            log.info("Exiting after schema");
+            log.debug("Exiting after printing a schema or the Python module");
             return;
         }
 
@@ -235,12 +251,12 @@ public class KSMLRunner {
             final var parsedDefinitions = parseDefinitions(definitions);
             final var definitionSplit = splitDefinitions(parsedDefinitions, ksmlConfig.enableProducers(), ksmlConfig.enablePipelines());
 
-            final var producer = createProducerRunner(definitionSplit.producers(), config, ksmlConfig);
-            final var streams = createStreamsRunner(definitionSplit.pipelines(), config, ksmlConfig);
-
-            if (producer != null || streams != null) {
-                runRunners(producer, streams, restServer, ksmlConfig.prometheusConfig());
-            }
+            try (final var producer = createProducerRunner(definitionSplit.producers(), config, ksmlConfig);
+                 final var streams = createStreamsRunner(definitionSplit.pipelines(), config, ksmlConfig)) {
+                    if (producer != null || streams != null) {
+                        runRunners(producer, streams, restServer, ksmlConfig.prometheusConfig());
+                    }
+                }
         } catch (Throwable t) {
             log.error("KSML Stopping because of unhandled exception");
             // report() logs the error; the exit code makes Docker or Kubernetes restart the process
@@ -494,6 +510,13 @@ public class KSMLRunner {
             log.info("Generating KSML Runner Configuration Schema");
             shouldExit = true;
             printRunnerSchema(cmd.ksmlRunnerSchemaLocation());
+        }
+
+        // Check if we need to output the ksml Python module and then exit. Nothing is logged at INFO level, which goes
+        // to the standard out, so the module can be redirected to a file.
+        if (cmd.shouldPrintPythonModule()) {
+            shouldExit = true;
+            printPythonModule(cmd.pythonModuleLocation());
         }
         return shouldExit;
     }
@@ -838,6 +861,37 @@ public class KSMLRunner {
             }
         } else {
             System.out.println(schema);
+        }
+    }
+
+    /**
+     * Returns the ksml Python module that ships with KSML, with a first line that names the KSML version.
+     */
+    static String pythonModuleWithVersionHeader() {
+        final var version = KsmlInfo.APP_VERSION.isBlank() ? "" : " " + KsmlInfo.APP_VERSION;
+        return "# The ksml module of KSML" + version + ", for code completion in an IDE. At runtime, KSML uses its own copy.\n"
+                + PythonContext.ksmlModuleCode();
+    }
+
+    @SuppressWarnings("java:S106")
+    private static void printPythonModule(String filename) {
+        final var module = pythonModuleWithVersionHeader();
+        if (filename != null) {
+            try {
+                Files.writeString(Path.of(filename), module);
+                log.info("ksml Python module written to file: {}", filename);
+            } catch (Exception e) {
+                log.atError()
+                        .setMessage("""
+                                Error writing ksml Python module to file: {}
+                                Error: {}
+                                """)
+                        .addArgument(filename)
+                        .addArgument(e::getMessage)
+                        .log();
+            }
+        } else {
+            System.out.print(module);
         }
     }
 

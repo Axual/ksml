@@ -28,10 +28,17 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class OperationConfig {
     private final String name;
+    // The name as written in the definition, or null when the definition gives none and the name was generated
+    private final String definedName;
     private final MetricTags tags;
 
     public OperationConfig(String name, MetricTags tags) {
+        this(name, null, tags);
+    }
+
+    public OperationConfig(String name, String definedName, MetricTags tags) {
         this.name = name;
+        this.definedName = definedName;
         this.tags = tags;
         log.debug("Generated operation name: {}", this.name);
     }

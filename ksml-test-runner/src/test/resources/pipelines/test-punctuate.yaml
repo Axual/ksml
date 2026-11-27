@@ -1,0 +1,53 @@
+streams:
+  numbers:
+    topic: ksml_numbers
+    keyType: string
+    valueType: string
+  totals:
+    topic: ksml_totals
+    keyType: string
+    valueType: string
+
+stores:
+  running_totals:
+    type: keyValue
+    keyType: string
+    valueType: long
+    persistent: false
+    caching: false
+    logging: false
+
+functions:
+  add_to_total:
+    type: forEach
+    stores:
+      - running_totals
+    code: |
+      running_totals.put(key, (running_totals.get(key) or 0) + int(value))
+
+  emit_totals:
+    type: punctuator
+    stores:
+      - running_totals
+    code: |
+      keys = []
+      for e in running_totals.all():
+        context.forward(e["key"], str(e["value"]))
+        keys.append(e["key"])
+      for k in keys:
+        running_totals.delete(k)
+
+pipelines:
+  sum_numbers:
+    from: numbers
+    via:
+      - type: peek
+        forEach: add_to_total
+      - type: filter
+        if:
+          expression: False
+      - type: punctuate
+        interval: 1m
+        punctuationType: wallClockTime
+        punctuator: emit_totals
+    to: totals

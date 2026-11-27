@@ -48,10 +48,10 @@ public class UserPredicate extends Invoker implements Predicate<Object, Object> 
     }
 
     public boolean test(StateStores stores, Object key, Object value) {
-        final var result = timeExecutionOf(() -> function.call(stores, NATIVE_MAPPER.toDataObject(key), NATIVE_MAPPER.toDataObject(value)));
+        final var result = timeExecutionOf(() -> function.call(function.withStores(stores), NATIVE_MAPPER.toDataObject(key), NATIVE_MAPPER.toDataObject(value)));
         if (result instanceof DataBoolean dataBoolean) {
             return dataBoolean.value();
         }
-        throw new ExecutionException("Expected a boolean back from the predicate function: " + function.name);
+        throw new ExecutionException("Expected a boolean back from the predicate function: " + function.definition.name());
     }
 }

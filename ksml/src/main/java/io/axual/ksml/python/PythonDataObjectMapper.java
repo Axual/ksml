@@ -49,8 +49,9 @@ public class PythonDataObjectMapper extends NativeDataObjectMapperWithSchema {
     @Override
     public DataObject toDataObject(DataType expected, Object object) {
         // If we got a polyglot Value object, then convert it below before letting the remainder be
-        // handled by the superclass
-        object = NATIVE_MAPPER.fromPython(object);
+        // handled by the superclass. The expected type decides how a Python number is read; a union
+        // is resolved per member below.
+        object = NATIVE_MAPPER.fromPython(expected instanceof UnionType ? null : expected, object);
 
         // If we expect a union dataType, then check its value types, else convert by value.
         if (expected instanceof UnionType unionType)

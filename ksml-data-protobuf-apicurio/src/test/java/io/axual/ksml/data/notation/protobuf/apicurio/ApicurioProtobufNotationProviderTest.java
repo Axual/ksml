@@ -80,4 +80,17 @@ class ApicurioProtobufNotationProviderTest {
                 .isInstanceOf(DataException.class)
                 .hasMessageContaining("Default4ByteIdHandler");
     }
+
+    @Test
+    @DisplayName("createNotation creates the registry client, so incomplete TLS settings fail at startup")
+    void createNotation_withIncompletePemSettings_throws() {
+        final Map<String, String> config = new HashMap<>();
+        config.put(SchemaResolverConfig.REGISTRY_URL, "http://registry:8081/apis/registry/v3");
+        config.put(SchemaResolverConfig.TLS_CLIENT_CERTIFICATE, "/certs/client.crt");
+        final var prov = new ApicurioProtobufNotationProvider();
+        final var ctx = new NotationContext(config);
+        assertThatThrownBy(() -> prov.createNotation(ctx))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining(SchemaResolverConfig.TLS_CLIENT_KEY);
+    }
 }

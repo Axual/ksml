@@ -27,6 +27,7 @@ import io.axual.ksml.data.object.DataTuple;
 import io.axual.ksml.data.type.ListType;
 import io.axual.ksml.definition.FunctionDefinition;
 import io.axual.ksml.definition.PythonSource;
+import io.axual.ksml.dsl.KSMLDSL;
 import io.axual.ksml.generator.StreamDataType;
 import io.axual.ksml.parser.UserTypeParser;
 import io.axual.ksml.python.PythonContext;
@@ -49,14 +50,13 @@ import java.util.Map;
  * Produces test data into TopologyTestDriver input topics from ProduceBlock definitions.
  * <p>
  * Uses KSML's {@link UserTypeParser} and {@link StreamDataType} to resolve type strings
- * (e.g. "avro:SensorData") into proper Kafka Serdes. Each produce block targets a stream
+ * (e.g. "avro:SensorData") into proper Kafka serdes. Each produce block targets a stream
  * declared in the suite's {@code streams:} map; the block's {@code to:} field carries the
  * stream key, and this class resolves it against the suite's stream map to obtain
  * topic + types.
  */
 @Slf4j
 public class TestDataProducer {
-
     private static final NativeDataObjectMapper NATIVE_MAPPER = new NativeDataObjectMapper();
     private static final String GENERATOR_NAMESPACE = "test";
 
@@ -89,65 +89,69 @@ public class TestDataProducer {
                     count, block.to(), stream.topic());
             produceGeneratedMessages(block, stream, count);
         }
+        if (block.advanceWallClockTime() != null) {
+            log.debug("Advancing wall-clock time by {} after produce block to stream '{}'", block.advanceWallClockTime(), block.to());
+            driver.advanceWallClockTime(block.advanceWallClockTime());
+        }
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
     private void produceInlineMessages(ProduceBlock block, StreamDefinition stream) {
-        var keySerde = resolveSerde(stream.keyType(), true);
-        var valueSerde = resolveSerde(stream.valueType(), false);
+        try (final var keySerde = resolveSerde(stream.keyType(), true);
+             final var valueSerde = resolveSerde(stream.valueType(), false)) {
+            TestInputTopic inputTopic = driver.createInputTopic(
+                    stream.topic(), keySerde.serializer(), valueSerde.serializer());
 
-        TestInputTopic inputTopic = driver.createInputTopic(
-                stream.topic(), keySerde.serializer(), valueSerde.serializer());
-
-        for (var msg : block.messages()) {
-            if (msg.timestamp() != null) {
-                inputTopic.pipeInput(msg.key(), msg.value(), Instant.ofEpochMilli(msg.timestamp()));
-            } else {
-                inputTopic.pipeInput(msg.key(), msg.value());
+            for (var msg : block.messages()) {
+                if (msg.timestamp() != null) {
+                    inputTopic.pipeInput(msg.key(), msg.value(), Instant.ofEpochMilli(msg.timestamp()));
+                } else {
+                    inputTopic.pipeInput(msg.key(), msg.value());
+                }
             }
         }
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
     private void produceGeneratedMessages(ProduceBlock block, StreamDefinition stream, long count) {
-        var generatorMap = block.generator();
-        var generatorName = getStringOrDefault(generatorMap, KSMLTestDSL.Produce.Generator.NAME, "test_generator");
-        var globalCode = getStringOrDefault(generatorMap, KSMLTestDSL.Produce.Generator.GLOBAL_CODE, "");
-        var code = getStringOrDefault(generatorMap, KSMLTestDSL.Produce.Generator.CODE, "");
-        var expression = getStringOrDefault(generatorMap, KSMLTestDSL.Produce.Generator.EXPRESSION, "result");
+        final var generatorMap = block.generator();
+        final var generatorName = getStringOrDefault(generatorMap, KSMLTestDSL.Produce.Generator.NAME, "test_generator");
+        final var globalCode = getStringOrDefault(generatorMap, KSMLTestDSL.Produce.Generator.GLOBAL_CODE, "");
+        final var code = getStringOrDefault(generatorMap, KSMLTestDSL.Produce.Generator.CODE, "");
+        final var expression = getStringOrDefault(generatorMap, KSMLTestDSL.Produce.Generator.EXPRESSION, "result");
 
         // Use a concrete ListType result type rather than GeneratorDefinition's UnionType default.
         // PythonDataObjectMapper cannot convert a polyglot Value when the expected type is a UnionType,
         // because polyglotValueToNative runs before the union dispatch. Real KSML generators always
         // specify an explicit resultType in YAML (e.g. "list(tuple(string, json))"), so this matches
         // established usage.
-        var resultType = new UserType(new ListType(new UserTupleType(UserType.UNKNOWN, UserType.UNKNOWN)));
-        var functionDef = FunctionDefinition.as(
-                "generator", generatorName, List.of(),
-                PythonSource.of(globalCode, code, expression), resultType, null);
+        final var resultType = new UserType(new ListType(new UserTupleType(UserType.UNKNOWN, UserType.UNKNOWN)));
+        final var functionDef = FunctionDefinition.as(
+                KSMLDSL.Functions.TYPE_GENERATOR, GENERATOR_NAMESPACE, generatorName, List.of(),
+                PythonSource.of(globalCode, code, expression), resultType, null, null);
 
         // Create a PythonContext and register the generator function
-        try (var pythonContext = new PythonContext(PythonContextConfig.builder().build())) {
-            var pythonFunction = PythonFunction.forGenerator(
-                pythonContext, GENERATOR_NAMESPACE, generatorName, functionDef);
+        try (final var pythonContext = new PythonContext(PythonContextConfig.builder().build())) {
+            final var pythonFunction = PythonFunction.forGenerator(pythonContext, functionDef);
 
             // Set up the input topic with proper serdes
-            var keySerde = resolveSerde(stream.keyType(), true);
-            var valueSerde = resolveSerde(stream.valueType(), false);
-            TestInputTopic inputTopic = driver.createInputTopic(
-                stream.topic(), keySerde.serializer(), valueSerde.serializer());
+            try (final var keySerde = resolveSerde(stream.keyType(), true);
+                 final var valueSerde = resolveSerde(stream.valueType(), false)) {
+                TestInputTopic inputTopic = driver.createInputTopic(
+                        stream.topic(), keySerde.serializer(), valueSerde.serializer());
 
-            // Invoke the generator 'count' times and pipe results
-            int totalMessages = 0;
-            for (long i = 0; i < count; i++) {
-                var generated = pythonFunction.call();
-                var messages = extractKeyValuePairs(generated);
-                for (var pair : messages) {
-                    inputTopic.pipeInput(pair[0], pair[1]);
-                    totalMessages++;
+                // Invoke the generator 'count' times and pipe results
+                int totalMessages = 0;
+                for (long i = 0; i < count; i++) {
+                    var generated = pythonFunction.call();
+                    var messages = extractKeyValuePairs(generated);
+                    for (var pair : messages) {
+                        inputTopic.pipeInput(pair[0], pair[1]);
+                        totalMessages++;
+                    }
                 }
+                log.debug("Generator produced {} messages to topic '{}'", totalMessages, stream.topic());
             }
-            log.debug("Generator produced {} messages to topic '{}'", totalMessages, stream.topic());
         }
     }
 
@@ -155,7 +159,7 @@ public class TestDataProducer {
      * Extract key/value pairs from a generator result (always a list of tuples).
      */
     private List<Object[]> extractKeyValuePairs(DataObject generated) {
-        var result = new ArrayList<Object[]>();
+        final var result = new ArrayList<Object[]>();
         if (generated instanceof DataList list) {
             for (DataObject element : list) {
                 if (element instanceof DataTuple tuple && tuple.elements().size() == 2) {
@@ -174,7 +178,7 @@ public class TestDataProducer {
     }
 
     private StreamDefinition resolveStream(String streamKey) {
-        var stream = streams.get(streamKey);
+        final var stream = streams.get(streamKey);
         if (stream == null) {
             // Should not happen — parser already validated references — but defend in depth.
             throw new TestDefinitionException(
@@ -193,13 +197,13 @@ public class TestDataProducer {
         }
 
         try {
-            var parsed = new UserTypeParser().parse(type);
+            final var parsed = new UserTypeParser().parse(type);
             if (parsed.isError()) {
                 throw new TestDefinitionException("Cannot resolve type '" + type + "': " + parsed.errorMessage());
             }
 
-            var userType = parsed.result();
-            var streamDataType = new StreamDataType(userType, isKey);
+            final var userType = parsed.result();
+            final var streamDataType = new StreamDataType(userType, isKey);
             log.debug("Resolved type '{}' to StreamDataType: {}", type, streamDataType);
             return streamDataType.serde();
         } catch (TestDefinitionException e) {
@@ -230,7 +234,7 @@ public class TestDataProducer {
     }
 
     private static String getStringOrDefault(Map<String, Object> map, String key, String defaultValue) {
-        var val = map.get(key);
+        final var val = map.get(key);
         if (val == null) return defaultValue;
         if (!(val instanceof String)) {
             throw new TestDefinitionException(

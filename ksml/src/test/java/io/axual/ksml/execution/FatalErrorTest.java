@@ -20,6 +20,7 @@ package io.axual.ksml.execution;
  * =========================LICENSE_END==================================
  */
 
+import io.apicurio.registry.rest.client.models.ProblemDetails;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -59,5 +60,14 @@ class FatalErrorTest {
         final var reported = FatalError.report(new IllegalStateException("inner"));
         final var log = stderrOf(() -> FatalError.report(new RuntimeException("outer", reported)));
         assertThat(log).contains("Description: outer").doesNotContain("Description: inner");
+    }
+
+    @Test
+    @DisplayName("report describes an Apicurio ProblemDetails by its detail and status, as its message is empty")
+    void reportDescribesProblemDetails() throws Exception {
+        final var problem = new ProblemDetails();
+        problem.setDetail("Unauthorized");
+        problem.setStatus(401);
+        assertThat(stderrOf(() -> FatalError.report(problem))).contains("Description: Unauthorized(401)");
     }
 }

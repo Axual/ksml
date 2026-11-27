@@ -104,21 +104,22 @@ public abstract class OperationParser<T extends BaseOperation> extends Definitio
         };
     }
 
-    protected OperationConfig operationConfig(String name, MetricTags tags) {
-        name = FieldParsers.validateName("Operation", name, defaultLongName != null ? defaultLongName + "_" + type : type);
+    protected OperationConfig operationConfig(String definedName, MetricTags tags) {
+        final var name = FieldParsers.validateName("Operation", definedName, defaultLongName != null ? defaultLongName + "_" + type : type);
         return new OperationConfig(
                 name != null ? resources().getUniqueOperationName(name) : resources().getUniqueOperationName(tags),
+                definedName,
                 tags);
     }
 
-    protected StoreOperationConfig storeOperationConfig(String name, MetricTags tags, StateStoreDefinition store) {
-        name = FieldParsers.validateName("Store", name, defaultShortName, true);
-        return new StoreOperationConfig(name != null ? resources().getUniqueOperationName(name) : resources().getUniqueOperationName(tags), tags, store);
+    protected StoreOperationConfig storeOperationConfig(String definedName, MetricTags tags, StateStoreDefinition store) {
+        final var name = FieldParsers.validateName("Store", definedName, defaultShortName, true);
+        return new StoreOperationConfig(name != null ? resources().getUniqueOperationName(name) : resources().getUniqueOperationName(tags), definedName, tags, store);
     }
 
-    protected DualStoreOperationConfig dualStoreOperationConfig(String name, MetricTags tags, StateStoreDefinition store1, StateStoreDefinition store2) {
-        name = FieldParsers.validateName("Store", name, defaultShortName, true);
-        return new DualStoreOperationConfig(name != null ? resources().getUniqueOperationName(name) : resources().getUniqueOperationName(tags), tags, store1, store2);
+    protected DualStoreOperationConfig dualStoreOperationConfig(String definedName, MetricTags tags, StateStoreDefinition store1, StateStoreDefinition store2) {
+        final var name = FieldParsers.validateName("Store", definedName, defaultShortName, true);
+        return new DualStoreOperationConfig(name != null ? resources().getUniqueOperationName(name) : resources().getUniqueOperationName(tags), definedName, tags, store1, store2);
     }
 
     protected StructsParser<StateStoreDefinition> storeField(boolean required, String doc, StoreType expectedStoreType) {

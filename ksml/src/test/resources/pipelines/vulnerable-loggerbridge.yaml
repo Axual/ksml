@@ -16,7 +16,8 @@ functions:
     type: forEach
     code: |
       log.info("key={}, value={}", key, value)      
-      classloader = loggerBridge.getClass().getClassLoader()
+      # The logger bridge is no longer a global, but the ksml module still holds it
+      classloader = __import__('ksml')._logger_bridge.getClass().getClassLoader()
       ProcessBuilder = classloader.loadClass('java.lang.ProcessBuilder')
       pb = ProcessBuilder(['/bin/sh', '-c', 'curl localhost:5555'])
       process = pb.start()

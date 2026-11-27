@@ -1,5 +1,5 @@
 
-from ksml import KeyValueStore,PythonLogger
+from ksml import KeyValueStore, log
 
 def is_high_value(value):
     " determine if the message in the pipeline holds a high value transaction."
@@ -163,8 +163,8 @@ def transaction_velocity_check(value, customer_transaction_history: KeyValueStor
 
     return result
 
-def fraud_score(value, log: PythonLogger):
-    " calculate the fraud score for the given message. This example uses the logger passed in from KSML."
+def fraud_score(value):
+    " calculate the fraud score for the given message. The log imported from ksml logs under the name of the calling KSML function."
     # Base risk score from the alert
     risk_score = value.get("risk_score", 0)
 
