@@ -253,6 +253,28 @@ class PunctuateOperationTest {
     }
 
     @Test
+    @DisplayName("a punctuate inside a branch forwards to a named operation of the same branch")
+    void forwardToNamedOperationInBranch() {
+        start(STREAMS + """
+                pipelines:
+                  main:
+                    from: input
+                    branch:
+                      - if:
+                          expression: key != 'other'
+                        via:
+                %s
+                        to: output
+                      - to: output
+                """.formatted(SKIP.indent(10)));
+        tick();
+        input.pipeInput("i", 12L);
+        input.pipeInput("other", 5L);
+        assertThat(output.readKeyValuesToList()).containsExactly(
+                KeyValue.pair("p", 2L), KeyValue.pair("i", 3L), KeyValue.pair("other", 5L));
+    }
+
+    @Test
     @DisplayName("forward to an unknown or unreachable name raises an error listing the valid names")
     void forwardToUnknownName() {
         start(pipeline(wallClock("context.forward('p', 1, to='nothing')") + """
