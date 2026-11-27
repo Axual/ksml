@@ -34,6 +34,7 @@ import java.util.List;
 
 @Getter
 @EqualsAndHashCode
+@SuppressWarnings("java:S2160") // Lombok writes equals and hashCode
 public class FunctionDefinition extends AbstractDefinition {
     private static final String[] EMPTY_STRING_ARRAY = {};
     private static final ParameterDefinition[] EMPTY_PARAMETER_ARRAY = {};
