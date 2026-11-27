@@ -96,7 +96,7 @@
         <jakarta.validation.version>3.1.1</jakarta.validation.version>
         <janino.version>3.1.12</janino.version>
         <jersey.version>4.0.3</jersey.version>
-        <logback.version>1.6.7</logback.version>
+        <logback.version>1.6.8</logback.version>
         <logstash-logback-encoder.version>9.0</logstash-logback-encoder.version>
         <lombok.version>1.18.48</lombok.version>
         <picocli.version>4.7.7</picocli.version>
@@ -106,7 +106,7 @@
         <saaj.version>3.0.6</saaj.version>
         <slf4j.version>2.1.0-alpha1</slf4j.version>
         <victools.version>5.0.0</victools.version>
-        <wire.version>7.2.1</wire.version>
+        <wire.version>7.2.2</wire.version>
 
         <!-- KSML schema generation -->
         <ksml.schema.output.file>docs/ksml-language-spec.json</ksml.schema.output.file>
