@@ -130,4 +130,4 @@ Use the setup in `docs/local-docker-compose-setup-with-sr` (Kafka, Apicurio sche
 
 ## SonarCloud
 
-The project is analysed by SonarCloud. The `sonar-issues` skill (`.claude/skills/sonar-issues`) reads the issues and the quality gate of a pull request or branch from the SonarCloud API. It needs your own SonarCloud token in the file `.sonar-token` in the repository root, which git ignores.
+The project is analysed by SonarCloud. The `sonar-issues` skill (`.claude/skills/sonar-issues`) reads the issues and the quality gate of a pull request or branch from the SonarCloud API. It needs your own SonarCloud token in the file `.sonar-token` in the root of your checkout (in a worktree, the main checkout also works), which git ignores.

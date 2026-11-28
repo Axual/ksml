@@ -12,21 +12,22 @@ This project is analysed by SonarCloud. You can read the results straight from t
 - Host: `https://sonarcloud.io`
 - Organization: `axual-github`
 - Project key: `ksml` (display name is `ksml-parent`)
-- Token: your own SonarCloud user token, in the file `.sonar-token` in the root of the main checkout (one line). Git ignores this file, and all worktrees of the checkout use it. Create a token at https://sonarcloud.io/account/security. As an alternative, set the environment variable `SONAR_TOKEN`.
+- Token: your own SonarCloud user token, in the file `.sonar-token` (one line) in the root of your checkout. In a worktree, the file in the main checkout also works, so all worktrees can share one file. Git ignores this file. Create a token at https://sonarcloud.io/account/security. As an alternative, set the environment variable `SONAR_TOKEN`.
 
 These values come from the root `pom.xml` (`sonar.organization`, `sonar.host.url`, and `sonar.projectKey` inside the `sonarqube` profile). If a lookup fails, read those properties again first.
 
 Pass the token as the HTTP basic auth user name with an empty password:
 
 ```bash
-TOKEN=${SONAR_TOKEN:-$(tr -d '\n' < "$(dirname "$(git rev-parse --path-format=absolute --git-common-dir)")/.sonar-token")}
+for d in "$(git rev-parse --show-toplevel)" "$(dirname "$(git rev-parse --path-format=absolute --git-common-dir)")"; do
+  [ -f "$d/.sonar-token" ] && TOKEN=$(tr -d '\r\n' < "$d/.sonar-token") && break
+done
+TOKEN=${SONAR_TOKEN:-$TOKEN}
 curl -s -u "$TOKEN:" "https://sonarcloud.io/api/authentication/validate"
 # -> {"valid":true}
 ```
 
-`git rev-parse --git-common-dir` is the `.git` folder of the main checkout, also when you run it in a worktree, so its parent folder is where `.sonar-token` lives.
-
-If the file is missing and `SONAR_TOKEN` is not set, stop and ask the user to create the file. Do not look for a token anywhere else.
+If no file is found and `SONAR_TOKEN` is not set, stop and ask the user to create the file. Do not look for a token anywhere else.
 
 Never print the token, and never commit it.
 
@@ -70,6 +71,8 @@ for i in d['issues']:
 "
 ```
 
+For a PR that SonarCloud does not have, this call returns `total: 0` with no error. Check Step 1 first, so you do not report "0 issues" by mistake.
+
 Useful extra query parameters:
 
 - `types=BUG,VULNERABILITY,CODE_SMELL` - filter by kind
@@ -105,9 +108,11 @@ Ratings are numbers: `1.0` = A, `2.0` = B, `3.0` = C, and so on.
 Security hotspots have their own endpoint and are not part of `api/issues/search`:
 
 ```bash
-curl -s -u "$TOKEN:" "https://sonarcloud.io/api/hotspots/search?projectKey=ksml&pullRequest=669" \
+curl -s -u "$TOKEN:" "https://sonarcloud.io/api/hotspots/search?projectKey=ksml&pullRequest=<number>&status=TO_REVIEW" \
   | python3 -m json.tool
 ```
+
+`status=TO_REVIEW` leaves out the hotspots that a person already marked as reviewed. If the answer is "Project 'ksml' doesn't exist", SonarCloud has no analysis for that PR (old PRs are removed). Check Step 1.
 
 ## Step 4: read the flagged code
 
@@ -149,5 +154,5 @@ Do not report resolved or closed issues as if they still need work.
 
 ## History
 
-- 2026-11-28: The hotspots call needs `projectKey=ksml`. With `project=ksml` the API returns an error.
-- 2026-11-28: Read `.sonar-token` from the main checkout, so worktrees work without a copy of the file.
+- 2026-11-28 (#790): The hotspots call needs `projectKey=ksml` and `status=TO_REVIEW`.
+- 2026-11-28 (#790): Read `.sonar-token` from the checkout, then from the main checkout, so worktrees can share one file.
